@@ -733,6 +733,24 @@ class ApiService {
     return this.fetchWithRetry(url)
   }
 
+  // Stored raw readings for one ThingSpeak channel, newest first, keyed by field1..field20 (GET /data-sync/raw)
+  async getRawChannelData(params: {
+    channelId: string | number
+    start?: string
+    end?: string
+    limit?: number
+  }): Promise<Array<Record<string, any>>> {
+    const endpoint = this.getEndpoint('/data-sync/raw')
+    const queryString = this.buildQueryString({
+      channel_id: String(params.channelId),
+      start: params.start,
+      end: params.end,
+      limit: params.limit,
+    })
+    const response = await this.fetchWithRetry<{ data?: Array<Record<string, any>> }>(`${this.baseUrl}${endpoint}${queryString}`)
+    return Array.isArray(response?.data) ? response.data : []
+  }
+
   // Get device performance data (GET /devices/performance)
   async getDevicePerformanceData(data: {
     start: string

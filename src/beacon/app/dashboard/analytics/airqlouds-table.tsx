@@ -23,14 +23,41 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { Search, ArrowUpDown, ChevronRight, Loader2 } from "lucide-react"
-import { airQloudService, type AirQloudWithPerformance } from "@/services/airqloud.service"
+import {
+  airQloudService,
+  type AirQloudWithPerformance,
+  type AirQloudsQueryParams,
+  type PerformanceEntityType,
+} from "@/services/airqloud.service"
 import type { GridAdminLevel } from "@/types/api.types"
+import type { DeviceDiagnostics, DiagnosticsSummary } from "@/types/diagnostics"
 import { useGroup } from "@/lib/group-context"
+import { DeviceHealthCell, GroupHealthCell } from "@/components/diagnostics/HealthSummary"
+import { formatCompactNumber } from "@/lib/utils"
 
-type PerformanceEntityType = "cohorts" | "grids"
 type GridAdminLevelFilter = GridAdminLevel | "all"
 
 const STANDARD_PAGE_SIZE = 5
+
+const ENTITY_LABELS: Record<PerformanceEntityType, string> = {
+  cohorts: "Cohorts",
+  grids: "Grids",
+  sites: "Sites",
+  devices: "Devices",
+}
+
+// Window the table summarises: `performanceDays` full days ending yesterday.
+const getPerformanceWindow = (performanceDays: number) => {
+  const endDate = new Date()
+  endDate.setDate(endDate.getDate() - 1)
+  endDate.setHours(23, 59, 59, 999)
+
+  const startDate = new Date(endDate)
+  startDate.setDate(endDate.getDate() - performanceDays + 1)
+  startDate.setHours(0, 0, 0, 0)
+
+  return { startDate, endDate }
+}
 
 const GRID_ADMIN_LEVEL_OPTIONS: Array<{ label: string; value: GridAdminLevelFilter }> = [
   { label: "All admin levels", value: "all" },
@@ -59,6 +86,10 @@ interface ProcessedAirQloud {
   uptimeHistory: Array<{ value: number; timestamp: string }>
   errorMarginHistory: Array<{ value: number; timestamp: string }>
   correlationHistory: Array<{ value: number; timestamp: string }>
+  /** Device score, or the devices' average score for a cohort, grid or site; used for sorting */
+  healthScore: number | null
+  diagnosis: DeviceDiagnostics | null
+  diagnosticsSummary: DiagnosticsSummary | null
 }
 
 interface AirQloudsTableProps {
@@ -320,6 +351,10 @@ const processAirQloudData = (airqloud: AirQloudWithPerformance, performanceDays:
     }).length;
   }
 
+  // A device entity carries its own diagnosis; cohorts, grids and sites carry a roll-up.
+  const diagnosis = (airqloud as { diagnostics?: DeviceDiagnostics | null }).diagnostics ?? null
+  const diagnosticsSummary = airqloud.diagnostics_summary ?? null
+
   return {
     id: airqloud.id || airqloud._id || airqloud.name,
     name: airqloud.name,
@@ -333,6 +368,9 @@ const processAirQloudData = (airqloud: AirQloudWithPerformance, performanceDays:
     uptimeHistory: summary.uptimeHistory,
     errorMarginHistory: summary.errorMarginHistory,
     correlationHistory: summary.correlationHistory,
+    healthScore: diagnosis?.overall_health_score ?? diagnosticsSummary?.average_health_score ?? null,
+    diagnosis,
+    diagnosticsSummary,
   }
 }
 
@@ -364,9 +402,39 @@ export default function AirQloudsTable({ performanceDays = 14, entityType = "coh
   const [error, setError] = useState<string | null>(null)
   const [isExporting, setIsExporting] = useState(false)
   const isGridMode = entityType === "grids"
-  const entityLabel = isGridMode ? "Grids" : "Cohorts"
+  const isCohortMode = entityType === "cohorts"
+  const isDeviceMode = entityType === "devices"
+  const entityLabel = ENTITY_LABELS[entityType]
   const defaultTitle = `${entityLabel} Performance`
   const selectedGridAdminLevel = gridAdminLevel === "all" ? undefined : gridAdminLevel
+
+  // Fetch one page of the current entity type with performance for the window
+  const fetchEntities = (skip: number, limit: number, tags: string[] = cohortTags) => {
+    const { startDate, endDate } = getPerformanceWindow(performanceDays)
+    const params: AirQloudsQueryParams = {
+      includePerformance: true,
+      summary: true,
+      startDateTime: startDate.toISOString(),
+      endDateTime: endDate.toISOString(),
+      frequency: 'hourly',
+      search: searchTerm || undefined,
+      limit,
+      skip,
+      group: activeGroup ?? undefined,
+      includeDiagnostics: true,
+    }
+
+    switch (entityType) {
+      case "grids":
+        return airQloudService.getGrids({ ...params, admin_level: selectedGridAdminLevel })
+      case "sites":
+        return airQloudService.getSites(params)
+      case "devices":
+        return airQloudService.getDevicesWithPerformance(params)
+      default:
+        return airQloudService.getAirQlouds({ ...params, tags: tags.length > 0 ? tags.join(",") : undefined })
+    }
+  }
 
   // Fetch data from API
   const fetchAirQlouds = async () => {
@@ -379,50 +447,11 @@ export default function AirQloudsTable({ performanceDays = 14, entityType = "coh
       const safePageSize = Number.isFinite(pageSize) && pageSize > 0 ? pageSize : 5
       const skip = (safePage - 1) * safePageSize
 
-      const endDate = new Date()
-      endDate.setDate(endDate.getDate() - 1)
-      endDate.setHours(23, 59, 59, 999)
+      let response = await fetchEntities(skip, pageSize)
 
-      const startDate = new Date(endDate)
-      startDate.setDate(endDate.getDate() - performanceDays + 1)
-      startDate.setHours(0, 0, 0, 0)
-
-      let response
-
-      if (isGridMode) {
-        response = await airQloudService.getGrids({
-          includePerformance: true,
-          summary: true,
-          startDateTime: startDate.toISOString(),
-          endDateTime: endDate.toISOString(),
-          frequency: 'hourly',
-          search: searchTerm || undefined,
-          limit: pageSize,
-          skip: skip,
-          admin_level: selectedGridAdminLevel,
-          group: activeGroup,
-        })
-      } else {
-        const fetchCohortsByTags = async (tags: string[]) => {
-          return airQloudService.getAirQlouds({
-            includePerformance: true,
-            summary: true,
-            startDateTime: startDate.toISOString(),
-            endDateTime: endDate.toISOString(),
-            frequency: 'hourly',
-            search: searchTerm || undefined,
-            limit: pageSize,
-            skip: skip,
-            tags: tags.length > 0 ? tags.join(",") : undefined,
-            group: activeGroup,
-          })
-        }
-
-        let effectiveTags = cohortTags
-        response = await fetchCohortsByTags(effectiveTags)
-
-        if ((response.airqlouds?.length ?? 0) > 0 && effectiveTags.length === 1) {
-          lastSuccessfulCohortTagRef.current = effectiveTags[0]
+      if (isCohortMode) {
+        if ((response.airqlouds?.length ?? 0) > 0 && cohortTags.length === 1) {
+          lastSuccessfulCohortTagRef.current = cohortTags[0]
         }
 
         const canFallback = (response.airqlouds?.length ?? 0) === 0 && !searchTerm.trim()
@@ -434,10 +463,10 @@ export default function AirQloudsTable({ performanceDays = 14, entityType = "coh
             "duplicate",
             "inlab",
             "misc",
-          ].filter((tag, index, arr) => Boolean(tag) && arr.indexOf(tag) === index && !effectiveTags.includes(tag))
+          ].filter((tag, index, arr) => Boolean(tag) && arr.indexOf(tag) === index && !cohortTags.includes(tag))
 
           for (const fallbackTag of fallbackTags) {
-            const fallbackResponse = await fetchCohortsByTags([fallbackTag])
+            const fallbackResponse = await fetchEntities(skip, pageSize, [fallbackTag])
             if ((fallbackResponse.airqlouds?.length ?? 0) > 0) {
               response = fallbackResponse
               lastSuccessfulCohortTagRef.current = fallbackTag
@@ -466,9 +495,9 @@ export default function AirQloudsTable({ performanceDays = 14, entityType = "coh
   }
 
   useEffect(() => {
-    // Reset page to 1 when search changes
+    // Reset page to 1 when search or the entity type changes
     setPage(1)
-  }, [searchTerm, gridAdminLevel, activeGroup])
+  }, [searchTerm, gridAdminLevel, activeGroup, entityType])
 
   useEffect(() => {
     if (groupLoading || isTagsLocked) return
@@ -528,7 +557,12 @@ export default function AirQloudsTable({ performanceDays = 14, entityType = "coh
   }
 
   const handleRowClick = (airqloudId: string) => {
-    router.push(`/dashboard/analytics/${airqloudId}${isGridMode ? '?type=grid' : ''}`)
+    if (isDeviceMode) {
+      router.push(`/dashboard/devices/${encodeURIComponent(airqloudId)}`)
+      return
+    }
+    const typeQuery = isGridMode ? '?type=grid' : entityType === "sites" ? '?type=site' : ''
+    router.push(`/dashboard/analytics/${airqloudId}${typeQuery}`)
   }
 
   // Mini bar graph component for uptime history
@@ -668,39 +702,7 @@ export default function AirQloudsTable({ performanceDays = 14, entityType = "coh
       // Fetch all data matching current filters
       const limit = totalItems > 0 ? totalItems : 1000
 
-      const endDate = new Date()
-      endDate.setDate(endDate.getDate() - 1)
-      endDate.setHours(23, 59, 59, 999)
-
-      const startDate = new Date(endDate)
-      startDate.setDate(endDate.getDate() - performanceDays + 1)
-      startDate.setHours(0, 0, 0, 0)
-
-      const response = isGridMode ? await airQloudService.getGrids({
-        includePerformance: true,
-        summary: true,
-        startDateTime: startDate.toISOString(),
-        endDateTime: endDate.toISOString(),
-        frequency: 'hourly',
-        search: searchTerm || undefined,
-        limit: limit,
-        skip: 0,
-        admin_level: selectedGridAdminLevel,
-        group: activeGroup,
-      }) : await airQloudService.getAirQlouds({
-        includePerformance: true,
-        summary: true,
-        startDateTime: startDate.toISOString(),
-        endDateTime: endDate.toISOString(),
-        frequency: 'hourly',
-        search: searchTerm || undefined,
-        limit: limit,
-        skip: 0,
-        tags: cohortTags.length > 0 ? cohortTags.join(",") : undefined,
-        group: activeGroup,
-      })
-
-      const { airqlouds } = response
+      const { airqlouds } = await fetchEntities(0, limit)
       const dataToExport = airqlouds.map(aq => processAirQloudData(aq, performanceDays))
 
       // Sort data to match current view
@@ -725,12 +727,13 @@ export default function AirQloudsTable({ performanceDays = 14, entityType = "coh
         return 0
       })
 
-      const headers = ["Name", "Location", "Uptime (%)", "Devices", "Error Margin (µg/m³)", "Correlation"]
+      const headers = ["Name", "Location", "Uptime (%)", isDeviceMode ? "Health Score" : "Average Health Score", isDeviceMode ? "Status" : "Devices", "Error Margin (µg/m³)", "Correlation"]
       const rows = dataToExport.map(aq => [
         escapeCSVValue(aq.name),
         escapeCSVValue(aq.location || ""),
         escapeCSVValue(aq.uptime !== null ? aq.uptime.toFixed(2) : "N/A"),
-        escapeCSVValue(aq.numberOfDevices),
+        escapeCSVValue(aq.healthScore ?? "N/A"),
+        escapeCSVValue(isDeviceMode ? (aq.offlineDevices ? "Offline" : "Online") : aq.numberOfDevices),
         escapeCSVValue(aq.errorMargin !== null ? aq.errorMargin.toFixed(2) : "N/A"),
         escapeCSVValue(aq.correlation !== null ? aq.correlation.toFixed(3) : "N/A"),
       ])
@@ -744,7 +747,7 @@ export default function AirQloudsTable({ performanceDays = 14, entityType = "coh
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement("a")
       a.href = url
-      a.download = `${isGridMode ? 'grids' : 'airqlouds'}-analytics-${new Date().toISOString().split("T")[0]}.csv`
+      a.download = `${isCohortMode ? 'airqlouds' : entityType}-analytics-${new Date().toISOString().split("T")[0]}.csv`
       a.click()
       window.URL.revokeObjectURL(url) // Clean up to prevent memory leak
     } catch (err) {
@@ -808,7 +811,7 @@ export default function AirQloudsTable({ performanceDays = 14, entityType = "coh
           )}
         </div>
         {/* Tag Filters - hidden when tags are locked */}
-        {!isGridMode && !isTagsLocked && (
+        {isCohortMode && !isTagsLocked && (
           <div className="flex flex-wrap gap-2 mt-4">
             {availableTags.map(tag => (
               <Badge
@@ -864,10 +867,20 @@ export default function AirQloudsTable({ performanceDays = 14, entityType = "coh
                     <TableHead>
                       <Button
                         variant="ghost"
-                        onClick={() => handleSort("numberOfDevices")}
+                        onClick={() => handleSort("healthScore")}
                         className="hover:bg-transparent p-0 h-auto font-semibold"
                       >
-                        Devices
+                        Health
+                        <ArrowUpDown className="ml-2 h-4 w-4" />
+                      </Button>
+                    </TableHead>
+                    <TableHead>
+                      <Button
+                        variant="ghost"
+                        onClick={() => handleSort(isDeviceMode ? "offlineDevices" : "numberOfDevices")}
+                        className="hover:bg-transparent p-0 h-auto font-semibold"
+                      >
+                        {isDeviceMode ? "Status" : "Devices"}
                         <ArrowUpDown className="ml-2 h-4 w-4" />
                       </Button>
                     </TableHead>
@@ -928,8 +941,21 @@ export default function AirQloudsTable({ performanceDays = 14, entityType = "coh
                           )}
                         </TableCell>
                         <TableCell>
+                          {isDeviceMode ? (
+                            <DeviceHealthCell diagnosis={airqloud.diagnosis} />
+                          ) : (
+                            <GroupHealthCell summary={airqloud.diagnosticsSummary} />
+                          )}
+                        </TableCell>
+                        <TableCell>
                           <div className="flex items-center gap-2">
-                            {airqloud.offlineDevices != null ? (
+                            {isDeviceMode ? (
+                              airqloud.offlineDevices ? (
+                                <Badge variant="outline" className="text-red-500">Offline</Badge>
+                              ) : (
+                                <Badge variant="outline" className="text-green-600">Online</Badge>
+                              )
+                            ) : airqloud.offlineDevices != null ? (
                               <>
                                 <Badge variant="outline">{airqloud.numberOfDevices - airqloud.offlineDevices}/{airqloud.numberOfDevices}</Badge>
                                 {airqloud.offlineDevices > 0 && (
@@ -949,8 +975,8 @@ export default function AirQloudsTable({ performanceDays = 14, entityType = "coh
                               history={airqloud.errorMarginHistory}
                               average={airqloud.errorMargin}
                               valueLabel="Error margin"
-                              formatAverage={(v) => `±${v.toFixed(1)}`}
-                              formatValue={(v) => `±${v.toFixed(2)} µg/m³`}
+                              formatAverage={(v) => `±${formatCompactNumber(v, 1)}`}
+                              formatValue={(v) => `±${formatCompactNumber(v, 2)} µg/m³`}
                               getBarColor={(v) => {
                                 if (v <= 3) return "bg-green-500 hover:bg-green-600"
                                 if (v <= 5) return "bg-yellow-500 hover:bg-yellow-600"

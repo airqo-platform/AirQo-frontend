@@ -22,7 +22,10 @@ import {
   Check,
 } from "lucide-react"
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
+import { formatCompactNumber } from "@/lib/utils"
+import { DeviceIssuesSummary } from "@/components/diagnostics/DeviceIssuesSummary"
 
 interface DeviceDetailsPanelProps {
   device: MaintenanceMapItem
@@ -58,6 +61,7 @@ export const DeviceDetailsPanel: React.FC<DeviceDetailsPanelProps> = ({
   onFocusMap,
 }) => {
   const { toast } = useToast()
+  const pathname = usePathname()
   const { activeGroup, loading: groupLoading } = useGroup()
   const [history, setHistory] = useState<MiniHistory>({
     uptime: [],
@@ -74,7 +78,7 @@ export const DeviceDetailsPanel: React.FC<DeviceDetailsPanelProps> = ({
   const isOffline = uptimePct === 0 || !device.last_active
 
   const em = Number(device.error_margin)
-  const errorMarginStr = Number.isFinite(em) ? em.toFixed(2) : "N/A"
+  const errorMarginStr = Number.isFinite(em) ? formatCompactNumber(em, 2) : "N/A"
 
   // Fetch 14-day history
   useEffect(() => {
@@ -502,8 +506,8 @@ export const DeviceDetailsPanel: React.FC<DeviceDetailsPanelProps> = ({
               {/* Error Margin Trend */}
               {renderBars(history.error, {
                 label: "Sensor Error Drift",
-                avgFormat: (v) => `±${v.toFixed(1)}`,
-                format: (v) => `±${v.toFixed(2)} µg/m³`,
+                avgFormat: (v) => `±${formatCompactNumber(v, 1)}`,
+                format: (v) => `±${formatCompactNumber(v, 2)} µg/m³`,
                 barColor: (v) => (v <= 5 ? "bg-emerald-500" : v <= 15 ? "bg-amber-500" : "bg-red-500"),
                 normalize: (v, all) => v / Math.max(10, ...all),
               })}
@@ -519,6 +523,9 @@ export const DeviceDetailsPanel: React.FC<DeviceDetailsPanelProps> = ({
             </div>
           )}
         </div>
+
+        {/* Latest daily diagnosis and reported status codes */}
+        <DeviceIssuesSummary deviceId={device.device_id} />
 
         {/* Action Buttons */}
         <div className="pt-2 space-y-2">
@@ -547,7 +554,7 @@ export const DeviceDetailsPanel: React.FC<DeviceDetailsPanelProps> = ({
           )}
 
           <Link
-            href={`/dashboard/analytics/${device.device_name || device.device_id}`}
+            href={`/dashboard/devices/${encodeURIComponent(device.device_id)}?tab=diagnostics&returnTo=${encodeURIComponent(pathname || "/dashboard/maintenance")}`}
             className="w-full py-2 px-3 bg-white hover:bg-gray-50 text-gray-600 border border-gray-200 rounded-lg text-xs font-medium flex items-center justify-center gap-1.5 transition-colors"
           >
             <span>Open Full Diagnostics</span>

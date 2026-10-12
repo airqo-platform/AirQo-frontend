@@ -111,7 +111,7 @@ const buildFeedbackMetadata = (pathname: string) => {
 
   return {
     page: pathname,
-    pageTitle: getPageTitle(pathname, new URLSearchParams(window.location.search)),
+    pageTitle: getPageTitle(pathname),
     browser: getBrowserLabel(),
     appVersion: getAppVersion(),
     screenResolution: `${window.screen.width}x${window.screen.height}`,

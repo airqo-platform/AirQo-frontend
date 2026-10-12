@@ -5,19 +5,11 @@
  * (including groups) from the platform.
  */
 import { NextRequest, NextResponse } from 'next/server'
+import { config } from '@/lib/config'
 
-const getApiBaseUrl = () => {
-  return (
-    process.env.AIRQO_STAGING_API_BASE_URL ||
-    process.env.NEXT_PUBLIC_AIRQO_STAGING_API_BASE_URL ||
-    process.env.AIRQO_API_BASE_URL ||
-    process.env.NEXT_PUBLIC_AIRQO_API_BASE_URL ||
-    'https://staging-platform.airqo.net'
-  )
-}
-
-const AIRQO_API_BASE_URL = getApiBaseUrl()
-const API_VERSION = process.env.AIRQO_API_VERSION || 'v2'
+// Same platform as the sign-in (lib/auth.ts): a token only works on the platform that issued it.
+const AIRQO_API_BASE_URL = config.airqoPlatformUrl
+const API_VERSION = config.apiVersion
 
 /**
  * Decode a JWT payload without verification (the platform already verifies tokens).

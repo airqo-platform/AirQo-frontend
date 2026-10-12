@@ -27,6 +27,7 @@ import {
 } from "lucide-react"
 import type { StandardizedRecord } from "@/lib/visualise/column-mapper"
 import { calculateCorrelation, calculateCorrelationStats } from "@/lib/visualise/data-parser"
+import { formatCompactNumber } from "@/lib/utils"
 
 interface SensorHealthViewProps {
   records: StandardizedRecord[]
@@ -180,7 +181,7 @@ export function SensorHealthView({ records }: SensorHealthViewProps) {
               <span className="font-semibold text-primary">
                 Fit: y = {stats.slope}x {stats.intercept >= 0 ? `+ ${stats.intercept}` : `- ${Math.abs(stats.intercept)}`}
               </span>
-              <span>MAE: ±{stats.mae} µg/m³</span>
+              <span>MAE: ±{formatCompactNumber(stats.mae, 2)} µg/m³</span>
               <span>{stats.count.toLocaleString()} valid pairs</span>
               {stats.r2 >= 0.85 ? (
                 <span className="text-emerald-600 flex items-center gap-1 font-semibold">

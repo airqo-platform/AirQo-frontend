@@ -2,7 +2,7 @@
  * Beacon navigation model, mirroring Vertex's layout:
  *
  * - Two modules: "devices" (day-to-day monitoring) and "admin" (AirQo-internal
- *   tools). The active module is derived from the pathname alone, so the
+ *   tools, including Device Data Analysis). The active module is derived from the pathname alone, so the
  *   sidebar can never disagree with the page being shown.
  * - The Administrative Panel is entered from the primary (hamburger) drawer and
  *   is only offered to AirQo-group members who can maintain devices.
@@ -18,6 +18,7 @@ export const ROUTES = {
   DEVICES: "/dashboard/devices",
   MY_DEVICES: "/dashboard/devices/my-devices",
   ANALYTICS: "/dashboard/analytics",
+  NETWORK_HEALTH: "/dashboard/network-health",
   VISUALISE: "/dashboard/visualise",
   MAINTENANCE: "/dashboard/maintenance",
   REPORTS: "/dashboard/reports",
@@ -25,6 +26,7 @@ export const ROUTES = {
   DIAGNOSTICS_SIMULATOR: "/dashboard/diagnostics/simulator",
   DEVICE_PROFILES: "/dashboard/settings/device-profiles",
   DIAGNOSTIC_TEMPLATES: "/dashboard/settings/diagnostic-templates",
+  STATUS_CODES: "/dashboard/settings/status-codes",
   COLLOCATION_INLAB: "/dashboard/collocation/inlab",
   COLLOCATION_SITE: "/dashboard/collocation/site",
   FIRMWARE: "/dashboard/firmware",
@@ -44,8 +46,11 @@ export const matchesRoute = (pathname: string, route: string): boolean =>
 // ("/dashboard") is matched exactly because every other page nests under it.
 const ADMIN_ROUTE_PREFIXES = [
   ROUTES.DIAGNOSTICS,
+  ROUTES.VISUALISE,
+  "/dashboard/visualize",
   ROUTES.DEVICE_PROFILES,
   ROUTES.DIAGNOSTIC_TEMPLATES,
+  ROUTES.STATUS_CODES,
   "/dashboard/collocation",
   ROUTES.FIRMWARE,
   ROUTES.CATEGORIES,
@@ -83,7 +88,8 @@ export interface NavigationAccess {
   canAccessAnalytics: boolean
   canAccessMaintenance: boolean
   canAccessReports: boolean
-  canAccessVisualise: boolean
+  /** The organisation's own fleet health; AirQo staff use Fleet Diagnostics in the admin panel instead. */
+  canAccessNetworkHealth: boolean
 }
 
 export function getNavigationAccess({
@@ -111,7 +117,7 @@ export function getNavigationAccess({
     canAccessReports:
       canUseGroupTools ||
       (hasGroup && hasAnyPermission(["DATA_EXPORT", "ANALYTICS_EXPORT", "DATA_VIEW"])),
-    canAccessVisualise: hasGroup,
+    canAccessNetworkHealth: hasGroup && !isPersonalContext,
   }
 }
 
@@ -128,13 +134,11 @@ export function isRouteAccessible(pathname: string, access: NavigationAccess): b
   // Exact match so device detail pages stay reachable from My Devices.
   if (pathname === ROUTES.DEVICES) return access.showOrgDevices
   if (matchesRoute(pathname, ROUTES.ANALYTICS)) return access.canAccessAnalytics
+  if (matchesRoute(pathname, ROUTES.NETWORK_HEALTH)) return access.canAccessNetworkHealth
   if (matchesRoute(pathname, ROUTES.MAINTENANCE)) return access.canAccessMaintenance
   // Fleet-wide device alerts carry the same visibility as maintenance
   if (matchesRoute(pathname, ROUTES.ALERTS)) return access.canAccessMaintenance
   if (matchesRoute(pathname, ROUTES.REPORTS)) return access.canAccessReports
-  if (matchesRoute(pathname, ROUTES.VISUALISE) || matchesRoute(pathname, "/dashboard/visualize")) {
-    return access.canAccessVisualise
-  }
   return true
 }
 
@@ -156,14 +160,16 @@ const RECENT_PAGE_ROUTES: Array<RecentPage & { exact?: boolean }> = [
   { label: "My Devices", href: ROUTES.MY_DEVICES },
   { label: "Devices", href: ROUTES.DEVICES, exact: true },
   { label: "Performance Analysis", href: ROUTES.ANALYTICS },
-  { label: "Device Data Analysis", href: ROUTES.VISUALISE },
+  { label: "Network Health", href: ROUTES.NETWORK_HEALTH },
   { label: "Maintenance", href: ROUTES.MAINTENANCE },
   { label: "Reports", href: ROUTES.REPORTS },
   { label: "Network Overview", href: ROUTES.ADMIN_OVERVIEW, exact: true },
   { label: "Bench Simulator", href: ROUTES.DIAGNOSTICS_SIMULATOR },
   { label: "Fleet Health", href: ROUTES.DIAGNOSTICS },
+  { label: "Device Data Analysis", href: ROUTES.VISUALISE },
   { label: "Device Profiles", href: ROUTES.DEVICE_PROFILES },
   { label: "Diagnostic Templates", href: ROUTES.DIAGNOSTIC_TEMPLATES },
+  { label: "Status Codes", href: ROUTES.STATUS_CODES },
   { label: "In-Lab Collocation", href: ROUTES.COLLOCATION_INLAB },
   { label: "Site Collocation", href: ROUTES.COLLOCATION_SITE },
   { label: "Firmware Management", href: ROUTES.FIRMWARE },
@@ -187,33 +193,28 @@ const PAGE_TITLES: Record<string, string> = {
   "/dashboard/devices": "Devices",
   "/dashboard/devices/my-devices": "My Devices",
   "/dashboard/analytics": "Performance Analysis",
+  "/dashboard/network-health": "Network Health",
   "/dashboard/maintenance": "Maintenance",
   "/dashboard/reports": "Reports",
   "/dashboard/diagnostics": "Diagnostics",
   "/dashboard/diagnostics/simulator": "Bench Simulator",
   "/dashboard/settings/device-profiles": "Device Profiles",
   "/dashboard/settings/diagnostic-templates": "Diagnostic Templates",
+  "/dashboard/settings/status-codes": "Status Codes",
   "/dashboard/collocation/inlab": "In-Lab Collocation",
   "/dashboard/collocation/site": "Field Collocation",
   "/dashboard/firmware": "Firmware Management",
   "/dashboard/category": "Device Categories",
   "/dashboard/stock": "Stock & Inventory",
-  "/dashboard/visualise": "Data Analysis",
-  "/dashboard/visualize": "Data Analysis",
+  "/dashboard/visualise": "Device Data Analysis",
+  "/dashboard/visualize": "Device Data Analysis",
   "/dashboard/settings": "Settings",
   "/dashboard/users": "User Management",
   "/dashboard/alerts": "Alerts",
 }
 
-export function getPageTitle(pathname: string | null, searchParams?: URLSearchParams | null): string {
+export function getPageTitle(pathname: string | null): string {
   if (!pathname) return DEFAULT_PAGE_TITLE
-
-  // Query parameter overrides (e.g. analytics tab)
-  if (pathname === "/dashboard/analytics" && searchParams) {
-    const analysis = searchParams.get("analysis")
-    if (analysis === "cohorts") return "Cohort Analysis"
-    if (analysis === "grids") return "Grid Analysis"
-  }
 
   // Exact match
   if (PAGE_TITLES[pathname]) {

@@ -4,6 +4,7 @@ import React from "react"
 import { MaintenanceMapItem } from "@/types/api.types"
 import { MapPin, Radio, Signal, CheckCircle2, AlertTriangle, AlertCircle, CircleOff } from "lucide-react"
 import { GatewayCoverageDeviceMapItem } from "@/types/lorawan.types"
+import { formatCompactNumber } from "@/lib/utils"
 
 interface DeviceLocationCardProps {
   device: MaintenanceMapItem
@@ -26,7 +27,7 @@ export const DeviceLocationCard: React.FC<DeviceLocationCardProps> = ({
   const isOffline = uptimePct === 0 || !device.last_active
 
   const em = Number(device.error_margin)
-  const errorMarginStr = Number.isFinite(em) ? em.toFixed(1) : "–"
+  const errorMarginStr = Number.isFinite(em) ? formatCompactNumber(em, 1) : "–"
 
   // Uptime health styling
   let uptimeBadge = {

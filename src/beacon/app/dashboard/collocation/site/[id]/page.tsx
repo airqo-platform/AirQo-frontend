@@ -26,12 +26,10 @@ import {
 } from "lucide-react"
 
 import { fetchCollocationSiteDetails } from "@/lib/api"
-import {
-  BAM_STATUS_DEFINITIONS,
-  decodeBamStatusIssues,
-  type DecodedBamIssue,
-} from "@/lib/bam-status"
-import { formatCategoryLabel, REFERENCE_MONITOR_LABEL } from "@/lib/utils"
+import { getStatusIssues, type StatusIssue } from "@/lib/status-codes"
+import { useCategoryStatusCodeSet } from "@/hooks/use-status-code-set"
+import { StatusCodeChip } from "@/components/diagnostics/StatusCodeChips"
+import { formatCategoryLabel, REFERENCE_MONITOR_LABEL, formatCompactNumber } from "@/lib/utils"
 
 import {
   LineChart,
@@ -90,7 +88,7 @@ interface BamIssueEvent {
   deviceId?: string
   timestamp: string
   statusCode: number
-  issues: DecodedBamIssue[]
+  issues: StatusIssue[]
   isClean: boolean
   isOff: boolean
   isNoData: boolean
@@ -242,7 +240,7 @@ function ErrorMarginMiniGraph({ errorMarginHistory, averageMargin }: { errorMarg
   return (
     <TooltipProvider>
       <div className="flex items-center gap-2">
-        <span className={`font-medium min-w-[50px] ${getTextColor(averageMargin)}`}>±{averageMargin.toFixed(1)}%</span>
+        <span className={`font-medium min-w-[50px] ${getTextColor(averageMargin)}`}>±{formatCompactNumber(averageMargin, 1)}%</span>
         <div className="flex items-end gap-[2px] h-8">
           {values.map((item, index) => (
             <Tooltip key={index} delayDuration={100}>
@@ -255,7 +253,7 @@ function ErrorMarginMiniGraph({ errorMarginHistory, averageMargin }: { errorMarg
               <TooltipContent className={`${getTooltipBgColor(item.value)} text-white border`}>
                 <div className="text-xs font-medium">
                   <div>{formatDate(item.timestamp)}</div>
-                  <div>Error Margin: ±{(item.value ?? 0).toFixed(1)}%</div>
+                  <div>Error Margin: ±{formatCompactNumber(item.value ?? 0, 1)}%</div>
                 </div>
               </TooltipContent>
             </Tooltip>
@@ -279,6 +277,8 @@ export default function SiteDetailsPage() {
   const [selectedStatuses, setSelectedStatuses] = useState<number[]>([])
   
   const [siteData, setSiteData] = useState<RawDevice[]>([])
+  // Decodes the BAM status field with the set linked to the BAM profile
+  const { codeSet: bamStatusCodes } = useCategoryStatusCodeSet("bam")
   const [siteMeta, setSiteMeta] = useState<SiteMeta | null>(null)
 
   const HISTORY_DAYS = 14
@@ -405,7 +405,7 @@ export default function SiteDetailsPage() {
           if (Number.isFinite(statusCode)) {
             bamStatusSamples++
           }
-          const issues = decodeBamStatusIssues(pt.status)
+          const issues = getStatusIssues(bamStatusCodes, pt.status)
           const concRt = Number(pt["ConcRT(ug/m3)"])
           const concHr = Number(pt["ConcHR(ug/m3)"])
           const concS = Number(pt["ConcS(ug/m3)"])
@@ -529,15 +529,18 @@ export default function SiteDetailsPage() {
       bamIssueEvents,
       bamStatusSamples,
     }
-  }, [siteData])
+  }, [siteData, bamStatusCodes])
 
   const availableStatuses = useMemo<StatusFilterOption[]>(
     () => [
-      { code: 0, description: "Functional" },
+      { code: 0, description: bamStatusCodes?.codes.find((code) => code.code === 0)?.label || "Functional" },
       { code: -1, description: "No Data" },
-      ...[...BAM_STATUS_DEFINITIONS].sort((a, b) => a.code - b.code),
+      ...(bamStatusCodes?.codes || [])
+        .filter((code) => code.code !== 0)
+        .sort((a, b) => a.code - b.code)
+        .map((code) => ({ code: code.code, description: code.label })),
     ],
-    []
+    [bamStatusCodes]
   )
 
   const filteredBamIssueEvents = useMemo(() => {
@@ -608,13 +611,19 @@ export default function SiteDetailsPage() {
         containerClass = "border-green-100 bg-green-50/50"
         headingClass = "text-green-800"
         subTextClass = "text-green-700"
+      } else if (event.issues.every((issue) => issue.kind === "info")) {
+        // e.g. Maintenance: worth knowing, not a fault
+        containerClass = "border-slate-200 bg-slate-50"
+        headingClass = "text-slate-800"
+        subTextClass = "text-slate-600"
       }
 
       let eventContent = (
-        <ul className="mt-2 ml-4 list-disc space-y-1 text-xs text-red-700">
+        <ul className="mt-2 space-y-1.5 text-xs text-gray-700">
           {event.issues.map((issue) => (
-            <li key={`${event.timestamp}-${event.deviceName}-${issue.code}`}>
-              <span className="font-medium">{issue.description}:</span> {issue.cause}
+            <li key={`${event.timestamp}-${event.deviceName}-${issue.kind}-${issue.code}`} className="flex flex-wrap items-baseline gap-1.5">
+              <StatusCodeChip issue={issue} tooltip={false} />
+              {issue.description && <span>{issue.description}</span>}
             </li>
           ))}
         </ul>
