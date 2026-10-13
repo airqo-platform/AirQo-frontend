@@ -6,7 +6,6 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   MapPin,
-  Settings,
   Activity,
   Network,
   Copy,
@@ -15,10 +14,16 @@ import {
   ExternalLink,
   Eye,
   EyeOff,
+  Link2,
+  ShieldCheck,
+  ShieldOff,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import dynamic from "next/dynamic"
 import { formatCategoryLabel } from "@/lib/utils"
+import { DATA_SOURCE_META, resolveDeviceDataSource } from "@/lib/manufacturers"
+import { ManufacturerBadge } from "@/components/devices/manufacturer-badge"
+import { DataSourceIndicator } from "@/components/devices/data-source-indicator"
 import {
   Dialog,
   DialogContent,
@@ -39,6 +44,20 @@ interface DeviceDetailsTabProps {
   setUpdateDialogOpen: (open: boolean) => void
 }
 
+/** Small copy button used next to identifiers. */
+function CopyButton({
+  value,
+  label,
+  copiedKey,
+  copyToClipboard,
+}: Readonly<{ value: string; label: string; copiedKey: string | null; copyToClipboard: (text: string, keyType: string) => void }>) {
+  return (
+    <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => copyToClipboard(value, label)} title={`Copy ${label}`}>
+      {copiedKey === label ? <Check className="h-3 w-3 text-green-500" /> : <Copy className="h-3 w-3" />}
+    </Button>
+  )
+}
+
 export default function DeviceDetailsTab({
   device,
   copiedKey,
@@ -53,6 +72,15 @@ export default function DeviceDetailsTab({
   const currentFirmware = device.beacon_data?.current_firmware || null
   const targetFirmware = device.target_firmware
   const isFirmwarePending = targetFirmware && currentFirmware !== targetFirmware
+
+  // Only AirQo devices read from ThingSpeak; everything else is known by serial number + manufacturer API URL
+  const dataSource = resolveDeviceDataSource(device)
+  const isThingSpeak = dataSource === "thingspeak"
+  const serialNumber: string | null = device.serial_number ?? device.beacon_data?.serial_number ?? null
+  const connectionUrl: string | null = device.api_code ?? device.beacon_data?.api_code ?? null
+  const authRequired: boolean | null = device.authRequired ?? device.beacon_data?.auth_required ?? null
+  const network: string | null = device.network ?? device.beacon_data?.network_id ?? null
+  const category: string | null = device.category ?? device.category_hierarchy?.[0]?.category ?? null
 
   return (
     <Card>
@@ -84,47 +112,60 @@ export default function DeviceDetailsTab({
                     <p className="text-xs text-gray-400 font-mono">{device.name}</p>
                   </div>
                   <div>
+                    <p className="text-sm text-gray-500">Manufacturer</p>
+                    <div className="mt-1">
+                      <ManufacturerBadge network={network} />
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Category</p>
+                    <p className="font-medium">{formatCategoryLabel(category)}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Data Source</p>
+                    <div className="mt-1">
+                      <DataSourceIndicator dataSource={dataSource} />
+                    </div>
+                    {dataSource === "none" && (
+                      <p className="text-xs text-gray-500 mt-1">{DATA_SOURCE_META.none.description}</p>
+                    )}
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Serial Number</p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium font-mono text-sm break-all">{serialNumber || "N/A"}</p>
+                      {serialNumber && (
+                        <CopyButton value={serialNumber} label="Serial Number" copiedKey={copiedKey} copyToClipboard={copyToClipboard} />
+                      )}
+                    </div>
+                  </div>
+                  <div>
                     <p className="text-sm text-gray-500 flex items-center justify-between">
                       Network ID
                     </p>
                     <div className="flex items-center gap-2">
                       <p className="font-medium font-mono text-sm">{device.network_id || 'N/A'}</p>
                       {device.network_id && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-6 w-6 p-0"
-                          onClick={() => copyToClipboard(device.network_id, 'Network ID')}
-                        >
-                          {copiedKey === 'Network ID' ? (
-                            <Check className="h-3 w-3 text-green-500" />
-                          ) : (
-                            <Copy className="h-3 w-3" />
-                          )}
-                        </Button>
+                        <CopyButton value={device.network_id} label="Network ID" copiedKey={copiedKey} copyToClipboard={copyToClipboard} />
                       )}
                     </div>
                   </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Device Number</p>
-                    <div className="flex items-center gap-2">
-                      <p className="font-medium">{device.device_number || 'N/A'}</p>
-                      {device.device_number && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-6 w-6 p-0"
-                          onClick={() => copyToClipboard(device.device_number.toString(), 'Device Number')}
-                        >
-                          {copiedKey === 'Device Number' ? (
-                            <Check className="h-3 w-3 text-green-500" />
-                          ) : (
-                            <Copy className="h-3 w-3" />
-                          )}
-                        </Button>
-                      )}
+                  {isThingSpeak && (
+                    <div>
+                      <p className="text-sm text-gray-500">Device Number</p>
+                      <div className="flex items-center gap-2">
+                        <p className="font-medium">{device.device_number || 'N/A'}</p>
+                        {device.device_number && (
+                          <CopyButton
+                            value={device.device_number.toString()}
+                            label="Device Number"
+                            copiedKey={copiedKey}
+                            copyToClipboard={copyToClipboard}
+                          />
+                        )}
+                      </div>
                     </div>
-                  </div>
+                  )}
                   <div>
                     <p className="text-sm text-gray-500 flex items-center">
                       Firmware
@@ -145,91 +186,115 @@ export default function DeviceDetailsTab({
                   </div>
                 </div>
 
-                <div className="border-t pt-4 mt-2">
-                  <p className="text-sm font-medium mb-3">API Keys</p>
-                  <div className="space-y-3">
-                    <div>
-                      <p className="text-xs text-gray-500 mb-1">Read Key</p>
-                      <div className="flex items-center gap-2">
-                        <p className="font-medium font-mono text-xs bg-gray-50 px-2 py-1 rounded flex-1 truncate">
-                          {device.readKey ? (showReadKey ? device.readKey : '••••••••••••••••') : 'N/A'}
-                        </p>
-                        {device.readKey && (
-                          <>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-6 w-6 p-0"
-                              onClick={() => setShowReadKey(!showReadKey)}
-                              title={showReadKey ? "Hide" : "Show"}
-                            >
-                              {showReadKey ? (
-                                <EyeOff className="h-3 w-3" />
-                              ) : (
-                                <Eye className="h-3 w-3" />
-                              )}
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-6 w-6 p-0"
-                              onClick={() => copyToClipboard(device.readKey, 'Read Key')}
-                              title="Copy"
-                            >
-                              {copiedKey === 'Read Key' ? (
-                                <Check className="h-3 w-3 text-green-500" />
-                              ) : (
-                                <Copy className="h-3 w-3" />
-                              )}
-                            </Button>
-                          </>
-                        )}
+                {isThingSpeak ? (
+                  <div className="border-t pt-4 mt-2">
+                    <p className="text-sm font-medium mb-3">API Keys</p>
+                    <div className="space-y-3">
+                      <div>
+                        <p className="text-xs text-gray-500 mb-1">Read Key</p>
+                        <div className="flex items-center gap-2">
+                          <p className="font-medium font-mono text-xs bg-gray-50 px-2 py-1 rounded flex-1 truncate">
+                            {device.readKey ? (showReadKey ? device.readKey : '••••••••••••••••') : 'N/A'}
+                          </p>
+                          {device.readKey && (
+                            <>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-0"
+                                onClick={() => setShowReadKey(!showReadKey)}
+                                title={showReadKey ? "Hide" : "Show"}
+                              >
+                                {showReadKey ? (
+                                  <EyeOff className="h-3 w-3" />
+                                ) : (
+                                  <Eye className="h-3 w-3" />
+                                )}
+                              </Button>
+                              <CopyButton value={device.readKey} label="Read Key" copiedKey={copiedKey} copyToClipboard={copyToClipboard} />
+                            </>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-500 mb-1">Write Key</p>
-                      <div className="flex items-center gap-2">
-                        <p className="font-medium font-mono text-xs bg-gray-50 px-2 py-1 rounded flex-1 truncate">
-                          {device.writeKey ? (showWriteKey ? device.writeKey : '••••••••••••••••') : 'N/A'}
-                        </p>
-                        {device.writeKey && (
-                          <>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-6 w-6 p-0"
-                              onClick={() => setShowWriteKey(!showWriteKey)}
-                              title={showWriteKey ? "Hide" : "Show"}
-                            >
-                              {showWriteKey ? (
-                                <EyeOff className="h-3 w-3" />
-                              ) : (
-                                <Eye className="h-3 w-3" />
-                              )}
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-6 w-6 p-0"
-                              onClick={() => copyToClipboard(device.writeKey, 'Write Key')}
-                              title="Copy"
-                            >
-                              {copiedKey === 'Write Key' ? (
-                                <Check className="h-3 w-3 text-green-500" />
-                              ) : (
-                                <Copy className="h-3 w-3" />
-                              )}
-                            </Button>
-                          </>
-                        )}
+                      <div>
+                        <p className="text-xs text-gray-500 mb-1">Write Key</p>
+                        <div className="flex items-center gap-2">
+                          <p className="font-medium font-mono text-xs bg-gray-50 px-2 py-1 rounded flex-1 truncate">
+                            {device.writeKey ? (showWriteKey ? device.writeKey : '••••••••••••••••') : 'N/A'}
+                          </p>
+                          {device.writeKey && (
+                            <>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-0"
+                                onClick={() => setShowWriteKey(!showWriteKey)}
+                                title={showWriteKey ? "Hide" : "Show"}
+                              >
+                                {showWriteKey ? (
+                                  <EyeOff className="h-3 w-3" />
+                                ) : (
+                                  <Eye className="h-3 w-3" />
+                                )}
+                              </Button>
+                              <CopyButton value={device.writeKey} label="Write Key" copiedKey={copiedKey} copyToClipboard={copyToClipboard} />
+                            </>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
+                ) : (
+                  <div className="border-t pt-4 mt-2">
+                    <p className="text-sm font-medium mb-3">Manufacturer Connection</p>
+                    <div className="space-y-3">
+                      <div>
+                        <p className="text-xs text-gray-500 mb-1">Connection URL</p>
+                        <div className="flex items-center gap-2">
+                          <p
+                            className="font-medium font-mono text-xs bg-gray-50 px-2 py-1 rounded flex-1 truncate"
+                            title={connectionUrl ?? undefined}
+                          >
+                            {connectionUrl || 'N/A'}
+                          </p>
+                          {connectionUrl && (
+                            <>
+                              <CopyButton value={connectionUrl} label="Connection URL" copiedKey={copiedKey} copyToClipboard={copyToClipboard} />
+                              {/^https?:\/\//i.test(connectionUrl) && (
+                                <Button asChild variant="ghost" size="sm" className="h-6 w-6 p-0" title="Open connection URL">
+                                  <a href={connectionUrl} target="_blank" rel="noopener noreferrer">
+                                    <Link2 className="h-3 w-3" />
+                                  </a>
+                                </Button>
+                              )}
+                            </>
+                          )}
+                        </div>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500 mb-1">Authentication Required</p>
+                        <div className="flex items-center gap-1.5 text-sm font-medium">
+                          {authRequired == null ? (
+                            <span className="text-gray-400">Unknown</span>
+                          ) : authRequired ? (
+                            <>
+                              <ShieldCheck className="h-4 w-4 text-amber-600" />
+                              <span>Yes, the manufacturer API needs the device credential</span>
+                            </>
+                          ) : (
+                            <>
+                              <ShieldOff className="h-4 w-4 text-gray-400" />
+                              <span>No, the device is publicly readable</span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
-
           {/* Column 2: Location Details */}
           <div className="space-y-6">
             <div>

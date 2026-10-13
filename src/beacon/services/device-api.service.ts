@@ -1,5 +1,6 @@
 import { config } from '@/lib/config'
 import authService from './api-service'
+import { resolveDeviceDataSource } from '@/lib/manufacturers'
 import { isMockMode, getMockDevices, getMockDeviceStats, getMockDeviceSummary, getMockDashboardSummary, getMockSystemHealth, getMockDataTransmission, getMockNetworkPerformance, getMockOfflineDevices, getMockUpcomingMaintenance, getMockMapData, getMockMaintenanceMapData, getMockDevicePerformanceData, getMockDeviceMetadata, getMockDeviceConfig } from '@/lib/mock-data'
 import {
   DeviceStatsResponse,
@@ -198,33 +199,24 @@ class ApiService {
   // Transform device list to UI format
   transformDeviceListToUI(devices: Device[]): UIDevice[] {
     return devices.map(device => {
-      const rawDevice = device as unknown as {
-        beacon_data?: {
-          network_id?: string
-          current_firmware?: string | null
-          firmware_download_state?: string | null
-          device_number?: number
-        }
-        last_reading?: {
-          timestamp?: string
-          channel_id?: string | number
-        } | null
-      }
-
-      const beaconData = rawDevice.beacon_data
-      const lastReading = rawDevice.last_reading
+      const beaconData = device.beacon_data
+      const lastReading = device.last_reading
       const lastReadingTimestamp = lastReading?.timestamp || ''
       const lastSeenAt = device.lastRawData || device.lastActive || lastReadingTimestamp || ''
-      const rawChannelId = lastReading?.channel_id ?? beaconData?.device_number ?? device.device_number ?? 0
+      // Only AirQo devices have a ThingSpeak channel. Other manufacturers' readings are keyed by
+      // device id locally, so `last_reading.channel_id` is not a channel for them.
+      const dataSource = resolveDeviceDataSource(device)
+      const rawChannelId = beaconData?.device_number ?? device.device_number ?? lastReading?.channel_id ?? 0
       const parsedChannelId = Number(rawChannelId)
-      const channelId = Number.isFinite(parsedChannelId) ? parsedChannelId : 0
+      const channelId = dataSource === 'thingspeak' && Number.isFinite(parsedChannelId) ? parsedChannelId : 0
+      const network = device.network || beaconData?.network_id || ''
 
       return {
       // Flat properties for backward compatibility
       device_id: device._id || device.device_id || '', // Fallback to old field if present
       device_name: device.name || device.long_name || device.device_name || 'Unnamed Device',
       device_key: '',
-      network: device.network || '',
+      network,
       category: device.category || '',
       status: device.status || 'not deployed',
       is_online: device.isOnline,
@@ -243,6 +235,12 @@ class ApiService {
       current_firmware: beaconData?.current_firmware || '',
       target_firmware: '',
       firmware_download_state: beaconData?.firmware_download_state || '',
+
+      // Manufacturer identity and how beacon reads the device
+      data_source: dataSource,
+      serial_number: device.serial_number ?? beaconData?.serial_number ?? undefined,
+      api_code: device.api_code ?? beaconData?.api_code ?? undefined,
+      auth_required: device.authRequired ?? beaconData?.auth_required ?? undefined,
 
       // Location data
       latitude: device.latitude ?? device.site?.approximate_latitude ?? 0,
