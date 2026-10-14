@@ -39,4 +39,29 @@ export const DEFAULT_TAB_STATE = {
   search: '',
 } as const;
 
-export const LARGE_DATE_RANGE_THRESHOLD = 90;
+/**
+ * Default analytics API window limits by export frequency.
+ *
+ * These mirror the analytics service defaults: raw and aggregation requests
+ * are limited to 31 days, hourly requests to 90 days, and daily/coarser
+ * requests to the general 365-day maximum.
+ */
+export const DATA_EXPORT_DATE_RANGE_LIMITS = {
+  raw: 31,
+  hourly: 90,
+  daily: 365,
+  weekly: 365,
+  monthly: 365,
+  yearly: 365,
+} as const;
+
+export const DEFAULT_DATA_EXPORT_DATE_RANGE_LIMIT = 365;
+
+export const getDataExportDateRangeLimit = (frequency: string): number =>
+  DATA_EXPORT_DATE_RANGE_LIMITS[
+    frequency as keyof typeof DATA_EXPORT_DATE_RANGE_LIMITS
+  ] ?? DEFAULT_DATA_EXPORT_DATE_RANGE_LIMIT;
+
+export const getDataExportFrequencyLabel = (frequency: string): string =>
+  FREQUENCY_OPTIONS.find(option => option.value === frequency)?.label ??
+  frequency;

@@ -8,7 +8,10 @@ import { trackEvent } from '@/shared/utils/analytics';
 import { trackFeatureUsage } from '@/shared/utils/enhancedAnalytics';
 import { useDownloadData } from '@/shared/hooks/useAnalytics';
 import { DateRange } from '@/shared/components/calendar/types';
-import { LARGE_DATE_RANGE_THRESHOLD } from '../constants/dataExportConstants';
+import {
+  getDataExportDateRangeLimit,
+  getDataExportFrequencyLabel,
+} from '../constants/dataExportConstants';
 import { TabType, DeviceCategory, TableItem } from '../types/dataExportTypes';
 import {
   createSitesForVisualization,
@@ -24,6 +27,7 @@ import {
   getMeasurementRecords,
   getPartialDataWarning,
 } from '../utils/dataAvailability';
+import { getDateRangeDurationDays } from '../utils/dataExportUtils';
 import type {
   DataDownloadRequest,
   DataDownloadResponse,
@@ -938,17 +942,6 @@ const getGridSiteNames = (
   ).map(siteId => siteIdToName.get(siteId) ?? 'Unknown location');
 };
 
-const getCalendarDayDifference = (from: Date, to: Date) => {
-  const startUtc = Date.UTC(
-    from.getFullYear(),
-    from.getMonth(),
-    from.getDate()
-  );
-  const endUtc = Date.UTC(to.getFullYear(), to.getMonth(), to.getDate());
-
-  return Math.max(0, (endUtc - startUtc) / (1000 * 60 * 60 * 24));
-};
-
 const getTimePeriodType = (durationDays: number): 'real_time' | 'historical' =>
   durationDays <= 1 ? 'real_time' : 'historical';
 
@@ -1141,17 +1134,19 @@ export const useDataExportActions = (
             ? 'raw'
             : (dataType as DataDownloadRequest['datatype']);
 
-      const durationDays = getCalendarDayDifference(
+      const durationDays = getDateRangeDurationDays(
         dateRange.from,
         dateRange.to
       );
 
       const timePeriodType = getTimePeriodType(durationDays);
+      const dateRangeLimit = getDataExportDateRangeLimit(frequency);
 
-      if (durationDays > LARGE_DATE_RANGE_THRESHOLD) {
+      if (durationDays > dateRangeLimit) {
+        const frequencyLabel = getDataExportFrequencyLabel(frequency);
         toast.error(
           'Date Range Too Large',
-          `Please split this export into batches of ${LARGE_DATE_RANGE_THRESHOLD} days or fewer to avoid backend timeouts.`
+          `${frequencyLabel} exports support up to ${dateRangeLimit} days per request. Please choose a shorter date range.`
         );
         return null;
       }

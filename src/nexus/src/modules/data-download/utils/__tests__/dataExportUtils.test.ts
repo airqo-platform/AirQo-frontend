@@ -2,7 +2,26 @@ import {
   getSiteNavigationData,
   getTableItemSelectionLabel,
   processSitesData,
+  getDateRangeDurationDays,
+  getSelectedDateRangeDurationDays,
 } from '../dataExportUtils';
+
+describe('export date range duration', () => {
+  it('counts elapsed local calendar days independent of time of day', () => {
+    expect(
+      getDateRangeDurationDays(
+        new Date(2026, 0, 1, 23, 59),
+        new Date(2026, 1, 1, 0, 1)
+      )
+    ).toBe(31);
+  });
+
+  it('returns null for an incomplete range', () => {
+    expect(
+      getSelectedDateRangeDurationDays({ from: new Date(), to: undefined })
+    ).toBeNull();
+  });
+});
 
 describe('getTableItemSelectionLabel', () => {
   it('prefers a usable name over the other candidates', () => {
