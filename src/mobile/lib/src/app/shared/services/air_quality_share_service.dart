@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
+import 'package:airqo/src/app/shared/utils/monitor_place_label.dart';
 import 'package:flutter/material.dart';
 import 'package:gal/gal.dart';
 import 'package:share_plus/share_plus.dart';
@@ -53,9 +54,12 @@ class AirQualityShareService {
     String? fallbackLocationName,
     Rect? sharePositionOrigin,
   }) {
-    final locationName = measurement.siteDetails?.searchName ??
-        fallbackLocationName ??
-        'this location';
+    final locationName = measurementSpokenTitle(
+      measurement,
+      measurement.siteDetails?.searchName ??
+          fallbackLocationName ??
+          'this location',
+    );
 
     return _shareImage(
       imageBytes,
@@ -134,10 +138,13 @@ class AirQualityShareService {
     Measurement measurement, {
     String? fallbackLocationName,
   }) {
-    final locationName = measurement.siteDetails?.searchName ??
-        measurement.siteDetails?.name ??
-        fallbackLocationName ??
-        'this location';
+    final locationName = measurementSpokenTitle(
+      measurement,
+      measurement.siteDetails?.searchName ??
+          measurement.siteDetails?.name ??
+          fallbackLocationName ??
+          'this location',
+    );
     final category = measurement.aqiCategory ?? 'Unavailable';
     final pm25Value = measurement.pm25?.value;
     final locationDescription = _locationDescription(measurement);
@@ -178,7 +185,7 @@ class AirQualityShareService {
       parts.add(siteDetails.country!);
     }
 
-    return parts.join(', ');
+    return measurementSpokenQuietLine(measurement, parts.join(', '));
   }
 }
 

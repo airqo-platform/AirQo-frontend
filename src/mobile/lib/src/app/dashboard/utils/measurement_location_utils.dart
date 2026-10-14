@@ -1,16 +1,18 @@
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
 import 'package:airqo/src/app/shared/utils/location_label.dart';
+import 'package:airqo/src/app/shared/utils/monitor_place_label.dart';
 
 String measurementDisplayName(
   Measurement measurement, {
   String? fallbackLocationName,
 }) {
-  return normalizeLocationLabel(
+  final legacy = normalizeLocationLabel(
     measurement.siteDetails?.searchName ??
         measurement.siteDetails?.name ??
         fallbackLocationName ??
         '---',
   );
+  return measurementSpokenTitle(measurement, legacy);
 }
 
 String measurementLocationDescription(Measurement measurement) {
@@ -40,5 +42,8 @@ String measurementLocationDescription(Measurement measurement) {
       : siteDetails.locationName ??
           siteDetails.formattedName ??
           'Unknown location';
-  return normalizeLocationLabel(description);
+  return measurementSpokenQuietLine(
+    measurement,
+    normalizeLocationLabel(description),
+  );
 }

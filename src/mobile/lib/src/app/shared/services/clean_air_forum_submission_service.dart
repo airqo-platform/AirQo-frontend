@@ -4,6 +4,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
+import 'package:airqo/src/app/shared/utils/monitor_place_label.dart';
 import 'package:airqo/src/app/shared/repository/token_refresher.dart';
 import 'package:airqo/src/meta/utils/api_utils.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -70,9 +71,12 @@ class CleanAirForumSubmissionService with UiLoggy {
     final imageUrl = await _uploadToCloudinary(imageBytes);
 
     final uri = Uri.parse('${ApiUtils.baseUrl}/api/v2/users/selfies');
-    final locationName = measurement.siteDetails?.searchName ??
+    final legacyLocation = measurement.siteDetails?.searchName ??
         measurement.siteDetails?.name ??
         fallbackLocationName;
+    final locationName = legacyLocation == null
+        ? null
+        : measurementSpokenTitle(measurement, legacyLocation);
     // Only attach a token the refresher considers valid — a stale one would
     // 401 the whole request, whereas an anonymous submission always works.
     final userToken = await _tokenRefresher.refreshTokenIfNeeded();
