@@ -32,6 +32,7 @@ export function DatePicker({
   showPresets = true,
   useDialog = false,
   contentClassName,
+  presets,
   returnFormat = 'date',
 }: DatePickerProps & { showPresets?: boolean }) {
   const [open, setOpen] = useState(false);
@@ -174,6 +175,7 @@ export function DatePicker({
           onApply={handleApply}
           onCancel={handleCancel}
           initialRange={internalValue as DateRange | undefined}
+          presets={presets}
           minDate={minDate}
           maxDate={maxDate}
           disabled={disabled}
