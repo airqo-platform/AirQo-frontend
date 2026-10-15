@@ -299,6 +299,7 @@ export function OrganizationSelector() {
               placeholder="Search organizations..."
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
+              onClear={() => setSearchTerm('')}
               className="w-full"
             />
           </div>

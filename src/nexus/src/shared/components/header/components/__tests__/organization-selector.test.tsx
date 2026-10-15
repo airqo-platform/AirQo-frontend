@@ -180,6 +180,48 @@ describe('OrganizationSelector', () => {
     ).not.toBeInTheDocument();
   });
 
+  it('clears the organization search and restores all matching rows', async () => {
+    mockUseDiscoverGroups.mockReturnValue({
+      data: {
+        groups: [
+          {
+            _id: discoveredOnly.id,
+            grp_title: discoveredOnly.title,
+            organization_slug: discoveredOnly.organizationSlug,
+          },
+        ],
+      },
+      error: undefined,
+      isLoading: false,
+    });
+
+    const user = userEvent.setup();
+    render(<OrganizationSelector />);
+    await user.click(
+      screen.getByRole('button', { name: /Open organizations/ })
+    );
+
+    const searchInput = screen.getByPlaceholderText('Search organizations...');
+    await user.type(searchInput, 'discoverable');
+
+    expect(
+      screen.queryByRole('button', { name: 'Switch to My Group' })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Request Access' })
+    ).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Clear search' }));
+
+    expect(searchInput).toHaveValue('');
+    expect(
+      screen.getByRole('button', { name: 'Switch to My Group' })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Request Access' })
+    ).toBeInTheDocument();
+  });
+
   it('hides internal request errors behind a concise retry message', async () => {
     const trigger = jest
       .fn()
