@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Checkbox } from "@/components/ui/checkbox"
-import { cn } from "@/lib/utils"
+import { cn, formatCompactNumber } from "@/lib/utils"
 import { format, subDays } from "date-fns"
 import { getDevicePerformanceData } from "@/services/device-api.service"
 import { isMockMode } from "@/lib/mock-data"
@@ -766,7 +766,7 @@ export default function PerformanceTab({ deviceId, deviceName }: Readonly<Perfor
                     </div>
                     <div>
                       <p className="text-sm font-medium text-gray-500">Avg Error Margin</p>
-                      <p className="text-lg font-bold text-orange-600">{summary.avgErrorMargin != null ? summary.avgErrorMargin.toFixed(2) : "N/A"}</p>
+                      <p className="text-lg font-bold text-orange-600">{summary.avgErrorMargin != null ? formatCompactNumber(summary.avgErrorMargin, 2) : "N/A"}</p>
                     </div>
                   </div>
 

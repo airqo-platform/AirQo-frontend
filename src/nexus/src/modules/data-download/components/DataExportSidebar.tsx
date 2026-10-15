@@ -2,7 +2,8 @@ import React, { useMemo, useState, useCallback, useEffect } from 'react';
 import { Input } from '@/shared/components/ui/input';
 import Checkbox from '@/shared/components/ui/checkbox';
 import { CustomField } from './CustomField';
-import { DateRange } from '@/shared/components/calendar/types';
+import { DateUtils } from '@/shared/components/calendar';
+import { CalendarPreset, DateRange } from '@/shared/components/calendar/types';
 import { WarningBanner } from '@/shared/components/ui';
 import { Tooltip } from 'flowbite-react';
 import { AqXClose } from '@airqo/icons-react';
@@ -16,6 +17,11 @@ import {
   type ProductTourStepEventDetail,
 } from '@/shared/lib/tourEvents';
 import { useHomeStart } from '@/shared/hooks/useHomeStart';
+import {
+  getDataExportDateRangeLimit,
+  getDataExportFrequencyLabel,
+} from '../constants/dataExportConstants';
+import { getSelectedDateRangeDurationDays } from '../utils/dataExportUtils';
 
 interface DataExportSidebarProps {
   // State
@@ -120,15 +126,19 @@ export const DataExportSidebar: React.FC<DataExportSidebarProps> = ({
       return allOptions.filter(option => option.value !== 'raw');
     }
   }, [deviceCategory]);
-  const showDownloadLimitNotice = useMemo(() => {
-    if (!dateRange?.from || !dateRange?.to) return false;
-
-    return (
-      Math.abs(dateRange.to.getTime() - dateRange.from.getTime()) /
-        (1000 * 60 * 60 * 24) >
-      90
-    );
-  }, [dateRange]);
+  const dateRangeLimit = getDataExportDateRangeLimit(frequency);
+  const frequencyLabel = getDataExportFrequencyLabel(frequency);
+  const dateRangeDuration = getSelectedDateRangeDurationDays(dateRange);
+  const showDownloadLimitNotice =
+    dateRangeDuration !== null && dateRangeDuration > dateRangeLimit;
+  const dateRangePresets = useMemo<CalendarPreset[]>(
+    () =>
+      DateUtils.getDefaultPresets().filter(preset => {
+        const duration = getSelectedDateRangeDurationDays(preset.value);
+        return duration === null || duration <= dateRangeLimit;
+      }),
+    [dateRangeLimit]
+  );
   const [pollutantError, setPollutantError] = useState<string | null>(null);
   const homeStart = useHomeStart();
 
@@ -244,6 +254,7 @@ export const DataExportSidebar: React.FC<DataExportSidebarProps> = ({
               mode="calendar"
               selectedRange={dateRange}
               onRangeSelect={setDateRange}
+              calendarPresets={dateRangePresets}
               label="Date Range"
               value=""
               required
@@ -257,11 +268,11 @@ export const DataExportSidebar: React.FC<DataExportSidebarProps> = ({
             )}
           </div>
 
-          {/* Download Limit Notice — only show for large date ranges */}
+      {/* Download Limit Notice — only show when the active frequency cap is exceeded */}
           {showDownloadLimitNotice && (
             <WarningBanner
-              title="Download Limit Notice"
-              message="Annual data downloads must be done in batches. Please select shorter date ranges for optimal performance."
+              title="Date Range Exceeds Export Limit"
+              message={`${frequencyLabel} exports support up to ${dateRangeLimit} days per request. Choose a shorter date range before reviewing your download.`}
             />
           )}
 
@@ -411,6 +422,7 @@ export const DataExportSidebar: React.FC<DataExportSidebarProps> = ({
                 mode="calendar"
                 selectedRange={dateRange}
                 onRangeSelect={setDateRange}
+                calendarPresets={dateRangePresets}
                 label="Date Range"
                 value=""
                 required
@@ -427,8 +439,8 @@ export const DataExportSidebar: React.FC<DataExportSidebarProps> = ({
             {/* Download Limit Notice */}
             {showDownloadLimitNotice && (
               <WarningBanner
-                title="Download Limit Notice"
-                message="Annual data downloads must be done in batches. Please select shorter date ranges for optimal performance."
+                title="Date Range Exceeds Export Limit"
+                message={`${frequencyLabel} exports support up to ${dateRangeLimit} days per request. Choose a shorter date range before reviewing your download.`}
               />
             )}
 

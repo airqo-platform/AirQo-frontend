@@ -295,6 +295,8 @@ export interface DeviceQueryParams {
   status?: string
   search?: string
   group?: string
+  /** Attach each device's latest stored daily diagnosis as `diagnostics` */
+  includeDiagnostics?: boolean
 }
 
 export interface PerformanceQueryParams {

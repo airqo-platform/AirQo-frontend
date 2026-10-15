@@ -42,6 +42,8 @@ export interface TelemetryMapping {
   label: string;
   unit?: string;
   source?: string;
+  /** Name of the status code set that decodes this field's values, e.g. "bam-1020". */
+  status_code_set?: string;
 }
 
 export interface ConfigMapping {
@@ -584,6 +586,102 @@ export interface FleetDailySummary {
   worst_devices: FleetDeviceHealth[];
 }
 
+// ── Diagnoses in list responses (`includeDiagnostics=true`) ─────────────────
+
+export interface DeviceDiagnosticsIssue {
+  issue_code: string;
+  title: string;
+  severity: IssueSeverity;
+  subsystem: string;
+  component_name?: string | null;
+  streak_days: number;
+  is_new: boolean;
+}
+
+/** A device's most recent stored daily diagnosis from the last 7 days. */
+export interface DeviceDiagnostics {
+  diagnosis_date: string;
+  overall_health_score: number;
+  lifecycle_state: LifecycleState;
+  issue_count: number;
+  max_severity?: IssueSeverity | null;
+  top_cause_code?: string | null;
+  headline?: string | null;
+  /** The day's most severe issues, at most 3. */
+  issues: DeviceDiagnosticsIssue[];
+}
+
+export interface DiagnosticsSummaryIssue {
+  issue_code: string;
+  title: string;
+  severity: IssueSeverity;
+  subsystem: string;
+  device_count: number;
+}
+
+/** Roll-up of the latest diagnoses of the devices in a site, grid or cohort. */
+export interface DiagnosticsSummary {
+  devices_total: number;
+  devices_diagnosed: number;
+  devices_not_diagnosed: number;
+  devices_with_issues: number;
+  average_health_score?: number | null;
+  min_health_score?: number | null;
+  lifecycle_state_counts: Partial<Record<LifecycleState, number>>;
+  max_severity?: IssueSeverity | null;
+  latest_diagnosis_date?: string | null;
+  top_issues: DiagnosticsSummaryIssue[];
+}
+
+// ── Status code sets ────────────────────────────────────────────────────────
+
+export type StatusCodeKind = "ok" | "fault" | "info";
+
+/** `bitmask`: a value is the sum of its active single-bit codes. `exact`: a value is one code. */
+export type StatusDecodeRule = "bitmask" | "exact";
+
+/** The most serious kind among a decoded value's codes, or `invalid` for a non-whole or negative value. */
+export type DecodedStatus = "ok" | "info" | "unknown" | "fault" | "invalid";
+
+export interface StatusCode {
+  code: number;
+  label: string;
+  description?: string | null;
+  kind: StatusCodeKind;
+}
+
+/** One device type's status codes and the rule for reading a reported value. */
+export interface StatusCodeSet {
+  id: string;
+  name: string;
+  description?: string | null;
+  decode_rule: StatusDecodeRule;
+  codes: StatusCode[];
+  created_at?: string | null;
+  updated_at?: string | null;
+}
+
+export interface StatusCodeSetInput {
+  name: string;
+  description?: string | null;
+  decode_rule: StatusDecodeRule;
+  codes: StatusCode[];
+}
+
+export interface StatusDecodeResult {
+  value: number | null;
+  status: DecodedStatus;
+  codes: StatusCode[];
+  /** Parts of the value with no defined code. */
+  unknown_codes: number[];
+}
+
+export interface StatusDecodeResponse {
+  code_set: string;
+  decode_rule: StatusDecodeRule;
+  results: StatusDecodeResult[];
+}
+
 export interface FleetIssueFilters {
   diagnosis_date?: string;
   start_date?: string;
@@ -596,6 +694,8 @@ export interface FleetIssueFilters {
   check_type?: DiagnosticCheckType | string;
   min_streak_days?: number;
   only_new?: boolean;
+  /** Group title(s); limits the search to the group's devices. */
+  group?: string;
   skip?: number;
   limit?: number;
 }

@@ -30,11 +30,13 @@ import {
 import { useRouter } from "next/navigation"
 
 import { fetchCollocationSites } from "@/lib/api"
-import { decodeBamStatusIssues, type DecodedBamIssue } from "@/lib/bam-status"
+import { getStatusIssues, type StatusIssue } from "@/lib/status-codes"
+import { useCategoryStatusCodeSet } from "@/hooks/use-status-code-set"
+import { StatusCodeChip } from "@/components/diagnostics/StatusCodeChips"
 import { isMockMode } from "@/lib/mock-data"
 import { syncSites } from "@/services/device-api.service"
 import { useToast } from "@/components/ui/use-toast"
-import { REFERENCE_MONITOR_LABEL } from "@/lib/utils"
+import { REFERENCE_MONITOR_LABEL, formatCompactNumber } from "@/lib/utils"
 
 // --- Types ---
 
@@ -45,6 +47,8 @@ interface HistoryItem {
 
 interface BamIssueDetail {
   id: string
+  /** The decoded status code; absent for the offline notice */
+  status?: StatusIssue
   description: string
   cause: string
 }
@@ -258,7 +262,7 @@ function ErrorMarginMiniGraph({ errorMarginHistory, averageMargin }: { errorMarg
   return (
     <TooltipProvider>
       <div className="flex items-center gap-2">
-        <span className={`font-medium min-w-[50px] ${getTextColor(averageMargin)}`}>±{averageMargin.toFixed(1)}%</span>
+        <span className={`font-medium min-w-[50px] ${getTextColor(averageMargin)}`}>±{formatCompactNumber(averageMargin, 1)}%</span>
         <div className="flex items-end gap-[2px] h-8">
           {values.map((item, index) => (
             <Tooltip key={index} delayDuration={100}>
@@ -276,7 +280,7 @@ function ErrorMarginMiniGraph({ errorMarginHistory, averageMargin }: { errorMarg
               <TooltipContent className={`${getTooltipBgColor(item.value)} text-white border`}>
                 <div className="text-xs font-medium">
                   <div>{formatDate(item.timestamp)}</div>
-                  <div>Error Margin: ±{(item.value ?? 0).toFixed(1)}%</div>
+                  <div>Error Margin: ±{formatCompactNumber(item.value ?? 0, 1)}%</div>
                 </div>
               </TooltipContent>
             </Tooltip>
@@ -298,6 +302,8 @@ export default function SiteCollocationPage() {
   const [showEmptySites, setShowEmptySites] = useState(false)
   const [isSyncing, setIsSyncing] = useState(false)
   const [expandedBamStatusRows, setExpandedBamStatusRows] = useState<Record<string, boolean>>({})
+  // Decodes the BAM status field with the set linked to the BAM profile
+  const { codeSet: bamStatusCodes, loading: bamStatusCodesLoading } = useCategoryStatusCodeSet("bam")
   const { toast } = useToast()
 
   const handleSyncSites = async () => {
@@ -368,16 +374,17 @@ export default function SiteCollocationPage() {
             .map((device: any) => {
               const parsedStatusCode = Number(device?.status)
               const statusCode = Number.isFinite(parsedStatusCode) ? parsedStatusCode : null
-              const decodedIssues: DecodedBamIssue[] = decodeBamStatusIssues(device?.status)
+              const decodedIssues: StatusIssue[] = getStatusIssues(bamStatusCodes, device?.status)
 
               const lastActive = (device?.last_active || device?.lastActive || null) as string | null
               const lastActiveTs = getLastActiveTimestamp(lastActive)
               const isOffline = lastActiveTs === null || (nowTs - lastActiveTs) > offlineThresholdMs
 
               const issueDetails: BamIssueDetail[] = decodedIssues.map((issue) => ({
-                id: `status-${issue.code}`,
-                description: issue.description,
-                cause: issue.cause,
+                id: `status-${issue.kind}-${issue.code}`,
+                status: issue,
+                description: issue.label,
+                cause: issue.description || "",
               }))
 
               if (isOffline) {
@@ -474,11 +481,13 @@ export default function SiteCollocationPage() {
     } finally {
       setIsLoading(false)
     }
-  }, [])
+  }, [bamStatusCodes])
 
   useEffect(() => {
+    // Decoding happens while mapping the response, so wait for the status codes
+    if (bamStatusCodesLoading) return
     fetchData()
-  }, [fetchData])
+  }, [fetchData, bamStatusCodesLoading])
 
   const filteredSites = sites.filter((s) =>
     s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -792,7 +801,16 @@ export default function SiteCollocationPage() {
                                         <ul className="ml-3 mt-1 list-disc text-red-700">
                                           {issue.issues.map((problem) => (
                                             <li key={`${issue.deviceName}-${problem.id}`}>
-                                              <span className="font-medium">{problem.description}:</span> {problem.cause}
+                                              {problem.status ? (
+                                                <span className="inline-flex flex-wrap items-baseline gap-1.5">
+                                                  <StatusCodeChip issue={problem.status} tooltip={false} />
+                                                  {problem.cause && <span>{problem.cause}</span>}
+                                                </span>
+                                              ) : (
+                                                <>
+                                                  <span className="font-medium">{problem.description}:</span> {problem.cause}
+                                                </>
+                                              )}
                                             </li>
                                           ))}
                                         </ul>

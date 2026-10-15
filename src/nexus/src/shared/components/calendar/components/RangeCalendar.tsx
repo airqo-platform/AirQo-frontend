@@ -2,7 +2,7 @@
 
 import React, { useCallback } from 'react';
 import { Calendar } from './Calendar';
-import { DateRange } from '../types';
+import { CalendarPreset, DateRange } from '../types';
 import { DateUtils } from '../utils/date-utils';
 
 interface RangeCalendarProps {
@@ -10,6 +10,7 @@ interface RangeCalendarProps {
   onApply?: (value: DateRange) => void;
   onCancel?: () => void;
   initialRange?: DateRange;
+  presets?: CalendarPreset[];
   minDate?: Date;
   maxDate?: Date;
   disabled?: (date: Date) => boolean;
@@ -20,6 +21,7 @@ export function RangeCalendar({
   onApply,
   onCancel,
   initialRange,
+  presets = DateUtils.getDefaultPresets(),
   minDate,
   maxDate,
   disabled,
@@ -44,8 +46,6 @@ export function RangeCalendar({
   const handleRangeChange = useCallback((range: DateRange) => {
     setSelectedRange(range);
   }, []);
-
-  const presets = DateUtils.getDefaultPresets();
 
   const presetSidebar = showPresets ? (
     <div

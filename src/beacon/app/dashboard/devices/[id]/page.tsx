@@ -132,6 +132,8 @@ interface DeviceDetail {
   tags: any[]
 }
 
+const DEVICE_TABS = ["device-details", "diagnostics", "metadata", "config", "performance", "remote-shell", "files"]
+
 export default function DeviceDetailPage() {
   const { data: session, status } = useSession()
   const { activeGroup } = useGroup()
@@ -140,9 +142,13 @@ export default function DeviceDetailPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const requestedReturnTo = searchParams?.get("returnTo")
-  const returnTo = requestedReturnTo?.startsWith("/")
+  // Same-site paths only: "//host" would leave the app
+  const returnTo = requestedReturnTo?.startsWith("/") && !requestedReturnTo.startsWith("//")
     ? requestedReturnTo
     : "/dashboard/devices"
+  // `?tab=diagnostics` opens a tab directly, e.g. from the maintenance map
+  const requestedTab = searchParams?.get("tab")
+  const initialTab = requestedTab && DEVICE_TABS.includes(requestedTab) ? requestedTab : "device-details"
   const { toast } = useToast()
   const [device, setDevice] = useState<DeviceDetail | null>(null)
   const [loading, setLoading] = useState(true)
@@ -341,23 +347,21 @@ export default function DeviceDetailPage() {
         className="mb-2 pl-0 -ml-3"
         onClick={() => router.push(returnTo)}
       >
-        <ChevronLeft className="h-4 w-4 mr-1" /> Back to devices
+        <ChevronLeft className="h-4 w-4 mr-1" /> {returnTo === "/dashboard/devices" ? "Back to devices" : "Back"}
       </Button>
 
       {/* Tabs for Device Information */}
-      <Tabs defaultValue="device-details" className="mt-2">
+      <Tabs defaultValue={initialTab} className="mt-2">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
-          <TabsList className={`grid w-full ${isAirqoGroup ? "max-w-4xl grid-cols-7" : "max-w-3xl grid-cols-6"}`}>
+          <TabsList className="grid w-full max-w-4xl grid-cols-7">
             <TabsTrigger value="device-details" className="flex items-center">
               <MapPin className="mr-2 h-4 w-4" />
               Device Details
             </TabsTrigger>
-            {isAirqoGroup && (
-              <TabsTrigger value="diagnostics" className="flex items-center text-blue-700 font-medium">
-                <Stethoscope className="mr-2 h-4 w-4 text-blue-600" />
-                Diagnostics
-              </TabsTrigger>
-            )}
+            <TabsTrigger value="diagnostics" className="flex items-center text-blue-700 font-medium">
+              <Stethoscope className="mr-2 h-4 w-4 text-blue-600" />
+              Diagnostics
+            </TabsTrigger>
             {/* <TabsTrigger value="sensor-data" className="flex items-center">
             <Activity className="mr-2 h-4 w-4" />
             Sensor Data
@@ -401,14 +405,14 @@ export default function DeviceDetailPage() {
           />
         </TabsContent>
 
-        {isAirqoGroup && (
-          <TabsContent value="diagnostics" className="mt-4">
-            <DiagnosticsTab
-              deviceId={device._id}
-              deviceName={device.long_name || device.name}
-            />
-          </TabsContent>
-        )}
+        {/* Partner organisations see the stored diagnoses only */}
+        <TabsContent value="diagnostics" className="mt-4">
+          <DiagnosticsTab
+            deviceId={device._id}
+            deviceName={device.long_name || device.name}
+            readOnly={!isAirqoGroup}
+          />
+        </TabsContent>
 
         {/* <TabsContent value="sensor-data" className="mt-4">
           <SensorDataTab deviceId={device.name} deviceName={device.long_name || device.name} />

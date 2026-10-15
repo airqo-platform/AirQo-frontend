@@ -9,9 +9,11 @@ import { ExternalLink, Sliders, Stethoscope } from "lucide-react";
 interface DiagnosticsTabProps {
   deviceId: string;
   deviceName?: string;
+  /** Stored diagnoses only, without the bench simulator or evaluation tools (partner organisations). */
+  readOnly?: boolean;
 }
 
-export default function DiagnosticsTab({ deviceId, deviceName }: DiagnosticsTabProps) {
+export default function DiagnosticsTab({ deviceId, deviceName, readOnly = false }: DiagnosticsTabProps) {
   const nameQuery = deviceName ? `?name=${encodeURIComponent(deviceName)}` : "";
   return (
     <div className="space-y-6">
@@ -28,16 +30,18 @@ export default function DiagnosticsTab({ deviceId, deviceName }: DiagnosticsTabP
               Full-Screen Inspector
             </Button>
           </Link>
-          <Link href={`/dashboard/diagnostics/simulator?device_id=${encodeURIComponent(deviceId)}`}>
-            <Button variant="outline" size="sm" className="h-8 text-xs bg-white gap-1.5 text-gray-700">
-              <Sliders className="w-3.5 h-3.5" />
-              Bench Simulator
-            </Button>
-          </Link>
+          {!readOnly && (
+            <Link href={`/dashboard/diagnostics/simulator?device_id=${encodeURIComponent(deviceId)}`}>
+              <Button variant="outline" size="sm" className="h-8 text-xs bg-white gap-1.5 text-gray-700">
+                <Sliders className="w-3.5 h-3.5" />
+                Bench Simulator
+              </Button>
+            </Link>
+          )}
         </div>
       </div>
 
-      <DeviceDiagnosticsPanel deviceId={deviceId} deviceName={deviceName} />
+      <DeviceDiagnosticsPanel deviceId={deviceId} deviceName={deviceName} readOnly={readOnly} />
     </div>
   );
 }

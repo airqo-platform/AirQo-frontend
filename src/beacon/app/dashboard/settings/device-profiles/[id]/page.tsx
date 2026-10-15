@@ -50,9 +50,11 @@ import {
   LayoutGrid,
   ShieldAlert,
   Stethoscope,
+  ListOrdered,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useGroup } from "@/lib/group-context";
+import { ROUTES } from "@/lib/navigation";
 
 export default function DeviceProfileDetailPage() {
   const params = useParams();
@@ -801,7 +803,19 @@ export default function DeviceProfileDetailPage() {
                           <tr key={slot} className="hover:bg-slate-50/80">
                             <td className="py-2.5 px-3 font-bold text-primary">{slot}</td>
                             <td className="py-2.5 px-3 font-semibold text-gray-900">{map.key}</td>
-                            <td className="py-2.5 px-3 font-sans text-gray-600">{map.label}</td>
+                            <td className="py-2.5 px-3 font-sans text-gray-600">
+                              {map.label}
+                              {map.status_code_set && (
+                                <Link
+                                  href={`${ROUTES.STATUS_CODES}?set=${encodeURIComponent(map.status_code_set)}`}
+                                  className="ml-1.5 inline-flex items-center gap-1 rounded border border-blue-200 bg-blue-50 px-1.5 py-0.5 font-mono text-[10px] text-blue-700 hover:bg-blue-100"
+                                  title="Status code set that decodes this field's values"
+                                >
+                                  <ListOrdered className="w-3 h-3" />
+                                  {map.status_code_set}
+                                </Link>
+                              )}
+                            </td>
                             <td className="py-2.5 px-3 text-gray-500">{map.unit || "—"}</td>
                             <td className="py-2.5 px-3 text-gray-400">{map.source || "—"}</td>
                             <td className="py-2.5 px-3 text-right font-sans">

@@ -4,6 +4,8 @@ import {
   FREQUENCY_OPTIONS,
   FILE_TYPE_OPTIONS,
   POLLUTANT_OPTIONS,
+  getDataExportDateRangeLimit,
+  getDataExportFrequencyLabel,
 } from '../dataExportConstants';
 
 const optionLists = [
@@ -66,5 +68,23 @@ describe('dataExportConstants', () => {
     const values = POLLUTANT_OPTIONS.map(o => o.value);
     expect(values).toContain('pm2_5');
     expect(values).toContain('pm10');
+  });
+
+  it('matches the analytics API date-window limits by frequency', () => {
+    expect(getDataExportDateRangeLimit('raw')).toBe(31);
+    expect(getDataExportDateRangeLimit('hourly')).toBe(90);
+    expect(getDataExportDateRangeLimit('daily')).toBe(365);
+    expect(getDataExportDateRangeLimit('weekly')).toBe(365);
+    expect(getDataExportDateRangeLimit('monthly')).toBe(365);
+    expect(getDataExportDateRangeLimit('yearly')).toBe(365);
+  });
+
+  it('falls back to the general API window for an unknown frequency', () => {
+    expect(getDataExportDateRangeLimit('unsupported')).toBe(365);
+  });
+
+  it('returns a readable frequency label for export messages', () => {
+    expect(getDataExportFrequencyLabel('hourly')).toBe('Hourly');
+    expect(getDataExportFrequencyLabel('unsupported')).toBe('unsupported');
   });
 });

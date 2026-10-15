@@ -23,6 +23,7 @@ import { DeviceTrendsList } from "@/components/diagnostics/DeviceTrendsList";
 import { DiagnosisNarrative } from "@/components/diagnostics/DiagnosisNarrative";
 import { DailyDiagnosisDetailDialog } from "@/components/diagnostics/DailyDiagnosisDetailDialog";
 import { DailyRunDialog } from "@/components/diagnostics/DailyRunDialog";
+import { DeviceReportedStatus } from "@/components/diagnostics/DeviceReportedStatus";
 import { EvaluationQualityNotice } from "@/components/diagnostics/EvaluationQualityNotice";
 import { ProfileNotDiagnosableNotice } from "@/components/diagnostics/ProfileNotDiagnosableNotice";
 import {
@@ -58,6 +59,11 @@ interface DeviceDiagnosticsPanelProps {
   deviceName?: string;
   /** Telemetry window used for on-demand evaluations. */
   windowHours?: number;
+  /**
+   * Show stored diagnoses only, without running evaluations or daily runs and without technician
+   * feedback. Used for partner organisations; AirQo staff get the full panel.
+   */
+  readOnly?: boolean;
 }
 
 const isoDateDaysAgo = (days: number) => new Date(Date.now() - days * 86_400_000).toISOString().slice(0, 10);
@@ -66,7 +72,7 @@ const isoDateDaysAgo = (days: number) => new Date(Date.now() - days * 86_400_000
  * Device diagnostics: the automatic daily diagnoses (trend, recurring issues, per-day detail)
  * and the latest on-demand evaluation against the device profile.
  */
-export function DeviceDiagnosticsPanel({ deviceId, deviceName, windowHours = 24 }: DeviceDiagnosticsPanelProps) {
+export function DeviceDiagnosticsPanel({ deviceId, deviceName, windowHours = 24, readOnly = false }: DeviceDiagnosticsPanelProps) {
   const displayName = deviceName || deviceId;
   // Daily diagnostics
   const [days, setDays] = useState<number>(30);
@@ -215,6 +221,9 @@ export function DeviceDiagnosticsPanel({ deviceId, deviceName, windowHours = 24 
 
   return (
     <div className="space-y-8">
+      {/* Device-reported status codes, for device types whose profile links a status code set */}
+      <DeviceReportedStatus deviceId={deviceId} showSetLink={!readOnly} />
+
       {/* ── Daily diagnostics ─────────────────────────────────────────── */}
       <section className="space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
@@ -242,10 +251,12 @@ export function DeviceDiagnosticsPanel({ deviceId, deviceName, windowHours = 24 
             <Button variant="outline" size="sm" onClick={fetchDaily} disabled={dailyLoading} className="h-8 text-xs bg-white px-2" title="Refresh">
               <RefreshCw className={`w-3.5 h-3.5 ${dailyLoading ? "animate-spin" : ""}`} />
             </Button>
-            <Button variant="outline" size="sm" onClick={() => setRunDialogOpen(true)} className="h-8 text-xs bg-white gap-1.5">
-              <PlayCircle className="w-3.5 h-3.5 text-primary" />
-              Run / Backfill
-            </Button>
+            {!readOnly && (
+              <Button variant="outline" size="sm" onClick={() => setRunDialogOpen(true)} className="h-8 text-xs bg-white gap-1.5">
+                <PlayCircle className="w-3.5 h-3.5 text-primary" />
+                Run / Backfill
+              </Button>
+            )}
           </div>
         </div>
 
@@ -443,7 +454,9 @@ export function DeviceDiagnosticsPanel({ deviceId, deviceName, windowHours = 24 
             Latest Evaluation
           </h3>
           <p className="text-xs text-gray-500 mt-0.5">
-            On-demand evaluation of the last {windowHours}h of telemetry against the device profile.
+            {readOnly
+              ? "Most recent on-demand evaluation of the device's telemetry against its device profile."
+              : `On-demand evaluation of the last ${windowHours}h of telemetry against the device profile.`}
           </p>
         </div>
 
@@ -458,7 +471,7 @@ export function DeviceDiagnosticsPanel({ deviceId, deviceName, windowHours = 24 
               state={snapshot.lifecycle_state}
               evaluatedWindowHours={snapshot.evaluated_window_hours || windowHours}
               lastEvaluated={new Date(snapshot.timestamp).toLocaleString()}
-              onReevaluate={handleReevaluate}
+              onReevaluate={readOnly ? undefined : handleReevaluate}
               isEvaluating={isEvaluating}
               isSimulated={snapshot.is_simulated}
             />
@@ -501,20 +514,28 @@ export function DeviceDiagnosticsPanel({ deviceId, deviceName, windowHours = 24 
             <DiagnosisCard
               diagnoses={snapshot.top_diagnoses || []}
               deviceId={deviceId}
-              onOpenFeedback={handleOpenFeedback}
+              onOpenFeedback={readOnly ? undefined : handleOpenFeedback}
             />
           </div>
         ) : (
           <Card className="border border-dashed border-gray-300 p-8 text-center bg-gray-50/50">
             <Stethoscope className="w-10 h-10 text-gray-400 mx-auto mb-3" />
             <h4 className="text-base font-semibold text-gray-800">No On-Demand Evaluation Yet</h4>
-            <p className="text-xs text-gray-500 mt-1 max-w-md mx-auto">
-              Evaluate the last {windowHours}h of telemetry for {displayName} against its device profile.
-            </p>
-            <Button onClick={handleReevaluate} size="sm" disabled={isEvaluating} className="mt-4 gap-2">
-              <Sparkles className={`w-3.5 h-3.5 ${isEvaluating ? "animate-spin" : ""}`} />
-              {isEvaluating ? "Evaluating..." : "Run Evaluation"}
-            </Button>
+            {readOnly ? (
+              <p className="text-xs text-gray-500 mt-1 max-w-md mx-auto">
+                The daily diagnoses above are the device&apos;s regular health record.
+              </p>
+            ) : (
+              <>
+                <p className="text-xs text-gray-500 mt-1 max-w-md mx-auto">
+                  Evaluate the last {windowHours}h of telemetry for {displayName} against its device profile.
+                </p>
+                <Button onClick={handleReevaluate} size="sm" disabled={isEvaluating} className="mt-4 gap-2">
+                  <Sparkles className={`w-3.5 h-3.5 ${isEvaluating ? "animate-spin" : ""}`} />
+                  {isEvaluating ? "Evaluating..." : "Run Evaluation"}
+                </Button>
+              </>
+            )}
           </Card>
         )}
       </section>
@@ -526,16 +547,20 @@ export function DeviceDiagnosticsPanel({ deviceId, deviceName, windowHours = 24 
         onOpenChange={(open) => !open && setSelectedDate(null)}
       />
 
-      <DailyRunDialog open={runDialogOpen} onOpenChange={setRunDialogOpen} deviceIds={[deviceId]} />
+      {!readOnly && (
+        <>
+          <DailyRunDialog open={runDialogOpen} onOpenChange={setRunDialogOpen} deviceIds={[deviceId]} />
 
-      <TechnicianFeedbackModal
-        open={feedbackOpen}
-        onOpenChange={setFeedbackOpen}
-        deviceId={deviceId}
-        snapshotId={snapshot?.id || undefined}
-        diagnosis={selectedDiagnosis}
-        onFeedbackSubmitted={fetchSnapshot}
-      />
+          <TechnicianFeedbackModal
+            open={feedbackOpen}
+            onOpenChange={setFeedbackOpen}
+            deviceId={deviceId}
+            snapshotId={snapshot?.id || undefined}
+            diagnosis={selectedDiagnosis}
+            onFeedbackSubmitted={fetchSnapshot}
+          />
+        </>
+      )}
     </div>
   );
 }

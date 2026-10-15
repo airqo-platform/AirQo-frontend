@@ -13,6 +13,7 @@ interface DataExportBannerProps {
   selectedGridSiteCount: number;
   selectedPollutants: string[];
   deviceCategory: DeviceCategory;
+  frequency: string;
   isDownloadReady: boolean;
   sitesData: CohortSitesResponse['sites'] | undefined;
   devicesData: CohortDevicesResponse['devices'] | undefined;
@@ -33,6 +34,7 @@ export const DataExportBanner: React.FC<DataExportBannerProps> = ({
   selectedGridSiteCount,
   selectedPollutants,
   deviceCategory,
+  frequency,
   isDownloadReady,
   sitesData,
   devicesData,
@@ -49,6 +51,7 @@ export const DataExportBanner: React.FC<DataExportBannerProps> = ({
     selectedGridSiteCount,
     selectedPollutants,
     deviceCategory,
+    frequency,
     isDownloadReady,
     sitesData,
     devicesData,

@@ -43,7 +43,9 @@ import { resolveGridSitesForDownload } from './utils/dataExportRequest';
 import {
   getSiteDisplayName,
   getSiteNavigationData,
+  getDateRangeDurationDays,
 } from './utils/dataExportUtils';
+import { getDataExportDateRangeLimit } from './constants/dataExportConstants';
 import {
   buildDownloadFileContent,
   buildDownloadPdfBlob,
@@ -759,6 +761,13 @@ const DataExportPage = () => {
 
   const isDownloadReady = useMemo(() => {
     const hasDateRange = dateRange?.from && dateRange?.to;
+    const dateRangeDuration =
+      hasDateRange && dateRange.from && dateRange.to
+        ? getDateRangeDurationDays(dateRange.from, dateRange.to)
+        : null;
+    const hasValidDateRange =
+      dateRangeDuration !== null &&
+      dateRangeDuration <= getDataExportDateRangeLimit(frequency);
     const hasSelections =
       activeTab === 'sites'
         ? selectedSiteIds.length > 0
@@ -767,7 +776,9 @@ const DataExportPage = () => {
           : selectedGridSiteCount > 0;
     const hasPollutants = selectedPollutants.length > 0;
 
-    return Boolean(hasDateRange && hasSelections && hasPollutants);
+    return Boolean(
+      hasDateRange && hasValidDateRange && hasSelections && hasPollutants
+    );
   }, [
     dateRange,
     activeTab,
@@ -775,6 +786,7 @@ const DataExportPage = () => {
     selectedDeviceIds,
     selectedGridSiteCount,
     selectedPollutants,
+    frequency,
   ]);
   // Handle table selection changes
   const handleSelectedItemsChange = (selectedIds: (string | number)[]) => {
@@ -1295,6 +1307,7 @@ const DataExportPage = () => {
                 selectedGridSiteCount={selectedGridSiteCount}
                 selectedPollutants={selectedPollutants}
                 deviceCategory={deviceCategory}
+                frequency={frequency}
                 isDownloadReady={isDownloadReady}
                 sitesData={displaySitesData}
                 devicesData={displayDevicesData}

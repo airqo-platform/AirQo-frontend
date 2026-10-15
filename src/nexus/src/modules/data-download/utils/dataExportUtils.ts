@@ -1,4 +1,5 @@
 import { removeUnderscores, normalizeText } from '@/shared/lib/utils';
+import { DateRange } from '@/shared/components/calendar/types';
 import {
   CohortSitesResponse,
   CohortDevicesResponse,
@@ -248,6 +249,32 @@ export const getDefaultDateRange = () => {
     from: startDate,
     to: endDate,
   };
+};
+
+/**
+ * Returns the number of elapsed local calendar days in an export range.
+ *
+ * Export requests are normalised to the selected calendar days before they
+ * reach the analytics API, so comparing local midnights avoids daylight
+ * saving-time and time-of-day differences affecting the window check.
+ */
+export const getDateRangeDurationDays = (from: Date, to: Date): number => {
+  const startUtc = Date.UTC(
+    from.getFullYear(),
+    from.getMonth(),
+    from.getDate()
+  );
+  const endUtc = Date.UTC(to.getFullYear(), to.getMonth(), to.getDate());
+
+  return Math.max(0, (endUtc - startUtc) / (1000 * 60 * 60 * 24));
+};
+
+/** Returns the selected export range length, or null when it is incomplete. */
+export const getSelectedDateRangeDurationDays = (
+  dateRange: DateRange | undefined
+): number | null => {
+  if (!dateRange?.from || !dateRange.to) return null;
+  return getDateRangeDurationDays(dateRange.from, dateRange.to);
 };
 
 /**

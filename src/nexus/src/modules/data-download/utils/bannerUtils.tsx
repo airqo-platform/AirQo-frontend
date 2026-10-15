@@ -3,7 +3,11 @@ import { InfoBanner, WarningBanner } from '@/shared/components/ui/banner';
 import { CohortSitesResponse, CohortDevicesResponse } from '@/shared/types/api';
 import { DateRange } from '@/shared/components/calendar/types';
 import { TabType, DeviceCategory } from '../types/dataExportTypes';
-import { LARGE_DATE_RANGE_THRESHOLD } from '../constants/dataExportConstants';
+import {
+  getDataExportDateRangeLimit,
+  getDataExportFrequencyLabel,
+} from '../constants/dataExportConstants';
+import { getDateRangeDurationDays } from './dataExportUtils';
 import { getEnvironmentAwareUrl } from '@/shared/utils/url';
 
 interface BannerNotificationProps {
@@ -15,6 +19,7 @@ interface BannerNotificationProps {
   selectedGridSiteCount: number;
   selectedPollutants: string[];
   deviceCategory: DeviceCategory;
+  frequency: string;
   isDownloadReady: boolean;
   sitesData: CohortSitesResponse['sites'] | undefined;
   devicesData: CohortDevicesResponse['devices'] | undefined;
@@ -35,6 +40,7 @@ export const getBannerNotification = ({
   selectedGridSiteCount,
   selectedPollutants,
   deviceCategory,
+  frequency,
   isDownloadReady,
   sitesData,
   devicesData,
@@ -139,17 +145,20 @@ export const getBannerNotification = ({
     );
   }
 
-  // Check for large date ranges (more than 90 days) - use warning
+  // Match the backend's frequency-specific date-window validation before the
+  // user reaches the review/download flow.
   if (dateRange?.from && dateRange?.to) {
-    const daysDifference = Math.ceil(
-      (dateRange.to.getTime() - dateRange.from.getTime()) /
-        (1000 * 60 * 60 * 24)
+    const daysDifference = getDateRangeDurationDays(
+      dateRange.from,
+      dateRange.to
     );
-    if (daysDifference > LARGE_DATE_RANGE_THRESHOLD) {
+    const dateRangeLimit = getDataExportDateRangeLimit(frequency);
+    if (daysDifference > dateRangeLimit) {
+      const frequencyLabel = getDataExportFrequencyLabel(frequency);
       return (
         <WarningBanner
-          title="Large Date Range Detected"
-          message="Large date ranges may take longer to process. Consider breaking your request into smaller batches for faster results."
+          title="Date Range Exceeds Export Limit"
+          message={`${frequencyLabel} exports support up to ${dateRangeLimit} days per request. Choose a shorter date range before reviewing your download.`}
         />
       );
     }

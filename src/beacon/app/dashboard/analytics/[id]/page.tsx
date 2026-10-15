@@ -28,8 +28,11 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { useGroup } from "@/lib/group-context"
+import type { DeviceDiagnostics, DiagnosticsSummary } from "@/types/diagnostics"
+import { DeviceHealthCell, HealthSummaryCard } from "@/components/diagnostics/HealthSummary"
 import AirQloudPerformanceTab from "./airqloud-performance-tab"
 import DevicePerformanceHeatmaps, { DeviceHourHeatmaps } from "@/components/analytics/device-heatmap"
+import { formatCompactNumber, formatCompactTick } from "@/lib/utils"
 
 interface AirQloudDetailData {
   id: string
@@ -43,6 +46,7 @@ interface AirQloudDetailData {
   data_completeness?: number | null
   sensor_error_margin?: number | null
   data?: any[]
+  diagnostics_summary?: DiagnosticsSummary | null
   devices: Array<{
     _id?: string
     name: string
@@ -53,6 +57,7 @@ interface AirQloudDetailData {
     lastActive?: string
     lastRawData?: string
     data?: any[]
+    diagnostics?: DeviceDiagnostics | null
   }>
 }
 
@@ -319,7 +324,7 @@ const ErrorMarginMiniGraph = memo(function ErrorMarginMiniGraph({ errorMarginHis
   return (
     <TooltipProvider>
       <div className="flex items-center gap-2">
-        <span className="font-medium min-w-[50px]">±{averageErrorMargin.toFixed(1)}</span>
+        <span className="font-medium min-w-[50px]">±{formatCompactNumber(averageErrorMargin, 1)}</span>
         <div className="flex items-end gap-[2px] h-8">
           {values.map((item) => (
             <Tooltip key={`${item.timestamp}-${item.value}`} delayDuration={100}>
@@ -332,7 +337,7 @@ const ErrorMarginMiniGraph = memo(function ErrorMarginMiniGraph({ errorMarginHis
               <TooltipContent className={`${getErrorMarginTooltipBgColor(item.value)} text-white border`}>
                 <div className="text-xs font-medium">
                   <div>{formatDateForTooltip(item.timestamp)}</div>
-                  <div>Error Margin: ±{item.value.toFixed(2)}</div>
+                  <div>Error Margin: ±{formatCompactNumber(item.value, 2)}</div>
                 </div>
               </TooltipContent>
             </Tooltip>
@@ -386,8 +391,12 @@ export default function AirQloudDetailPage() {
   const searchParams = useSearchParams()
   const { activeGroup, loading: groupLoading } = useGroup()
   const airqloudId = params?.id as string
-  const isGridMode = searchParams?.get("type") === "grid"
-  const entityLabel = isGridMode ? "Grid" : "Cohort"
+  const entityType = searchParams?.get("type")
+  const isGridMode = entityType === "grid"
+  const isSiteMode = entityType === "site"
+  const entityLabel = isGridMode ? "Grid" : isSiteMode ? "Site" : "Cohort"
+  // Return to the analytics page with the same "Filter By" type selected
+  const backHref = `/dashboard/analytics${isGridMode ? "?analysis=grids" : isSiteMode ? "?analysis=sites" : ""}`
   const queryString = searchParams?.toString()
   const returnTo = queryString ? `${pathname}?${queryString}` : pathname
 
@@ -404,7 +413,7 @@ export default function AirQloudDetailPage() {
         return
       }
 
-      if (isGridMode && (groupLoading || !activeGroup)) {
+      if ((isGridMode || isSiteMode) && (groupLoading || !activeGroup)) {
         return
       }
 
@@ -427,11 +436,18 @@ export default function AirQloudDetailPage() {
             endDate.toISOString(),
             activeGroup ?? undefined
           )
-          : await airQloudService.getAirQloudById(
-            airqloudId,
-            startDate.toISOString(),
-            endDate.toISOString()
-          )
+          : isSiteMode
+            ? await airQloudService.getSiteById(
+              airqloudId,
+              startDate.toISOString(),
+              endDate.toISOString(),
+              activeGroup ?? undefined
+            )
+            : await airQloudService.getAirQloudById(
+              airqloudId,
+              startDate.toISOString(),
+              endDate.toISOString()
+            )
         setData(response)
       } catch (err) {
         setError(err instanceof Error ? err.message : `Failed to fetch ${entityLabel} details`)
@@ -441,7 +457,7 @@ export default function AirQloudDetailPage() {
     }
 
     fetchAirQloudDetail()
-  }, [airqloudId, entityLabel, isGridMode, activeGroup, groupLoading])
+  }, [airqloudId, entityLabel, isGridMode, isSiteMode, activeGroup, groupLoading])
 
   if (isLoading) {
     return (
@@ -489,7 +505,7 @@ export default function AirQloudDetailPage() {
       <div className="container mx-auto p-6">
         <div className="flex items-center gap-4 mb-6">
           <Button variant="ghost" size="sm" asChild>
-            <Link href="/dashboard/analytics">
+            <Link href={backHref}>
               <ArrowLeft className="h-4 w-4" />
               Back to Analytics
             </Link>
@@ -508,6 +524,7 @@ export default function AirQloudDetailPage() {
   }
 
   const processedDevices = data.devices ? data.devices.map(d => processDevicePerformance(d, daysOfData)) : []
+  const diagnosisByDevice = new Map((data.devices || []).map(d => [d._id || d.name, d.diagnostics ?? null]))
 
   // Devices with uptime = 0 on the most-recent window day (yesterday) are
   // considered offline.
@@ -634,7 +651,7 @@ export default function AirQloudDetailPage() {
       {/* Header */}
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="sm" asChild>
-          <Link href="/dashboard/analytics">
+          <Link href={backHref}>
             <ArrowLeft className="h-4 w-4" />
             Back to Analytics
           </Link>
@@ -646,10 +663,13 @@ export default function AirQloudDetailPage() {
               <MapPin className="h-4 w-4" />
               {data.country}
             </div>
-            <div className="flex items-center gap-1">
-              <Calendar className="h-4 w-4" />
-              Created {new Date(data.createdAt || new Date()).toLocaleDateString()}
-            </div>
+            {/* Grids and sites have no creation date */}
+            {data.createdAt && (
+              <div className="flex items-center gap-1">
+                <Calendar className="h-4 w-4" />
+                Created {new Date(data.createdAt).toLocaleDateString()}
+              </div>
+            )}
             <Badge variant={data.is_active ? "default" : "secondary"}>
               {data.is_active ? "Active" : "Inactive"}
             </Badge>
@@ -728,6 +748,8 @@ export default function AirQloudDetailPage() {
             </Card>
           </div>
 
+          <HealthSummaryCard summary={data.diagnostics_summary} entityLabel={entityLabel} />
+
           {/* Charts */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
@@ -786,12 +808,13 @@ export default function AirQloudDetailPage() {
                     />
                     <YAxis
                       tick={{ fontSize: 12 }}
+                      tickFormatter={formatCompactTick}
                       axisLine={false}
                       tickLine={false}
                     />
                     <ChartTooltip
                       content={<ChartTooltipContent />}
-                      formatter={(value: any) => [typeof value === 'number' ? value.toFixed(2) : '0', 'Error Margin']}
+                      formatter={(value: any) => [typeof value === 'number' ? formatCompactNumber(value, 2) : '0', 'Error Margin']}
                     />
                     <Bar
                       dataKey="errorMargin"
@@ -824,6 +847,7 @@ export default function AirQloudDetailPage() {
                       <TableRow>
                         <TableHead>Device Name</TableHead>
                         <TableHead>Daily Uptime</TableHead>
+                        <TableHead>Health</TableHead>
                         <TableHead>Error Margin</TableHead>
                         <TableHead>Last Active</TableHead>
                         <TableHead>Data Points</TableHead>
@@ -868,6 +892,9 @@ export default function AirQloudDetailPage() {
                               uptimeHistory={device.uptime_history}
                               averageUptime={device.daily_uptime_percentage}
                             />
+                          </TableCell>
+                          <TableCell>
+                            <DeviceHealthCell diagnosis={diagnosisByDevice.get(device.device_id)} />
                           </TableCell>
                           <TableCell>
                             <ErrorMarginMiniGraph
@@ -931,7 +958,7 @@ export default function AirQloudDetailPage() {
             airqloudId={airqloudId}
             airqloudName={data.name}
             initialData={data}
-            entityType={isGridMode ? "grid" : "cohort"}
+            entityType={isGridMode ? "grid" : isSiteMode ? "site" : "cohort"}
           />
         </TabsContent>
 

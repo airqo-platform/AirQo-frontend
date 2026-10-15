@@ -18,6 +18,9 @@ import {
   FleetIssue,
   FleetIssueFilters,
   ProfileDiagnosticReadiness,
+  StatusCodeSet,
+  StatusCodeSetInput,
+  StatusDecodeResponse,
 } from "@/types/diagnostics";
 
 // Same routing and auth as the other Beacon services: the Beacon API sits behind the platform
@@ -86,6 +89,12 @@ const raiseForStatus = async (res: Response, context: string): Promise<void> => 
   // {"detail": "..."} — HTTPException with a plain message
   if (typeof detail === "string") {
     throw new DiagnosticsApiError(`${context}: ${detail}`, res.status);
+  }
+
+  // {"detail": ["..."]} — e.g. invalid status codes (422) or a status code set name already in use (409)
+  const detailMessages = toStringList(detail);
+  if (detailMessages.length > 0) {
+    throw new DiagnosticsApiError(`${context}: ${detailMessages.join(" ")}`, res.status, detailMessages);
   }
 
   // {"detail": [{"loc", "msg"}]} — request validation error
@@ -413,6 +422,93 @@ export const diagnosticsService = {
     return await res.json();
   },
 
+  // ── Status Code Sets ────────────────────────────────────────────────────────
+
+  /**
+   * List status code sets with their codes
+   * GET /status-code-sets/?skip=0&limit=100&search=
+   */
+  async getStatusCodeSets(params?: { skip?: number; limit?: number; search?: string }): Promise<StatusCodeSet[]> {
+    const baseUrl = getBaseUrl();
+    const res = await fetchWithAuth(`${baseUrl}/status-code-sets/${buildQuery({ ...params })}`, {
+      headers: getAuthHeaders(),
+    });
+    await raiseForStatus(res, "Failed to fetch status code sets");
+    const data = await res.json();
+    return Array.isArray(data) ? data : [];
+  },
+
+  /**
+   * Get a status code set by ID or name, e.g. "bam-1020"
+   * GET /status-code-sets/{ref}
+   */
+  async getStatusCodeSet(ref: string): Promise<StatusCodeSet> {
+    const baseUrl = getBaseUrl();
+    const res = await fetchWithAuth(`${baseUrl}/status-code-sets/${encodeURIComponent(ref)}`, {
+      headers: getAuthHeaders(),
+    });
+    await raiseForStatus(res, `Failed to fetch status code set ${ref}`);
+    return await res.json();
+  },
+
+  /**
+   * Create a status code set with its codes
+   * POST /status-code-sets/
+   */
+  async createStatusCodeSet(input: StatusCodeSetInput): Promise<StatusCodeSet> {
+    const baseUrl = getBaseUrl();
+    const res = await fetchWithAuth(`${baseUrl}/status-code-sets/`, {
+      method: "POST",
+      headers: getAuthHeaders(),
+      body: JSON.stringify(input),
+    });
+    await raiseForStatus(res, "Failed to create status code set");
+    return await res.json();
+  },
+
+  /**
+   * Update a status code set; fields left out are kept and `codes`, when given, replaces the list
+   * PATCH /status-code-sets/{ref}
+   */
+  async updateStatusCodeSet(ref: string, input: Partial<StatusCodeSetInput>): Promise<StatusCodeSet> {
+    const baseUrl = getBaseUrl();
+    const res = await fetchWithAuth(`${baseUrl}/status-code-sets/${encodeURIComponent(ref)}`, {
+      method: "PATCH",
+      headers: getAuthHeaders(),
+      body: JSON.stringify(input),
+    });
+    await raiseForStatus(res, `Failed to update status code set ${ref}`);
+    return await res.json();
+  },
+
+  /**
+   * Delete a status code set and its codes
+   * DELETE /status-code-sets/{ref}
+   */
+  async deleteStatusCodeSet(ref: string): Promise<{ success: boolean }> {
+    const baseUrl = getBaseUrl();
+    const res = await fetchWithAuth(`${baseUrl}/status-code-sets/${encodeURIComponent(ref)}`, {
+      method: "DELETE",
+      headers: getAuthHeaders(),
+    });
+    await raiseForStatus(res, `Failed to delete status code set ${ref}`);
+    return { success: true };
+  },
+
+  /**
+   * Translate reported values into their codes (up to 1,000 per request)
+   * GET /status-code-sets/{ref}/decode?value=17&value=144
+   */
+  async decodeStatusValues(ref: string, values: Array<string | number>): Promise<StatusDecodeResponse> {
+    const baseUrl = getBaseUrl();
+    const qs = buildQuery({ value: values.map(String) });
+    const res = await fetchWithAuth(`${baseUrl}/status-code-sets/${encodeURIComponent(ref)}/decode${qs}`, {
+      headers: getAuthHeaders(),
+    });
+    await raiseForStatus(res, `Failed to decode status values with ${ref}`);
+    return await res.json();
+  },
+
   // ── Daily Diagnostics ───────────────────────────────────────────────────────
 
   /**
@@ -494,10 +590,11 @@ export const diagnosticsService = {
   },
 
   /**
-   * Fleet health for one day (defaults to the latest diagnosed day)
+   * Fleet health for one day (defaults to the latest diagnosed day). `group` limits it to
+   * the group's devices and defaults the day to that group's latest diagnosed day.
    * GET /diagnostics/fleet/daily-summary
    */
-  async getFleetDailySummary(params?: { diagnosis_date?: string; top_n?: number }): Promise<FleetDailySummary> {
+  async getFleetDailySummary(params?: { diagnosis_date?: string; top_n?: number; group?: string }): Promise<FleetDailySummary> {
     const baseUrl = getBaseUrl();
     const res = await fetchWithAuth(
       `${baseUrl}/diagnostics/fleet/daily-summary${buildQuery({ ...params })}`,
