@@ -5,6 +5,7 @@ import {
   usePendingInvitations,
   useAcceptInvitation,
   useRejectInvitation,
+  useUser,
 } from '@/shared/hooks';
 import {
   Button,
@@ -43,11 +44,13 @@ interface ConfirmationState {
 }
 
 const OrgInvitesTab: React.FC = () => {
-  const { data, isLoading, error, mutate } = usePendingInvitations();
+  const { user } = useUser();
+  const userId = user?.id ?? null;
+  const { data, isLoading, error, mutate } = usePendingInvitations(userId);
   const { trigger: acceptInvitation, isMutating: isAccepting } =
-    useAcceptInvitation();
+    useAcceptInvitation(userId);
   const { trigger: rejectInvitation, isMutating: isRejecting } =
-    useRejectInvitation();
+    useRejectInvitation(userId);
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [confirmation, setConfirmation] = useState<ConfirmationState>({
     isOpen: false,

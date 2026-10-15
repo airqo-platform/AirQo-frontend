@@ -850,6 +850,7 @@ export interface Group {
   organization_slug: string;
   grp_profile_picture: string;
   grp_image?: string; // Optional logo field that may be present in API responses
+  grp_status?: string; // Canonical status field for discovered/group documents
   _id: string;
   createdAt: string;
   status: string;
@@ -2587,6 +2588,20 @@ export interface GetGroupJoinRequestsResponse {
   success: boolean;
   message: string;
   requests: GroupJoinRequest[];
+}
+
+// Discover-groups envelope (GET /api/v2/users/groups/discover).
+// Returns the same group documents as GET /api/v2/users/groups/.
+export interface DiscoverGroupsResponse {
+  success: boolean;
+  message: string;
+  groups: Group[];
+}
+
+export interface RequestGroupAccessResponse {
+  success: boolean;
+  message: string;
+  data?: unknown;
 }
 
 // Group Information Types

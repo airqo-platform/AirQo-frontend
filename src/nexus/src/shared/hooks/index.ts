@@ -136,6 +136,8 @@ export {
   useUnassignUserFromGroup,
   useLeaveGroup,
   useSetGroupManager,
+  useDiscoverGroups,
+  useRequestGroupAccess,
 } from './useGroups';
 
 // Organization group resolution
