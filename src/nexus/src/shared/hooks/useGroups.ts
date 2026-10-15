@@ -1,10 +1,14 @@
 import useSWR from 'swr';
 import useSWRMutation from 'swr/mutation';
 import { useSWRConfig } from 'swr';
+import { useCallback } from 'react';
 import { userService } from '../services/userService';
+import { STABLE_SWR_OPTIONS, useAbortableFetcher } from './useAbortableSWR';
 import type {
   GetGroupJoinRequestsResponse,
   GetGroupDetailsResponse,
+  DiscoverGroupsResponse,
+  RequestGroupAccessResponse,
   SendGroupInviteRequest,
   UnassignUserFromGroupResponse,
   LeaveGroupResponse,
@@ -153,6 +157,44 @@ export const useSetGroupManager = () => {
         // Invalidate group-related caches
         mutate(key => typeof key === 'string' && key.startsWith('groups/'));
       },
+    }
+  );
+};
+
+// Discover all organizations available for join requests. The user id keeps
+// this user-scoped cache from being reused after an account change.
+export const useDiscoverGroups = (enabled: boolean, userId?: string | null) => {
+  const discoverFetcher = useCallback(
+    (signal: AbortSignal) => userService.discoverGroups(signal),
+    []
+  );
+  const { fetcher } =
+    useAbortableFetcher<DiscoverGroupsResponse>(discoverFetcher);
+
+  return useSWR<DiscoverGroupsResponse>(
+    enabled && userId ? ['groups/discover', userId] : null,
+    fetcher,
+    {
+      ...STABLE_SWR_OPTIONS,
+      // Discovery data changes rarely and the dialog is reopened frequently,
+      // so a longer dedupe window avoids repeat fetches while the bounded
+      // retry policy (errorRetryCount: 1 via STABLE_SWR_OPTIONS) still applies.
+      dedupingInterval: 60_000,
+    }
+  );
+};
+
+// Request access to an organization the user is not a member of
+export const useRequestGroupAccess = (userId?: string | null) => {
+  return useSWRMutation<
+    RequestGroupAccessResponse,
+    Error,
+    readonly [string, string] | null,
+    { groupId: string }
+  >(
+    userId ? ['groups/request-access', userId] : null,
+    async (_key, { arg }: { arg: { groupId: string } }) => {
+      return await userService.requestGroupAccess(arg.groupId);
     }
   );
 };

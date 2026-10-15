@@ -26,6 +26,8 @@ import type {
   ConfirmAccountDeletionResponse,
   GetGroupJoinRequestsResponse,
   GetGroupDetailsResponse,
+  DiscoverGroupsResponse,
+  RequestGroupAccessResponse,
   SendGroupInviteRequest,
   SendGroupInviteResponse,
   UpdateGroupDetailsRequest,
@@ -717,6 +719,41 @@ export class UserService {
     }
 
     return data as UpdateGroupTitleResponse;
+  }
+
+  // Discover all organizations available for join requests - v2 discovery
+  // endpoint. The relative path resolves against the authenticated client's
+  // /api/v2 baseURL and returns every active organization for any
+  // authenticated user.
+  async discoverGroups(signal?: AbortSignal): Promise<DiscoverGroupsResponse> {
+    await this.ensureAuthenticated();
+    const response = await this.authenticatedClient.get<
+      DiscoverGroupsResponse | ApiErrorResponse
+    >('/users/groups/discover', signal ? { signal } : undefined);
+    const data = response.data;
+
+    if ('success' in data && !data.success) {
+      throw new Error(data.message || 'Failed to discover groups');
+    }
+
+    return data as DiscoverGroupsResponse;
+  }
+
+  // Request access to an organization the user is not a member of - v2 endpoint.
+  async requestGroupAccess(
+    groupId: string
+  ): Promise<RequestGroupAccessResponse> {
+    await this.ensureAuthenticated();
+    const response = await this.authenticatedClient.post<
+      RequestGroupAccessResponse | ApiErrorResponse
+    >(`/users/requests/groups/${encodeURIComponent(groupId)}`);
+    const data = response.data;
+
+    if ('success' in data && !data.success) {
+      throw new Error(data.message || 'Failed to request group access');
+    }
+
+    return data as RequestGroupAccessResponse;
   }
 }
 

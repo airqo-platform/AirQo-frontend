@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter, usePathname } from 'next/navigation';
 import { Button } from './ui/button';
 import { Banner } from './ui/banner';
-import { usePendingInvitations } from '../hooks/useUser';
+import { usePendingInvitations, useUser } from '../hooks/useUser';
 import { AqXClose as X } from '@airqo/icons-react';
 
 export type NotificationSeverity = 'info' | 'warning' | 'error' | 'success';
@@ -52,7 +52,8 @@ const bannerAnimation = {
 const usePendingInvitesBanner = () => {
   const router = useRouter();
   const pathname = usePathname();
-  const { data, isLoading } = usePendingInvitations();
+  const { user } = useUser();
+  const { data, isLoading } = usePendingInvitations(user?.id);
 
   // Determine flow type and org slug
   const { flow, orgSlug } = React.useMemo(() => {

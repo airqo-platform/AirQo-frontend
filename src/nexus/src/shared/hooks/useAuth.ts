@@ -183,7 +183,15 @@ export const useMutateUserData = () => {
 
   return {
     invalidateUserData: () => {
-      mutate(key => typeof key === 'string' && key.startsWith('user/'));
+      mutate(key => {
+        const rootKey =
+          typeof key === 'string'
+            ? key
+            : Array.isArray(key) && typeof key[0] === 'string'
+              ? key[0]
+              : null;
+        return rootKey?.startsWith('user/') ?? false;
+      });
     },
   };
 };
