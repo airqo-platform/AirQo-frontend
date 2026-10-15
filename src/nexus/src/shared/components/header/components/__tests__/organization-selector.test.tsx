@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { OrganizationSelector } from '../organization-selector';
 
@@ -99,12 +99,38 @@ const getToastErrorMock = () =>
 describe('OrganizationSelector', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    window.localStorage.clear();
     mockUseUser.mockReturnValue({
       user: { id: 'user-1' },
       groups: [membership],
       activeGroup: membership,
     });
     mockUseRequestGroupAccess.mockReturnValue({ trigger: jest.fn() });
+  });
+
+  it('shows the new badge for fourteen days and then hides it', () => {
+    jest.useFakeTimers();
+    mockUseDiscoverGroups.mockReturnValue({
+      data: undefined,
+      error: undefined,
+      isLoading: false,
+    });
+    render(<OrganizationSelector />);
+
+    expect(screen.getByText('New')).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Open organizations (new)' })
+    ).toBeInTheDocument();
+
+    act(() => {
+      jest.advanceTimersByTime(14 * 24 * 60 * 60 * 1000);
+    });
+
+    expect(screen.queryByText('New')).not.toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /Open organizations/ })
+    ).toBeInTheDocument();
+    jest.useRealTimers();
   });
 
   it('shows memberships without an error banner when discovery fails', async () => {
@@ -117,7 +143,7 @@ describe('OrganizationSelector', () => {
     const user = userEvent.setup();
     render(<OrganizationSelector />);
     await user.click(
-      screen.getByRole('button', { name: 'Open organizations' })
+      screen.getByRole('button', { name: /Open organizations/ })
     );
 
     expect(
@@ -143,7 +169,7 @@ describe('OrganizationSelector', () => {
     const user = userEvent.setup();
     render(<OrganizationSelector />);
     await user.click(
-      screen.getByRole('button', { name: 'Open organizations' })
+      screen.getByRole('button', { name: /Open organizations/ })
     );
 
     expect(
@@ -178,7 +204,7 @@ describe('OrganizationSelector', () => {
     const user = userEvent.setup();
     render(<OrganizationSelector />);
     await user.click(
-      screen.getByRole('button', { name: 'Open organizations' })
+      screen.getByRole('button', { name: /Open organizations/ })
     );
     await user.click(screen.getByRole('button', { name: 'Request Access' }));
 

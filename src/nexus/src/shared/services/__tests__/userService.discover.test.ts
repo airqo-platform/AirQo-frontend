@@ -115,5 +115,17 @@ describe('UserService discover/request access', () => {
         'Already a member'
       );
     });
+
+    it('encodes reserved characters in the group path segment', async () => {
+      discoverMockPost.mockResolvedValueOnce({
+        data: { success: true, message: 'Request received' },
+      });
+
+      await userService.requestGroupAccess('group/1?source=selector#access');
+
+      expect(discoverMockPost).toHaveBeenCalledWith(
+        '/users/requests/groups/group%2F1%3Fsource%3Dselector%23access'
+      );
+    });
   });
 });

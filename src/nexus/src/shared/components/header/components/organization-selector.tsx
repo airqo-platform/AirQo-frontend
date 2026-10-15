@@ -29,6 +29,54 @@ import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
 const REQUEST_ACCESS_FALLBACK_MESSAGE =
   'We couldn’t submit your request right now. Please try again.';
 
+const ORGANIZATION_SELECTOR_BADGE_STORAGE_KEY =
+  'airqo.nexus.organization-selector-new-badge.v1';
+const ORGANIZATION_SELECTOR_BADGE_DURATION_MS = 14 * 24 * 60 * 60 * 1000;
+
+const getOrganizationSelectorBadgeVisibility = (): {
+  isVisible: boolean;
+  remainingMs: number;
+} => {
+  const now = Date.now();
+
+  try {
+    const storedFirstSeenAt = window.localStorage.getItem(
+      ORGANIZATION_SELECTOR_BADGE_STORAGE_KEY
+    );
+    const firstSeenAt = Number(storedFirstSeenAt);
+
+    if (
+      !storedFirstSeenAt ||
+      !Number.isFinite(firstSeenAt) ||
+      firstSeenAt <= 0
+    ) {
+      window.localStorage.setItem(
+        ORGANIZATION_SELECTOR_BADGE_STORAGE_KEY,
+        String(now)
+      );
+      return {
+        isVisible: true,
+        remainingMs: ORGANIZATION_SELECTOR_BADGE_DURATION_MS,
+      };
+    }
+
+    const elapsedMs = now - firstSeenAt;
+    const remainingMs = ORGANIZATION_SELECTOR_BADGE_DURATION_MS - elapsedMs;
+
+    return {
+      isVisible: remainingMs > 0,
+      remainingMs: Math.max(0, remainingMs),
+    };
+  } catch {
+    // Storage can be unavailable in privacy-restricted browser contexts. Keep
+    // the announcement useful for the current session in that case.
+    return {
+      isVisible: true,
+      remainingMs: ORGANIZATION_SELECTOR_BADGE_DURATION_MS,
+    };
+  }
+};
+
 const getRequestAccessErrorMessage = (error: unknown): string => {
   const message = getUserFriendlyErrorMessage(error);
   return /internal server error|cannot read properties of undefined/i.test(
@@ -41,6 +89,7 @@ const getRequestAccessErrorMessage = (error: unknown): string => {
 export function OrganizationSelector() {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [showNewBadge, setShowNewBadge] = useState(false);
   const [requestedIds, setRequestedIds] = useState<string[]>([]);
   const [requestingId, setRequestingId] = useState<string | null>(null);
   const router = useRouter();
@@ -59,6 +108,19 @@ export function OrganizationSelector() {
     isLoading: isDiscovering,
   } = useDiscoverGroups(isOpen, user?.id);
   const requestAccess = useRequestGroupAccess(user?.id);
+
+  React.useEffect(() => {
+    const { isVisible, remainingMs } = getOrganizationSelectorBadgeVisibility();
+    setShowNewBadge(isVisible);
+
+    if (!isVisible) return;
+
+    const timeoutId = window.setTimeout(
+      () => setShowNewBadge(false),
+      remainingMs
+    );
+    return () => window.clearTimeout(timeoutId);
+  }, []);
 
   const discoveredGroups = React.useMemo(
     () => (discoverError ? [] : normalizeDiscoveredGroups(discoverData)),
@@ -186,11 +248,21 @@ export function OrganizationSelector() {
   // }
 
   return (
-    <div className="flex items-center">
+    <div className="relative flex items-center">
+      {showNewBadge && (
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute left-0 top-0 z-10 -translate-y-1/2 rounded-full border border-background bg-primary px-1.5 py-0.5 text-[9px] font-bold uppercase leading-none tracking-wide text-primary-foreground shadow-sm"
+        >
+          New
+        </span>
+      )}
       <button
         type="button"
         onClick={handleOpen}
-        aria-label="Open organizations"
+        aria-label={
+          showNewBadge ? 'Open organizations (new)' : 'Open organizations'
+        }
         className="inline-flex items-center gap-2 px-3 py-1 text-sm font-medium border border-primary/30 bg-transparent rounded-md transition-all duration-200 hover:bg-primary/5 hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         <Avatar

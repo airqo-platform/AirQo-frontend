@@ -746,7 +746,7 @@ export class UserService {
     await this.ensureAuthenticated();
     const response = await this.authenticatedClient.post<
       RequestGroupAccessResponse | ApiErrorResponse
-    >(`/users/requests/groups/${groupId}`);
+    >(`/users/requests/groups/${encodeURIComponent(groupId)}`);
     const data = response.data;
 
     if ('success' in data && !data.success) {
