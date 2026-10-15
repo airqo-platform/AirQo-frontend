@@ -102,8 +102,7 @@ describe('UserService discover/request access', () => {
       await userService.requestGroupAccess('g1');
 
       expect(discoverMockPost).toHaveBeenCalledWith(
-        '/users/requests/groups/g1',
-        {}
+        '/users/requests/groups/g1'
       );
     });
 
