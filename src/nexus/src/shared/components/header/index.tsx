@@ -14,6 +14,7 @@ import {
   LogoComponent,
   InfoDropdown,
   WeatherWidget,
+  NotificationsCenter,
 } from './components';
 import { OrgCohortSwitcher } from '../cohorts/OrgCohortSwitcher';
 import { useScrollVisibility, usePageTitle } from './hooks';
@@ -69,6 +70,7 @@ export const Header: React.FC<HeaderProps> = ({
             {shouldShowAuthControls && !isMobile && (
               <OrgCohortSwitcher containerClassName="mb-0 w-40 xl:w-44" />
             )}
+            {status === 'authenticated' && <NotificationsCenter />}
             <InfoDropdown />
             <AppDropdown />
             {shouldShowAuthControls && <ProfileDropdown />}

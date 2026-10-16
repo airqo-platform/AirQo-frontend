@@ -5,3 +5,4 @@ export { LogoComponent } from './logo-component';
 export { default as LogoutConfirmationDialog } from './logout-confirmation-dialog';
 export { default as InfoDropdown } from './info-dropdown';
 export { default as WeatherWidget } from './weather-widget';
+export { default as NotificationsCenter } from './notifications-center';
