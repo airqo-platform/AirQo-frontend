@@ -10,6 +10,7 @@ import React, {
 import { createPortal } from 'react-dom';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import {
   InfiniteData,
   useInfiniteQuery,
@@ -222,6 +223,7 @@ export const NotificationsCenter: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isPortalReady, setIsPortalReady] = useState(false);
   const isAuthenticated = status === 'authenticated';
+  const shouldReduceMotion = useReducedMotion();
 
   useEffect(() => {
     setIsPortalReady(true);
@@ -416,133 +418,154 @@ export const NotificationsCenter: React.FC = () => {
   const unreadCount = unreadQuery.data ?? 0;
   const hasUnread = unreadCount > 0;
 
-  const drawer =
-    isOpen && isPortalReady
-      ? createPortal(
-          <div className="fixed inset-0 z-[10001] flex justify-end">
-            <button
-              type="button"
-              className="absolute inset-0 cursor-default bg-black/20 backdrop-blur-[1px] motion-reduce:backdrop-blur-none"
-              onClick={closeDrawer}
-              aria-label="Close notifications"
-            />
-            <aside
-              ref={drawerRef}
-              id="notifications-drawer"
-              tabIndex={-1}
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby="notifications-drawer-title"
-              className="relative flex h-full w-full max-w-[420px] flex-col border-l border-border bg-card shadow-2xl motion-safe:animate-in motion-safe:slide-in-from-right motion-safe:duration-200 motion-reduce:animate-none"
-            >
-              <div className="flex items-center justify-between border-b border-border px-4 py-4">
-                <div>
-                  <h2
-                    id="notifications-drawer-title"
-                    className="text-base font-semibold text-foreground"
-                  >
-                    Notifications
-                  </h2>
-                  <p className="mt-0.5 text-xs text-muted-foreground">
-                    {hasUnread
-                      ? `${unreadCount} unread`
-                      : 'You are all caught up'}
-                  </p>
-                </div>
-                <div className="flex items-center gap-1">
-                  <button
-                    type="button"
-                    className="rounded-md p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                    onClick={() => markAllReadMutation.mutate()}
-                    disabled={!hasUnread || markAllReadMutation.isPending}
-                    aria-label="Mark all notifications as read"
-                    title="Mark all as read"
-                  >
-                    <AqCheckDone01 className="h-5 w-5" />
-                  </button>
-                  <button
-                    type="button"
-                    className="rounded-md p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                    onClick={closeDrawer}
-                    aria-label="Close notifications"
-                  >
-                    <AqXClose className="h-5 w-5" />
-                  </button>
-                </div>
-              </div>
-
-              <div className="min-h-0 flex-1 overflow-y-auto">
-                {inboxQuery.isLoading ? (
-                  <NotificationSkeleton />
-                ) : inboxQuery.isError ? (
-                  <div className="flex h-full flex-col items-center justify-center px-6 py-12 text-center">
-                    <AqBell01 className="h-8 w-8 text-muted-foreground" />
-                    <p className="mt-3 text-sm font-medium text-foreground">
-                      Notifications are unavailable
+  const drawer = isPortalReady
+    ? createPortal(
+        <AnimatePresence>
+          {isOpen && (
+            <>
+              <motion.button
+                type="button"
+                className="fixed inset-0 z-[10000] cursor-default bg-black/40 dark:bg-black/80"
+                initial={shouldReduceMotion ? false : { opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={
+                  shouldReduceMotion
+                    ? { duration: 0 }
+                    : { duration: 0.2, ease: [0.4, 0, 0.2, 1] }
+                }
+                onClick={closeDrawer}
+                aria-label="Close notifications"
+              />
+              <motion.aside
+                ref={drawerRef}
+                id="notifications-drawer"
+                tabIndex={-1}
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="notifications-drawer-title"
+                className="fixed right-0 top-0 z-[10001] flex h-full w-full max-w-[420px] flex-col border-l border-border bg-background shadow-lg"
+                initial={shouldReduceMotion ? false : { x: '100%' }}
+                animate={{ x: 0 }}
+                exit={{ x: '100%' }}
+                transition={
+                  shouldReduceMotion
+                    ? { duration: 0 }
+                    : { type: 'tween', duration: 0.3 }
+                }
+              >
+                <div className="flex items-center justify-between border-b border-border px-4 py-4">
+                  <div>
+                    <h2
+                      id="notifications-drawer-title"
+                      className="text-base font-semibold text-foreground"
+                    >
+                      Notifications
+                    </h2>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      {hasUnread
+                        ? `${unreadCount} unread`
+                        : 'You are all caught up'}
                     </p>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      We could not load your notifications right now.
-                    </p>
+                  </div>
+                  <div className="flex items-center gap-1">
                     <button
                       type="button"
-                      className="mt-4 inline-flex items-center gap-2 rounded-md border border-primary px-3 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                      onClick={() => void inboxQuery.refetch()}
+                      className="rounded-md p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                      onClick={() => markAllReadMutation.mutate()}
+                      disabled={!hasUnread || markAllReadMutation.isPending}
+                      aria-label="Mark all notifications as read"
+                      title="Mark all as read"
                     >
-                      <AqRefreshCcw01 className="h-4 w-4" />
-                      Try again
+                      <AqCheckDone01 className="h-5 w-5" />
                     </button>
-                  </div>
-                ) : notifications.length === 0 ? (
-                  <div className="flex h-full flex-col items-center justify-center px-6 py-12 text-center">
-                    <span className="flex h-12 w-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
-                      <AqBell01 className="h-6 w-6" />
-                    </span>
-                    <p className="mt-4 text-sm font-medium text-foreground">
-                      No notifications yet
-                    </p>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      Important updates and access requests will appear here.
-                    </p>
-                  </div>
-                ) : (
-                  <ul aria-label="Notifications">
-                    {notifications.map(notification => (
-                      <NotificationRow
-                        key={notification._id}
-                        notification={notification}
-                        onOpen={notificationToOpen =>
-                          void openNotification(notificationToOpen)
-                        }
-                        onDelete={notificationToDelete =>
-                          deleteMutation.mutate(notificationToDelete._id)
-                        }
-                        isDeleting={
-                          deleteMutation.isPending &&
-                          deleteMutation.variables === notification._id
-                        }
-                      />
-                    ))}
-                  </ul>
-                )}
-
-                {inboxQuery.hasNextPage && (
-                  <div className="border-t border-border p-4">
                     <button
                       type="button"
-                      className="w-full rounded-md border border-border px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                      onClick={() => void inboxQuery.fetchNextPage()}
-                      disabled={inboxQuery.isFetchingNextPage}
+                      className="rounded-md p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      onClick={closeDrawer}
+                      aria-label="Close notifications"
                     >
-                      {inboxQuery.isFetchingNextPage ? 'Loading…' : 'Load more'}
+                      <AqXClose className="h-5 w-5" />
                     </button>
                   </div>
-                )}
-              </div>
-            </aside>
-          </div>,
-          document.body
-        )
-      : null;
+                </div>
+
+                <div className="min-h-0 flex-1 overflow-y-auto">
+                  {inboxQuery.isLoading ? (
+                    <NotificationSkeleton />
+                  ) : inboxQuery.isError ? (
+                    <div className="flex h-full flex-col items-center justify-center px-6 py-12 text-center">
+                      <AqBell01 className="h-8 w-8 text-muted-foreground" />
+                      <p className="mt-3 text-sm font-medium text-foreground">
+                        Notifications are unavailable
+                      </p>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        We could not load your notifications right now.
+                      </p>
+                      <button
+                        type="button"
+                        className="mt-4 inline-flex items-center gap-2 rounded-md border border-primary px-3 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        onClick={() => void inboxQuery.refetch()}
+                      >
+                        <AqRefreshCcw01 className="h-4 w-4" />
+                        Try again
+                      </button>
+                    </div>
+                  ) : notifications.length === 0 ? (
+                    <div className="flex h-full flex-col items-center justify-center px-6 py-12 text-center">
+                      <span className="flex h-12 w-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
+                        <AqBell01 className="h-6 w-6" />
+                      </span>
+                      <p className="mt-4 text-sm font-medium text-foreground">
+                        No notifications yet
+                      </p>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        Important updates and access requests will appear here.
+                      </p>
+                    </div>
+                  ) : (
+                    <ul aria-label="Notifications">
+                      {notifications.map(notification => (
+                        <NotificationRow
+                          key={notification._id}
+                          notification={notification}
+                          onOpen={notificationToOpen =>
+                            void openNotification(notificationToOpen)
+                          }
+                          onDelete={notificationToDelete =>
+                            deleteMutation.mutate(notificationToDelete._id)
+                          }
+                          isDeleting={
+                            deleteMutation.isPending &&
+                            deleteMutation.variables === notification._id
+                          }
+                        />
+                      ))}
+                    </ul>
+                  )}
+
+                  {inboxQuery.hasNextPage && (
+                    <div className="border-t border-border p-4">
+                      <button
+                        type="button"
+                        className="w-full rounded-md border border-border px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                        onClick={() => void inboxQuery.fetchNextPage()}
+                        disabled={inboxQuery.isFetchingNextPage}
+                      >
+                        {inboxQuery.isFetchingNextPage
+                          ? 'Loading…'
+                          : 'Load more'}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </motion.aside>
+            </>
+          )}
+        </AnimatePresence>,
+        document.body
+      )
+    : null;
 
   return (
     <>
