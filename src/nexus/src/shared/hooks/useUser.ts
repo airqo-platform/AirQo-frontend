@@ -111,10 +111,15 @@ export const useUser = () => {
   };
 };
 
+export const pendingInvitationsKey = (userId?: string | null) =>
+  userId ? (['user/pending-invitations', userId] as const) : null;
+
 // Get pending invitations
-export const usePendingInvitations = () => {
+export const usePendingInvitations = (userId?: string | null) => {
+  const key = pendingInvitationsKey(userId);
+
   return useSWR<GetPendingInvitationsResponse>(
-    'user/pending-invitations',
+    key,
     async () => {
       return await userService.getPendingInvitations();
     },
@@ -132,34 +137,40 @@ export const usePendingInvitations = () => {
 };
 
 // Accept invitation
-export const useAcceptInvitation = () => {
+export const useAcceptInvitation = (userId?: string | null) => {
   const { mutate } = useSWRConfig();
+  const pendingKey = pendingInvitationsKey(userId);
 
   return useSWRMutation(
-    'user/accept-invitation',
-    async (key, { arg }: { arg: { invitationId: string } }) => {
+    userId ? ['user/accept-invitation', userId] : null,
+    async (_key, { arg }: { arg: { invitationId: string } }) => {
       return await userService.acceptInvitation(arg.invitationId);
     },
     {
       onSuccess: () => {
-        mutate('user/pending-invitations');
+        if (pendingKey) {
+          void mutate(pendingKey);
+        }
       },
     }
   );
 };
 
 // Reject invitation
-export const useRejectInvitation = () => {
+export const useRejectInvitation = (userId?: string | null) => {
   const { mutate } = useSWRConfig();
+  const pendingKey = pendingInvitationsKey(userId);
 
   return useSWRMutation(
-    'user/reject-invitation',
-    async (key, { arg }: { arg: { invitationId: string } }) => {
+    userId ? ['user/reject-invitation', userId] : null,
+    async (_key, { arg }: { arg: { invitationId: string } }) => {
       return await userService.rejectInvitation(arg.invitationId);
     },
     {
       onSuccess: () => {
-        mutate('user/pending-invitations');
+        if (pendingKey) {
+          void mutate(pendingKey);
+        }
       },
     }
   );

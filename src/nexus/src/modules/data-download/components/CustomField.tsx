@@ -9,7 +9,7 @@ import {
   DropdownMenuTrigger,
 } from '@/shared/components/ui/dropdown-menu';
 import { DatePicker } from '@/shared/components/calendar';
-import { DateRange } from '@/shared/components/calendar/types';
+import { CalendarPreset, DateRange } from '@/shared/components/calendar/types';
 import { cn } from '@/shared/lib/utils';
 
 interface CustomFieldProps {
@@ -25,6 +25,7 @@ interface CustomFieldProps {
   mode?: 'dropdown' | 'calendar';
   selectedRange?: DateRange;
   onRangeSelect?: (range: DateRange) => void;
+  calendarPresets?: CalendarPreset[];
   required?: boolean;
 }
 
@@ -41,6 +42,7 @@ export const CustomField: React.FC<CustomFieldProps> = ({
   mode = 'dropdown',
   selectedRange,
   onRangeSelect,
+  calendarPresets,
   required = false,
 }) => {
   const selected = options.find(o => o.value === value);
@@ -104,6 +106,7 @@ export const CustomField: React.FC<CustomFieldProps> = ({
             }
           }}
           placeholder={placeholder}
+          presets={calendarPresets}
           returnFormat="backend-datetime"
           className="bg-white dark:bg-[#1d1f20] dark:border-gray-700 shadow-sm w-full"
         />

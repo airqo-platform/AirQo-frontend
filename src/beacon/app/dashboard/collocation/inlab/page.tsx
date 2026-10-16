@@ -34,7 +34,7 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react"
-import { formatCategoryLabel } from "@/lib/utils"
+import { formatCategoryLabel, formatCompactNumber } from "@/lib/utils"
 import { useApiData } from "@/hooks/useApiData"
 import { getInlabDevices, getBatches, createBatch } from "@/services/inlab.service"
 import type { InlabDevice, InlabBatch, InlabBatchDevice, InlabDeviceDaily, InlabDeviceDataPoint } from "@/types/inlab.types"
@@ -164,7 +164,7 @@ function BatchErrorMarginMiniGraph({ devices }: { devices: InlabBatchDevice[] })
   return (
     <TooltipProvider>
       <div className="flex items-center gap-2">
-        <span className={`font-medium min-w-[50px] ${getTextColor(avg)}`}>±{avg.toFixed(2)}</span>
+        <span className={`font-medium min-w-[50px] ${getTextColor(avg)}`}>±{formatCompactNumber(avg, 2)}</span>
         <div className="flex items-end gap-[2px] h-8">
           {values.map((item, i) => (
             <Tooltip key={i} delayDuration={100}>
@@ -177,7 +177,7 @@ function BatchErrorMarginMiniGraph({ devices }: { devices: InlabBatchDevice[] })
               <TooltipContent className={`${getTipBg(item.value)} text-white border`}>
                 <div className="text-xs font-medium">
                   <div>{item.name}</div>
-                  <div>Error Margin: ±{item.value.toFixed(2)}</div>
+                  <div>Error Margin: ±{formatCompactNumber(item.value, 2)}</div>
                 </div>
               </TooltipContent>
             </Tooltip>
@@ -347,7 +347,7 @@ function ErrorMarginMiniGraph({ dailyData, averageMargin }: { dailyData: InlabDe
   return (
     <TooltipProvider>
       <div className="flex items-center gap-2">
-        <span className={`font-medium min-w-[50px] ${getTextColor(averageMargin)}`}>±{averageMargin?.toFixed(1) || 0}</span>
+        <span className={`font-medium min-w-[50px] ${getTextColor(averageMargin)}`}>±{formatCompactNumber(averageMargin ?? 0, 1)}</span>
         <div className="flex items-end gap-[2px] h-8">
           {values.map((item, index) => (
             <Tooltip key={index} delayDuration={100}>
@@ -360,7 +360,7 @@ function ErrorMarginMiniGraph({ dailyData, averageMargin }: { dailyData: InlabDe
               <TooltipContent className={`${getTooltipBgColor(item.error_margin)} text-white border`}>
                 <div className="text-xs font-medium">
                   <div>{formatDate(item.date)}</div>
-                  <div>Error Margin: ±{item.error_margin.toFixed(1)}</div>
+                  <div>Error Margin: ±{formatCompactNumber(item.error_margin, 1)}</div>
                 </div>
               </TooltipContent>
             </Tooltip>
@@ -647,7 +647,7 @@ export default function InlabCollocationPage() {
           </CardHeader>
           <CardContent className="pt-4 space-y-4">
             <div>
-              <div className="text-3xl font-bold">±{inlabErrorAvg.toFixed(1)}</div>
+              <div className="text-3xl font-bold">±{formatCompactNumber(inlabErrorAvg, 1)}</div>
               <p className="text-xs text-muted-foreground mt-1">Current page average</p>
             </div>
           </CardContent>
@@ -838,7 +838,7 @@ export default function InlabCollocationPage() {
                           </td>
                           <td className="py-3 px-4">
                             <Badge className={getMarginBadgeColor(device.error_margin)}>
-                              ±{device.error_margin?.toFixed(2)}
+                              ±{formatCompactNumber(device.error_margin ?? 0, 2)}
                             </Badge>
                           </td>
                         </tr>

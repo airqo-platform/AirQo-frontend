@@ -19,10 +19,21 @@ import type { Device } from "@/types/api.types"
 import { useGroup } from "@/lib/group-context"
 import { useSyncActions, SyncToolbar } from "@/components/analytics/sync-toolbar"
 
-type AnalyticsFilterType = "airqlouds" | "devices" | "grids"
+export type AnalyticsFilterType = "airqlouds" | "grids" | "sites" | "devices"
+
+const FILTER_TYPE_LABELS: Record<AnalyticsFilterType, string> = {
+  airqlouds: "Cohorts",
+  grids: "Grids",
+  sites: "Sites",
+  devices: "Devices",
+}
+
+const DEFAULT_FILTER_TYPES: AnalyticsFilterType[] = ["airqlouds", "grids", "devices"]
 
 interface AnalyticsFiltersProps {
   initialFilterType?: AnalyticsFilterType
+  /** Options offered in "Filter By", in display order. */
+  filterTypes?: AnalyticsFilterType[]
   onFilterChange?: (filters: FilterState) => void
   onAnalyse?: (filters: FilterState) => void
   isAnalysing?: boolean
@@ -53,8 +64,9 @@ function getDefaultCohortTag(activeGroup: string | null): string {
 }
 
 export default function AnalyticsFilters({ 
-  initialFilterType = "airqlouds", 
-  onFilterChange, 
+  initialFilterType = "airqlouds",
+  filterTypes = DEFAULT_FILTER_TYPES,
+  onFilterChange,
   onAnalyse, 
   isAnalysing,
   hideDateRange = false
@@ -68,9 +80,11 @@ export default function AnalyticsFilters({
   const [includeTime, setIncludeTime] = useState(false)
   const [airqlouds, setAirqlouds] = useState<AirQloudBasic[]>([])
   const [grids, setGrids] = useState<AirQloudBasic[]>([])
+  const [sites, setSites] = useState<AirQloudBasic[]>([])
   const [devices, setDevices] = useState<Device[]>([])
   const [isLoadingAirqlouds, setIsLoadingAirqlouds] = useState(false)
   const [isLoadingGrids, setIsLoadingGrids] = useState(false)
+  const [isLoadingSites, setIsLoadingSites] = useState(false)
   const [isLoadingDevices, setIsLoadingDevices] = useState(false)
 
   // Cohort Tags State
@@ -243,6 +257,36 @@ export default function AnalyticsFilters({
     return () => clearTimeout(timer)
   }, [filterType, searchTerm, activeGroup, groupLoading])
 
+  // Fetch Sites from API
+  useEffect(() => {
+    const fetchSites = async () => {
+      if (filterType === "sites") {
+        if (groupLoading || !activeGroup) return
+
+        try {
+          setIsLoadingSites(true)
+          const response = await airQloudService.getSitesBasic({
+            search: searchTerm || undefined,
+            limit: 100,
+            group: activeGroup,
+          })
+
+          setSites(response.airqlouds || [])
+        } catch (error) {
+          console.error('Error fetching sites:', error)
+        } finally {
+          setIsLoadingSites(false)
+        }
+      }
+    }
+
+    const timer = setTimeout(() => {
+      fetchSites()
+    }, 300)
+
+    return () => clearTimeout(timer)
+  }, [filterType, searchTerm, activeGroup, groupLoading])
+
   // Fetch Devices from API
   useEffect(() => {
     const fetchDevices = async () => {
@@ -278,12 +322,14 @@ export default function AnalyticsFilters({
     currentItems = airqlouds.map((aq: AirQloudBasic) => ({ id: aq.id, name: aq.name || '' }))
   } else if (filterType === "grids") {
     currentItems = grids.map((grid: AirQloudBasic) => ({ id: grid.id, name: grid.name || '' }))
+  } else if (filterType === "sites") {
+    currentItems = sites.map((site: AirQloudBasic) => ({ id: site.id, name: site.name || '' }))
   } else {
     currentItems = devices.map((d: Device) => ({ id: d.name || d.device_name || '', name: d.name || d.device_name || '' }))
   }
 
-  const filterTypeLabel = filterType === "airqlouds" ? "Cohorts" : filterType === "grids" ? "Grids" : "Devices"
-  const isLoadingItems = (isLoadingAirqlouds && filterType === "airqlouds") || (isLoadingGrids && filterType === "grids") || (isLoadingDevices && filterType === "devices")
+  const filterTypeLabel = FILTER_TYPE_LABELS[filterType]
+  const isLoadingItems = (isLoadingAirqlouds && filterType === "airqlouds") || (isLoadingGrids && filterType === "grids") || (isLoadingSites && filterType === "sites") || (isLoadingDevices && filterType === "devices")
 
   const handleFilterTypeChange = (value: AnalyticsFilterType) => {
     setFilterType(value)
@@ -395,9 +441,9 @@ export default function AnalyticsFilters({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="airqlouds">Cohorts</SelectItem>
-                  <SelectItem value="grids">Grids</SelectItem>
-                  <SelectItem value="devices">Devices</SelectItem>
+                  {filterTypes.map((type) => (
+                    <SelectItem key={type} value={type}>{FILTER_TYPE_LABELS[type]}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>

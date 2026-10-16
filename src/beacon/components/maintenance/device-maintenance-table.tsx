@@ -3,6 +3,7 @@
 import React from "react"
 import { DeviceMaintenanceStats } from "@/types/api.types"
 import { ChevronDown, ChevronUp, ChevronsUpDown, ChevronLeft, ChevronRight } from "lucide-react"
+import { formatCompactNumber } from "@/lib/utils"
 
 interface DeviceMaintenanceTableProps {
     data: DeviceMaintenanceStats[]
@@ -157,7 +158,7 @@ export default function DeviceMaintenanceTable({
                                     {((item.avg_uptime / 24) * 100).toFixed(1)}%
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    {item.avg_error_margin.toFixed(2)}%
+                                    {formatCompactNumber(item.avg_error_margin, 2)}%
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                     {item.avg_battery.toFixed(2)}V

@@ -2,6 +2,7 @@ import {
   normalizeUser,
   normalizeGroups,
   normalizeGroupDetails,
+  normalizeDiscoveredGroups,
 } from '../userUtils';
 import type { User, Group, GroupDetails } from '../../types/api';
 
@@ -304,6 +305,180 @@ describe('normalizeGroupDetails', () => {
         organization_slug: 123 as unknown as string,
       });
       expect(normalizeGroupDetails(details)!.organizationSlug).toBe('');
+    });
+  });
+});
+
+describe('normalizeDiscoveredGroups', () => {
+  describe('envelope variants', () => {
+    const makeDiscovered = (overrides: Record<string, unknown>) => ({
+      _id: 'd-1',
+      grp_title: 'Discovered One',
+      organization_slug: 'discovered-one',
+      grp_image: 'logo.png',
+      grp_status: 'ACTIVE',
+      createdAt: '2024-01-01',
+      ...overrides,
+    });
+
+    it('reads from a { groups: [...] } envelope', () => {
+      const result = normalizeDiscoveredGroups({
+        groups: [makeDiscovered({ _id: 'g-1' })],
+      });
+      expect(result).toHaveLength(1);
+      expect(result[0].id).toBe('g-1');
+      expect(result[0].title).toBe('Discovered One');
+    });
+
+    it('reads from a bare array', () => {
+      const result = normalizeDiscoveredGroups([makeDiscovered({ _id: 'g-3' })]);
+      expect(result).toHaveLength(1);
+      expect(result[0].id).toBe('g-3');
+    });
+
+    it('returns [] for a bare array containing only invalid entries', () => {
+      expect(normalizeDiscoveredGroups([])).toEqual([]);
+    });
+
+    it('ignores a { data: [...] } envelope (no v3-era tolerance)', () => {
+      const result = normalizeDiscoveredGroups({
+        data: [makeDiscovered({ _id: 'g-2' })],
+      });
+      expect(result).toEqual([]);
+    });
+  });
+
+  describe('canonical field mapping (grp_* and _id only)', () => {
+    it('uses _id and drops entries with a non-_id alias', () => {
+      const result = normalizeDiscoveredGroups([
+        { _id: 'preferred', grp_title: 'T' },
+      ]);
+      expect(result).toHaveLength(1);
+      expect(result[0].id).toBe('preferred');
+    });
+
+    it('drops entries that only carry an id (no _id)', () => {
+      const result = normalizeDiscoveredGroups([
+        { id: 'only-id', grp_title: 'T' },
+      ]);
+      expect(result).toEqual([]);
+    });
+
+    it('reads grp_title and ignores name/title aliases', () => {
+      expect(
+        normalizeDiscoveredGroups([{ _id: '1', grp_title: 'gt' }])[0].title
+      ).toBe('gt');
+      expect(
+        normalizeDiscoveredGroups([{ _id: '1', name: 'nm' }])[0].title
+      ).toBe('');
+      expect(
+        normalizeDiscoveredGroups([{ _id: '1', title: 'tl' }])[0].title
+      ).toBe('');
+      expect(normalizeDiscoveredGroups([{ _id: '1' }])[0].title).toBe('');
+    });
+
+    it('reads organization_slug, trimmed and lowercased, ignoring slug', () => {
+      const result = normalizeDiscoveredGroups([
+        { _id: '1', organization_slug: '  My-Org  ', slug: 'ignored' },
+      ]);
+      expect(result[0].organizationSlug).toBe('my-org');
+    });
+
+    it('returns empty slug when only a non-canonical slug is present', () => {
+      const result = normalizeDiscoveredGroups([
+        { _id: '1', slug: 'From-Slug' },
+      ]);
+      expect(result[0].organizationSlug).toBe('');
+    });
+
+    it('prefers grp_image then grp_profile_picture, ignoring profilePicture', () => {
+      expect(
+        normalizeDiscoveredGroups([{ _id: '1', grp_image: 'a' }])[0].profilePicture
+      ).toBe('a');
+      expect(
+        normalizeDiscoveredGroups([{ _id: '1', grp_profile_picture: 'b' }])[0]
+          .profilePicture
+      ).toBe('b');
+      expect(
+        normalizeDiscoveredGroups([{ _id: '1', profilePicture: 'c' }])[0]
+          .profilePicture
+      ).toBe('');
+      expect(
+        normalizeDiscoveredGroups([{ _id: '1' }])[0].profilePicture
+      ).toBe('');
+    });
+
+    it('reads grp_status and ignores a non-grp_ status alias', () => {
+      expect(
+        normalizeDiscoveredGroups([{ _id: '1', grp_status: 'GS' }])[0].status
+      ).toBe('GS');
+      expect(
+        normalizeDiscoveredGroups([{ _id: '1', status: 'ST' }])[0].status
+      ).toBe('');
+    });
+
+    it('maps createdAt through unchanged', () => {
+      expect(
+        normalizeDiscoveredGroups([{ _id: '1', createdAt: '2024-02-02' }])[0]
+          .createdAt
+      ).toBe('2024-02-02');
+    });
+  });
+
+  describe('invalid-entry filtering', () => {
+    it('drops entries without an _id', () => {
+      const result = normalizeDiscoveredGroups([
+        { grp_title: 'No ID' },
+        { _id: 'valid', grp_title: 'Valid' },
+      ]);
+      expect(result).toHaveLength(1);
+      expect(result[0].id).toBe('valid');
+    });
+
+    it('drops null and non-object entries', () => {
+      const result = normalizeDiscoveredGroups([
+        null,
+        undefined,
+        42,
+        'string',
+        { _id: 'keep', grp_title: 'Keep' },
+      ]);
+      expect(result).toHaveLength(1);
+      expect(result[0].id).toBe('keep');
+    });
+  });
+
+  describe('malformed payloads', () => {
+    it('returns [] for null', () => {
+      expect(normalizeDiscoveredGroups(null)).toEqual([]);
+    });
+
+    it('returns [] for undefined', () => {
+      expect(normalizeDiscoveredGroups(undefined)).toEqual([]);
+    });
+
+    it('returns [] for a non-object non-array (number)', () => {
+      expect(normalizeDiscoveredGroups(123)).toEqual([]);
+    });
+
+    it('returns [] for a string', () => {
+      expect(normalizeDiscoveredGroups('nope')).toEqual([]);
+    });
+
+    it('returns [] for an object with no array envelope', () => {
+      expect(normalizeDiscoveredGroups({ message: 'ok' })).toEqual([]);
+    });
+
+    it('returns [] when the envelope array is not actually an array', () => {
+      expect(
+        normalizeDiscoveredGroups({ groups: 'not-an-array' })
+      ).toEqual([]);
+    });
+
+    it('returns [] for a { data: ... } envelope even with an array', () => {
+      expect(
+        normalizeDiscoveredGroups({ data: [{ _id: 'x', grp_title: 'X' }] })
+      ).toEqual([]);
     });
   });
 });

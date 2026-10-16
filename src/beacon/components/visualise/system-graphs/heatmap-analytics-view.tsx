@@ -8,6 +8,7 @@ import {
   Clock,
 } from "lucide-react"
 import type { StandardizedRecord } from "@/lib/visualise/column-mapper"
+import { formatCompactNumber } from "@/lib/utils"
 
 interface HeatmapAnalyticsViewProps {
   records: StandardizedRecord[]
@@ -273,7 +274,7 @@ export function HeatmapAnalyticsView({ records }: HeatmapAnalyticsViewProps) {
                 <p className="text-slate-300">Avg PM2.5: <span className="font-bold text-emerald-400">{hoveredCell.cell.avgPm25} µg/m³</span></p>
               )}
               {hoveredCell.cell.avgError !== null && (
-                <p className="text-slate-300">Avg Error Margin: <span className="font-bold text-amber-400">±{hoveredCell.cell.avgError}</span></p>
+                <p className="text-slate-300">Avg Error Margin: <span className="font-bold text-amber-400">±{formatCompactNumber(hoveredCell.cell.avgError, 1)}</span></p>
               )}
             </div>
           )}

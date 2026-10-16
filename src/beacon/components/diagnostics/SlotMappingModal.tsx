@@ -7,7 +7,9 @@ import {
   TelemetryMapping,
   ConfigMapping,
   MetadataMapping,
+  StatusCodeSet,
 } from "@/types/diagnostics";
+import { clearStatusCodeSetCache } from "@/hooks/use-status-code-set";
 import {
   Dialog,
   DialogContent,
@@ -24,6 +26,9 @@ import { toast } from "@/components/ui/use-toast";
 import { Sliders, Zap, Database } from "lucide-react";
 
 export type SlotCategory = "telemetry" | "config" | "metadata";
+
+// Radix Select can't use an empty string as an item value
+const NO_STATUS_CODE_SET = "__none__";
 
 interface SlotMappingModalProps {
   open: boolean;
@@ -55,6 +60,8 @@ export function SlotMappingModal({
   // Telemetry specific
   const [unit, setUnit] = useState<string>("");
   const [source, setSource] = useState<string>("");
+  const [statusCodeSet, setStatusCodeSet] = useState<string>(NO_STATUS_CODE_SET);
+  const [statusCodeSets, setStatusCodeSets] = useState<StatusCodeSet[]>([]);
 
   // Config specific
   const [type, setType] = useState<string>("int");
@@ -68,6 +75,7 @@ export function SlotMappingModal({
         setLabel(existingMapping.label || "");
         setUnit(existingMapping.unit || "");
         setSource(existingMapping.source || "");
+        setStatusCodeSet(existingMapping.status_code_set || NO_STATUS_CODE_SET);
         setType(existingMapping.type || "int");
         setDefaultValue(existingMapping.default !== undefined ? String(existingMapping.default) : "");
       } else {
@@ -76,11 +84,24 @@ export function SlotMappingModal({
         setLabel("");
         setUnit("");
         setSource("");
+        setStatusCodeSet(NO_STATUS_CODE_SET);
         setType("int");
         setDefaultValue("");
       }
     }
   }, [open, isEditing, editingSlotKey, existingMapping, slotCategory]);
+
+  useEffect(() => {
+    if (!open || slotCategory !== "telemetry") return;
+    let cancelled = false;
+    diagnosticsService
+      .getStatusCodeSets({ limit: 500 })
+      .then((sets) => !cancelled && setStatusCodeSets(sets))
+      .catch(() => !cancelled && setStatusCodeSets([]));
+    return () => {
+      cancelled = true;
+    };
+  }, [open, slotCategory]);
 
   const handleSave = async () => {
     if (!slot.trim() || !key.trim() || !label.trim()) {
@@ -99,12 +120,19 @@ export function SlotMappingModal({
       if (isEditing && editingSlotKey && editingSlotKey !== slot.trim()) {
         delete tm[editingSlotKey];
       }
-      tm[slot.trim()] = {
+      // Keep fields this form doesn't edit, so saving never drops them
+      const mapping: TelemetryMapping = {
+        ...(isEditing ? existingMapping : {}),
         key: key.trim(),
         label: label.trim(),
         unit: unit.trim() || undefined,
         source: source.trim() || undefined,
+        status_code_set: statusCodeSet === NO_STATUS_CODE_SET ? undefined : statusCodeSet,
       };
+      (Object.keys(mapping) as Array<keyof TelemetryMapping>).forEach((field) => {
+        if (mapping[field] === undefined) delete mapping[field];
+      });
+      tm[slot.trim()] = mapping;
       payload.telemetry_mappings = tm;
     } else if (slotCategory === "config") {
       const cm = { ...(profile.config_mappings || {}) };
@@ -140,6 +168,7 @@ export function SlotMappingModal({
     try {
       setIsSubmitting(true);
       const updated = await diagnosticsService.updateProfile(profile.id, payload);
+      if (slotCategory === "telemetry") clearStatusCodeSetCache();
       toast({
         title: isEditing ? "Slot Updated" : "Slot Added",
         description: `Mapping ${slot} -> ${key} saved.`,
@@ -246,6 +275,32 @@ export function SlotMappingModal({
                   className="h-8 text-xs font-mono"
                 />
               </div>
+            </div>
+          )}
+
+          {slotCategory === "telemetry" && (
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold text-gray-700">Status Code Set (optional)</Label>
+              <Select value={statusCodeSet} onValueChange={setStatusCodeSet}>
+                <SelectTrigger className="h-8 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={NO_STATUS_CODE_SET}>None</SelectItem>
+                  {statusCodeSets.map((set) => (
+                    <SelectItem key={set.id} value={set.name}>
+                      {set.name}
+                    </SelectItem>
+                  ))}
+                  {/* A link to a set that no longer exists stays selectable so saving doesn't silently drop it */}
+                  {statusCodeSet !== NO_STATUS_CODE_SET && !statusCodeSets.some((set) => set.name === statusCodeSet) && (
+                    <SelectItem value={statusCodeSet}>{statusCodeSet} (not found)</SelectItem>
+                  )}
+                </SelectContent>
+              </Select>
+              <p className="text-[11px] text-gray-500">
+                For a field that reports device status codes, e.g. BAM-1020 errors. The set decodes its values.
+              </p>
             </div>
           )}
 
