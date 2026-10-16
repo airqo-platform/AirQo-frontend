@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
+import 'package:airqo/src/app/shared/utils/monitor_place_label.dart';
 import 'package:airqo/src/app/shared/repository/hive_repository.dart';
 import 'package:airqo/src/app/shared/services/push_notification_service.dart';
 import 'package:airqo/src/app/shared/services/notification_manager.dart';
@@ -220,9 +221,12 @@ class NotificationHelper with UiLoggy {
       SurveyTriggerService().updateAirQuality({
         'pm2_5': closest.pm25?.value,
         'category': closest.aqiCategory,
-        'location': closest.siteDetails?.name ??
-            closest.siteDetails?.formattedName ??
-            'your area',
+        'location': measurementSpokenTitle(
+          closest,
+          closest.siteDetails?.name ??
+              closest.siteDetails?.formattedName ??
+              'your area',
+        ),
       });
     } catch (e) {
       loggy.warning('Could not feed survey triggers from dashboard: $e');
@@ -428,9 +432,12 @@ class NotificationHelper with UiLoggy {
         return;
       }
 
-      final locationName = closest.siteDetails?.name ??
-          closest.siteDetails?.formattedName ??
-          'your area';
+      final locationName = measurementSpokenTitle(
+        closest,
+        closest.siteDetails?.name ??
+            closest.siteDetails?.formattedName ??
+            'your area',
+      );
 
       await pushService.showLocalNotification(
         id: _aqAlertCooldownKey.hashCode,

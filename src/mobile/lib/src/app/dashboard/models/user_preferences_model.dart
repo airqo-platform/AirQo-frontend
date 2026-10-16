@@ -7,6 +7,14 @@ class SelectedSite extends Equatable {
   final String name;
   final String searchName;
   final String? city;
+  final String? region;
+  final String? county;
+  final String? generatedName;
+
+  /// API `name` when [name] holds today's card title instead. My Trips stores
+  /// `search_name` in [name] so the flag-off picker stays unchanged.
+  final String? catalogName;
+  final String? catalogSearchName;
   final double? latitude;
   final double? longitude;
 
@@ -15,6 +23,11 @@ class SelectedSite extends Equatable {
     required this.name,
     required this.searchName,
     this.city,
+    this.region,
+    this.county,
+    this.generatedName,
+    this.catalogName,
+    this.catalogSearchName,
     this.latitude,
     this.longitude,
   });
@@ -35,20 +48,39 @@ class SelectedSite extends Equatable {
   }
 
   @override
-  List<Object?> get props => [id, name, searchName, city, latitude, longitude];
+  List<Object?> get props => [
+        id,
+        name,
+        searchName,
+        city,
+        region,
+        county,
+        generatedName,
+        catalogName,
+        catalogSearchName,
+        latitude,
+        longitude,
+      ];
 
   factory SelectedSite.fromJson(Map<String, dynamic> json) {
     final String id = json['_id'] ?? '';
-    
+
     final String name = json['name'] ?? 'Unknown Location';
     final String searchName = json['search_name'] ?? json['searchName'] ?? name;
     final String? city = json['city'] as String?;
+    final String? region = json['region'] as String?;
+    final String? county = json['county'] as String?;
+    final String? generatedName =
+        json['generated_name'] as String? ?? json['generatedName'] as String?;
 
     return SelectedSite(
       id: id,
       name: normalizeLocationLabel(name),
       searchName: normalizeLocationLabel(searchName),
       city: normalizeLocationLabelOrNull(city),
+      region: normalizeLocationLabelOrNull(region),
+      county: normalizeLocationLabelOrNull(county),
+      generatedName: generatedName,
       latitude: _parseDouble(json['latitude']),
       longitude: _parseDouble(json['longitude']),
     );
@@ -61,6 +93,9 @@ class SelectedSite extends Equatable {
       "name": name,
       "search_name": searchName,
       if (city != null) "city": city,
+      if (region != null) "region": region,
+      if (county != null) "county": county,
+      if (generatedName != null) "generated_name": generatedName,
       if (latitude != null) "latitude": latitude,
       if (longitude != null) "longitude": longitude,
     };
@@ -201,11 +236,11 @@ class UserPreferencesModel extends Equatable with UiLoggy {
 
     List<String>? siteIds;
     List<String>? deviceIds;
-    
+
     if (json['site_ids'] is List) {
       siteIds = List<String>.from(json['site_ids']);
     }
-    
+
     if (json['device_ids'] is List) {
       deviceIds = List<String>.from(json['device_ids']);
     }

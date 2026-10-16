@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:airqo/src/app/dashboard/models/user_preferences_model.dart';
+import 'package:airqo/src/app/shared/utils/monitor_place_label.dart';
 import 'package:airqo/src/app/exposure/bloc/declared_places_cubit.dart';
 import 'package:airqo/src/app/exposure/models/declared_place.dart';
 import 'package:airqo/src/app/exposure/widgets/label_picker_place_type_icon.dart';
@@ -198,11 +199,17 @@ class _LabelPickerSheetState extends State<LabelPickerSheet> {
     final partial = DeclaredPlace(
       siteId: widget.site.id,
       displayName: tag,
-      locationName: widget.site.visibleSearchName.trim().isEmpty
-          ? widget.site.visibleName
-          : widget.site.visibleSearchName,
+      locationName: selectedSiteSpokenTitle(
+        widget.site,
+        widget.site.visibleSearchName.trim().isEmpty
+            ? widget.site.visibleName
+            : widget.site.visibleSearchName,
+      ),
       monitorName: widget.site.name,
-      city: widget.site.geographicCity,
+      city: selectedSiteSpokenQuietLine(
+        widget.site,
+        widget.site.geographicCity,
+      ),
       type: _selectedType,
       weekdayWindow: widget.existing?.weekdayWindow,
       weekendWindow: widget.existing?.weekendWindow,

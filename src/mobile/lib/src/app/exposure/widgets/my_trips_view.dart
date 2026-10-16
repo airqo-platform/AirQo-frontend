@@ -1,5 +1,6 @@
 import 'package:airqo/src/app/dashboard/models/country_model.dart';
 import 'package:airqo/src/app/dashboard/models/user_preferences_model.dart';
+import 'package:airqo/src/app/shared/utils/monitor_place_label.dart';
 import 'package:airqo/src/app/exposure/models/route_exposure_summary.dart';
 import 'package:airqo/src/app/exposure/repository/route_exposure_repository.dart';
 import 'package:airqo/src/app/exposure/repository/route_exposure_repository_impl.dart';
@@ -116,8 +117,8 @@ class _MyTripsViewState extends State<MyTripsView> {
     _origin = sites.where((site) => site.id == _origin?.id).firstOrNull ??
         sites.firstOrNull;
     _destination = sites
-            .where((site) =>
-                site.id == _destination?.id && site.id != _origin?.id)
+            .where(
+                (site) => site.id == _destination?.id && site.id != _origin?.id)
             .firstOrNull ??
         sites.where((site) => site.id != _origin?.id).firstOrNull;
   }
@@ -516,6 +517,10 @@ class _TripEndpointField extends StatelessWidget {
     final borderColor = AppSurfaceColors.border(context);
     final headlineColor = AppTextColors.headline(context);
     final bodyColor = AppTextColors.muted(context);
+    final site = value;
+    final placeTitle = site == null
+        ? 'Choose a location'
+        : selectedSiteSpokenTitle(site, site.visibleName);
 
     return Semantics(
       button: true,
@@ -560,7 +565,7 @@ class _TripEndpointField extends StatelessWidget {
                     ),
                     const SizedBox(height: 3),
                     Text(
-                      value?.visibleName ?? 'Choose a location',
+                      placeTitle,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
@@ -714,8 +719,19 @@ class _TripLocationPickerSheetState extends State<_TripLocationPickerSheet> {
     final query = _controller.text.trim().toLowerCase();
     if (query.isEmpty) return widget.sites;
     return widget.sites.where((entry) {
-      return entry.site.visibleName.toLowerCase().contains(query) ||
-          entry.site.visibleSearchName.toLowerCase().contains(query);
+      final site = entry.site;
+      final spoken = spokenPlaceForSelectedSite(site);
+      final haystack = [
+        site.visibleName,
+        site.visibleSearchName,
+        site.name,
+        site.searchName,
+        site.catalogName,
+        site.catalogSearchName,
+        spoken?.title,
+        spoken?.quietLine,
+      ].whereType<String>().join(' ').toLowerCase();
+      return haystack.contains(query);
     }).toList();
   }
 
@@ -818,8 +834,14 @@ class _TripLocationPickerSheetState extends State<_TripLocationPickerSheet> {
                 : ListView(
                     children: sites.map((entry) {
                       return _TripLocationRow(
-                        title: entry.site.visibleName,
-                        subtitle: entry.site.visibleSearchName,
+                        title: selectedSiteSpokenTitle(
+                          entry.site,
+                          entry.site.visibleName,
+                        ),
+                        subtitle: selectedSiteSpokenQuietLine(
+                          entry.site,
+                          entry.site.visibleSearchName,
+                        ),
                         isFavorite: entry.isFavorite,
                         onTap: () => Navigator.of(context).pop(entry.site),
                       );
@@ -910,7 +932,7 @@ class _RouteExposureSummaryCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            '${summary.origin.visibleName} to ${summary.destination.visibleName}',
+            '${selectedSiteSpokenTitle(summary.origin, summary.origin.visibleName)} to ${selectedSiteSpokenTitle(summary.destination, summary.destination.visibleName)}',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w700,
