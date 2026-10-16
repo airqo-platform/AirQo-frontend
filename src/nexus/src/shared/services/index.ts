@@ -21,3 +21,10 @@ export { rankingsService } from './rankingsService';
 export { usageService } from './usageService';
 export { apiKeyUsageService } from './apiKeyUsageService';
 export { billingService } from './billingService';
+export {
+  NotificationService,
+  notificationService,
+  NOTIFICATIONS_INBOX_QUERY_KEY,
+  NOTIFICATIONS_PAGE_SIZE,
+  NOTIFICATIONS_UNREAD_QUERY_KEY,
+} from './notificationService';

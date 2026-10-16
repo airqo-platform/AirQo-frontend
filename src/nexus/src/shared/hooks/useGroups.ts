@@ -1,8 +1,13 @@
 import useSWR from 'swr';
 import useSWRMutation from 'swr/mutation';
 import { useSWRConfig } from 'swr';
+import { useQueryClient } from '@tanstack/react-query';
 import { useCallback } from 'react';
 import { userService } from '../services/userService';
+import {
+  NOTIFICATIONS_INBOX_QUERY_KEY,
+  NOTIFICATIONS_UNREAD_QUERY_KEY,
+} from '../services/notificationService';
 import { STABLE_SWR_OPTIONS, useAbortableFetcher } from './useAbortableSWR';
 import type {
   GetGroupJoinRequestsResponse,
@@ -186,6 +191,8 @@ export const useDiscoverGroups = (enabled: boolean, userId?: string | null) => {
 
 // Request access to an organization the user is not a member of
 export const useRequestGroupAccess = (userId?: string | null) => {
+  const queryClient = useQueryClient();
+
   return useSWRMutation<
     RequestGroupAccessResponse,
     Error,
@@ -195,6 +202,19 @@ export const useRequestGroupAccess = (userId?: string | null) => {
     userId ? ['groups/request-access', userId] : null,
     async (_key, { arg }: { arg: { groupId: string } }) => {
       return await userService.requestGroupAccess(arg.groupId);
+    },
+    {
+      onSuccess: () => {
+        // The backend creates the inbox notification as part of a successful
+        // access request. Refresh active notification queries without making
+        // the request mutation depend on a second notification request.
+        void queryClient.invalidateQueries({
+          queryKey: NOTIFICATIONS_UNREAD_QUERY_KEY,
+        });
+        void queryClient.invalidateQueries({
+          queryKey: NOTIFICATIONS_INBOX_QUERY_KEY,
+        });
+      },
     }
   );
 };
