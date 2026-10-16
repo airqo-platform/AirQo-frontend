@@ -130,80 +130,98 @@ const NotificationRow = ({
   onOpen: (notification: Notification) => void;
   onDelete: (notification: Notification) => void;
   isDeleting: boolean;
-}) => (
-  <li
-    className={`group relative flex gap-3 border-b border-border px-4 py-4 transition-colors last:border-b-0 ${
-      notification.read ? 'bg-card' : 'bg-primary/[0.04]'
-    }`}
-  >
-    <button
-      type="button"
-      className="min-w-0 flex-1 rounded-md pr-8 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-      onClick={() => onOpen(notification)}
-      aria-label={`${notification.read ? 'Open' : 'Read'} notification: ${notification.title}`}
-    >
-      <div className="flex items-start gap-3">
-        <span
-          className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${getCategoryStyles(notification.category)}`}
-          aria-hidden="true"
+}) => {
+  const notificationTime = getNotificationTime(notification.createdAt);
+
+  return (
+    <li className="px-3 py-1.5 sm:px-4">
+      <div
+        className={`group relative overflow-hidden rounded-md border transition-colors duration-200 hover:shadow-sm motion-reduce:transition-none ${
+          notification.read
+            ? 'border-border bg-card hover:border-primary/25 hover:bg-primary/[0.02]'
+            : 'border-primary/25 bg-primary/[0.04] shadow-sm'
+        }`}
+      >
+        <button
+          type="button"
+          className="w-full rounded-md px-4 py-4 pr-12 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
+          onClick={() => onOpen(notification)}
+          aria-label={`${notification.read ? 'Open' : 'Read'} notification: ${notification.title}`}
         >
-          <AqBell01 className="h-4 w-4" />
-        </span>
-        <span className="min-w-0 flex-1">
-          <span className="flex items-start justify-between gap-3">
+          <div className="flex items-start gap-3">
             <span
-              className={`line-clamp-2 text-sm ${
-                notification.read
-                  ? 'font-medium text-foreground'
-                  : 'font-semibold text-foreground'
-              }`}
+              className={`mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${getCategoryStyles(notification.category)}`}
+              aria-hidden="true"
             >
-              {notification.title}
+              <AqBell01 className="h-[18px] w-[18px]" />
             </span>
-            {!notification.read && (
-              <span
-                className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-primary"
-                aria-label="Unread"
-              />
-            )}
-          </span>
-          <span className="mt-1 line-clamp-3 block text-sm leading-5 text-muted-foreground">
-            {notification.message}
-          </span>
-          <span className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-            <span
-              className={`rounded-full px-2 py-0.5 ${getCategoryStyles(notification.category)}`}
-            >
-              {getCategoryLabel(notification.category)}
-            </span>
-            <span>{getNotificationTime(notification.createdAt)}</span>
-            {notification.priority === 'high' && (
-              <span className="font-medium text-red-600 dark:text-red-400">
-                High priority
+            <span className="min-w-0 flex-1">
+              <span className="flex items-start justify-between gap-3">
+                <span
+                  className={`line-clamp-2 text-sm leading-5 ${
+                    notification.read
+                      ? 'font-medium text-foreground'
+                      : 'font-semibold text-foreground'
+                  }`}
+                >
+                  {notification.title}
+                </span>
+                {!notification.read && (
+                  <span
+                    className="mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full bg-primary"
+                    aria-label="Unread"
+                  />
+                )}
               </span>
-            )}
-          </span>
-        </span>
+              <span className="mt-1.5 line-clamp-3 block text-sm leading-5 text-muted-foreground">
+                {notification.message}
+              </span>
+              <span className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1.5 text-xs text-muted-foreground">
+                <span
+                  className={`rounded-full px-2.5 py-1 font-medium ${getCategoryStyles(notification.category)}`}
+                >
+                  {getCategoryLabel(notification.category)}
+                </span>
+                {notificationTime && (
+                  <>
+                    <span className="text-border" aria-hidden="true">
+                      •
+                    </span>
+                    <span>{notificationTime}</span>
+                  </>
+                )}
+                {notification.priority === 'high' && (
+                  <span className="rounded-full bg-red-50 px-2.5 py-1 font-medium text-red-600 dark:bg-red-950/40 dark:text-red-400">
+                    High priority
+                  </span>
+                )}
+              </span>
+            </span>
+          </div>
+        </button>
+        <button
+          type="button"
+          className="absolute right-3 top-3 rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:opacity-0 sm:group-hover:opacity-100"
+          onClick={() => onDelete(notification)}
+          disabled={isDeleting}
+          aria-label={`Delete notification: ${notification.title}`}
+          title="Delete notification"
+        >
+          <AqTrash01 className="h-4 w-4" />
+        </button>
       </div>
-    </button>
-    <button
-      type="button"
-      className="absolute right-3 top-3 rounded-md p-1.5 text-muted-foreground transition-opacity hover:bg-muted hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:opacity-0 sm:group-hover:opacity-100"
-      onClick={() => onDelete(notification)}
-      disabled={isDeleting}
-      aria-label={`Delete notification: ${notification.title}`}
-      title="Delete notification"
-    >
-      <AqTrash01 className="h-4 w-4" />
-    </button>
-  </li>
-);
+    </li>
+  );
+};
 
 const NotificationSkeleton = () => (
-  <div className="space-y-4 px-4 py-5" aria-hidden="true">
+  <div className="space-y-3 bg-muted/20 px-3 py-3 sm:px-4" aria-hidden="true">
     {[0, 1, 2].map(item => (
-      <div key={item} className="flex gap-3">
-        <div className="h-9 w-9 shrink-0 animate-pulse rounded-full bg-muted" />
+      <div
+        key={item}
+        className="flex gap-3 rounded-md border border-border bg-card px-4 py-4"
+      >
+        <div className="h-10 w-10 shrink-0 animate-pulse rounded-full bg-muted" />
         <div className="min-w-0 flex-1 space-y-2">
           <div className="h-4 w-3/4 animate-pulse rounded bg-muted" />
           <div className="h-3 w-full animate-pulse rounded bg-muted" />
@@ -454,34 +472,40 @@ export const NotificationsCenter: React.FC = () => {
                     : { type: 'tween', duration: 0.3 }
                 }
               >
-                <div className="flex items-center justify-between border-b border-border px-4 py-4">
-                  <div>
-                    <h2
-                      id="notifications-drawer-title"
-                      className="text-base font-semibold text-foreground"
-                    >
-                      Notifications
-                    </h2>
-                    <p className="mt-0.5 text-xs text-muted-foreground">
-                      {hasUnread
-                        ? `${unreadCount} unread`
-                        : 'You are all caught up'}
-                    </p>
+                <div className="flex items-center justify-between border-b border-border bg-card px-5 py-5">
+                  <div className="flex items-start gap-3">
+                    <span className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                      <AqBell01 className="h-5 w-5" />
+                    </span>
+                    <div>
+                      <h2
+                        id="notifications-drawer-title"
+                        className="text-lg font-semibold tracking-tight text-foreground"
+                      >
+                        Notifications
+                      </h2>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        {hasUnread
+                          ? `${unreadCount} unread notification${unreadCount === 1 ? '' : 's'}`
+                          : 'You are all caught up'}
+                      </p>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1.5">
                     <button
                       type="button"
-                      className="rounded-md p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                      className="inline-flex items-center gap-2 rounded-lg border border-border px-2.5 py-2 text-xs font-medium text-muted-foreground transition-colors hover:border-primary/30 hover:bg-primary/5 hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
                       onClick={() => markAllReadMutation.mutate()}
                       disabled={!hasUnread || markAllReadMutation.isPending}
                       aria-label="Mark all notifications as read"
                       title="Mark all as read"
                     >
                       <AqCheckDone01 className="h-5 w-5" />
+                      <span className="hidden sm:inline">Mark all read</span>
                     </button>
                     <button
                       type="button"
-                      className="rounded-md p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                       onClick={closeDrawer}
                       aria-label="Close notifications"
                     >
@@ -490,7 +514,7 @@ export const NotificationsCenter: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="min-h-0 flex-1 overflow-y-auto">
+                <div className="min-h-0 flex-1 overflow-y-auto bg-muted/20 py-2">
                   {inboxQuery.isLoading ? (
                     <NotificationSkeleton />
                   ) : inboxQuery.isError ? (
@@ -524,7 +548,10 @@ export const NotificationsCenter: React.FC = () => {
                       </p>
                     </div>
                   ) : (
-                    <ul aria-label="Notifications">
+                    <ul
+                      className="m-0 list-none p-0"
+                      aria-label="Notifications"
+                    >
                       {notifications.map(notification => (
                         <NotificationRow
                           key={notification._id}
