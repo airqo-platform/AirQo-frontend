@@ -4,6 +4,7 @@ import {
   AqAirQlouds,
   AqBeaker02,
   AqBox,
+  AqCpuChip01,
   AqFile02,
   AqHomeSmile,
   AqLayersThree01,
@@ -238,6 +239,13 @@ export const ADMIN_NAV_ITEMS: NavItemConfig[] = [
     href: ROUTES.STOCK,
     icon: AqBox,
     description: "Hardware parts, inventory levels & stock movements",
+  },
+  {
+    id: "admin-manufacturers",
+    label: "Sensor Manufacturers",
+    href: ROUTES.MANUFACTURERS,
+    icon: AqCpuChip01,
+    description: "Devices per manufacturer, data sources & diagnostic readiness",
   },
 ]
 

@@ -22,7 +22,8 @@ export interface Device {
   name: string
   long_name: string
   description: string | null
-  device_number: number
+  /** ThingSpeak channel; AirQo devices only */
+  device_number?: number | null
   isActive: boolean
   isOnline: boolean
   rawOnlineStatus: boolean

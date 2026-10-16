@@ -1,5 +1,9 @@
 // API Response Types for Device Management System
 
+import type { DeviceDataSource } from './network.types'
+
+export type { DeviceDataSource } from './network.types'
+
 export type GridAdminLevel =
   | 'Municipality'
   | 'municipality'
@@ -59,6 +63,40 @@ export interface DeviceStatsResponse {
   timestamp: string
 }
 
+/**
+ * beacon-api's own record for a mirrored device, nested under `beacon_data`. Older API builds
+ * omit the manufacturer fields, so they are all optional.
+ */
+export interface DeviceBeaconData {
+  /** The device's sensor manufacturer / network (airqo, airgradient, ...) */
+  network_id?: string | null
+  site_id?: string | null
+  profile_id?: string | null
+  current_firmware?: string | null
+  previous_firmware?: string | null
+  file_upload_state?: boolean
+  firmware_download_state?: string | null
+  /** ThingSpeak channel; AirQo devices only */
+  device_number?: number | null
+  writeKey?: string | null
+  readKey?: string | null
+  status?: string | null
+  /** Manufacturer identity for non-AirQo devices */
+  serial_number?: string | null
+  /** Manufacturer API URL the platform reads the device from */
+  api_code?: string | null
+  auth_required?: boolean | null
+  data_source?: DeviceDataSource | null
+}
+
+/** Latest stored raw reading, keyed field1..field20 (labels come from the device's profile) */
+export interface DeviceLastReading {
+  timestamp?: string | null
+  /** Source key of the local tables: the ThingSpeak channel for AirQo devices, the device id otherwise */
+  channel_id?: string | number | null
+  values?: Record<string, unknown>
+}
+
 // Device Model Types
 export interface Device {
   _id: string
@@ -73,22 +111,34 @@ export interface Device {
   isPrimaryInLocation: boolean
   status: string // "deployed", "not deployed", "recalled"
   visibility: boolean
-  authRequired: boolean
+  /** Whether the manufacturer API needs the device's vendor credential */
+  authRequired?: boolean | null
 
   // Hardware & Config
-  device_number: number
-  serial_number: string
+  /** ThingSpeak channel. Only AirQo devices have one; never use it as the device identity, use `_id`. */
+  device_number?: number | null
+  /** Manufacturer serial number; the identity of non-AirQo devices */
+  serial_number?: string | null
+  /** Manufacturer API URL ("device connection URL") for non-AirQo devices */
+  api_code?: string | null
+  /** Where beacon reads this device's data from; derive with resolveDeviceDataSource when absent */
+  data_source?: DeviceDataSource | null
   device_codes: string[]
-  network: string // "airqo", etc.
-  category: string // "lowcost", "bam", etc.
+  /** Sensor manufacturer / data provider: "airqo", "airgradient", "iqair", ... */
+  network: string
+  category: string // "lowcost", "bam", "gas"
   mobility: boolean
   height: number
   mountType?: string
   powerType?: string
 
-  // Security
-  writeKey: string
-  readKey: string
+  // Security (ThingSpeak keys; AirQo devices only)
+  writeKey?: string | null
+  readKey?: string | null
+
+  // beacon-api's own record and latest stored reading (from /devices/synced)
+  beacon_data?: DeviceBeaconData | null
+  last_reading?: DeviceLastReading | null
 
   // Dates
   createdAt: string
@@ -291,6 +341,7 @@ export interface DeviceQueryParams {
   skip?: number
   limit?: number
   site_id?: string
+  /** Sensor manufacturer(s), comma-separated and case-insensitive, e.g. "airqo,airgradient" */
   network?: string
   status?: string
   search?: string
@@ -353,8 +404,15 @@ export interface UIDevice {
   next_maintenance?: string
   first_seen?: string
   last_updated?: string
+  /** ThingSpeak channel; only set for devices read from ThingSpeak */
   channel_id?: number
   network_id?: string
+  /** Where beacon reads this device from */
+  data_source?: DeviceDataSource
+  serial_number?: string
+  /** Manufacturer API URL for non-AirQo devices */
+  api_code?: string
+  auth_required?: boolean
   current_firmware?: string
   target_firmware?: string
   firmware_download_state?: string
