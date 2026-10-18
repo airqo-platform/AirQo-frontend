@@ -19,7 +19,7 @@ import {
   CardHeader,
   CardTitle,
   EmptyState,
-  LoadingSpinner,
+  LoadingState,
   MetricCard,
   toast,
 } from '@/shared/components/ui';
@@ -197,11 +197,7 @@ const OverviewSection: React.FC = () => {
   const recentClients = (clients || []).slice(0, 3);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <LoadingSpinner size={40} />
-      </div>
-    );
+    return <LoadingState text="Loading console overview..." />;
   }
 
   return (
