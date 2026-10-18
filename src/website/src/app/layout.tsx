@@ -321,8 +321,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         </Suspense>
         <ErrorBoundary>
           <ReduxDataProvider>
-            <QueryProvider>{children}</QueryProvider>
-            <GlobalRouteChrome />
+            <QueryProvider>
+              {children}
+              <GlobalRouteChrome />
+            </QueryProvider>
           </ReduxDataProvider>
         </ErrorBoundary>
       </body>

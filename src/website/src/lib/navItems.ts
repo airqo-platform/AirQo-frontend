@@ -1,3 +1,5 @@
+import { API_CONSOLE_URL } from '@/config/console.config';
+
 export type NavMenuItem = {
   title: string;
   description?: string;
@@ -103,6 +105,12 @@ export const NAV_ITEMS: NavMenuSection = {
       title: 'Documentation',
       description: 'API guides and technical resources',
       href: 'https://platform.airqo.net/docs/api/intro/',
+      newTab: true,
+    },
+    {
+      title: 'API Console',
+      description: 'Manage API clients, tokens, usage, and plans',
+      href: API_CONSOLE_URL,
       newTab: true,
     },
     {
