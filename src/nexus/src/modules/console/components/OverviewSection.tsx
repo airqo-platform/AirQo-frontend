@@ -35,6 +35,7 @@ import { subscriptionService } from '@/shared/services/subscriptionService';
 import { apiKeyUsageService } from '@/shared/services/apiKeyUsageService';
 import { isAbortError } from '@/shared/lib/retryPolicy';
 import { formatDate } from '@/shared/utils';
+import { DATE_FORMATS, formatWithPattern } from '@/shared/utils/dateUtils';
 import { formatNumber } from '@/modules/usage/utils/format';
 import type { ApiUsage, Client } from '@/shared/types/api';
 import type { UserSubscription } from '@/shared/types/api';
@@ -249,8 +250,7 @@ const OverviewSection: React.FC = () => {
             Request volume
           </CardTitle>
           <CardDescription>
-            Daily request volume for the current month (UTC), for your API
-            clients only.
+            Daily request volume from your API clients this month (UTC).
           </CardDescription>
         </CardHeader>
         <CardContent className="pt-2">
@@ -287,6 +287,7 @@ const OverviewSection: React.FC = () => {
                     axisLine={false}
                     tick={{ fontSize: 11, fill: 'rgb(var(--muted-foreground))' }}
                     interval="preserveStartEnd"
+                    tickFormatter={(value) => formatWithPattern(value, 'MMM d')}
                   />
                   <YAxis
                     tickLine={false}
@@ -309,6 +310,9 @@ const OverviewSection: React.FC = () => {
                       formatNumber(Number(value)),
                       'Requests',
                     ]}
+                    labelFormatter={value =>
+                      formatWithPattern(value, DATE_FORMATS.READABLE_DATE_LONG)
+                    }
                   />
                   <Area
                     type="monotone"
