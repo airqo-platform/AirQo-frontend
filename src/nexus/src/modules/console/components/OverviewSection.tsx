@@ -148,14 +148,18 @@ const OverviewSection: React.FC = () => {
       }
 
       setLoading(true);
+      setClients(null);
+      setUsage(null);
+      setSubscription(null);
+      setSeries([]);
 
       let hardFailure = false;
 
       const [clientsResult, usageResult, subscriptionResult, timeseriesResult] =
         await Promise.allSettled([
-          clientService.getClientsByUserId(userId),
+          clientService.getClientsByUserId(userId, { signal }),
           subscriptionService.getUsage({ signal }),
-          subscriptionService.getSubscription(),
+          subscriptionService.getSubscription({ signal }),
           apiKeyUsageService.getTimeseries(
             { ...currentMonthRange(), interval: 'day', user_id: userId },
             signal
@@ -219,8 +223,9 @@ const OverviewSection: React.FC = () => {
       ? Math.min(100, Math.round((requestUsed / requestLimit) * 100))
       : null;
 
-  const activeClients = (clients || []).filter(client => client.isActive)
-    .length;
+  const activeClients = (clients || []).filter(
+    client => client.isActive
+  ).length;
   const totalClients = clients?.length ?? null;
 
   const planTier = subscription?.tier ?? null;
@@ -246,15 +251,12 @@ const OverviewSection: React.FC = () => {
           // The API returns `createdAt` on clients even though the shared
           // `Client` type does not declare it.
           const createdAt =
-            'createdAt' in client &&
-            typeof client.createdAt === 'string'
+            'createdAt' in client && typeof client.createdAt === 'string'
               ? client.createdAt
               : undefined;
           return { ...client, id: client._id, createdAt };
         })
-        .sort((a, b) =>
-          (b.createdAt ?? '').localeCompare(a.createdAt ?? '')
-        ),
+        .sort((a, b) => (b.createdAt ?? '').localeCompare(a.createdAt ?? '')),
     [clients]
   );
 
@@ -343,14 +345,20 @@ const OverviewSection: React.FC = () => {
                     dataKey="label"
                     tickLine={false}
                     axisLine={false}
-                    tick={{ fontSize: 11, fill: 'rgb(var(--muted-foreground))' }}
+                    tick={{
+                      fontSize: 11,
+                      fill: 'rgb(var(--muted-foreground))',
+                    }}
                     interval="preserveStartEnd"
-                    tickFormatter={(value) => formatWithPattern(value, 'MMM d')}
+                    tickFormatter={value => formatWithPattern(value, 'MMM d')}
                   />
                   <YAxis
                     tickLine={false}
                     axisLine={false}
-                    tick={{ fontSize: 11, fill: 'rgb(var(--muted-foreground))' }}
+                    tick={{
+                      fontSize: 11,
+                      fill: 'rgb(var(--muted-foreground))',
+                    }}
                     width={48}
                   />
                   <Tooltip

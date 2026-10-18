@@ -9,7 +9,7 @@ import React, {
 } from 'react';
 import { useSession } from 'next-auth/react';
 import { AqAlertTriangle, AqCheck } from '@airqo/icons-react';
-import { Button, Card, LoadingSpinner, toast } from '@/shared/components/ui';
+import { Button, Card, LoadingState, toast } from '@/shared/components/ui';
 import ReusableDialog from '@/shared/components/ui/dialog';
 import { PADDLE_CHECKOUT_COMPLETED_EVENT } from '@/shared/lib/paddle';
 import { formatDate } from '@/shared/utils';
@@ -886,9 +886,7 @@ const SubscriptionSection: React.FC = () => {
   if (loading) {
     return (
       <Card className="p-6">
-        <div className="flex items-center justify-center py-10">
-          <LoadingSpinner />
-        </div>
+        <LoadingState text="Loading subscription..." className="py-10" />
       </Card>
     );
   }

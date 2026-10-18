@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import { Metadata } from 'next';
 import BillingPage from '@/modules/billing/BillingPage';
+import { LoadingState } from '@/shared/components/ui';
 
 export const metadata: Metadata = {
   title: 'Subscriptions',
@@ -9,7 +10,11 @@ export const metadata: Metadata = {
 };
 
 const Page = () => {
-  return <BillingPage />;
+  return (
+    <Suspense fallback={<LoadingState text="Loading subscriptions..." />}>
+      <BillingPage />
+    </Suspense>
+  );
 };
 
 export default Page;

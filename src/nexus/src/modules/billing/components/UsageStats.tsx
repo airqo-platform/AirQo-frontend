@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import {
   Card,
   InfoBanner,
-  LoadingSpinner,
+  LoadingState,
   WarningBanner,
 } from '@/shared/components/ui';
 import { AqRefreshCcw01 } from '@airqo/icons-react';
@@ -194,9 +194,7 @@ const UsageStats: React.FC = () => {
   if (loading) {
     return (
       <Card className="p-6">
-        <div className="flex items-center justify-center py-8">
-          <LoadingSpinner />
-        </div>
+        <LoadingState text="Loading usage..." className="py-8" />
       </Card>
     );
   }

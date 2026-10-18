@@ -22,9 +22,8 @@ type BillingSubTab = 'subscription' | 'usage' | 'transactions';
 
 const BillingPage: React.FC = () => {
   const searchParams = useSearchParams();
-  const [activeSubTab, setActiveSubTab] = useState<BillingSubTab>(
-    'subscription'
-  );
+  const [activeSubTab, setActiveSubTab] =
+    useState<BillingSubTab>('subscription');
 
   const checkoutState = searchParams.get('checkout');
 
@@ -126,14 +125,43 @@ const BillingPage: React.FC = () => {
           value={activeSubTab}
           onChange={setActiveSubTab}
           ariaLabel="Billing sections"
+          mode="tab"
+          tabIdPrefix="billing"
           size="md"
         />
       </div>
 
       {/* Tab content */}
-      {activeSubTab === 'subscription' && <SubscriptionSection />}
-      {activeSubTab === 'usage' && <UsageStats />}
-      {activeSubTab === 'transactions' && <TransactionHistory />}
+      {activeSubTab === 'subscription' && (
+        <div
+          id="billing-panel-subscription"
+          role="tabpanel"
+          aria-labelledby="billing-tab-subscription"
+          tabIndex={0}
+        >
+          <SubscriptionSection />
+        </div>
+      )}
+      {activeSubTab === 'usage' && (
+        <div
+          id="billing-panel-usage"
+          role="tabpanel"
+          aria-labelledby="billing-tab-usage"
+          tabIndex={0}
+        >
+          <UsageStats />
+        </div>
+      )}
+      {activeSubTab === 'transactions' && (
+        <div
+          id="billing-panel-transactions"
+          role="tabpanel"
+          aria-labelledby="billing-tab-transactions"
+          tabIndex={0}
+        >
+          <TransactionHistory />
+        </div>
+      )}
     </div>
   );
 };
