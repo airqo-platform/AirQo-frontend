@@ -11,9 +11,12 @@ import {
   FiWind,
 } from 'react-icons/fi';
 
+import { API_CONSOLE_URL } from '@/config/console.config';
 import mainConfig from '@/config/site.config';
 import { optimizeCloudinaryUrl } from '@/services/external/cloudinary.service';
 
+import ApiFaqSection from './components/ApiFaqSection';
+import ApiPlansSection from './components/ApiPlansSection';
 import ProductMarketingPage from './ProductMarketingPage';
 
 const API_DOCS_URL = 'https://platform.airqo.net/docs/api/intro/';
@@ -32,7 +35,7 @@ const images = {
     { width: 1200 },
   ),
   interface: optimizeCloudinaryUrl(
-    'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132442/website/photos/OurProducts/Api/section-3_uwtkrz.webp',
+    'https://res.cloudinary.com/dbibjvyhm/image/upload/v1792267714/website/photos/OurProducts/Api/Screenshot_2026-10-17_230341_dbnqqm.webp',
     { width: 1200 },
   ),
 };
@@ -62,8 +65,13 @@ const ApiPage = () => {
         },
         actions: [
           {
+            label: 'Open the AirQo Console',
+            href: API_CONSOLE_URL,
+          },
+          {
             label: 'Get the API',
             href: API_DOCS_URL,
+            variant: 'secondary',
           },
         ],
       }}
@@ -154,6 +162,42 @@ const ApiPage = () => {
         cardBackgroundClassName: 'bg-yellow-50',
         reverse: true,
       }}
+      ctaSection={{
+        eyebrow: 'AirQo API',
+        title: (
+          <>
+            Ready to start building with the{' '}
+            <span className={apiTheme.accentTextClassName}>AirQo API</span>?
+          </>
+        ),
+        description:
+          'Create your API clients, choose a plan, and manage your subscription in the AirQo Console.',
+        actions: [
+          {
+            label: 'Open the AirQo Console',
+            href: API_CONSOLE_URL,
+          },
+          {
+            label: 'View the documentation',
+            href: API_DOCS_URL,
+            variant: 'secondary',
+          },
+        ],
+        quickLinks: [
+          {
+            title: 'API documentation',
+            description:
+              'Endpoint references, authentication, and integration guidance.',
+            href: API_DOCS_URL,
+          },
+          {
+            title: 'AirQo Console',
+            description:
+              'Manage API clients, tokens, usage, and subscriptions.',
+            href: API_CONSOLE_URL,
+          },
+        ],
+      }}
       childrenAfterSecondary
     >
       <section className="bg-blue-100 py-16 px-4 overflow-hidden">
@@ -181,6 +225,10 @@ const ApiPage = () => {
           </div>
         </div>
       </section>
+
+      <ApiPlansSection />
+
+      <ApiFaqSection />
     </ProductMarketingPage>
   );
 };

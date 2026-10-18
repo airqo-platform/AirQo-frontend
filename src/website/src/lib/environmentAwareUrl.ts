@@ -6,6 +6,7 @@
  * Mapping:
  *   - beacon.airqo.net → staging-beacon.airqo.net
  *   - vertex.airqo.net → staging-vertex.airqo.net
+ *   - nexus.airqo.net → staging-nexus.airqo.net
  *   - airqo.net / www.airqo.net → staging.airqo.net
  *
  * Outside staging (production) the original URL is returned unchanged.
@@ -49,6 +50,11 @@ export const getEnvironmentAwareUrl = (baseUrl: string): string => {
 
     if (host === 'vertex.airqo.net') {
       parsed.hostname = 'staging-vertex.airqo.net';
+      return parsed.toString();
+    }
+
+    if (host === 'nexus.airqo.net') {
+      parsed.hostname = 'staging-nexus.airqo.net';
       return parsed.toString();
     }
 
