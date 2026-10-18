@@ -7,3 +7,4 @@ export * from './arrays';
 export * from './userUtils';
 export * from './enhancedAnalytics';
 export * from './groupUtils';
+export * from './copyTextToClipboard';

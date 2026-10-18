@@ -18,6 +18,10 @@ type SegmentedTabsBaseProps<T extends string> = {
   ariaLabel: string;
   className?: string;
   size?: 'sm' | 'md';
+  /** Use tab semantics when the control switches panels in the same page. */
+  mode?: 'radio' | 'tab';
+  /** Prefix used to connect tab buttons with their tab panels. */
+  tabIdPrefix?: string;
 };
 
 /**
@@ -46,12 +50,15 @@ export const SegmentedTabs = <T extends string>({
   ariaLabel,
   className,
   size = 'sm',
+  mode = 'radio',
+  tabIdPrefix = 'segmented',
 }: SegmentedTabsProps<T>) => {
   const isNavigation = Boolean(getHref);
+  const isTabMode = !isNavigation && mode === 'tab';
 
   return (
     <div
-      role={isNavigation ? undefined : 'radiogroup'}
+      role={isNavigation ? undefined : isTabMode ? 'tablist' : 'radiogroup'}
       aria-label={ariaLabel}
       className={cn(
         'flex gap-1 p-0.5 bg-gray-100 dark:bg-gray-800 rounded-lg w-fit',
@@ -70,6 +77,9 @@ export const SegmentedTabs = <T extends string>({
             label={option.label}
             icon={option.icon}
             href={getHref?.(option.value)}
+            mode={isTabMode ? 'tab' : 'radio'}
+            tabIdPrefix={tabIdPrefix}
+            value={option.value}
             onSelect={() => onChange?.(option.value)}
           />
         );
@@ -86,6 +96,9 @@ type OptionElementProps = {
   label: string;
   icon?: React.ReactNode;
   href?: string;
+  mode: 'radio' | 'tab';
+  tabIdPrefix: string;
+  value: string;
   onSelect: () => void;
 };
 
@@ -97,6 +110,9 @@ function OptionElement({
   label,
   icon,
   href,
+  mode,
+  tabIdPrefix,
+  value,
   onSelect,
 }: OptionElementProps) {
   // "md" matches the SelectField button height (py-2.5 text-sm)
@@ -137,8 +153,14 @@ function OptionElement({
   return (
     <button
       type="button"
-      role="radio"
-      aria-checked={isActive}
+      id={`${tabIdPrefix}-tab-${value}`}
+      role={mode}
+      {...(mode === 'tab'
+        ? {
+            'aria-selected': isActive,
+            'aria-controls': `${tabIdPrefix}-panel-${value}`,
+          }
+        : { 'aria-checked': isActive })}
       disabled={disabled}
       onClick={onSelect}
       className={className}

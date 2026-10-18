@@ -732,8 +732,10 @@ export class SubscriptionService {
     throw lastError || new Error('Unable to resolve user profile endpoint');
   }
 
-  async getSubscription(): Promise<GetSubscriptionResponse> {
-    const profile = await this.getUsersProfilePayload();
+  async getSubscription(
+    options: { signal?: AbortSignal } = {}
+  ): Promise<GetSubscriptionResponse> {
+    const profile = await this.getUsersProfilePayload(options.signal);
 
     let tier = normalizeTier(profile.subscriptionTier);
     let status = normalizeStatus(profile.subscriptionStatus);
@@ -747,6 +749,7 @@ export class SubscriptionService {
         '/users/transactions/subscription-status',
         {
           params: this.withTenant(),
+          signal: options.signal,
           validateStatus: status =>
             (status >= 200 && status < 300) ||
             status === 400 ||
@@ -788,7 +791,11 @@ export class SubscriptionService {
 
         statusRateLimitsPayload = statusData?.apiRateLimits;
       }
-    } catch {
+    } catch (error) {
+      if (isAbortError(error)) {
+        throw error;
+      }
+
       // Fall back to profile details when status endpoint is unavailable.
     }
 
