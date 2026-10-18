@@ -1,4 +1,5 @@
 import {
+  formatCrossrefDateParts,
   getCanonicalPublicationUrl,
   hasAirQoAffiliation,
   isAirQualityTopic,
@@ -153,6 +154,18 @@ describe('getCanonicalPublicationUrl', () => {
         openAlexId: 'https://openalex.org/W123',
       }),
     ).toBe('https://openalex.org/W123');
+  });
+});
+
+describe('formatCrossrefDateParts', () => {
+  it('pads month and day parts for stable ISO date sorting', () => {
+    expect(formatCrossrefDateParts([2024, 3, 5])).toBe('2024-03-05');
+  });
+
+  it('preserves year-only and year-month Crossref dates', () => {
+    expect(formatCrossrefDateParts([2024])).toBe('2024');
+    expect(formatCrossrefDateParts([2024, 3])).toBe('2024-03');
+    expect(formatCrossrefDateParts(undefined)).toBeUndefined();
   });
 });
 

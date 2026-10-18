@@ -31,6 +31,7 @@ const formatPublicationDate = (date?: string, year?: number) => {
   return new Intl.DateTimeFormat('en', {
     month: 'short',
     year: 'numeric',
+    timeZone: 'UTC',
   }).format(parsedDate);
 };
 
@@ -188,28 +189,38 @@ const ResourcePage: React.FC = () => {
 
   const { results, totalPages, error, isLoading, liveResults } = useMemo(() => {
     if (isResearchCategory) {
-      const hasLiveResults = Boolean(livePublicationsData.data);
+      const hasLiveResponse = Boolean(livePublicationsData.data);
       const liveRequestIsLoading =
         livePublicationsData.isLoading ||
-        (livePublicationsData.isFetching && !hasLiveResults);
+        (livePublicationsData.isFetching && !hasLiveResponse);
       const fallbackResults = singleCategoryData.data?.results || [];
       const fallbackIsLoading = singleCategoryData.isLoading;
       const liveRequestFailed = Boolean(livePublicationsData.error);
+      const livePublicationResults = livePublicationsData.data?.results;
+      const hasLiveData = Array.isArray(livePublicationResults);
+      const hasLiveRecords = Boolean(livePublicationResults?.length);
+      const shouldUseCuratedFallback =
+        hasLiveData && !hasLiveRecords && fallbackResults.length > 0;
+      const fallbackTotalPages = singleCategoryData.data?.total_pages || 1;
 
       return {
         results: fallbackResults,
-        totalPages:
-          livePublicationsData.data?.totalPages ||
-          singleCategoryData.data?.total_pages ||
-          1,
-        error: liveRequestFailed
-          ? fallbackResults.length > 0
-            ? null
-            : singleCategoryData.error || livePublicationsData.error
-          : singleCategoryData.error,
+        totalPages: shouldUseCuratedFallback
+          ? fallbackTotalPages
+          : livePublicationsData.data?.totalPages || fallbackTotalPages,
+        error: hasLiveData
+          ? null
+          : liveRequestFailed
+            ? fallbackResults.length > 0
+              ? null
+              : singleCategoryData.error || livePublicationsData.error
+            : singleCategoryData.error,
         isLoading:
-          liveRequestIsLoading || (liveRequestFailed && fallbackIsLoading),
-        liveResults: livePublicationsData.data?.results,
+          liveRequestIsLoading ||
+          ((!hasLiveData || !hasLiveRecords) && fallbackIsLoading),
+        liveResults: shouldUseCuratedFallback
+          ? undefined
+          : livePublicationResults,
       };
     }
 

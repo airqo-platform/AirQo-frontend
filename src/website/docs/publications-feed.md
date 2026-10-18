@@ -4,7 +4,7 @@
 
 The AirQo resources page now has a server-side live research feed. OpenAlex is the primary provider because it exposes works, authors, institutions, affiliations, open-access locations, and persistent identifiers through a free REST API. Crossref is used as a free metadata backfill and DOI verification source.
 
-The existing AirQo-managed publications API remains the fallback. If either provider is unavailable, the page continues to render the curated resources already stored by AirQo; if both providers fail, the live feed request returns an error and the fallback is shown.
+The existing AirQo-managed publications API remains the fallback. If one provider is unavailable, the live feed is served from the remaining provider; if both providers fail (or the feed is disabled), the live feed request returns an error and the curated AirQo resources are shown instead. If the live feed succeeds but returns no records while curated research resources exist, the curated resources are also shown as a last-resort empty-feed fallback.
 
 This is a low-cost scheduled-feed design rather than a request-per-visitor design:
 

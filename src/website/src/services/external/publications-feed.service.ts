@@ -139,6 +139,18 @@ const getOpenAlexRecordUrl = (id?: string): string => {
     : `https://openalex.org/${id}`;
 };
 
+export const formatCrossrefDateParts = (
+  dateParts?: number[],
+): string | undefined => {
+  if (!dateParts?.length) return undefined;
+
+  return dateParts
+    .map((part, index) =>
+      index === 0 ? String(part) : String(part).padStart(2, '0'),
+    )
+    .join('-');
+};
+
 const rebuildAbstract = (
   invertedIndex?: Record<string, number[]> | null,
 ): string | undefined => {
@@ -245,13 +257,8 @@ const toCrossrefPublication = (work: CrossrefWork): LivePublication | null => {
   if (!doiUrl) return null;
 
   const dateParts = work.published?.['date-parts']?.[0];
-  const publishedDate = dateParts?.length
-    ? dateParts
-        .map((part, index) =>
-          index === 1 ? String(part).padStart(2, '0') : String(part),
-        )
-        .join('-')
-    : work.created?.['date-time'];
+  const publishedDate =
+    formatCrossrefDateParts(dateParts) || work.created?.['date-time'];
 
   return {
     id: `crossref:${doi}`,
