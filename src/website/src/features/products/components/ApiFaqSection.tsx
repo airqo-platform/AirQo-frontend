@@ -1,5 +1,8 @@
 'use client';
 
+import { useState } from 'react';
+import { FiChevronDown, FiChevronUp } from 'react-icons/fi';
+
 import mainConfig from '@/config/site.config';
 import { cn } from '@/lib/utils';
 
@@ -37,6 +40,14 @@ const API_FAQS: ApiFaq[] = [
 ];
 
 const ApiFaqSection = () => {
+  const [openFaq, setOpenFaq] = useState<string | null>(null);
+
+  const toggleFaq = (question: string) => {
+    setOpenFaq((currentOpenFaq) =>
+      currentOpenFaq === question ? null : question,
+    );
+  };
+
   return (
     <section
       className="bg-slate-50 px-4 py-16"
@@ -57,20 +68,54 @@ const ApiFaqSection = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-          {API_FAQS.map((faq) => (
-            <div
-              key={faq.question}
-              className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm"
-            >
-              <h3 className="text-lg font-semibold text-gray-900">
-                {faq.question}
-              </h3>
-              <p className="mt-3 text-base leading-7 text-gray-700">
-                {faq.answer}
-              </p>
-            </div>
-          ))}
+        <div className="w-full space-y-3">
+          {API_FAQS.map((faq, index) => {
+            const isOpen = openFaq === faq.question;
+            const answerId = `api-faq-answer-${index}`;
+
+            return (
+              <div
+                key={faq.question}
+                className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition-colors hover:border-blue-200"
+              >
+                <button
+                  type="button"
+                  onClick={() => toggleFaq(faq.question)}
+                  aria-expanded={isOpen}
+                  aria-controls={answerId}
+                  className="flex w-full items-center justify-between gap-4 p-6 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-600"
+                >
+                  <span className="text-lg font-semibold text-gray-900">
+                    {faq.question}
+                  </span>
+                  {isOpen ? (
+                    <FiChevronUp
+                      className="h-5 w-5 flex-shrink-0 text-blue-700"
+                      aria-hidden="true"
+                    />
+                  ) : (
+                    <FiChevronDown
+                      className="h-5 w-5 flex-shrink-0 text-gray-500"
+                      aria-hidden="true"
+                    />
+                  )}
+                </button>
+
+                <div
+                  id={answerId}
+                  aria-hidden={!isOpen}
+                  className="grid transition-[grid-template-rows] duration-300 ease-in-out"
+                  style={{ gridTemplateRows: isOpen ? '1fr' : '0fr' }}
+                >
+                  <div className="overflow-hidden">
+                    <p className="px-6 pb-6 text-base leading-7 text-gray-700">
+                      {faq.answer}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
     </section>
