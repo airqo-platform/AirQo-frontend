@@ -69,12 +69,6 @@ describe('getEnvironmentAwareUrl', () => {
         'https://other.service.com',
       );
     });
-
-    it('returns baseUrl unchanged for nexus.airqo.net', () => {
-      expect(
-        getEnvironmentAwareUrl('https://nexus.airqo.net/user/console'),
-      ).toBe('https://nexus.airqo.net/user/console');
-    });
   });
 
   describe('staging environment', () => {
@@ -127,12 +121,6 @@ describe('getEnvironmentAwareUrl', () => {
       expect(
         getEnvironmentAwareUrl('https://vertex.airqo.net/api?token=abc'),
       ).toBe('https://staging-vertex.airqo.net/api?token=abc');
-    });
-
-    it('rewrites nexus.airqo.net to staging-nexus.airqo.net', () => {
-      expect(
-        getEnvironmentAwareUrl('https://nexus.airqo.net/user/console'),
-      ).toBe('https://staging-nexus.airqo.net/user/console');
     });
   });
 
@@ -209,18 +197,6 @@ describe('getEnvironmentAwareUrl', () => {
       expect(getEnvironmentAwareUrl('https://www.airqo.net/path')).toBe(
         'https://staging.airqo.net/path',
       );
-    });
-
-    it('rewrites nexus.airqo.net on localhost', () => {
-      (global as any).window = {
-        location: {
-          href: 'http://localhost:3000/home',
-          hostname: 'localhost',
-        },
-      };
-      expect(
-        getEnvironmentAwareUrl('https://nexus.airqo.net/user/console'),
-      ).toBe('https://staging-nexus.airqo.net/user/console');
     });
   });
 

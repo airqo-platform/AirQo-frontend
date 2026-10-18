@@ -2,10 +2,7 @@
 
 import { FiCheck } from 'react-icons/fi';
 
-import {
-  API_CONSOLE_SUBSCRIPTION_URL,
-  API_CONSOLE_URL,
-} from '@/config/console.config';
+import { API_CONSOLE_SUBSCRIPTION_URL } from '@/config/console.config';
 import mainConfig from '@/config/site.config';
 import { getExternalLinkProps } from '@/lib/security/safeExternalLink';
 import { cn } from '@/lib/utils';
@@ -33,7 +30,7 @@ const API_PLANS: ApiPlan[] = [
       'Community support',
     ],
     ctaLabel: 'Start for free',
-    href: API_CONSOLE_URL,
+    href: API_CONSOLE_SUBSCRIPTION_URL,
   },
   {
     name: 'Standard',
@@ -135,7 +132,7 @@ const ApiPlansSection = () => {
                   href={plan.href}
                   {...getExternalLinkProps(plan.href)}
                   className={cn(
-                    'inline-flex w-full items-center justify-center px-6 py-4 text-sm font-medium shadow-none transition-transform duration-300 active:scale-95 focus:outline-none',
+                    'inline-flex w-full items-center justify-center px-6 py-4 text-sm font-medium shadow-none transition-transform duration-300 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2',
                     plan.highlighted
                       ? 'bg-blue-700 text-white hover:bg-blue-800'
                       : 'border border-gray-300 bg-transparent text-gray-800 hover:bg-gray-100',
