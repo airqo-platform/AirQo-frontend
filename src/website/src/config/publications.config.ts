@@ -16,6 +16,8 @@ export const getPublicationsFeedConfig = () => ({
   openAlexInstitutionId: process.env.OPENALEX_INSTITUTION_ID,
   openAlexAuthorIds: splitEnvironmentList(process.env.OPENALEX_AUTHOR_IDS),
   openAlexWorksFilter: process.env.OPENALEX_WORKS_FILTER,
+  openAlexRelevanceRequired:
+    process.env.OPENALEX_RELEVANCE_REQUIRED !== 'false',
   crossrefApiUrl:
     process.env.CROSSREF_API_URL || 'https://api.crossref.org/works',
   crossrefMailto: process.env.CROSSREF_MAILTO,

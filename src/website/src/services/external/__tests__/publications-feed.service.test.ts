@@ -1,4 +1,7 @@
 import {
+  getCanonicalPublicationUrl,
+  hasAirQoAffiliation,
+  isAirQualityTopic,
   mergePublicationResults,
   normalizePublicationText,
 } from '@/services/external/publications-feed.service';
@@ -121,5 +124,56 @@ describe('normalizePublicationText', () => {
       'Air Quality in Kampala',
     );
     expect(normalizePublicationText('PM2.5 & PM10')).toBe('PM2.5 & PM10');
+  });
+});
+
+describe('getCanonicalPublicationUrl', () => {
+  it('prefers the DOI resolver over a provider landing page', () => {
+    expect(
+      getCanonicalPublicationUrl({
+        doi: 'https://doi.org/10.1234/Exact-Work',
+        landingPageUrl: 'https://publisher.example/possibly-stale-page',
+        openAlexId: 'W123',
+      }),
+    ).toBe('https://doi.org/10.1234/exact-work');
+  });
+
+  it('falls back to the provider landing page when a DOI is unavailable', () => {
+    expect(
+      getCanonicalPublicationUrl({
+        landingPageUrl: 'https://publisher.example/exact-work',
+        openAlexId: 'W123',
+      }),
+    ).toBe('https://publisher.example/exact-work');
+  });
+
+  it('falls back to the OpenAlex record when no publication landing page exists', () => {
+    expect(
+      getCanonicalPublicationUrl({
+        openAlexId: 'https://openalex.org/W123',
+      }),
+    ).toBe('https://openalex.org/W123');
+  });
+});
+
+describe('AirQo relevance checks', () => {
+  it('recognizes AirQo affiliations without treating Makerere alone as AirQo', () => {
+    expect(
+      hasAirQoAffiliation([
+        'AirQo, Department of Computer Science, Makerere University',
+      ]),
+    ).toBe(true);
+    expect(hasAirQoAffiliation(['Makerere University, Kampala, Uganda'])).toBe(
+      false,
+    );
+  });
+
+  it('recognizes air-quality research and excludes unrelated author works', () => {
+    expect(isAirQualityTopic('AirQo sensor kit for PM2.5 monitoring')).toBe(
+      true,
+    );
+    expect(
+      isAirQualityTopic('A labelled image dataset of Ugandan banknotes'),
+    ).toBe(false);
   });
 });

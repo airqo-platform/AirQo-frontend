@@ -34,8 +34,16 @@ const formatPublicationDate = (date?: string, year?: number) => {
   }).format(parsedDate);
 };
 
-const isHttpsUrl = (value?: string): value is string =>
-  Boolean(value && /^https:\/\//i.test(value));
+const getHttpsUrl = (value?: string): string | undefined => {
+  if (!value?.trim()) return undefined;
+
+  try {
+    const url = new URL(value.trim());
+    return url.protocol === 'https:' && url.hostname ? value.trim() : undefined;
+  } catch {
+    return undefined;
+  }
+};
 
 const LivePublicationCard: React.FC<{ publication: LivePublication }> = ({
   publication,
@@ -44,12 +52,8 @@ const LivePublicationCard: React.FC<{ publication: LivePublication }> = ({
     publication.publishedDate,
     publication.year,
   );
-  const publicationUrl = isHttpsUrl(publication.url)
-    ? publication.url
-    : undefined;
-  const openAccessUrl = isHttpsUrl(publication.openAccessUrl)
-    ? publication.openAccessUrl
-    : undefined;
+  const publicationUrl = getHttpsUrl(publication.url);
+  const openAccessUrl = getHttpsUrl(publication.openAccessUrl);
 
   return (
     <article className="rounded-lg bg-card-custom-gradient p-6 shadow-sm transition-all duration-300 hover:shadow-md lg:p-12">
@@ -183,13 +187,29 @@ const ResourcePage: React.FC = () => {
   );
 
   const { results, totalPages, error, isLoading, liveResults } = useMemo(() => {
-    if (isResearchCategory && livePublicationsData.data) {
+    if (isResearchCategory) {
+      const hasLiveResults = Boolean(livePublicationsData.data);
+      const liveRequestIsLoading =
+        livePublicationsData.isLoading ||
+        (livePublicationsData.isFetching && !hasLiveResults);
+      const fallbackResults = singleCategoryData.data?.results || [];
+      const fallbackIsLoading = singleCategoryData.isLoading;
+      const liveRequestFailed = Boolean(livePublicationsData.error);
+
       return {
-        results: singleCategoryData.data?.results || [],
-        totalPages: livePublicationsData.data.totalPages,
-        error: null,
-        isLoading: false,
-        liveResults: livePublicationsData.data.results,
+        results: fallbackResults,
+        totalPages:
+          livePublicationsData.data?.totalPages ||
+          singleCategoryData.data?.total_pages ||
+          1,
+        error: liveRequestFailed
+          ? fallbackResults.length > 0
+            ? null
+            : singleCategoryData.error || livePublicationsData.error
+          : singleCategoryData.error,
+        isLoading:
+          liveRequestIsLoading || (liveRequestFailed && fallbackIsLoading),
+        liveResults: livePublicationsData.data?.results,
       };
     }
 
@@ -250,6 +270,9 @@ const ResourcePage: React.FC = () => {
     isResearchCategory,
     itemsPerPage,
     livePublicationsData.data,
+    livePublicationsData.error,
+    livePublicationsData.isFetching,
+    livePublicationsData.isLoading,
     manualPage1.data,
     manualPage1.error,
     manualPage1.isLoading,
@@ -312,7 +335,21 @@ const ResourcePage: React.FC = () => {
 
       <section className={`${mainConfig.containerClass} w-full px-4`}>
         {isLoading ? (
-          <div className="space-y-6">
+          <div
+            className="space-y-6"
+            role="status"
+            aria-live="polite"
+            aria-label={
+              isResearchCategory
+                ? 'Loading live research publications'
+                : 'Loading resources'
+            }
+          >
+            <p className="text-sm text-gray-600">
+              {isResearchCategory
+                ? 'Loading live research publications...'
+                : 'Loading resources...'}
+            </p>
             {[...Array(itemsPerPage)].map((_, index) => (
               <div
                 key={index}
@@ -350,6 +387,8 @@ const ResourcePage: React.FC = () => {
             {results.map((resource: ResourceItem, index: number) => {
               const resourceAuthors =
                 resource.authors || resource.resource_authors;
+              const resourceLink = getHttpsUrl(resource.link);
+              const resourceFileUrl = getHttpsUrl(resource.resource_file_url);
 
               return (
                 <article
@@ -370,21 +409,21 @@ const ResourcePage: React.FC = () => {
                     </p>
                   )}
                   <div className="flex flex-wrap items-center gap-4">
-                    {isHttpsUrl(resource.link) && (
+                    {resourceLink && (
                       <a
                         className="flex items-center border border-black bg-transparent px-4 py-2 text-black transition-colors hover:bg-black hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
-                        href={resource.link}
-                        {...getExternalLinkProps(resource.link)}
+                        href={resourceLink}
+                        {...getExternalLinkProps(resourceLink)}
                       >
                         {resource.link_title || 'Read More'}{' '}
                         <FiExternalLink className="ml-2" />
                       </a>
                     )}
-                    {isHttpsUrl(resource.resource_file_url) && (
+                    {resourceFileUrl && (
                       <a
                         className="flex items-center border border-black bg-transparent px-4 py-2 text-black transition-colors hover:bg-black hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
-                        href={resource.resource_file_url}
-                        {...getExternalLinkProps(resource.resource_file_url)}
+                        href={resourceFileUrl}
+                        {...getExternalLinkProps(resourceFileUrl)}
                       >
                         <FiDownload className="mr-2" /> Download
                       </a>

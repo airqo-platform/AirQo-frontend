@@ -13,6 +13,9 @@ import type {
 const REQUEST_TIMEOUT_MS = 15_000;
 const OPENALEX_PAGE_SIZE = 100;
 const CROSSREF_PAGE_SIZE = 100;
+const AIRQO_AFFILIATION_PATTERN = /\bair\s*qo\b/i;
+const AIR_QUALITY_TOPIC_PATTERN =
+  /\bair\b|pollution|\bpm\s*(?:2(?:\.\d+)?|10)\b|particulate matter|sensor|monitoring|clean air|atmospher/i;
 
 type OpenAlexLocation = {
   landing_page_url?: string | null;
@@ -30,6 +33,7 @@ type OpenAlexWork = {
   authorships?: Array<{
     author?: { display_name?: string | null } | null;
     institutions?: Array<{ display_name?: string | null }>;
+    raw_affiliation_strings?: string[];
   }>;
   primary_location?: OpenAlexLocation | null;
   best_oa_location?: OpenAlexLocation | null;
@@ -84,6 +88,16 @@ const normalizeTitle = (title?: string | null): string =>
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, ' ')
     .trim();
+
+export const isAirQualityTopic = (value?: string | null): boolean =>
+  Boolean(value && AIR_QUALITY_TOPIC_PATTERN.test(value));
+
+export const hasAirQoAffiliation = (
+  affiliations: Array<string | null | undefined>,
+): boolean =>
+  affiliations.some((affiliation) =>
+    AIRQO_AFFILIATION_PATTERN.test(affiliation || ''),
+  );
 
 const PUBLICATION_TEXT_ENTITIES: Record<string, string> = {
   '&amp;': '&',
@@ -145,6 +159,28 @@ const rebuildAbstract = (
 const getFirstNonEmpty = (...values: Array<string | null | undefined>) =>
   values.find((value) => Boolean(value && value.trim()))?.trim();
 
+/**
+ * Resolve a publication to its most authoritative public destination.
+ *
+ * A DOI is preferred because it is the persistent identifier for the exact
+ * work and resolves to the publisher's current landing page. OpenAlex's
+ * record is retained as the final fallback for works without a DOI.
+ */
+export const getCanonicalPublicationUrl = ({
+  doi,
+  landingPageUrl,
+  openAlexId,
+}: {
+  doi?: string | null;
+  landingPageUrl?: string | null;
+  openAlexId?: string | null;
+}): string | undefined =>
+  getFirstNonEmpty(
+    getDoiUrl(normalizeDoi(doi)),
+    landingPageUrl,
+    getOpenAlexRecordUrl(openAlexId?.trim()),
+  );
+
 const toOpenAlexPublication = (work: OpenAlexWork): LivePublication | null => {
   const title = normalizePublicationText(work.title);
   const id = work.id?.trim();
@@ -157,11 +193,11 @@ const toOpenAlexPublication = (work: OpenAlexWork): LivePublication | null => {
     work.best_oa_location?.pdf_url,
     work.open_access?.oa_url,
   );
-  const primaryUrl = getFirstNonEmpty(
-    work.primary_location?.landing_page_url,
-    getDoiUrl(doi),
-    getOpenAlexRecordUrl(id),
-  );
+  const primaryUrl = getCanonicalPublicationUrl({
+    doi,
+    landingPageUrl: work.primary_location?.landing_page_url,
+    openAlexId: id,
+  });
 
   if (!primaryUrl) return null;
 
@@ -195,6 +231,15 @@ const toCrossrefPublication = (work: CrossrefWork): LivePublication | null => {
   const doi = normalizeDoi(work.DOI);
 
   if (!title || !doi) return null;
+
+  const authorAffiliations =
+    work.author?.flatMap((author) =>
+      author.affiliation?.map((affiliation) => affiliation.name),
+    ) || [];
+
+  if (!hasAirQoAffiliation(authorAffiliations) || !isAirQualityTopic(title)) {
+    return null;
+  }
 
   const doiUrl = getDoiUrl(doi);
   if (!doiUrl) return null;
@@ -356,6 +401,20 @@ const fetchOpenAlex = async (
   return {
     provider: 'openalex',
     results: (payload.results || [])
+      .filter((work) => {
+        if (!config.openAlexRelevanceRequired) return true;
+
+        const affiliations =
+          work.authorships?.flatMap(
+            (authorship) => authorship.raw_affiliation_strings || [],
+          ) || [];
+        const abstract = rebuildAbstract(work.abstract_inverted_index);
+
+        return (
+          hasAirQoAffiliation(affiliations) ||
+          isAirQualityTopic(`${work.title || ''} ${abstract || ''}`)
+        );
+      })
       .map(toOpenAlexPublication)
       .filter((publication): publication is LivePublication =>
         Boolean(publication),

@@ -18,22 +18,21 @@ The route is server-only, so `OPENALEX_API_KEY` and the Crossref contact address
 ## One-time production setup
 
 1. Create a free OpenAlex account and copy its API key into `OPENALEX_API_KEY`. The current free account includes $1 of API usage per day and is more than enough for a feed that refreshes only a few times per day.
-2. Resolve the exact AirQo research identity before going live. Prefer one of these, in order:
-   - `OPENALEX_WORKS_FILTER=authorships.institutions.id:<OPENALEX_OR_ROR_ID>` for the institution-backed feed.
-   - `OPENALEX_AUTHOR_IDS=A...,...` for a curated list of AirQo researchers.
-   - `OPENALEX_INSTITUTION_ID=<OPENALEX_OR_ROR_ID>` for the common single-institution case.
+2. Use the verified author filter configured for production:
+   `OPENALEX_AUTHOR_IDS=A5047583981,A5051886991,A5076584166,A5002704292,A5014863511,A5017420345,A5015937838,A5067893766,A5089230857,A5036111960`.
 
-   OpenAlex's name search fallback is intentionally `AirQo` only, so it is useful for development but should be replaced with an exact identifier or filter before production. This avoids accidentally presenting unrelated Makerere University publications as AirQo publications.
+   `OPENALEX_RELEVANCE_REQUIRED=true` removes unrelated work by the same researchers unless the record has an AirQo affiliation or air-quality, pollution, sensor, or monitoring relevance. Do not use a Makerere institution filter because it covers the university's entire research output. The `search=AirQo` fallback is retained only for development and recovery.
 
 3. Add `CROSSREF_MAILTO` with a monitored AirQo email address. Crossref does not require a subscription, but the `mailto` parameter puts the requests in its polite pool and gives Crossref a way to contact the team about API usage.
-4. Keep `CROSSREF_AFFILIATION=AirQo` unless the research team confirms a better affiliation spelling. Crossref metadata is deposited by publishers and may have less complete affiliations than OpenAlex, so it is used for enrichment/backfill rather than as the sole source of truth.
+4. Keep `CROSSREF_MAILTO=info@airqo.net` and `CROSSREF_AFFILIATION=AirQo` unless the research team confirms a better monitored address or affiliation spelling. Crossref metadata is deposited by publishers and may have less complete affiliations than OpenAlex, so it is used for enrichment/backfill rather than as the sole source of truth.
 5. Set `PUBLICATIONS_FEED_ENABLED=true` and deploy. If the OpenAlex filter needs adjustment, update the environment variable without changing frontend code.
 
 ## Current behavior
 
 - The Research Publications tab calls `/api/publications/live`.
 - Results are fetched in batches of up to 100 records, merged by normalized DOI or title, sorted newest first, and paginated in the server response.
-- Each result links to its canonical DOI or publisher record. Where OpenAlex provides a free copy, the page also offers an open-access link.
+- Each live result links to its canonical DOI first, then its publisher landing page, and finally its OpenAlex record when no DOI or landing page is available. Where OpenAlex or Crossref provides a free copy, the page also offers a separate open-access link.
+- Curated resource cards use the exact AirQo-managed `link` for “Read More” and the separate `resource_file_url` for downloads. Both are validated as HTTPS URLs before rendering, so a missing or malformed destination is not presented as a clickable action.
 - Metadata source and refresh time are visible on the page so visitors can distinguish external metadata from AirQo-authored content.
 - The old curated resources feed remains available for all other tabs and as a graceful fallback for Research Publications.
 
