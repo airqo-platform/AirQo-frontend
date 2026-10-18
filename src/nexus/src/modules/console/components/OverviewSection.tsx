@@ -21,6 +21,7 @@ import {
   EmptyState,
   LoadingState,
   MetricCard,
+  MultiSelectTable,
   toast,
 } from '@/shared/components/ui';
 import {
@@ -68,6 +69,49 @@ const formatShortDate = (iso: string | null | undefined) => {
     return null;
   }
 };
+
+/**
+ * Table row for the overview "Recent clients" table. `createdAt` is returned
+ * by the API but not declared on the shared `Client` type, hence optional.
+ */
+type RecentClientRow = {
+  id: string;
+  name: string;
+  isActive: boolean;
+  createdAt?: string;
+  [key: string]: unknown;
+};
+
+const recentClientColumns = [
+  {
+    key: 'name',
+    label: 'Name',
+    sortable: true,
+  },
+  {
+    key: 'isActive',
+    label: 'Status',
+    sortable: false,
+    render: (_value: unknown, item: RecentClientRow) => (
+      <span
+        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+          item.isActive
+            ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-200'
+            : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'
+        }`}
+      >
+        {item.isActive ? 'Active' : 'Inactive'}
+      </span>
+    ),
+  },
+  {
+    key: 'createdAt',
+    label: 'Created',
+    sortable: true,
+    render: (_value: unknown, item: RecentClientRow) =>
+      formatWithPattern(item.createdAt, DATE_FORMATS.READABLE_DATE_LONG),
+  },
+];
 
 const OverviewSection: React.FC = () => {
   const { data: session } = useSession();
@@ -194,7 +238,25 @@ const OverviewSection: React.FC = () => {
   }, [subscription]);
 
   const hasUsageData = series.some(point => point.requests > 0);
-  const recentClients = (clients || []).slice(0, 3);
+
+  const recentClientRows = useMemo<RecentClientRow[]>(
+    () =>
+      (clients || [])
+        .map((client): RecentClientRow => {
+          // The API returns `createdAt` on clients even though the shared
+          // `Client` type does not declare it.
+          const createdAt =
+            'createdAt' in client &&
+            typeof client.createdAt === 'string'
+              ? client.createdAt
+              : undefined;
+          return { ...client, id: client._id, createdAt };
+        })
+        .sort((a, b) =>
+          (b.createdAt ?? '').localeCompare(a.createdAt ?? '')
+        ),
+    [clients]
+  );
 
   if (loading) {
     return <LoadingState text="Loading console overview..." />;
@@ -376,45 +438,22 @@ const OverviewSection: React.FC = () => {
       </Card>
 
       {/* Recent clients */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Recent clients</CardTitle>
-          <CardDescription>
-            Your three most recently created API clients.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="pt-2">
-          {recentClients.length > 0 ? (
-            <ul className="divide-y divide-border">
-              {recentClients.map(client => (
-                <li
-                  key={client._id}
-                  className="flex items-center justify-between py-2.5"
-                >
-                  <span className="text-sm font-medium text-foreground">
-                    {client.name}
-                  </span>
-                  <span
-                    className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                      client.isActive
-                        ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-200'
-                        : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'
-                    }`}
-                  >
-                    {client.isActive ? 'Active' : 'Inactive'}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <EmptyState
-              compact
-              title="No API clients yet"
-              description="Create your first client to start calling the AirQo API."
-            />
-          )}
-        </CardContent>
-      </Card>
+      <MultiSelectTable
+        title="Recent clients"
+        data={recentClientRows}
+        columns={recentClientColumns}
+        searchable={true}
+        sortable={true}
+        showPagination={true}
+        pageSize={5}
+        emptyComponent={
+          <EmptyState
+            compact
+            title="No API clients yet"
+            description="Create your first client to start calling the AirQo API."
+          />
+        }
+      />
     </div>
   );
 };
