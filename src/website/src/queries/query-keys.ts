@@ -185,5 +185,6 @@ export const apiQueryKeys = {
       frequency?: string;
     },
   ) => ['gridMeasurements', gridId, compactParams(params)] as const,
+  floatingBillboard: () => ['floatingBillboard'] as const,
   dailyForecast: (siteId: string | null) => ['dailyForecast', siteId] as const,
 } as const;

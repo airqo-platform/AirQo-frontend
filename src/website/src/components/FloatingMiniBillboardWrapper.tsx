@@ -1,8 +1,10 @@
 'use client';
 
+import { useQuery } from '@tanstack/react-query';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
+import { apiQueryKeys } from '@/queries/query-keys';
 import { externalService } from '@/services/external';
 import { gridsService } from '@/services/website';
 import { Grid } from '@/types/grids';
@@ -21,6 +23,11 @@ interface BillboardData {
 const INITIAL_BILLBOARD_FETCH_DELAY_MS = 6000;
 const MAX_BILLBOARD_GRIDS = 8;
 const REPRESENTATIVE_BATCH_SIZE = 4;
+
+const isBillboardSuppressedRoute = (pathname: string | null) =>
+  pathname?.startsWith('/packages') ||
+  pathname?.startsWith('/solutions/network-coverage') ||
+  pathname?.startsWith('/africa-clean-air-forum-2026');
 
 const reportFloatingBillboardIssue = (
   message: string,
@@ -41,6 +48,101 @@ const reportFloatingBillboardIssue = (
   console.warn(message, errorMessage);
 };
 
+const fetchFloatingBillboardData = async (): Promise<BillboardData[]> => {
+  try {
+    // Fetch all country grids with pagination, then sample a bounded number of
+    // representative readings for the decorative billboard.
+    const allGrids: Grid[] = [];
+    let currentPage = 1;
+    let hasMorePages = true;
+    const limitPerPage = 50;
+
+    while (hasMorePages && currentPage <= 5) {
+      try {
+        const pageData = await externalService.getGridsSummary({
+          admin_level: 'country',
+          limit: limitPerPage,
+          page: currentPage,
+        });
+
+        if (pageData?.grids && pageData.grids.length > 0) {
+          allGrids.push(...pageData.grids);
+
+          const meta = pageData.meta;
+          if (meta && currentPage < meta.totalPages) {
+            currentPage++;
+          } else {
+            hasMorePages = false;
+          }
+        } else {
+          hasMorePages = false;
+        }
+      } catch (error) {
+        reportFloatingBillboardIssue(
+          `[FloatingBillboard] Failed to fetch page ${currentPage}:`,
+          error,
+        );
+        hasMorePages = false;
+      }
+    }
+
+    if (allGrids.length === 0) return [];
+
+    const sortedGrids = [...allGrids].sort((a, b) => {
+      const aIsUganda = a.name.toLowerCase().includes('uganda');
+      const bIsUganda = b.name.toLowerCase().includes('uganda');
+
+      if (aIsUganda && !bIsUganda) return -1;
+      if (!aIsUganda && bIsUganda) return 1;
+      return 0;
+    });
+
+    const gridsToRead = sortedGrids.slice(0, MAX_BILLBOARD_GRIDS);
+    const allReadings: BillboardData[] = [];
+
+    for (let i = 0; i < gridsToRead.length; i += REPRESENTATIVE_BATCH_SIZE) {
+      const batch = gridsToRead.slice(i, i + REPRESENTATIVE_BATCH_SIZE);
+
+      const batchPromises = batch.map(async (grid) => {
+        try {
+          const reading = await gridsService.getGridRepresentativeReading(
+            grid._id,
+            { timeout: 8000 },
+          );
+          return {
+            grid,
+            reading: reading?.data || null,
+          } as BillboardData;
+        } catch (error) {
+          reportFloatingBillboardIssue(
+            `[FloatingBillboard] Failed to fetch reading for grid ${grid._id} (${grid.name}):`,
+            error,
+          );
+          return { grid, reading: null } as BillboardData;
+        }
+      });
+
+      allReadings.push(...(await Promise.all(batchPromises)));
+
+      if (i + REPRESENTATIVE_BATCH_SIZE < gridsToRead.length) {
+        await new Promise((resolve) => setTimeout(resolve, 500));
+      }
+    }
+
+    return allReadings.filter(
+      (item) =>
+        item.reading?.pm2_5?.value != null && item.reading.pm2_5.value >= 0,
+    );
+  } catch (error) {
+    reportFloatingBillboardIssue(
+      '[FloatingBillboard] Failed to fetch billboard data:',
+      error,
+      'error',
+    );
+    return [];
+  }
+};
+
 /**
  * Client-side wrapper that fetches billboard data for all countries with pagination
  * Prioritizes Uganda first, then rotates through all other countries
@@ -49,166 +151,35 @@ const reportFloatingBillboardIssue = (
  */
 export default function FloatingMiniBillboardWrapper() {
   const pathname = usePathname();
-  const [billboardData, setBillboardData] = useState<BillboardData[]>([]);
-  const [loading, setLoading] = useState(true);
+  const isSuppressedRoute = Boolean(isBillboardSuppressedRoute(pathname));
+  const [isDelayComplete, setIsDelayComplete] = useState(false);
 
   useEffect(() => {
-    if (
-      pathname?.startsWith('/packages') ||
-      pathname?.startsWith('/solutions/network-coverage') ||
-      pathname?.startsWith('/africa-clean-air-forum-2026')
-    ) {
-      // Suppressed routes: skip fetching to avoid unnecessary load
-      setLoading(false);
-      return;
-    }
-    let mounted = true;
-    let fetchDelayId: number | null = null;
+    if (isSuppressedRoute || isDelayComplete) return;
 
-    const fetchAllCountriesData = async () => {
-      try {
-        // Step 1: Fetch all countries with pagination
-        const allGrids: Grid[] = [];
-        let currentPage = 1;
-        let hasMorePages = true;
-        const limitPerPage = 50; // Fetch 50 countries per page
-
-        // Fetch all pages
-        while (hasMorePages && currentPage <= 5) {
-          // Limit to 5 pages max for safety
-          try {
-            const pageData = await externalService.getGridsSummary({
-              admin_level: 'country',
-              limit: limitPerPage,
-              page: currentPage,
-            });
-
-            if (pageData?.grids && pageData.grids.length > 0) {
-              allGrids.push(...pageData.grids);
-
-              // Check if there are more pages
-              const meta = pageData.meta;
-              if (meta && currentPage < meta.totalPages) {
-                currentPage++;
-              } else {
-                hasMorePages = false;
-              }
-            } else {
-              hasMorePages = false;
-            }
-          } catch (error) {
-            reportFloatingBillboardIssue(
-              `[FloatingBillboard] Failed to fetch page ${currentPage}:`,
-              error,
-            );
-            hasMorePages = false;
-          }
-        }
-
-        if (!mounted || allGrids.length === 0) {
-          if (mounted) {
-            setLoading(false);
-          }
-          return;
-        }
-
-        // Step 2: Sort grids to prioritize Uganda first
-        const sortedGrids = [...allGrids].sort((a, b) => {
-          const aIsUganda = a.name.toLowerCase().includes('uganda');
-          const bIsUganda = b.name.toLowerCase().includes('uganda');
-
-          if (aIsUganda && !bIsUganda) return -1;
-          if (!aIsUganda && bIsUganda) return 1;
-          return 0; // Keep original order for others
-        });
-
-        // Step 3: Fetch a bounded sample of readings in small batches. The
-        // billboard is decorative, so it should never fan out into one API
-        // request per country/grid on every page view.
-        const gridsToRead = sortedGrids.slice(0, MAX_BILLBOARD_GRIDS);
-        const allReadings: BillboardData[] = [];
-
-        for (
-          let i = 0;
-          i < gridsToRead.length;
-          i += REPRESENTATIVE_BATCH_SIZE
-        ) {
-          const batch = gridsToRead.slice(i, i + REPRESENTATIVE_BATCH_SIZE);
-
-          const batchPromises = batch.map(async (grid) => {
-            try {
-              const reading = await gridsService.getGridRepresentativeReading(
-                grid._id,
-                { timeout: 8000 }, // 8 second timeout per reading
-              );
-              return {
-                grid,
-                reading: reading?.data || null,
-              } as BillboardData;
-            } catch (error) {
-              reportFloatingBillboardIssue(
-                `[FloatingBillboard] Failed to fetch reading for grid ${grid._id} (${grid.name}):`,
-                error,
-              );
-              return {
-                grid,
-                reading: null,
-              } as BillboardData;
-            }
-          });
-
-          const batchResults = await Promise.all(batchPromises);
-          allReadings.push(...batchResults);
-
-          // Small delay between batches to avoid rate limiting
-          if (i + REPRESENTATIVE_BATCH_SIZE < gridsToRead.length) {
-            await new Promise((resolve) => setTimeout(resolve, 500));
-          }
-        }
-
-        // Filter to only include grids with valid PM2.5 data
-        const validData = allReadings.filter(
-          (item) =>
-            item.reading?.pm2_5?.value != null && item.reading.pm2_5.value >= 0,
-        );
-
-        if (mounted && validData.length > 0) {
-          setBillboardData(validData);
-          setLoading(false);
-        } else if (mounted) {
-          setLoading(false);
-        }
-      } catch (error) {
-        reportFloatingBillboardIssue(
-          '[FloatingBillboard] Failed to fetch billboard data:',
-          error,
-          'error',
-        );
-        if (mounted) {
-          setLoading(false);
-        }
-      }
-    };
-
-    fetchDelayId = window.setTimeout(() => {
-      void fetchAllCountriesData();
-    }, INITIAL_BILLBOARD_FETCH_DELAY_MS);
+    const fetchDelayId = window.setTimeout(
+      () => setIsDelayComplete(true),
+      INITIAL_BILLBOARD_FETCH_DELAY_MS,
+    );
 
     return () => {
-      mounted = false;
-      if (fetchDelayId !== null) {
-        window.clearTimeout(fetchDelayId);
-      }
+      window.clearTimeout(fetchDelayId);
     };
-  }, [pathname]);
+  }, [isDelayComplete, isSuppressedRoute]);
 
-  // Don't render anything while loading or if there's no data or if on suppressed pages
+  const { data: billboardData = [], isLoading } = useQuery({
+    queryKey: apiQueryKeys.floatingBillboard(),
+    queryFn: fetchFloatingBillboardData,
+    enabled: !isSuppressedRoute && isDelayComplete,
+    staleTime: 15 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+  });
+
   if (
-    loading ||
+    isSuppressedRoute ||
+    isLoading ||
     billboardData.length === 0 ||
-    pathname?.startsWith('/packages') ||
-    pathname?.startsWith('/solutions/network-coverage') ||
-    pathname?.startsWith('/africa-clean-air-forum-2026')
+    pathname?.startsWith('/billboard')
   ) {
     return null;
   }

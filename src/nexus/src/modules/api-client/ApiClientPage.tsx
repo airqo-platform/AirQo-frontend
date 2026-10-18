@@ -3,7 +3,12 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { usePostHog } from 'posthog-js/react';
-import { Button, MultiSelectTable, PageHeading } from '@/shared/components/ui';
+import {
+  Button,
+  LoadingState,
+  MultiSelectTable,
+  PageHeading,
+} from '@/shared/components/ui';
 import { Tooltip } from 'flowbite-react';
 import { toast } from '@/shared/components/ui';
 import { formatDate, parseDate } from '@/shared/utils';
@@ -438,6 +443,12 @@ const ApiClientPage: React.FC = () => {
         showPagination={true}
         pageSize={10}
         loading={isLoading}
+        loadingComponent={
+          <LoadingState
+            text="Loading API clients..."
+            className="w-full min-h-64 border border-border rounded-none bg-muted/50"
+          />
+        }
         headerComponent={
           <div className="flex gap-2 justify-between items-center w-full">
             <div className="md:max-w-[640px] w-full">
@@ -449,7 +460,9 @@ const ApiClientPage: React.FC = () => {
                 <a
                   target="_blank"
                   rel="noopener noreferrer"
-                  href={getEnvironmentAwareUrl('https://platform.airqo.net/docs/api/intro/')}
+                  href={getEnvironmentAwareUrl(
+                    'https://platform.airqo.net/docs/api/intro/'
+                  )}
                   className="text-blue-600"
                   aria-label="Read AirQo REST API Documentation"
                 >

@@ -1,5 +1,7 @@
 const ALLOWED_EXTERNAL_HOSTS = [
   'platform.airqo.net',
+  'nexus.airqo.net',
+  'staging-nexus.airqo.net',
   'vertex.airqo.net',
   'beacon.airqo.net',
   'github.com',

@@ -35,9 +35,12 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({
     return isAirQoGroup ? 'user' : 'organization';
   }, [activeGroup]);
 
-  // Get navigation items for current flow
+  // Get navigation items for current flow. The console flow has no bottom
+  // nav (its layout hides it), so return an empty array to keep the lookup
+  // safe if this component is ever rendered outside that layout.
   const navItems = React.useMemo(() => {
-    const items = bottomNavItems[flow];
+    const items = bottomNavItems[flow] ?? [];
+    if (items.length === 0) return [];
 
     // If org flow and orgSlug provided, replace placeholders with actual slug
     if (flow === 'organization' && activeGroup?.organizationSlug) {
@@ -66,8 +69,9 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({
       <div className="flex items-center justify-around px-2 py-2">
         {navItems.map(item => {
           const Icon = item.icon;
-          const isActive =
-            pathname === item.href || pathname.startsWith(item.href + '/');
+          const isActive = item.exact
+            ? pathname === item.href
+            : pathname === item.href || pathname.startsWith(item.href + '/');
 
           return (
             <Link

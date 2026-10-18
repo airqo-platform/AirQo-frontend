@@ -53,11 +53,14 @@ export class ClientService {
   }
 
   // Get clients for a specific user
-  async getClientsByUserId(userId: string): Promise<GetClientsResponse> {
+  async getClientsByUserId(
+    userId: string,
+    options: { signal?: AbortSignal } = {}
+  ): Promise<GetClientsResponse> {
     await this.ensureAuthenticated();
     const response = await this.authenticatedClient.get<
       GetClientsResponse | ApiErrorResponse
-    >(`/users/clients?user_id=${userId}`);
+    >(`/users/clients?user_id=${userId}`, { signal: options.signal });
     const data = response.data;
 
     if ('success' in data && !data.success) {
