@@ -106,7 +106,7 @@ type ProductMarketingPageProps = {
     image: ProductImageConfig;
     actions?: ProductAction[];
   };
-  intro: {
+  intro?: {
     title: React.ReactNode;
     description: React.ReactNode;
   };
@@ -128,7 +128,7 @@ type ProductMarketingPageProps = {
     items: ProductUseCase[];
   };
   downloadSection?: ProductDownloadSection;
-  secondarySection: ProductSpotlightSection;
+  secondarySection?: ProductSpotlightSection;
   audiences?: {
     title: React.ReactNode;
     description: string;
@@ -139,7 +139,7 @@ type ProductMarketingPageProps = {
     title: React.ReactNode;
     description: string;
     actions: ProductAction[];
-    quickLinks: ProductQuickLink[];
+    quickLinks?: ProductQuickLink[];
   };
 };
 
@@ -268,6 +268,8 @@ const ProductMarketingPage = ({
   audiences,
   ctaSection,
 }: ProductMarketingPageProps) => {
+  const hasQuickLinks = Boolean(ctaSection?.quickLinks?.length);
+
   return (
     <div className="pb-16 flex flex-col w-full space-y-20 overflow-hidden">
       <motion.section
@@ -320,26 +322,28 @@ const ProductMarketingPage = ({
         </div>
       </motion.section>
 
-      <motion.section
-        className={`${mainConfig.containerClass} px-4 grid grid-cols-1 lg:grid-cols-2 gap-8`}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, amount: 0.2 }}
-        variants={containerVariants}
-      >
-        <motion.h2
-          className="text-[40px] font-semibold mb-4 leading-tight text-gray-900"
-          variants={itemVariants}
+      {intro ? (
+        <motion.section
+          className={`${mainConfig.containerClass} px-4 grid grid-cols-1 lg:grid-cols-2 gap-8`}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.2 }}
+          variants={containerVariants}
         >
-          {intro.title}
-        </motion.h2>
-        <motion.div
-          className="text-lg text-gray-700 mb-6"
-          variants={itemVariants}
-        >
-          {intro.description}
-        </motion.div>
-      </motion.section>
+          <motion.h2
+            className="text-[40px] font-semibold mb-4 leading-tight text-gray-900"
+            variants={itemVariants}
+          >
+            {intro.title}
+          </motion.h2>
+          <motion.div
+            className="text-lg text-gray-700 mb-6"
+            variants={itemVariants}
+          >
+            {intro.description}
+          </motion.div>
+        </motion.section>
+      ) : null}
 
       {primarySection ? <ProductSpotlight section={primarySection} /> : null}
 
@@ -475,7 +479,9 @@ const ProductMarketingPage = ({
 
       {childrenAfterDownload ? children : null}
 
-      <ProductSpotlight section={secondarySection} />
+      {secondarySection ? (
+        <ProductSpotlight section={secondarySection} />
+      ) : null}
 
       {childrenAfterSecondary ? children : null}
 
@@ -526,9 +532,12 @@ const ProductMarketingPage = ({
           variants={containerVariants}
         >
           <div
-            className={`${mainConfig.containerClass} rounded-2xl border border-blue-100 ${theme.ctaBackgroundClassName} p-8 lg:p-12 grid grid-cols-1 lg:grid-cols-2 gap-10 items-center`}
+            className={`${mainConfig.containerClass} rounded-2xl border border-blue-100 ${theme.ctaBackgroundClassName} p-8 lg:p-12 grid grid-cols-1 ${hasQuickLinks ? 'lg:grid-cols-2' : ''} gap-10 items-center`}
           >
-            <motion.div className="space-y-5" variants={itemVariants}>
+            <motion.div
+              className={cn('space-y-5', !hasQuickLinks && 'max-w-3xl')}
+              variants={itemVariants}
+            >
               <p
                 className={`text-sm tracking-wide uppercase font-semibold ${theme.accentTextClassName}`}
               >
@@ -545,7 +554,7 @@ const ProductMarketingPage = ({
               </div>
             </motion.div>
 
-            {ctaSection.quickLinks.length > 0 && (
+            {ctaSection.quickLinks && ctaSection.quickLinks.length > 0 && (
               <motion.div
                 className={`rounded-xl border border-gray-200 p-6 shadow-sm ${theme.quickLinksCardClassName}`}
                 variants={cardVariants}

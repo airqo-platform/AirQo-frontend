@@ -63,8 +63,7 @@ const ApiFaqSection = () => {
             Frequently asked questions
           </h2>
           <p className="mt-4 text-lg text-gray-700">
-            Quick answers about request limits, plans, and managing your API
-            subscription.
+            Answers about limits, plans, and access.
           </p>
         </div>
 

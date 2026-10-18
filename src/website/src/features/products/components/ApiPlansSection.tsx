@@ -29,7 +29,7 @@ const API_PLANS: ApiPlan[] = [
       'Spatial heatmaps',
       'Community support',
     ],
-    ctaLabel: 'Start for free',
+    ctaLabel: 'Choose Free',
     href: API_CONSOLE_SUBSCRIPTION_URL,
   },
   {
@@ -43,7 +43,7 @@ const API_PLANS: ApiPlan[] = [
       'Paginated bulk data export',
       'Email support',
     ],
-    ctaLabel: 'Upgrade to Standard',
+    ctaLabel: 'Choose Standard',
     href: API_CONSOLE_SUBSCRIPTION_URL,
     highlighted: true,
     badge: 'Most popular',
@@ -59,7 +59,7 @@ const API_PLANS: ApiPlan[] = [
       'Priority API access and higher limits',
       'Priority support',
     ],
-    ctaLabel: 'View the Premium plan',
+    ctaLabel: 'Choose Premium',
     href: API_CONSOLE_SUBSCRIPTION_URL,
   },
 ];
@@ -77,11 +77,11 @@ const ApiPlansSection = () => {
             id="api-plans-heading"
             className="text-[32px] leading-tight font-semibold text-gray-900 lg:text-[40px]"
           >
-            Choose a plan that fits your API usage
+            Choose your API plan
           </h2>
           <p className="mt-4 text-lg text-gray-700">
-            Compare monthly plans and pick the request volume that matches your
-            project. Every plan is managed in the AirQo Console.
+            Start free, then scale request volume and data access as your
+            product grows.
           </p>
         </div>
 
@@ -146,8 +146,7 @@ const ApiPlansSection = () => {
         </div>
 
         <p className="text-center text-sm text-gray-600">
-          Plans are managed in the AirQo Console. Switch or cancel anytime from
-          your console.
+          Manage or cancel your plan anytime in the AirQo Console.
         </p>
       </div>
     </section>
