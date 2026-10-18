@@ -55,6 +55,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
       return { flow: 'admin' as const, orgSlug: undefined };
     }
 
+    // Check if on the dedicated console flow (top-level /console hub)
+    if (pathname.startsWith('/console')) {
+      return { flow: 'console' as const, orgSlug: undefined };
+    }
+
     if (!activeGroup) {
       return { flow: 'user' as const, orgSlug: undefined };
     }
@@ -71,13 +76,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
       orgSlug: hasOrgSlug ? activeGroup.organizationSlug : undefined,
     };
   }, [activeGroup, pathname]);
-  // Treat base and nested admin/system/org routes as protected so
+  // Treat base and nested admin/system/org/console routes as protected so
   // exact base paths like '/admin' and '/system' are handled consistently
   // with the flow detection above (which uses startsWith('/admin')/('/system')).
   const isProtectedSidebarRoute =
     pathname.startsWith('/org') ||
     pathname.startsWith('/system') ||
-    pathname.startsWith('/admin');
+    pathname.startsWith('/admin') ||
+    pathname.startsWith('/console');
   const shouldWaitForActiveGroup = pathname.startsWith('/org/');
   const shouldShowLoadingSkeleton =
     isProtectedSidebarRoute &&

@@ -148,6 +148,11 @@ export const getPageTitle = (pathname: string): string => {
     }
   }
 
+  // Console flow
+  if (pathname.startsWith('/console')) {
+    return 'AirQo Console';
+  }
+
   // Return exact match or default
   return PAGE_TITLES[pathname] || PAGE_TITLES['/'] || 'AirQo';
 };

@@ -140,7 +140,7 @@ const TransactionHistory: React.FC = () => {
       onRefresh={() => {
         void loadTransactions(currentPage, pageSize);
       }}
-      title="Transaction History"
+      title="Transactions"
       currentPage={currentPage}
       totalPages={pagination.totalPages}
       pageSize={pageSize}

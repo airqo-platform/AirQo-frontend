@@ -17,3 +17,4 @@ secret
 .idea/*
 .claude/
 src/beacon/ISSUES.md
+.playwright-mcp/

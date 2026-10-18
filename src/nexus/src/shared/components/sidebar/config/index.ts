@@ -24,6 +24,7 @@ import {
   AqTrophy01,
   AqReceipt,
   AqMonitor05,
+  AqCodeSquare02,
 } from '@airqo/icons-react';
 
 export interface NavItem {
@@ -35,6 +36,8 @@ export interface NavItem {
   badge?: string | number;
   disabled?: boolean;
   subroutes?: SubRoute[];
+  /** When true the item is only active on an exact pathname match. */
+  exact?: boolean;
 }
 
 export interface SubRoute {
@@ -57,6 +60,7 @@ export interface SidebarConfig {
   admin: NavGroup[];
   system: NavGroup[];
   global: NavGroup[];
+  console: NavGroup[];
 }
 
 // User flow sidebar configuration
@@ -100,6 +104,12 @@ const userSidebarConfig: NavGroup[] = [
         label: 'Profile',
         href: '/user/profile',
         icon: AqUser03,
+      },
+      {
+        id: 'console',
+        label: 'Console',
+        href: '/console',
+        icon: AqCodeSquare02,
       },
     ],
   },
@@ -503,24 +513,87 @@ const globalSidebarConfig: NavGroup[] = [
   },
 ];
 
+// Console flow sidebar configuration — top-level hub shared across
+// personal accounts, mirroring the user/system flows. Overview + API Clients +
+// Usage + Subscriptions form the Console group; Profile + Home provide quick
+// jumps back to the personal user area.
+const consoleSidebarConfig: NavGroup[] = [
+  {
+    id: 'console',
+    label: 'Console',
+    items: [
+      {
+        id: 'console-overview',
+        label: 'Overview',
+        href: '/console',
+        icon: AqHomeSmile,
+        exact: true,
+      },
+      {
+        id: 'console-clients',
+        label: 'API Clients',
+        href: '/console/clients',
+        icon: AqKey01,
+      },
+      {
+        id: 'console-subscriptions',
+        label: 'Subscriptions',
+        href: '/console/subscriptions',
+        icon: AqReceipt,
+      },
+    ],
+  },
+  {
+    id: 'account',
+    label: 'Account',
+    items: [
+      {
+        id: 'console-profile',
+        label: 'Profile',
+        href: '/user/profile',
+        icon: AqUser03,
+      },
+      {
+        id: 'console-home',
+        label: 'Home',
+        href: '/user/home',
+        icon: AqHomeSmile,
+      },
+    ],
+  },
+];
+
 export const sidebarConfig: SidebarConfig = {
   user: userSidebarConfig,
   organization: orgSidebarConfig,
   admin: adminSidebarConfig,
   system: systemSidebarConfig,
   global: globalSidebarConfig,
+  console: consoleSidebarConfig,
 };
 
 // Utility functions for sidebar configuration
 export const getSidebarConfig = (
-  type: 'user' | 'organization' | 'admin' | 'system' | 'global'
+  type:
+    | 'user'
+    | 'organization'
+    | 'admin'
+    | 'system'
+    | 'global'
+    | 'console'
 ): NavGroup[] => {
   return sidebarConfig[type];
 };
 
 // Flatten all nav items for a specific type
 export const getAllNavItems = (
-  type: 'user' | 'organization' | 'admin' | 'system' | 'global'
+  type:
+    | 'user'
+    | 'organization'
+    | 'admin'
+    | 'system'
+    | 'global'
+    | 'console'
 ): NavItem[] => {
   return sidebarConfig[type].flatMap(group => group.items);
 };
@@ -528,7 +601,13 @@ export const getAllNavItems = (
 // Get nav item by href for a specific type
 export const getNavItemByHref = (
   href: string,
-  type: 'user' | 'organization' | 'admin' | 'system' | 'global'
+  type:
+    | 'user'
+    | 'organization'
+    | 'admin'
+    | 'system'
+    | 'global'
+    | 'console'
 ): NavItem | undefined => {
   const allNavItems = getAllNavItems(type);
   return allNavItems.find(item => item.href === href);

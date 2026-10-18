@@ -233,10 +233,10 @@ const UsageStats: React.FC = () => {
   return (
     <Card className="p-6">
       <div className="mb-6">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-          API Usage Statistics
+        <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+          Usage & limits
         </h3>
-        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+        <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
           Monitor live API usage across the current hourly, daily, and monthly
           windows.
         </p>
@@ -332,7 +332,7 @@ const UsageStats: React.FC = () => {
       )}
 
       <InfoBanner
-        title="Rate Limits"
+        title="Rate limits"
         message="When rate limiting is enabled in your environment, requests above your tier limit may return HTTP 429. Implement backoff and retries in client integrations."
         className="mt-6"
       />

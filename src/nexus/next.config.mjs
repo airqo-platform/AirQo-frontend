@@ -1,6 +1,20 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'standalone',
+  async redirects() {
+    return [
+      {
+        source: '/user/console',
+        destination: '/console',
+        permanent: true,
+      },
+      {
+        source: '/user/console/:path*',
+        destination: '/console/:path*',
+        permanent: true,
+      },
+    ];
+  },
   images: {
     remotePatterns: [
       {

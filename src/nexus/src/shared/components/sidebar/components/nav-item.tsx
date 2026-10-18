@@ -28,15 +28,16 @@ export const NavItem = React.memo<NavItemProps>(
       left: 0,
     });
 
-    const isActive =
-      pathname === item.href ||
-      pathname.startsWith(`${item.href}/`) ||
-      (item.subroutes &&
-        item.subroutes.some(
-          subroute =>
-            pathname === subroute.href ||
-            pathname.startsWith(`${subroute.href}/`)
-        ));
+    const isActive = item.exact
+      ? pathname === item.href
+      : pathname === item.href ||
+        pathname.startsWith(`${item.href}/`) ||
+        (item.subroutes &&
+          item.subroutes.some(
+            subroute =>
+              pathname === subroute.href ||
+              pathname.startsWith(`${subroute.href}/`)
+          ));
     const Icon = item.icon;
     const hasSubroutes = item.subroutes && item.subroutes.length > 0;
 
