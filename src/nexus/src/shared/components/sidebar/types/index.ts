@@ -6,7 +6,7 @@ export interface SidebarProps {
 }
 
 export interface SidebarContentProps {
-  flow?: 'user' | 'organization' | 'admin' | 'system';
+  flow?: 'user' | 'organization' | 'admin' | 'system' | 'console';
   orgSlug?: string;
   isCollapsed?: boolean;
   onItemClick?: () => void;
@@ -31,6 +31,7 @@ export interface NavItemProps {
     badge?: string | number;
     disabled?: boolean;
     subroutes?: SubRoute[];
+    exact?: boolean;
   };
   isCollapsed?: boolean;
   onClick?: () => void;

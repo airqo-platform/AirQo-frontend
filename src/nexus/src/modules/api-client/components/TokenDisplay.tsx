@@ -4,7 +4,7 @@ import React from 'react';
 import { Button, WarningBanner } from '@/shared/components/ui';
 import { toast } from '@/shared/components/ui';
 import { AqCopy06 } from '@airqo/icons-react';
-import { formatDate, parseDate } from '@/shared/utils';
+import { copyTextToClipboard, formatDate, parseDate } from '@/shared/utils';
 import type { TokenRequestPattern } from '@/shared/types/api';
 
 interface TokenDisplayProps {
@@ -28,7 +28,7 @@ const TokenDisplay: React.FC<TokenDisplayProps> = ({
 }) => {
   const copyToClipboard = async () => {
     try {
-      await navigator.clipboard.writeText(token);
+      await copyTextToClipboard(token);
       toast.success('Token copied to clipboard');
     } catch {
       toast.error('Failed to copy token');

@@ -9,7 +9,7 @@ import React, {
 } from 'react';
 import { useSession } from 'next-auth/react';
 import { AqAlertTriangle, AqCheck } from '@airqo/icons-react';
-import { Button, Card, LoadingSpinner, toast } from '@/shared/components/ui';
+import { Button, Card, LoadingState, toast } from '@/shared/components/ui';
 import ReusableDialog from '@/shared/components/ui/dialog';
 import { PADDLE_CHECKOUT_COMPLETED_EVENT } from '@/shared/lib/paddle';
 import { formatDate } from '@/shared/utils';
@@ -198,10 +198,14 @@ const SubscriptionSection: React.FC = () => {
       return 'Ending soon';
     }
 
+    if (currentStatus === 'inactive' && currentTier === 'Free') {
+      return 'Current';
+    }
+
     return (
       statusBadgeStyles[currentStatus]?.label || currentStatus.replace('_', ' ')
     );
-  }, [accessDateText, currentStatus]);
+  }, [accessDateText, currentStatus, currentTier]);
   const summaryDateLabel = useMemo(() => {
     if (currentTier === 'Free' && currentStatus !== 'cancelled') {
       return 'Plan status';
@@ -881,9 +885,9 @@ const SubscriptionSection: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-10">
-        <LoadingSpinner />
-      </div>
+      <Card className="p-6">
+        <LoadingState text="Loading subscription..." className="py-10" />
+      </Card>
     );
   }
 
@@ -1034,11 +1038,11 @@ const SubscriptionSection: React.FC = () => {
         </Card>
 
         <div>
-          <div className="mb-4">
-            <h3 className="text-lg font-semibold text-slate-950 dark:text-white">
-              Available Plans
+          <div className="mb-5">
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+              Available plans
             </h3>
-            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+            <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
               Switch tiers here when you already have paid access, or start a
               new checkout session when you are moving from Free or recovering a
               paused plan.
@@ -1132,7 +1136,7 @@ const SubscriptionSection: React.FC = () => {
               })}
             </div>
           ) : (
-            <Card className="rounded-2xl border border-dashed border-slate-300 p-5 text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">
+            <Card className="rounded-lg border border-dashed border-slate-300 p-8 text-center text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">
               Subscription plans are unavailable right now. Please refresh the
               page or try again later.
             </Card>
