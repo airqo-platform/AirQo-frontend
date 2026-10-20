@@ -17,15 +17,11 @@ import {
   type ProductTourStepEventDetail,
 } from '@/shared/lib/tourEvents';
 import { useHomeStart } from '@/shared/hooks/useHomeStart';
-import { getEnvironmentAwareUrl } from '@/shared/utils/url';
 import {
   getDataExportDateRangeLimit,
   getDataExportFrequencyLabel,
 } from '../constants/dataExportConstants';
 import { getSelectedDateRangeDurationDays } from '../utils/dataExportUtils';
-
-const RAW_DATA_API_DOCS_URL =
-  'https://platform.airqo.net/docs/api/analytics-api/raw-data/';
 
 interface DataExportSidebarProps {
   // State
@@ -94,24 +90,11 @@ const FieldLabel = ({
   </span>
 );
 
-const FinerResolutionNotice = () => (
+const MinimumResolutionNotice = () => (
   <WarningBanner
     dense
-    title="Need finer-than-hourly data?"
-    message={
-      <>
-        For minute-level or finer readings, use the{' '}
-        <a
-          href={getEnvironmentAwareUrl(RAW_DATA_API_DOCS_URL)}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="font-medium underline underline-offset-2 hover:no-underline"
-        >
-          Raw Sensor Data API
-        </a>. Nexus <strong>Raw</strong> does not provide finer-than-hourly data.
-        API access requires a secret token and Standard Tier or above.
-      </>
-    }
+    title="Hourly is the finest resolution available"
+    message="Nexus exports do not support minute-level or finer data."
   />
 );
 
@@ -293,7 +276,7 @@ export const DataExportSidebar: React.FC<DataExportSidebarProps> = ({
             )}
           </div>
 
-      {/* Download Limit Notice — only show when the active frequency cap is exceeded */}
+          {/* Download Limit Notice — only show when the active frequency cap is exceeded */}
           {showDownloadLimitNotice && (
             <WarningBanner
               title="Date Range Exceeds Export Limit"
@@ -381,7 +364,7 @@ export const DataExportSidebar: React.FC<DataExportSidebarProps> = ({
               placeholder="Select frequency"
               showLabel={false}
             />
-            <FinerResolutionNotice />
+            <MinimumResolutionNotice />
           </div>
         </div>
       </aside>
@@ -550,7 +533,7 @@ export const DataExportSidebar: React.FC<DataExportSidebarProps> = ({
                 placeholder="Select frequency"
                 showLabel={false}
               />
-              <FinerResolutionNotice />
+              <MinimumResolutionNotice />
             </div>
           </div>
         </div>
