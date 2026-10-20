@@ -5,7 +5,9 @@ sidebar_label: Managing Members
 
 # Managing Members
 
-Organization administrators can view, invite, and remove members from the organization workspace.
+Members with the required organization permissions can view, invite, assign
+roles to, and remove members from the organization workspace. If a control is
+missing, your role may not include the permission for that action.
 
 ---
 
@@ -13,7 +15,9 @@ Organization administrators can view, invite, and remove members from the organi
 
 1. Navigate to your organization using the header dropdown.
 2. Select **Members** in the sidebar.
-3. You will see a paginated list of all members with their names, emails, and assigned roles.
+3. You will see a paginated list with each member's name, email address,
+   status, last-login date, and country. Open a member's details to view their
+   assigned roles.
 
 :::note Requires MEMBER_VIEW
 This action requires the `MEMBER_VIEW` permission.
@@ -38,8 +42,9 @@ This action requires the `MEMBER_VIEW` permission.
 
 1. Navigate to the **Members** page.
 2. Select the **Send Invites** button.
-3. Enter the email addresses of the people you want to invite (one per line or comma-separated).
-4. Select **Send**.
+3. Enter one or more email addresses. Use **+ Add Email Address** to add another
+   field.
+4. Select **Send Invites**.
 
 The invitees will receive an email with a link to join your organization. When they select the link:
 
@@ -50,9 +55,11 @@ The invitees will receive an email with a link to join your organization. When t
 This action requires the `MEMBER_INVITE` permission.
 :::
 
-### Default Role for New Members
+### Assign Roles After Joining
 
-When a newly invited member joins, they are typically assigned the organization's default member role (`{ORG_NAME}_DEFAULT_MEMBER`). Administrators can change this assignment after the member accepts the invitation.
+After the invitation is accepted, open the member's details to review or
+assign roles. The roles available to you come from the current organization;
+there is no universal role name that applies to every organization.
 
 ---
 
@@ -61,23 +68,23 @@ When a newly invited member joins, they are typically assigned the organization'
 ### Single Assignment
 
 1. Go to the **Members** page and select the member's name.
-2. On the member detail page, find the **Roles** section.
-3. Use the dropdown to select a role to assign.
-4. Select **Assign**.
+2. On the member detail page, find the **Group Roles** section.
+3. Select **Assign Role** and choose an available role.
+4. Select **Assign Role**.
 
 ### Bulk Assignment
 
 1. Go to the **Members** page.
 2. Select multiple members using the checkboxes in the table.
-3. Select the **Assign Role** button that appears.
+3. Select **Assign Role**.
 4. Choose the role from the dropdown.
-5. Confirm the assignment.
+5. Select **Assign Role** to confirm the assignment.
 
 ### Removing a Role
 
 1. Open the member's detail page.
 2. Find the role you want to remove.
-3. Select the **Unassign** or remove button next to the role.
+3. Select the remove control next to the role and confirm **Unassign Role**.
 4. Confirm the action.
 
 :::note
@@ -89,12 +96,12 @@ You can only assign roles that exist within the same organization.
 ## Removing a Member
 
 1. Navigate to the **Members** page.
-2. Select the **Remove** button next to the member you want to remove.
+2. Open the member actions menu and select **Remove from Group**.
 3. Confirm the removal in the dialog that appears.
 
 Alternatively, from the member detail page:
 
-1. Select **Remove from Organization**.
+1. Select **Remove from Group**.
 2. Confirm the action.
 
 :::caution
@@ -105,11 +112,10 @@ You cannot remove the organization's Group Manager. You must reassign the manage
 
 ## Viewing Pending Invitations
 
-If you have pending invitations from other organizations:
-
-- A notification banner will appear at the top of your dashboard showing the number of pending invitations.
-- Select **View invitation(s)** to see all pending invites.
-- From there, you can **Accept** or **Reject** each invitation.
+If you have pending invitations from other organizations, Nexus may show a
+notification banner with **View invitation(s)**. You can also open **Profile >
+Team Invites** directly. Review each invitation and select **Accept** or
+**Reject**.
 
 ---
 

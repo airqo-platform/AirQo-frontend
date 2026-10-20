@@ -12,7 +12,7 @@ The Dataset Visualizer lets you upload your own air quality files, compare sourc
 ## Accessing the Visualizer
 
 1. Log in to [AirQo Nexus](https://nexus.airqo.net/).
-2. Open the sidebar and select **Dataset Visualizer** under the Data & Analysis section.
+2. Open the global sidebar and select **Dataset Visualizer**.
 3. Direct links:
    - **Individual workflow:** [nexus.airqo.net/user/data-visualizer](https://nexus.airqo.net/user/data-visualizer)
    - **Organization workflow:** `https://nexus.airqo.net/org/<your-org>/data-visualizer`
@@ -91,7 +91,7 @@ Select **Review data** in the toolbar to open the **Review imported data** panel
 1. Select **Add chart** in the toolbar. If no data is loaded yet, a toast prompts you to upload a file first.
 2. Choose a chart type from the dropdown.
 
-![Add chart dropdown showing eight chart types](/img/nexus/visualizer-add-chart.png)
+![Add chart dropdown showing nine chart types](/img/nexus/visualizer-add-chart.png)
 
 ### Chart Types
 
@@ -176,6 +176,7 @@ Exported files are named automatically based on the chart title.
 | Limit             | Value           | Reason                     |
 | ----------------- | --------------- | -------------------------- |
 | Max file size     | 100 MB per file | Browser memory constraints |
+| Max imported rows | 50,000 per dataset | Keeps profiling and chart rendering responsive |
 | Supported formats | `.csv`, `.xlsx` | Standard parsers           |
 
 ---

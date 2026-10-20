@@ -5,144 +5,88 @@ sidebar_label: Air Quality Analysis
 
 # Air Quality Analysis
 
-The Air Quality Analysis page lets you monitor current conditions, trends, and forecasts for your configured locations. Build custom charts to track pollution over time, or compare readings across multiple sites side by side.
+Air Quality Analysis helps you study monitored locations over time and compare their latest readings. It has two views:
 
----
+- **Trends:** Build, save, and export charts for selected sites.
+- **Comparison:** Review the latest readings for several sites side by side and save the selection.
 
-## Accessing the Page
+The page is available in individual and organization workspaces. Organization users see data scoped to their current organization.
 
-1. Log in to [AirQo Nexus](https://nexus.airqo.net/).
-2. Select **Air Quality Analysis** in the sidebar.
-3. Direct link: `https://nexus.airqo.net/user/air-quality/analytics`
+## Open Air Quality Analysis
 
-:::note
-Air Quality Analysis is part of the **individual** workflow sidebar. The organization dashboard does not include an Analysis page — organization members can monitor their network from the organization **Dashboard** and **Air Quality Map**.
-:::
+1. Sign in to [AirQo Nexus](https://nexus.airqo.net/).
+2. Select **Air Quality Analysis** in the workspace sidebar.
+3. Choose **Trends** or **Comparison** at the top of the page.
 
----
+Individual URL: `https://nexus.airqo.net/user/air-quality/analytics`
 
-## Chart Controls
+## Trends
 
-Controls live on each chart card, not in a page-level bar. Each card on the **Trends** tab provides:
+The Trends view displays saved charts in either **List** or **Grid** layout. Select **New chart** to create a chart.
 
-- **Pollutant** dropdown — switch the pollutant displayed (PM₂.₅, PM₁₀, …).
-- **Date range** picker — pick a start and end date, or choose a preset.
-- **Quick chart-type switch** — toggle between **Line**, **Area**, and **Bar** without opening a dialog.
+![Trends tab with a PM2.5 line chart for two sites](/img/nexus/analysis-trends.png)
 
-The **Comparison** tab has its own controls (location picker and AQI legend) and is independent of the Trends settings.
+### Create a chart
 
----
-
-## Trends Tab
-
-The Trends tab is the default view. It displays your charts as a set of cards that you can arrange in **List** or **Grid** layout.
-
-![Trends tab with a PM₂.₅ line chart for two sites and a WHO guideline overlay](/img/nexus/analysis-trends.png)
-
-### Chart Cards
-
-Each chart card shows a time-series chart and supports:
-
-- **Inline title and subtitle editing** — select the title or subtitle to edit it directly on the card.
-- **Quick chart-type switch** — toggle between **Line**, **Area**, and **Bar** without opening a dialog.
-- **More (⋮) menu** — a full set of actions for the chart (see below).
-
-### More Menu
-
-Select the **⋮** button on a chart card to open its menu:
-
-![Chart More menu showing Edit chart, Duplicate, Delete, Export as PDF/PNG, Air Quality Standards, and Reference Lines](/img/nexus/analysis-chart-menu.png)
-
-| Action                    | Description                              |
-| ------------------------- | ---------------------------------------- |
-| **Edit chart**            | Open the full chart configuration dialog |
-| **Duplicate**             | Create a copy of the chart               |
-| **Delete chart**          | Remove the chart                         |
-| **Edit title & subtitle** | Rename the chart inline                  |
-| **Refresh Data**          | Reload the chart's data                  |
-| **Export as PDF**         | Download the chart as a PDF              |
-| **Export as PNG**         | Download the chart as a PNG              |
-| **Air Quality Standards** | Toggle the WHO guideline overlay         |
-| **Reference Lines**       | Turn reference lines on or off           |
-
-### WHO Guideline Overlay
-
-Charts can display a **WHO guideline** reference line so you can see at a glance where readings exceed the World Health Organization's recommended limits. Enable it from the chart's More menu under **Air Quality Standards**.
-
-### Weekly Forecast
-
-A **weekly forecast card** can be shown alongside your charts to give you a forward-looking view of air quality at your locations.
-
-### No-Data Warning
-
-If some locations have no data for the selected time period, a banner warns: **"Some locations have no data for the selected time period."** Narrow the date range or choose different locations to resolve this.
-
----
-
-## Adding a Chart
-
-1. Select **New chart** above the chart grid.
-2. The **Add chart** dialog opens.
+1. Select **New chart**.
+2. Enter a required **Chart title** and an optional **Subtitle**.
+3. Choose a **Pollutant**: PM2.5 or PM10.
+4. Choose a **Frequency**: Raw Data, Hourly, Daily, Weekly, Monthly, or Yearly. Availability depends on the selected data and service response.
+5. Choose a chart type: **Line**, **Area**, **Bar**, or **Pie**.
+6. Set the date range and select one or more monitoring sites.
+7. Optionally set a color for each location and enable or disable the legend, grid, tooltips, and theme color shades.
+8. Select **Add chart**.
 
 ![Add chart dialog with title, subtitle, chart type, pollutant, frequency, date range, and location fields](/img/nexus/analysis-new-chart.png)
 
-| Field                  | Description                                                   |
-| ---------------------- | ------------------------------------------------------------- |
-| **Chart title**        | Name for the chart                                            |
-| **Subtitle**           | Optional short description                                    |
-| **Chart type**         | Line, Area, or Bar                                            |
-| **Pollutant**          | PM₂.₅ or PM₁₀                                                 |
-| **Frequency**          | Hourly, Daily, Weekly, or Monthly                             |
-| **Date range**         | Start and end dates                                           |
-| **Locations**          | Multi-select from a searchable sites table                    |
-| **Per-location color** | Choose a color for each site's series                         |
-| **Toggles**            | Show legend, Show grid, Show tooltips, Use theme color shades |
+### Manage saved charts
 
-3. Select **Add chart** to create it, or **Cancel** to dismiss.
+Chart cards support:
+
+- Inline title and subtitle edits.
+- A quick chart-type change where supported.
+- Refreshing the chart data.
+- A forecast toggle for supported PM2.5 chart configurations. Forecast lines extend observed data with available daily forecasts; they are not additional observations.
+- **Edit chart**, **Duplicate**, **Delete chart**, **Export as PDF**, and **Export as PNG** from the More menu.
+- **Air Quality Standards** and **Reference Lines** when available in the chart controls.
+
+![Chart More menu showing chart management and export actions](/img/nexus/analysis-chart-menu.png)
+
+If one or more selected sites have no readings for the selected period and frequency, Nexus shows a warning and omits those series. Try another date range or frequency.
 
 :::note
-The **Locations** field uses a searchable table of monitoring sites. Select one or more sites to include in the chart.
+The **Raw Data** chart option is separate from the **Raw** data type on the export page. If you need a downloadable sub-hourly or minute-level dataset, use the direct API workflow described in [Raw Sensor Data](../../api/analytics-api/raw-data.md).
 :::
 
----
+## Comparison
 
-## Comparison Tab
+The Comparison view is designed for a current snapshot rather than a time-series chart.
 
-The Comparison tab lets you compare the latest readings across two or more sites in a single table.
+![Comparison tab showing sites with AQI, PM2.5, and PM10 values](/img/nexus/analysis-comparison.png)
 
-![Comparison tab showing three sites with AQI badges and PM₂.₅/PM₁₀ columns](/img/nexus/analysis-comparison.png)
+1. Use **Compare locations** to select the sites you want to review.
+2. Review the latest readings in the table. Rows can include AQI, PM2.5, PM10, other available pollutants, last reading, and freshness.
+3. Use the table controls to sort the rows. A site with no current reading remains visible as **No reading**.
+4. Select a site to view its details, or select **View insights** for a site or selected group.
+5. Select **Export** to download the comparison table as CSV.
 
-### Comparing Locations
+### Save and load a comparison
 
-1. Select the **Compare locations** picker and choose two or more sites.
-2. A table shows each site's latest reading, including:
-   - An **AQI badge** indicating the overall air quality level
-   - **PM₂.₅** and **PM₁₀** columns (plus other available pollutants)
+- Select **Save selection** and give the comparison a name.
+- Use **Saved comparisons** to load, update, or delete a saved selection.
+- The most recently used comparison can be restored for the current workspace.
 
-### AQI Legend
+### AQI legend
 
-An **AQI legend** appears at the bottom of the tab. Switch between the **PM₂.₅** and **PM₁₀** tabs to see the concentration ranges for each air quality category. For the full scale, see [Air Quality Levels](../monitoring-air-quality/air-quality-levels.md).
+The legend below the comparison table can be switched between PM2.5 and PM10. It uses the current Nexus air-quality configuration. See [Air Quality Levels](./air-quality-levels.md) for guidance on categories and thresholds.
 
-### Saving a Comparison
+## Exporting chart images
 
-- Select **Save selection** to keep a named comparison (for example, "My comparison").
-- Once saved, a **"Saved · [name]"** indicator appears so you can return to the same set of sites later.
+Use a chart card's More menu to export the visualization as **PDF** or **PNG**. These files contain the chart image, not the underlying measurement dataset. For data files, use [Export Air Quality Data](../exporting-data/data-export.md).
 
----
+## Related guides
 
-## Exporting Chart Data
-
-Each chart card's **More (⋮)** menu offers two export options:
-
-- **Export as PDF** — download a PDF image of the chart.
-- **Export as PNG** — download a PNG image of the chart.
-
-These exports capture the chart visualization only. To download the underlying measurement data, use [Export Air Quality Data](../exporting-data/data-export.md).
-
----
-
-## Related Guides
-
-- [Interactive Map](../monitoring-air-quality/interactive-map.md) — explore sites on a map
-- [Export Air Quality Data](../exporting-data/data-export.md) — download datasets for offline analysis
-- [Air Quality Levels](../monitoring-air-quality/air-quality-levels.md) — understand the color scale and ranges
+- [Interactive Map](./interactive-map.md) - inspect a location's current reading, forecast, and health guidance
+- [Air Quality Rankings](./air-quality-rankings.md) - compare African countries and cities
+- [Export Air Quality Data](../exporting-data/data-export.md) - download measurement data
+- [Air Quality Levels](./air-quality-levels.md) - understand categories and colors

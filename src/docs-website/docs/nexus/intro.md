@@ -5,54 +5,44 @@ sidebar_label: Overview
 
 # About AirQo Nexus
 
-Here you’ll find comprehensive information for navigating AirQo Nexus, accessing high-resolution air quality data, and integrating our tools into your workflow. We’ve designed this documentation to be user-friendly, catering to everyone from policy makers and researchers to developers and data scientists.
+AirQo Nexus is the web workspace for exploring, comparing, visualizing, and exporting air-quality data across Africa. Use it to answer a quick question about a location, build a reusable trend chart, compare places, or prepare data for analysis in another tool.
 
-As an open-source initiative, AirQo is built on the principles of transparency and collaboration. Our **data is open access**, provided that it is used with appropriate attribution to AirQo. Furthermore, our **codebase is entirely open source**; we believe that community-driven innovation is the fastest path to cleaner air. Whether you are here to download a local air quality report or to help us squash bugs in the code, you are a vital part of our mission.
+This documentation is for individual users, organization members, and developers who use the Nexus Console. It focuses on the current user-facing application. Platform administration and sensor deployment workflows are managed separately.
 
-For developers looking to contribute or run the platform locally, you can find our frontend repository on GitHub: [https://github.com/airqo-platform/AirQo-frontend](https://github.com/airqo-platform/AirQo-frontend).
+## What you can do in Nexus
 
----
+- **Explore:** Use Home, the Interactive Map, and Air Quality Rankings to find current readings and compare monitored locations.
+- **Analyze:** Build and save trend charts, compare the latest readings side by side, and inspect forecasts and health guidance.
+- **Export:** Select sites, devices, cities, or countries and download data as CSV, Excel, PDF, or JSON.
+- **Bring your own data:** Upload CSV or XLSX files to the Dataset Visualizer and create charts or maps without changing the source file.
+- **Work with a team:** Organization workspaces provide shared monitoring and export tools plus member management, roles, and organization settings.
+- **Use the API:** The Console provides usage information, subscription controls, and API clients for authenticated programmatic access.
 
-## Overview
+AirQo data is available under the [Fair Usage Policy](https://platform.airqo.net/docs/data-access/fair-usage-policy/), but access requirements depend on the workflow. Programmatic access requires a secret token, and raw-data API access requires a Standard Tier subscription or above. For programmatic access, start with the [API documentation](https://platform.airqo.net/docs/api/intro/) and the [Researchers Guide](https://platform.airqo.net/docs/data-access/researchers-guide/).
 
-AirQo Nexus provides a powerful, secure platform to help organizations and individuals monitor, analyze, and act on air quality data across Africa. Through an intuitive user interface, AirQo Nexus makes it easy to visualize complex environmental data in minutes.
+## Where to start
 
-With AirQo Nexus, you can explore real-time and historical air quality trends through interactive maps and custom dashboards. The platform allows you to:
-
-- **Visualize Data:** Monitor PM2.5 and PM10 levels across various locations using maps and time-series charts.
-- **Analyze Air Quality:** Track current conditions, trends, and forecasts, and compare readings across multiple sites with the Air Quality Analysis page.
-- **Export & Analyze:** Download calibrated air quality data in CSV, Excel, or PDF formats for in-depth offline analysis in tools like Microsoft Excel or R.
-- **Manage Organizations:** Dedicated tools for government bodies (like NEMA) and NGOs to manage private sensor networks and generate compliance reports.
-- **Collaborate:** Share insights and maps directly with stakeholders to drive data-driven environmental policies.
-
-For those needing programmatic access, our API allows you to pull raw and calibrated data directly into your own applications, ensuring that air quality insights are available wherever they are needed most.
-
----
-
-## Where to Start
-
-| I want to...                               | Go to...                                                                 |
-| ------------------------------------------ | ------------------------------------------------------------------------ |
-| Sign up                                    | [Creating an Account](./getting-started/creating-an-account.md)          |
-| Log in or use a social account             | [Logging In](./getting-started/logging-in.md)                            |
-| Reset my password                          | [Resetting Your Password](./getting-started/resetting-your-password.md)  |
-| Understand the interface and workflows     | [Navigating the Platform](./getting-started/navigating-the-platform.md)  |
-| View my dashboard or interpret readings    | [Nexus Dashboard](./monitoring-air-quality/nexus-dashboard.md)           |
-| Explore sites on a map                     | [Interactive Map](./monitoring-air-quality/interactive-map.md)           |
-| Analyze air quality trends and comparisons | [Air Quality Analysis](./monitoring-air-quality/air-quality-analysis.md) |
-| Download air quality data                  | [Export Air Quality Data](./exporting-data/data-export.md)               |
-| Upload and visualize my own data           | [Dataset Visualizer](./visualizing-data/dataset-visualizer.md)           |
-| Manage my organization's team              | [Organization Management](./organization-management/managing-members.md) |
-| Share feedback or report a problem         | [Sharing Feedback](./help-and-feedback/sharing-feedback.md)              |
-| Delete my account                          | [Deleting Your Account](./getting-started/deleting-your-account.md)      |
-
----
+| I want to... | Go to... |
+| --- | --- |
+| Sign up | [Creating an Account](./getting-started/creating-an-account.md) |
+| Log in | [Logging In](./getting-started/logging-in.md) |
+| Understand the interface | [Navigating the Platform](./getting-started/navigating-the-platform.md) |
+| View Home or an organization report | [Nexus Dashboard](./monitoring-air-quality/nexus-dashboard.md) |
+| Explore sites on a map | [Interactive Map](./monitoring-air-quality/interactive-map.md) |
+| Analyze trends and comparisons | [Air Quality Analysis](./monitoring-air-quality/air-quality-analysis.md) |
+| Download AirQo data | [Export Air Quality Data](./exporting-data/data-export.md) |
+| Upload and visualize my own data | [Dataset Visualizer](./visualizing-data/dataset-visualizer.md) |
+| Manage an organization's team | [Organization Management](./organization-management/managing-members.md) |
+| Manage my profile and invitations | [Profile and Account Settings](./getting-started/managing-your-profile.md) |
+| Get guided beta assistance | [Ask AirQo](./getting-started/ask-airqo.md) |
+| Create API clients or review usage | [Nexus Console](./developer-access/console-overview.md) |
+| Share feedback or report a problem | [Sharing Feedback](./help-and-feedback/sharing-feedback.md) |
+| Delete my account | [Deleting Your Account](./getting-started/deleting-your-account.md) |
 
 ## Questions?
 
-We’re always happy to help with technical implementation, data interpretation, or any other questions you might have!
+Use the search bar to find a task, open **Ask AirQo** in Nexus for guided beta assistance, or use the feedback form to report a problem or suggest an improvement.
 
-- **Search our documentation:** Use the search bar above to find specific user guides.
-- **Visit the Help Center:** Access our FAQs for quick troubleshooting.
-- **Contribute:** Join our developer community on **GitHub** to suggest features or report issues.
-- **Contact Support:** Reach out to the AirQo team for specialized assistance or partnership inquiries.
+- **Search the documentation:** Find instructions for a specific page or workflow.
+- **Read the API docs:** Follow the link in the [Nexus Console](./developer-access/console-overview.md) when building an integration.
+- **Share feedback:** Use [Sharing Feedback](./help-and-feedback/sharing-feedback.md) when something does not work as expected.
