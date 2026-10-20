@@ -17,11 +17,15 @@ import {
   type ProductTourStepEventDetail,
 } from '@/shared/lib/tourEvents';
 import { useHomeStart } from '@/shared/hooks/useHomeStart';
+import { getEnvironmentAwareUrl } from '@/shared/utils/url';
 import {
   getDataExportDateRangeLimit,
   getDataExportFrequencyLabel,
 } from '../constants/dataExportConstants';
 import { getSelectedDateRangeDurationDays } from '../utils/dataExportUtils';
+
+const RAW_DATA_API_DOCS_URL =
+  'https://platform.airqo.net/docs/api/analytics-api/raw-data/';
 
 interface DataExportSidebarProps {
   // State
@@ -88,6 +92,27 @@ const FieldLabel = ({
       </Tooltip>
     )}
   </span>
+);
+
+const FinerResolutionNotice = () => (
+  <WarningBanner
+    dense
+    title="Need finer-than-hourly data?"
+    message={
+      <>
+        For minute-level or finer readings, use the{' '}
+        <a
+          href={getEnvironmentAwareUrl(RAW_DATA_API_DOCS_URL)}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="font-medium underline underline-offset-2 hover:no-underline"
+        >
+          Raw Sensor Data API
+        </a>. Nexus <strong>Raw</strong> does not provide finer-than-hourly data.
+        API access requires a secret token and Standard Tier or above.
+      </>
+    }
+  />
 );
 
 export const DataExportSidebar: React.FC<DataExportSidebarProps> = ({
@@ -356,6 +381,7 @@ export const DataExportSidebar: React.FC<DataExportSidebarProps> = ({
               placeholder="Select frequency"
               showLabel={false}
             />
+            <FinerResolutionNotice />
           </div>
         </div>
       </aside>
@@ -524,6 +550,7 @@ export const DataExportSidebar: React.FC<DataExportSidebarProps> = ({
                 placeholder="Select frequency"
                 showLabel={false}
               />
+              <FinerResolutionNotice />
             </div>
           </div>
         </div>
