@@ -1,104 +1,41 @@
-﻿---
+---
 sidebar_position: 1
-sidebar_label: "Favorite Locations (Deprecated)"
+sidebar_label: Saved Locations and Comparisons
 ---
 
-# Favorite Locations
+# Saved Locations and Comparisons
 
-:::warning Deprecated feature
-The Favorite Locations ("My Favorites") feature is **no longer available** in the current AirQo Nexus app. The Quick Access cards for favorites have been removed and the dashboard is now the home page. This page is kept for reference only and may be removed in a future release.
+Nexus no longer has a separate **My Favorites** page. The current workflow is to save a comparison in **Air Quality Analysis** and use Home to see updates from those saved locations.
 
-- To explore locations, trends, and forecasts, use [Air Quality Analysis](../monitoring-air-quality/air-quality-analysis.md).
-- To download data, use [Export Air Quality Data](../exporting-data/data-export.md).
+## Save locations for later
 
-**Everything below is historical reference only — the instructions no longer work in the current app. Do not follow them.**
-:::
+1. Open [Air Quality Analysis](../monitoring-air-quality/air-quality-analysis.md).
+2. Select the **Comparison** view.
+3. Use **Compare locations** to select the sites you care about.
+4. Select **Save selection** and give the comparison a name.
 
-The Favorites feature let you follow up to four monitoring sites so they appeared on your dashboard every time you logged in. In the Individual workflow, this page was called **My Favorites**; in the Organization workflow, the same view was called **Dashboard**.
+The saved comparison is scoped to the current workspace. Organization comparisons and individual comparisons are kept separate.
 
----
+## Return to a saved comparison
 
-## Accessing Favorites (Historical)
+1. Open Air Quality Analysis.
+2. Select **Comparison**.
+3. Open **Saved comparisons**.
+4. Select a saved comparison to load its locations.
 
-| Workflow         | Sidebar Item     | Web Address                                        |
-| ---------------- | ---------------- | -------------------------------------------------- |
-| **Individual**   | **My Favorites** | `https://nexus.airqo.net/user/favorites`           |
-| **Organization** | **Dashboard**    | `https://nexus.airqo.net/org/<your-org>/dashboard` |
+You can update the loaded selection, save it again, save a new comparison, or delete it.
 
-You can also reach the Individual Favorites page from the [Home page](https://nexus.airqo.net/user/home) by selecting **My Favorites** or **Start here**.
+## See updates on Home
 
----
+The individual Home page uses the locations in your saved comparison for **Updates from your places**. If no locations have been saved, select **Compare places** in the empty state to open the comparison workflow.
 
-## Adding Favorite Locations (Historical)
+## Use the map for one location
 
-1. Open the **My Favorites** page (Individual) or **Dashboard** page (Organization).
-2. Select **Manage Favorites**. The Add Favorites dialog opens.
-3. Use the search field or browse the **Sites** table to find monitoring locations.
-4. Select the checkboxes next to the sites you want to follow.
-5. The sidebar shows your selected favorites and the count (for example, "Selected Favorites (2/4)").
-6. Select **Save Favorites**.
+For current conditions, forecasts, and health guidance for a single site, use the [Interactive Map](../monitoring-air-quality/interactive-map.md). The map does not require a separate favorites list.
 
-:::caution Maximum of 4 favorites
-You can save up to four favorite locations at a time. If you select more than four, the dialog shows an error and the **Save Favorites** button is disabled until you deselect the extra locations.
-:::
+## Related guides
 
----
-
-## Managing Favorite Locations (Historical)
-
-### Remove a Favorite
-
-In the Add Favorites dialog, find the site in the **Selected Favorites** sidebar and select the **×** next to it. Then select **Save Favorites**.
-
-### Clear All Favorites
-
-In the Add Favorites dialog, select **Clear** to remove all selected locations. Then select **Save Favorites**.
-
-### Refresh the Site List
-
-Select the **Refresh** button in the dialog header to reload the available sites and your current preferences.
-
----
-
-## Sites Table (Historical)
-
-The Add Favorites dialog lists sites with the following columns:
-
-| Column       | Description                                   |
-| ------------ | --------------------------------------------- |
-| **Location** | The site location name                        |
-| **City**     | The city where the site is located            |
-| **Country**  | The country where the site is located         |
-| **Owner**    | The organization or entity that owns the site |
-
-Use the column headers to sort, and use the pagination controls at the bottom to browse more sites.
-
----
-
-## Viewing Favorite Data (Historical)
-
-Once favorites are saved, the dashboard displays:
-
-- **Quick Access cards** — one tile per favorite showing the current reading and air quality icon
-- **Air Pollution Trends Over Time** — a line chart comparing your favorites
-- **Air Pollution Levels Distribution** — a bar chart showing level distribution across your favorites
-
-Select any location card or chart's **More Insights** option to explore the site in more detail.
-
----
-
-## Tips (Historical)
-
-- **Updating favorites:** You can change your favorite locations at any time by opening **Manage Favorites** again.
-- **Exporting data:** If you need data for more than four locations, use the [Export Air Quality Data](../exporting-data/data-export.md) feature to select a broader range of sites, devices, cities, or countries.
-- **Profile settings:** Manage your account preferences and security settings on the **Profile** page.
-
----
-
-## Related Guides
-
-- [Air Quality Analysis](../monitoring-air-quality/air-quality-analysis.md) — analyze trends and compare locations
-- [Nexus Dashboard](../monitoring-air-quality/nexus-dashboard.md)
-- [Air Quality Levels](../monitoring-air-quality/air-quality-levels.md)
-- [Interactive Map](../monitoring-air-quality/interactive-map.md)
-- [Export Air Quality Data](../exporting-data/data-export.md)
+- [Air Quality Analysis](../monitoring-air-quality/air-quality-analysis.md) - save comparisons and analyze trends
+- [Nexus Dashboard](../monitoring-air-quality/nexus-dashboard.md) - understand Home and the organization Dashboard
+- [Interactive Map](../monitoring-air-quality/interactive-map.md) - inspect a location
+- [Export Air Quality Data](../exporting-data/data-export.md) - export data for selected monitoring locations

@@ -5,123 +5,88 @@ sidebar_label: Navigating the Platform
 
 # Navigating the Platform
 
-Learn how the AirQo Nexus interface is organized, how the Individual and Organization workflows differ, and how to move between them.
+AirQo Nexus has an individual workspace, organization workspaces, and a global menu for tools that are shared across workflows. The pages you see depend on your current workspace and, for organization management, your permissions.
 
----
+## Individual workspace
 
-## Understanding the Two Workflows
+Use the individual workspace to explore monitored locations, analyze trends and comparisons, export AirQo data, and visualize your own files.
 
-### Individual Workflow
+| Group | Page | Use it to... |
+| --- | --- | --- |
+| Main | Home | Resume saved work, compare places, and choose a starting point |
+| Main | Visualization & Data Export | Configure and download AirQo data |
+| Main | Air Quality Map | Explore sites, readings, forecasts, and health guidance |
+| Main | Air Quality Analysis | Build trend charts and compare latest readings |
+| Account | Profile | Edit personal information, security settings, and invitations |
+| Account | Console | Review API usage, API clients, and subscriptions |
 
-The Individual workflow is your personal workspace. Use it to explore air quality data, analyze trends and comparisons, export datasets, and visualize your own data files.
+## Organization workspace
 
-**Navigation sidebar:**
+An organization workspace is shared with other members. It includes the same monitoring and export tools plus management pages that appear only when your role grants the required permission.
 
-| Group       | Page                        | Description                                                 |
-| ----------- | --------------------------- | ----------------------------------------------------------- |
-| **Main**    | Home                        | Welcome page with quick actions and an onboarding checklist |
-|             | Visualization & Data Export | Download air quality datasets with flexible configuration   |
-|             | Air Quality Map             | Full-screen interactive map with air quality data layers    |
-|             | Air Quality Analysis        | Analyze trends and forecasts, and compare locations         |
-| **Account** | Profile                     | Edit your name, profile picture, and account settings       |
+| Group | Page | Use it to... |
+| --- | --- | --- |
+| Main | Dashboard | Review a cohort-level report for a selected period |
+| Main | Visualization & Data Export | Download data for organization locations |
+| Main | Air Quality Map | Explore the organization's monitoring sites |
+| Management | Members | View, invite, assign roles to, and remove members |
+| Management | Member Requests | Review requests to join the organization |
+| Management | Roles & Permissions | Configure roles and access |
+| Management | Organization Settings | Manage organization details and appearance |
+| Account | Profile | Edit your personal profile and security settings |
 
-:::note Where is Dataset Visualizer?
-**Dataset Visualizer** is not part of the workflow sidebar. Open it from the **global sidebar**: select the menu button at the top-left of the header, then choose **Dataset Visualizer**. See [Global Sidebar (Menu)](#global-sidebar-menu) below.
-:::
+If a management page is missing, contact an organization administrator. The page may be hidden because your role does not include the required permission.
 
-### Organization Workflow
-
-The Organization workflow is a shared workspace for teams. It includes the same data exploration features as the Individual workflow, plus management tools for administrators.
-
-**Navigation sidebar:**
-
-| Group          | Page                        | Description                                                       |
-| -------------- | --------------------------- | ----------------------------------------------------------------- |
-| **Main**       | Dashboard                   | Organization-level Nexus dashboard with selected sites and charts |
-|                | Visualization & Data Export | Download datasets for your organization's locations               |
-|                | Air Quality Map             | Interactive map for your organization's monitoring sites          |
-| **Management** | Members                     | View and manage team members (requires permission)                |
-|                | Member Requests             | Review join requests from new members (requires permission)       |
-|                | Roles & Permissions         | Configure roles and assign permissions (requires permission)      |
-|                | Organization Settings       | Manage your organization's configuration (requires permission)    |
-| **Account**    | Profile                     | Edit your personal profile                                        |
-
-:::note
-The Management section is only visible to users with the appropriate permissions. If you do not see these items, contact your organization administrator.
-:::
-
----
-
-## Platform Layout
+## Platform layout
 
 ### Header
 
-The header appears at the top of every page and contains:
+The header can include:
 
-| Element                   | Description                                                                           |
-| ------------------------- | ------------------------------------------------------------------------------------- |
-| **Menu**                  | Opens the global sidebar for cross-workflow navigation (top-left of the header)       |
-| **Logo**                  | AirQo or organization logo — select it to return to your home page                    |
-| **Page title**            | Shows the name of the current page                                                    |
-| **Organization Selector** | Switch between your personal and organization workspaces                              |
-| **App Menu**              | Links to other AirQo products such as Calibrate, Vertex, API Docs, and the Mobile App |
-| **Profile Menu**          | Access your profile, settings, and sign-out option                                    |
+- **Menu:** Opens the global sidebar.
+- **Logo:** Returns to the home page for the current workspace.
+- **Organization Selector:** Switches between your personal workspace and organizations you can access.
+- **App Menu:** Links to other AirQo products and API documentation.
+- **Profile Menu:** Opens your profile, settings, pending invitations, and sign-out controls.
 
-### Sidebar (Desktop)
+### Workflow sidebar
 
-The left sidebar shows navigation for your current workflow. It updates automatically when you switch between Individual and Organization workflows. On desktop, it is always visible and can be collapsed to save space.
+The desktop sidebar shows the pages for your current workspace. It changes when you switch between the individual and organization workflows. On smaller screens, the sidebar is replaced by a bottom bar with shortcuts to Home or Dashboard, Map, and Export; open the mobile sidebar for the remaining pages.
 
-### Bottom Navigation (Mobile)
+### Global sidebar
 
-On mobile devices, the workflow sidebar is replaced by a bottom navigation bar with three shortcuts:
+Select the menu button to open the global sidebar. It provides cross-workspace links such as:
 
-| Workflow         | Items                              |
-| ---------------- | ---------------------------------- |
-| **Individual**   | Home, Air Quality Map, Export      |
-| **Organization** | Dashboard, Air Quality Map, Export |
+- **Home:** Return to the appropriate home page for the current workspace.
+- **Dataset Visualizer:** Upload your own CSV or Excel files and build charts.
+- **Air Quality Rankings:** Compare countries and cities by PM2.5.
+- **System Management:** Visible only to platform administrators.
 
-The bottom bar is intentionally limited. To reach the other pages on mobile:
+**Ask AirQo** is an optional beta assistant exposed from Home and supported page
+headers when it is enabled for your environment. It is not a permanent global
+sidebar item.
 
-- Select the **Toggle sidebar** button in the mobile navigation strip to open your workflow navigation (Individual: Visualization & Data Export, Air Quality Map, Air Quality Analysis, Profile; Organization: Dashboard, Visualization & Data Export, Air Quality Map, Members, Member Requests, Roles & Permissions, Organization Settings, Profile).
-- Select the menu button at the top-left of the header to open the **global sidebar** for **Dataset Visualizer** and **Air Quality Rankings**.
+## Switching workspaces
 
-### Global Sidebar (Menu) {#global-sidebar-menu}
+1. Open the **Organization Selector** in the header.
+2. Choose an organization to enter its workspace.
+3. Choose your personal account to return to the individual workspace.
 
-Select the menu button at the top-left of the header to open the global sidebar. It works on both desktop and mobile and provides cross-workflow navigation:
+Your saved charts and comparisons are scoped to the current workspace. If a saved item is not visible after switching, return to the workspace where it was created.
 
-- **Home** — takes you to the appropriate home page for your current workflow
-- **Dataset Visualizer** — upload your own CSV or Excel files and build custom charts
-- **[Air Quality Rankings](../monitoring-air-quality/air-quality-rankings.md)** — compare countries and cities by air quality
-- **System Management** — visible only to platform administrators
+## Helpful shortcuts
 
-The links adapt to your current workflow, so an organization user opens the organization versions of these pages.
+| Action | How to do it |
+| --- | --- |
+| Open the global sidebar | Select the menu icon in the header |
+| Change workspace | Use the Organization Selector |
+| Close a dialog | Press **Escape** |
+| Get a guided starting point | Open **Ask AirQo** or select a Home shortcut |
 
----
-
-## Switching Between Workflows
-
-Use the **Organization Selector** in the header to switch workspaces:
-
-1. Select the organization dropdown in the header.
-2. Choose your organization name to enter the Organization workflow.
-3. Choose **AirQo** (or your personal account) to return to the Individual workflow.
-
----
-
-## Quick Actions
-
-| Action              | Shortcut                           |
-| ------------------- | ---------------------------------- |
-| Open global sidebar | Select the menu icon in the header |
-| Search              | Use the search bar in the header   |
-| Close dialogs       | Press **Escape**                   |
-
----
-
-## Related Guides
+## Related guides
 
 - [Creating an Account](./creating-an-account.md)
 - [Logging In](./logging-in.md)
 - [Nexus Dashboard](../monitoring-air-quality/nexus-dashboard.md)
-- [Interactive Map](../monitoring-air-quality/interactive-map.md)
-- [Organization Management](../organization-management/managing-members.md)
+- [Profile and Account Settings](./managing-your-profile.md)
+- [Nexus Console](../developer-access/console-overview.md)

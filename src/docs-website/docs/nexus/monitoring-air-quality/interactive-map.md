@@ -5,214 +5,137 @@ sidebar_label: Interactive Map
 
 # Interactive Map
 
-The Interactive Map lets you explore air quality readings from monitoring sites across Africa. You can search for locations, filter by country, switch pollutants, change the marker style, and inspect detailed site information.
+The Interactive Map lets you explore air-quality readings from monitoring sites across Africa. Search for locations, filter by country or provider, switch pollutants, change the map display, and inspect current readings, forecasts, and health guidance.
 
----
+## Open the map
 
-## Accessing the Map
+1. Sign in to [AirQo Nexus](https://nexus.airqo.net/).
+2. Select **Air Quality Map** in the workspace sidebar.
 
-1. Log in to [AirQo Nexus](https://nexus.airqo.net/).
-2. Select **Map** in the sidebar.
-3. Direct links:
-   - **Individual workflow:** `https://nexus.airqo.net/user/map`
-   - **Organization workflow:** `https://nexus.airqo.net/org/<your-org>/map`
+Individual URL: `https://nexus.airqo.net/user/map`
+Organization URL: `https://nexus.airqo.net/org/<your-org>/map`
 
----
+## Map layout
 
-## Map Layout
+- **Map canvas:** Displays monitoring sites, clusters, or heatmap coverage.
+- **Sidebar:** Provides search, country and provider filters, the location list, and site details.
 
-The map has two main areas:
+![Interactive Map showing station markers, filters, location list, and map controls](/img/nexus/map-overview.png)
 
-- **Map canvas** — on the right on desktop, at the top on mobile — displays monitoring sites as interactive markers.
-- **Sidebar** — on the left on desktop, at the bottom on mobile — contains search, country filter, location list, and site details.
+## Map displays
 
-On desktop, the sidebar and map share the screen height. On mobile, the map takes the top 40% of the screen and the sidebar takes the bottom 60%.
+### Station markers
 
-![Interactive Map showing clustered station markers, country filter buttons, the locations list with current readings, and map controls](/img/nexus/map-overview.png)
+When stations are close together, Nexus groups them into a cluster. Select a marker or cluster to focus the map and open more information.
 
----
+In **Map Settings**, choose **Emoji**, **Node**, or **Number**:
 
-## Map Markers
+| Display | Use it to... |
+| --- | --- |
+| **Emoji** | See a category icon for each station. |
+| **Node** | See a simple colored station marker. |
+| **Number** | See the selected pollutant value on the marker. |
 
-Monitoring sites appear as markers on the map. When many sites are close together, they are grouped into a cluster that shows the number of sites inside.
+### Spatial heatmaps
 
-### Marker Styles
+The **Heatmap** display is available on individual maps when spatial heatmap coverage is available. It shows city-level coverage areas rather than individual station markers.
 
-You can change how individual sites are displayed using **Map Settings**:
+1. Open **Map Settings** and choose **Heatmap**.
+2. At the overview, select a city pointer to explore its heatmap coverage.
+3. Use **Focus heatmap coverage** to fit the available areas in the map.
 
-| Style      | Appearance                                                    |
-| ---------- | ------------------------------------------------------------- |
-| **Emoji**  | An icon that reflects the current air quality level (default) |
-| **Node**   | A solid colored circle                                        |
-| **Number** | A colored circle showing the current pollutant value          |
+If there is no coverage or the heatmap service is unavailable, Nexus keeps station markers visible and shows a status message. Heatmaps are currently unavailable on organization maps.
 
-:::note
-The **Heatmap** option appears in Map Settings but is currently disabled.
-:::
+![Map Settings dialog showing marker displays and base-map styles](/img/nexus/map-settings.png)
 
-### Air Quality Levels
+### Base map styles
 
-Markers are colored and iconized based on the latest reading. See [Air Quality Levels](./air-quality-levels.md) for the full color scale and ranges.
+Choose one of these base maps:
 
-Hover over a marker to see a tooltip with the site name and current reading. Select a marker to open its details in the sidebar.
+| Style | Description |
+| --- | --- |
+| **Streets** | Road and place names. |
+| **Satellite** | Aerial imagery. |
+| **Light** | Minimal light-colored map. |
+| **Dark** | Minimal dark-colored map. |
 
----
+Select **Apply** to save the display choices.
 
-## Map Controls
+## Map controls
 
-Controls are floating buttons on the map canvas:
+| Control | What it does |
+| --- | --- |
+| **Map styles** | Opens Map Settings. |
+| **Copy map link** | Copies a link containing the current map position and pollutant. |
+| **Refresh map** | Requests fresh station readings; in heatmap mode it also refreshes coverage when available. |
+| **Reset to default view** | Returns to the initial position and zoom. |
+| **Find my location** | Centers the map on your current geographic location when permission is granted. |
+| **Zoom in / Zoom out** | Changes the map scale. |
 
-| Control                   | What It Does                                                         |
-| ------------------------- | -------------------------------------------------------------------- |
-| **Map styles**            | Open the Map Settings dialog to change the base map and marker style |
-| **Copy map link**         | Copy the current map URL to your clipboard                           |
-| **Refresh map**           | Reload the latest air quality readings                               |
-| **Reset to default view** | Return the map to its initial position and zoom                      |
-| **Find my location**      | Center the map on your current geographic location                   |
-| **Zoom in / Zoom out**    | Adjust the map zoom level                                            |
+## Search and filter sites
 
----
+- **Search:** Find a city, country, or monitoring location.
+- **Country:** Limit the location list to one country. Select the country again to clear the filter.
+- **Provider:** When more than one data provider is available, choose a provider or **All Providers**.
+- **Location list:** Select a site to fly to it and open the details panel.
 
-## Map Settings
+## Site details
 
-Select the **Map styles** button to open **Map Settings**. From there you can choose:
+Select a monitoring site to open its details panel.
 
-![Map Settings dialog showing Map Details (Emoji, Node, Number; Heatmap disabled) and Map Type (Streets, Satellite, Light, Dark)](/img/nexus/map-settings.png)
+![Location details panel showing a current reading, AQI category, forecast, and insights](/img/nexus/map-location-details.png)
 
-### Map Type (Base Map)
+### Current reading
 
-| Style         | Description                      |
-| ------------- | -------------------------------- |
-| **Streets**   | Default road and place names map |
-| **Satellite** | Aerial imagery                   |
-| **Light**     | Minimal light-colored map        |
-| **Dark**      | Minimal dark-colored map         |
+The panel can show:
 
-### Map Details (Marker Style)
+- The selected pollutant and its value.
+- The AQI value and category.
+- Site name, provider, monitor, device category, and deployment type.
+- City and country.
+- The reading timestamp as displayed by Nexus.
 
-| Style      | Description                         |
-| ---------- | ----------------------------------- |
-| **Emoji**  | Air quality icon markers            |
-| **Node**   | Solid colored circles               |
-| **Number** | Circles showing the pollutant value |
+### Forecast
 
-Select **Apply** to update the map.
+Forecasts can be viewed as:
 
----
+- **Daily:** Up to the next seven days.
+- **Hourly:** Up to the next 24 hours.
 
-## Sidebar: Searching and Browsing Sites
+Forecast cards may include AQI, PM2.5, confidence, temperature, humidity, and trend information. Forecasts are unavailable when the selected site does not have enough data or the forecast service has no result.
 
-### Search
+### Health guidance and insights
 
-Use the search field at the top of the sidebar to find villages, cities, or countries. Matching locations appear in the list below.
+- **Health Alerts:** Expand the card for site-specific or general guidance related to the current category.
+- **More Insights:** Expand the card to view a recent historical trend for the site.
 
-### Country Filter
+Select the close button at the top of the panel to return to the location list.
 
-Below the search field, a country list lets you filter sites by country. Select a country to show only its monitoring sites. Select it again to clear the filter.
+## Switch pollutants and read the legend
 
-### Provider Filter
+Use the pollutant selector to switch between **PM2.5** and **PM10**. Markers, tooltips, site details, and the legend update to match the selected pollutant.
 
-A provider filter lets you show only the sites from a specific data source. Select **All Providers** to clear the filter and show every site.
+The collapsible legend shows the active categories and ranges. See [Air Quality Levels](./air-quality-levels.md) for interpretation guidance.
 
-### Location List
+## Organization workflow
 
-The main area of the sidebar lists available monitoring sites. Select any site to:
+The organization map is scoped to sites in the organization's selected cohort. Spatial heatmaps are not available in this workflow; use station markers, the location list, and site details instead.
 
-- Fly the map to that location
-- Open the **Location Details** panel in the sidebar
-- View current readings, forecast, health tips, and historical insights
-
----
-
-## Site Details Panel
-
-When you select a site, the sidebar switches to the details panel. It contains the current reading with a color-coded AQI level, health tips, a weekly forecast, and an insights chart.
-
-![Location details panel showing the current PM₂.₅ reading, a color-coded AQI level, health tips, weekly forecast, and insights chart](/img/nexus/map-location-details.png)
-
-### Air Quality Forecast
-
-A scrollable forecast card with two tabs:
-
-- **Daily** — shows the next 7 days, with day, date, air quality icon, PM₂.₅ value, and confidence percentage.
-- **Hourly** — shows the next 24 hours, with hour, icon, PM₂.₅ value, temperature, humidity, and confidence percentage.
-
-Hover over any forecast pill for more details, including the air quality category, PM₂.₅ range, temperature, humidity, and trend message.
-
-### Current Air Quality
-
-A card showing:
-
-- The selected pollutant and current value in µg/m³
-- The air quality icon and category
-- The location name
-
-Select **Show more** to expand additional details:
-
-- **Site name** — the formal name of the monitoring site
-- **Source / Monitor** — the data provider and monitor identifier
-- **Category / Deployment** — device category and deployment type
-- **Pollutant** — current reading for the selected pollutant
-- **Date / Time** — timestamp in GMT+3
-- **City / Country** — geographic location of the monitor
-
-### Health Alerts
-
-A collapsible card with health tips related to the current air quality level. If the platform provides specific health tips for the site, they are listed here; otherwise, a generic guidance message is shown.
-
-### More Insights
-
-A collapsible card with a small historical chart for the site. Select it to expand and view recent trends.
-
-Select the **×** button at the top of the panel to return to the location list.
-
----
-
-## Switching Pollutants
-
-A dropdown at the top of the map lets you switch between:
-
-- **PM₂.₅** — fine particulate matter (default)
-- **PM₁₀** — coarse particulate matter
-
-All markers, tooltips, and the details panel update immediately when you change the pollutant.
-
----
-
-## Map Legend
-
-A collapsible legend sits in the bottom-left corner of the map. Select it to expand and see the air quality categories represented by the marker icons. Hover over each icon to see the pollutant range for that category. For the full scale, see [Air Quality Levels](./air-quality-levels.md).
-
----
-
-## Sharing the Map
-
-Select the **Copy map link** button to copy the current map URL, including your position and selected pollutant, so you can share it with others.
-
----
-
-## Organization Workflow Differences
-
-In the Organization workflow, the map shows only the sites belonging to the organization's cohort. If the organization's data is set to private, a banner explains that map data is unavailable and points administrators to AirQo Vertex to change visibility.
-
-If the organization's cohort has no deployed devices yet, an empty-state banner informs you that no data is available.
-
----
+If the organization has no cohort or no available readings, the map may show an empty state. Contact an organization administrator if you expected sites to be available.
 
 ## Troubleshooting
 
-| Issue                     | Solution                                                                                                 |
-| ------------------------- | -------------------------------------------------------------------------------------------------------- |
-| Map does not load         | Check that your internet connection is working and that the map service is reachable.                    |
-| No markers appear         | Try zooming out, clearing the country filter, or checking that data visibility is public.                |
-| Organization map is blank | The organization data may be private or the cohort may have no deployed devices.                         |
-| Forecast is unavailable   | Forecasts require sufficient historical data for the selected site. Try another site.                    |
-| "Unable to load cohort"   | The organization address may be invalid or you may not have access. Retry or contact your administrator. |
+| Issue | What to do |
+| --- | --- |
+| Map does not load | Check your connection and retry the page. |
+| No markers appear | Zoom out, clear the country or provider filter, and check that the current workspace has available sites. |
+| Heatmap is unavailable | Continue with station markers, or try the individual map where spatial coverage is supported. |
+| Forecast is unavailable | Try another site or a different pollutant; forecasts require sufficient data. |
+| Organization map is blank | Ask an administrator to check the selected cohort and its assigned devices. |
 
----
-
-## Related Guides
+## Related guides
 
 - [Air Quality Levels](./air-quality-levels.md)
-- [Air Quality Analysis](../monitoring-air-quality/air-quality-analysis.md) — analyze trends and compare locations
+- [Air Quality Analysis](./air-quality-analysis.md)
 - [Nexus Dashboard](./nexus-dashboard.md)
+- [Export Air Quality Data](../exporting-data/data-export.md)

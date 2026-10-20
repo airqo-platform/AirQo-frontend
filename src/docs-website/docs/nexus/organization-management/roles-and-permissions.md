@@ -5,262 +5,123 @@ sidebar_label: Roles & Permissions
 
 # Organization Roles & Permissions
 
-A guide to managing roles, permissions, and members within your organization on the AirQo Nexus platform.
+Roles control what members can see and do in an organization workspace. A role
+is a named set of permissions, and a member's access is determined by the
+permissions assigned to that member—not by the role name alone.
 
----
+## Before you begin
 
-## What Is an Organization?
+You must be in an organization workspace. The pages and actions available to
+you depend on your current permissions:
 
-An organization is a workspace on the AirQo Nexus platform where team members collaborate. Each organization has its own set of members, roles, permissions, and settings. You can belong to multiple organizations and switch between them from the header dropdown.
+| Task | Permission used by Nexus |
+| --- | --- |
+| View members, member details, and member requests | `MEMBER_VIEW` |
+| Invite members | `MEMBER_INVITE` |
+| Remove a member | `MEMBER_REMOVE` |
+| View roles and permissions | `ROLE_VIEW` |
+| Create a role | `ROLE_CREATE` |
+| Edit role details or permissions | `ROLE_EDIT` |
+| Assign or unassign roles | `ROLE_ASSIGNMENT` |
+| Open organization settings | `GROUP_MANAGEMENT` |
 
-When you first join the AirQo Nexus platform, you start with a personal workspace in the Individual workflow. Organization administrators can invite you to join their organization, create custom roles, and configure settings.
+If a page or control is not visible, ask an organization administrator to
+review your role. Role names can differ between organizations.
 
----
+## View roles
 
-## How Roles & Permissions Work
+1. Switch to the organization workspace.
+2. Select **Roles & Permissions** in the sidebar.
+3. Search the roles table if needed.
+4. Select **Manage** for a role to view its details and permissions.
 
-AirQo uses a **roles and permissions system** to control what each member can do:
+The role detail page shows the role name, description, status, selected
+permissions, and the complete permission list returned to your organization.
 
-```text
-Organization
- └── Roles (e.g., CLEAN_AIR_NETWORK_ADMIN, DEFAULT_MEMBER)
-      └── Permissions (e.g., MEMBER_INVITE, ROLE_EDIT)
-           └── Members (assigned to roles)
-```
+## Create a role
 
-- **Roles** are named collections of permissions. Each organization can define its own roles.
-- **Permissions** are individual access rights (like `MEMBER_VIEW` or `DATA_EXPORT`) that determine what a user can see and do.
-- **Members** are assigned one or more roles. The permissions from all assigned roles combine to determine what the member can access.
-
-:::note
-Access is determined by the *permissions* your roles grant, not by the role name itself. Two organizations may define roles with the same display name but different permissions.
-:::
-
----
-
-## How Roles Are Named
-
-All organization-scoped roles are prefixed with the organization's **normalized title** (uppercased, with special characters stripped). For example, an organization called `"Clean Air Network"` uses the prefix `CLEAN_AIR_NETWORK`.
-
-Role codes mirror role names (uppercased and underscored).
-
----
-
-## Default Roles Created at Organization Creation
-
-When an organization is created, the following roles are created automatically.
-
-### 1. `ADMIN`
-
-Created immediately when the organization is created and assigned to the user who created it.
-
-| Permission | Description |
-|------------|-------------|
-| `MEMBER_VIEW` | View organization members |
-| `MEMBER_INVITE` | Invite new members |
-| `MEMBER_SEARCH` | Search members |
-| `MEMBER_EXPORT` | Export member data |
-| `MEMBER_REMOVE` | Remove members |
-
-The `ADMIN` role also includes all default administrator permissions.
-
-### 2. `{ORG_NAME}_SUPER_ADMIN`
-
-Full organization-level access. This role receives **all system permissions except** the following system-only permissions:
-
-`SYSTEM_ADMIN`, `SUPER_ADMIN`, `DATABASE_ADMIN`, `ADMIN_FULL_ACCESS`, `SYSTEM_CONFIGURE`, `SYSTEM_MONITOR`, `ACCESS_PLATFORM`.
-
-In practice, this covers every organization, group, user, role, device, site, analytics, data, dashboard, and settings permission.
-
-:::important
-`{ORG_NAME}_SUPER_ADMIN` is **not** a platform super admin. It cannot access system or platform-level controls.
-:::
-
-### 3. `{ORG_NAME}_ADMIN`
-
-Organization administrator. Cannot modify platform-level system controls.
-
-| Category | Permissions |
-|----------|-------------|
-| **Organization management** | `ORG_CREATE`, `ORG_VIEW`, `ORG_UPDATE`, `ORG_DELETE`, `ORG_APPROVE`, `ORG_REJECT` |
-| **Group management** | `GROUP_VIEW`, `GROUP_CREATE`, `GROUP_EDIT`, `GROUP_DELETE`, `GROUP_MANAGEMENT` |
-| **User management** | `USER_MANAGEMENT`, `USER_INVITE`, `ORG_USER_ASSIGN` |
-| **Role management** | `ROLE_VIEW`, `ROLE_CREATE`, `ROLE_EDIT`, `ROLE_DELETE`, `ROLE_ASSIGNMENT` |
-| **Device** | `DEVICE_*` (all device permissions) |
-| **Site** | `SITE_*` (all site permissions) |
-| **Dashboard** | `DASHBOARD_*` |
-| **Analytics** | `ANALYTICS_*` |
-| **Data** | `DATA_*` |
-| **Settings** | `SETTINGS_*` |
-
-### 4. `{ORG_NAME}_DEFAULT_MEMBER`
-
-Baseline role for regular organization members.
-
-| Permission | Description |
-|------------|-------------|
-| `API_ACCESS` | Access the AirQo API |
-| `TOKEN_GENERATE` | Generate access keys for the AirQo API |
-| `ANALYTICS_VIEW` | View analytics |
-| `GROUP_VIEW` | View group details |
-| `MEMBER_VIEW` | View group members |
-| `DASHBOARD_VIEW` | View dashboards |
-| `DATA_VIEW` | View air quality data |
-| `DATA_EXPORT` | Export data |
-| `DEVICE_VIEW` | View devices |
-| `DEVICE_CLAIM` | Claim a device |
-| `DEVICE_DEPLOY` | Deploy a device |
-| `SITE_VIEW` | View sites |
-
-:::tip
-When assigning a default role to a newly invited member, use `{ORG_NAME}_DEFAULT_MEMBER`.
-:::
-
----
-
-## Default Role Created On Demand
-
-### `{ORG_NAME}_GROUP_MANAGER`
-
-Created only when a group manager is explicitly assigned via the API (`assignGroupManager`).
-
-| Permission | Description |
-|------------|-------------|
-| `GROUP_MANAGEMENT` | Manage group settings |
-| `USER_MANAGEMENT` | Manage users |
-| `ROLE_ASSIGNMENT` | Assign roles |
-| `ORG_USER_ASSIGN` | Assign users to organization |
-| `GROUP_SETTINGS` | Edit group settings |
-| `ANALYTICS_VIEW` | View analytics |
-| `MEMBER_INVITE` | Invite members |
-| `CONTENT_MODERATION` | Moderate content |
-
----
-
-## Custom Roles
-
-In addition to the default roles, organization administrators can create custom roles with any combination of permissions.
-
-### Creating a New Role
-
-1. Navigate to **Roles & Permissions** in the sidebar.
+1. Open **Roles & Permissions**.
 2. Select **Create New Role**.
-3. Enter a **Role Name** (for example, "Data Analyst" or "Field Technician").
-4. Optionally add a **Description** explaining what the role is for.
-5. Select **Create**.
+3. Enter a role name. Nexus converts the name to uppercase and replaces spaces
+   or unsupported characters with underscores.
+4. Optionally add a description.
+5. Select **Create Role**.
 
 :::note Requires ROLE_CREATE
-This action requires the `ROLE_CREATE` permission.
+The **Create New Role** action requires `ROLE_CREATE`.
 :::
 
-### Editing Role Permissions
+Create roles around a clear responsibility, such as data analysis or field
+operations. Give each role only the permissions required for that
+responsibility.
 
-1. Go to **Roles & Permissions** and select the role you want to edit.
-2. You will see a checklist of all available permissions.
-3. Check or uncheck permissions to add or remove them from the role.
-4. Select **Save** to apply changes.
+## Edit a role
+
+1. Open **Roles & Permissions** and select **Manage** for the role.
+2. To change the role name or status, select the edit control in the role
+   details and select **Save**.
+3. To change permissions, select or clear the permission checkboxes.
+4. Select **Save Changes**. Use **Discard Changes** if you want to restore the
+   last saved permission set.
+
+Roles can be **Active** or **Inactive**. Keep a role inactive when it should no
+longer be available for normal use, and review existing assignments before
+changing a role that many members depend on.
 
 :::note Requires ROLE_EDIT
-This action requires the `ROLE_EDIT` permission.
+Editing role details, status, or permissions requires `ROLE_EDIT`.
 :::
 
-### Activating or Deactivating a Role
+## Assign a role to one member
 
-1. Open the role detail page.
-2. Use the **Status** dropdown to toggle between **ACTIVE** and **INACTIVE**.
-3. An inactive role will not be available for assignment to members.
+1. Open **Members** and select the member's name.
+2. In **Group Roles**, select **Assign Role**.
+3. Choose a role that is not already assigned to the member.
+4. Select **Assign Role** and confirm that the new role appears in the member's
+   details.
 
-:::note Requires ROLE_EDIT
-This action requires the `ROLE_EDIT` permission.
+## Assign a role to several members
+
+1. Open **Members**.
+2. Select the members with the table checkboxes.
+3. Select **Assign Role**.
+4. Choose a role and select **Assign Role**.
+
+:::note Requires ROLE_ASSIGNMENT
+Assigning or unassigning roles requires `ROLE_ASSIGNMENT`.
 :::
 
----
+## Unassign a role
 
-## Assigning Roles to Members
+1. Open the member's details.
+2. In **Group Roles**, select the remove control next to the role.
+3. Confirm **Unassign Role**.
 
-### Single Assignment
+Unassigning a role can remove access to pages and actions immediately. Check
+the remaining roles before removing the last role that provides a required
+capability.
 
-1. Go to the **Members** page and select the member's name.
-2. On the member detail page, find the **Roles** section.
-3. Use the dropdown to select a role to assign.
-4. Select **Assign**.
+## Understand permission-based access
 
-### Bulk Assignment
+Nexus uses permissions to protect both pages and actions. For example:
 
-1. Go to the **Members** page.
-2. Select multiple members using the checkboxes in the table.
-3. Select the **Assign Role** button that appears.
-4. Choose the role from the dropdown.
-5. Confirm the assignment.
+- `MEMBER_VIEW` controls access to the members and member-requests pages and
+  the member-details view.
+- `MEMBER_INVITE` controls the **Send Invites** action.
+- `MEMBER_REMOVE` controls **Remove from Group**; the organization manager
+  cannot be removed until management is transferred.
+- `ROLE_VIEW`, `ROLE_CREATE`, and `ROLE_EDIT` control the corresponding role
+  workflows.
+- `DATA_EXPORT` controls organization export actions. If it is missing, the
+  **Review & Download** action may not appear on the export page.
+- `GROUP_MANAGEMENT` controls organization settings and manager updates.
 
-### Removing a Role
+The permission list is loaded by Nexus and may change as the platform evolves.
+Use the permission descriptions shown on the role detail page as the current
+source of truth.
 
-1. Open the member's detail page.
-2. Find the role you want to remove.
-3. Select the **Unassign** or remove button next to the role.
-4. Confirm the action.
+## Related guides
 
-:::note
-You can only assign roles that exist within the same organization.
-:::
-
----
-
-## Available Permissions
-
-### Member Management
-
-| Permission | Description |
-|------------|-------------|
-| `MEMBER_VIEW` | View the list of organization members and see individual member details. |
-| `MEMBER_INVITE` | Send email invitations to new members and manage pending join requests. |
-| `MEMBER_REMOVE` | Remove members from the organization. |
-
-### Role Management
-
-| Permission | Description |
-|------------|-------------|
-| `ROLE_VIEW` | View the list of roles and see role details. |
-| `ROLE_CREATE` | Create new custom roles for the organization. |
-| `ROLE_EDIT` | Edit existing roles, change their permissions, and toggle their status (active/inactive). |
-
-### Organization Management
-
-| Permission | Description |
-|------------|-------------|
-| `GROUP_MANAGEMENT` | Access organization settings, update organization details, change the Group Manager, and configure organization theme. |
-
-### Data
-
-| Permission | Description |
-|------------|-------------|
-| `DATA_EXPORT` | Export and download organization data from analytics and data visualizer pages. |
-
----
-
-## Permission Reference
-
-| Action | Required Permission |
-|--------|-------------------|
-| View members list | `MEMBER_VIEW` |
-| View member details | `MEMBER_VIEW` |
-| Send invitations | `MEMBER_INVITE` |
-| Approve/reject join requests | `MEMBER_INVITE` |
-| Remove a member | `MEMBER_REMOVE` |
-| View roles list | `ROLE_VIEW` |
-| View role details | `ROLE_VIEW` |
-| Create a new role | `ROLE_CREATE` |
-| Edit role permissions | `ROLE_EDIT` |
-| Change role status | `ROLE_EDIT` |
-| Access organization settings | `GROUP_MANAGEMENT` |
-| Update organization details | `GROUP_MANAGEMENT` |
-| Set Group Manager | `GROUP_MANAGEMENT` |
-| Export data | `DATA_EXPORT` |
-
----
-
-## Related Guides
-
-- [Managing Members](./managing-members.md) — invite, assign roles, and remove members
-- [Member Requests](./member-requests.md) — approve or reject join requests
-- [Organization Settings](./organization-settings.md) — configure the organization workspace
+- [Managing Members](./managing-members.md) — invite, assign, and remove members
+- [Member Requests](./member-requests.md) — review, approve, and reject join requests
+- [Organization Settings](./organization-settings.md) — configure the workspace
