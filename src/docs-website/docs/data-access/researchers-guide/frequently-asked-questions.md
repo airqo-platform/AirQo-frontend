@@ -11,7 +11,7 @@ sidebar_label: 14. Frequently Asked Questions
 AirQo has been collecting data since approximately 2015, with network expansion over time. Data availability varies by city and location. Contact [support@airqo.net](mailto:support@airqo.net) for specifics.
 
 **Can I get real-time data?**
-Yes, through the API for near-real-time data. For research, archived data that has undergone full quality control is preferable.
+Yes, near-real-time data is available through the API. Here, "real-time" means the most recent hourly calibrated average, not data from the last few minutes. See [Data Freshness](../../api/reference/data-freshness.md). For research, archived data that has undergone full quality control is preferable.
 
 **Can I request monitor deployments for my research?**
 AirQo offers network packages for research partnerships. Contact [support@airqo.net](mailto:support@airqo.net).
