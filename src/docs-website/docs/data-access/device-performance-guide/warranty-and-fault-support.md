@@ -34,7 +34,7 @@ If a fault is confirmed as a device-related defect within the warranty period, w
 
 We lead with support. Many issues can be resolved remotely without replacing anything, so we always try to fix the problem before changing a device.
 
-1. **Report the issue.** Email [support@airqo.net](mailto:support@airqo.net) with the device name and a description of the problem. You can check device health in [AirQo Vertex](../../vertex/intro.md) first.
+1. **Report the issue.** Email [support@airqo.net](mailto:support@airqo.net) with the device name and a description of the problem. You can check device health in [AirQo Beacon](../../beacon/intro.md) first.
 2. **Remote diagnosis.** Our technical team works with you remotely to find the cause as quickly as possible.
 3. **Corrective action.** We guide you through the steps to fix the issue, such as reconnecting power or cleaning the solar panel.
 4. **Replacement, if needed.** If the issue cannot be resolved and is confirmed to be a device-related defect, we replace the defective sensor or component at no additional cost.
