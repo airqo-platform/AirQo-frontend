@@ -36,7 +36,9 @@ The feedback button is available on most pages. It is hidden only on the system 
    - Supported formats: PNG, JPG, WebP, or AVIF. Maximum file size: 5 MB.
    - If you attach a screenshot by mistake, select **Remove** to delete it.
 4. Rate your experience using the star rating.
-5. Select **Send feedback**.
+5. Optionally select **It's OK to contact me about this** if the AirQo team may
+   contact you about the feedback.
+6. Select **Send feedback**.
 
 :::tip What makes feedback useful?
 The more detail you provide, the easier it is for us to act on your feedback. Include the page you were on, the actions you took, and any error messages you saw.

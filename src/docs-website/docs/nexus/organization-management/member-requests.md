@@ -5,19 +5,21 @@ sidebar_label: Member Requests
 
 # Member Requests
 
-Users can request to join your organization through the AirQo Nexus platform or a shared link. Administrators with the appropriate permissions can review, approve, or reject these requests.
+Users can request to join an organization through the AirQo Nexus platform.
+Members with `MEMBER_VIEW` access can review the requests currently returned
+for the organization and approve or reject pending requests.
 
 ---
 
 ## Viewing Join Requests
 
 1. Switch to your organization workspace using the header dropdown.
-2. Select **Members** in the sidebar.
-3. Open the **Member Requests** tab.
-4. You will see a list of pending requests with the applicant's name, email, and request date.
+2. Select **Member Requests** in the sidebar.
+3. You will see a list of requests with the applicant, email address, status,
+   request date, and last-login date.
 
-:::note Requires MEMBER_INVITE
-Viewing and managing join requests requires the `MEMBER_INVITE` permission.
+:::note Requires MEMBER_VIEW
+The Member Requests page currently requires the `MEMBER_VIEW` permission.
 :::
 
 ---
@@ -26,8 +28,8 @@ Viewing and managing join requests requires the `MEMBER_INVITE` permission.
 
 1. Find the request you want to approve.
 2. Select **Approve**.
-3. The user is added to the organization, usually with the default member role.
-4. Optionally, go to the **Members** page and assign additional roles to the new member.
+3. The request status changes to **Approved**, and the user is added to the organization.
+4. Open **Members** to review the new member and assign a role if needed.
 
 ---
 
@@ -43,19 +45,12 @@ Rejected requests cannot be undone. The user must submit a new request if they w
 
 ---
 
-## Requested Roles
+## What the table shows
 
-Each join request may include a requested role. Review the role carefully before approving:
-
-- If the requested role is appropriate, approve the request and verify the role is assigned correctly.
-- If the requested role grants more access than needed, approve the request and assign a more restrictive role afterward.
-- You can also reject the request and ask the user to request a different role.
-
----
-
-## Notifications
-
-Administrators with the `MEMBER_INVITE` permission may receive notifications when a new join request is submitted. Pending requests also appear as a badge or banner in the organization workspace so they are not missed.
+The table includes the applicant, email address, status, request date, last
+login, and available actions. Use the search field to filter by name, email, or
+status. Requested roles are not shown in the current request table; review the
+member's roles after approval.
 
 ---
 
