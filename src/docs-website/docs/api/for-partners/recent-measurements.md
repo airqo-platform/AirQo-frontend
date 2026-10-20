@@ -160,6 +160,8 @@ for measurement in data['measurements']:
 | `deviceDetails.isOnline` | Whether device is currently active |
 | `deviceDetails.latitude` | Device latitude |
 | `deviceDetails.longitude` | Device longitude |
+| `deviceDetails.lastActive` | Last calibrated reading timestamp (ISO 8601) |
+| `deviceDetails.lastRawData` | Last raw reading timestamp (ISO 8601). Optional: may be absent. |
 
 ---
 

@@ -127,6 +127,16 @@ for m in data['measurements']:
 
 ## Response fields
 
+### Top-level
+
+| Field | Description |
+|-------|-------------|
+| `success` | `true` if the request succeeded |
+| `isCache` | Whether the response was served from cache |
+| `message` | Human-readable status message |
+| `meta` | Pagination and query metadata |
+| `measurements` | Array of measurement objects |
+
 ### `meta` object
 
 | Field | Description |
@@ -153,6 +163,8 @@ for m in data['measurements']:
 | `deviceDetails.latitude` | Device latitude |
 | `deviceDetails.longitude` | Device longitude |
 | `deviceDetails.isOnline` | Whether device is currently active |
+| `deviceDetails.lastActive` | Last calibrated reading timestamp (ISO 8601) |
+| `deviceDetails.lastRawData` | Last raw reading timestamp (ISO 8601). Optional: may be absent. |
 
 ---
 

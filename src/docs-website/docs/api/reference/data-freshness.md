@@ -32,7 +32,7 @@ Every recent-measurements record shows how current it is. See [Response Structur
 |-------|-------------------|
 | `time` | The hour this calibrated value represents |
 | `deviceDetails.lastActive` | The device's most recent calibrated reading |
-| `deviceDetails.lastRawData` | The last time the device sent a raw reading |
+| `deviceDetails.lastRawData` | The last time the device sent a raw reading (optional: may be absent) |
 | `isCache` | Whether the response came from cache |
 
 Compare these timestamps with the current time (they are in UTC). If `lastRawData` is recent but `lastActive` is older, the device is still reporting and its next hourly value has not been published yet. If both are old, the device may be offline.
