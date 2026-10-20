@@ -15,7 +15,8 @@ Every monitor package includes access to AirQo's digital platforms. They cover t
 
 | Module | What it does | Learn more |
 |--------|--------------|------------|
-| **Sensor management** | Register, deploy and manage your devices. Real-time monitoring and reporting on sensor performance indicators such as uptime, data completeness and battery health. | [AirQo Vertex](../../vertex/intro.md) |
+| **Sensor management** | Register, deploy and manage your devices. | [AirQo Vertex](../../vertex/intro.md) |
+| **Device health monitoring** | Real-time monitoring and reporting on sensor performance indicators such as uptime, data frequency, sensor health and battery voltage. | [AirQo Beacon](../../beacon/intro.md) |
 | **Calibration** | Raw sensor readings are calibrated so you receive accurate PM2.5 and PM10 values. | [Data Calibration Methodology](../researchers-guide/data-calibration-methodology.md) |
 | **Data access & visualisation** | Advanced data visualisation, analysis, reporting and data export. | [AirQo Nexus](../../nexus/intro.md) |
 | **API access** | Programmatic access to your data, so you can build your own dashboards and integrate air quality data into your own systems. | [AirQo API](../../api/intro.md) |
@@ -84,3 +85,4 @@ Once your monitors arrive:
 1. [Claim your devices](../device-claiming-guide/index.md) onto your organisation's account.
 2. [Deploy each device to a site](../../vertex/device-deployment/deploy-to-site.md) using AirQo Vertex.
 3. Review the [uptime](./device-uptime-targets.md) and [data availability](./data-availability-targets.md) targets so you know what performance to expect.
+4. Track each device's uptime, data frequency and sensor health in [AirQo Beacon](../../beacon/intro.md).
