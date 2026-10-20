@@ -53,7 +53,7 @@ After you submit feedback:
 - Your message is sent to the AirQo team along with your email, the page you were on, your browser version, screen resolution, and any screenshot you attached.
 - Sensitive information such as access codes or sign-in details is removed from the page web address automatically.
 - You will see a confirmation message when the feedback is sent successfully.
-- The team may follow up by email if more information is needed.
+- The team may follow up by email if more information is needed, but only when **It's OK to contact me about this** is selected.
 
 ---
 

@@ -16,7 +16,7 @@ you depend on your current permissions:
 
 | Task | Permission used by Nexus |
 | --- | --- |
-| View members and member details | `MEMBER_VIEW` |
+| View members, member details, and member requests | `MEMBER_VIEW` |
 | Invite members | `MEMBER_INVITE` |
 | Remove a member | `MEMBER_REMOVE` |
 | View roles and permissions | `ROLE_VIEW` |
@@ -26,8 +26,7 @@ you depend on your current permissions:
 | Open organization settings | `GROUP_MANAGEMENT` |
 
 If a page or control is not visible, ask an organization administrator to
-review your role. Permission names and role names can differ between
-organizations.
+review your role. Role names can differ between organizations.
 
 ## View roles
 

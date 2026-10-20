@@ -18,7 +18,7 @@ This documentation is for individual users, organization members, and developers
 - **Work with a team:** Organization workspaces provide shared monitoring and export tools plus member management, roles, and organization settings.
 - **Use the API:** The Console provides usage information, subscription controls, and API clients for authenticated programmatic access.
 
-AirQo data is open access. For use guidance, see the [Fair Usage Policy](https://platform.airqo.net/docs/data-access/fair-usage-policy/). For programmatic access, start with the [API documentation](https://platform.airqo.net/docs/api/intro/) and the [Researchers Guide](https://platform.airqo.net/docs/data-access/researchers-guide/).
+AirQo data is available under the [Fair Usage Policy](https://platform.airqo.net/docs/data-access/fair-usage-policy/), but access requirements depend on the workflow. Programmatic access requires a secret token, and raw-data API access requires a Standard Tier subscription or above. For programmatic access, start with the [API documentation](https://platform.airqo.net/docs/api/intro/) and the [Researchers Guide](https://platform.airqo.net/docs/data-access/researchers-guide/).
 
 ## Where to start
 

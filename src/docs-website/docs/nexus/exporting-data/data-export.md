@@ -128,7 +128,7 @@ Frequency controls the time resolution or aggregation of the exported readings.
 
 | Frequency | Meaning | Maximum range per request |
 | --- | --- | ---: |
-| **Raw** | Raw-resolution response where the selected device category supports it | 31 days |
+| **Raw** | Nexus raw-frequency option; use the direct API for finer-than-hourly data | 31 days |
 | **Hourly** | One hourly aggregation | 90 days |
 | **Daily** | One daily aggregation | 365 days |
 | **Weekly** | One weekly aggregation | 365 days |
