@@ -48,6 +48,15 @@ import type {
   UpdateGroupTitleRequest,
   UpdateGroupTitleResponse,
   UpdateUserRoleResponse,
+  GetGroupsSummaryParams,
+  GetGroupsSummaryResponse,
+  GroupSummary,
+  GetGroupAssignedUsersResponse,
+  UnassignManyUsersFromGroupRequest,
+  UnassignManyUsersFromGroupResponse,
+  DeleteGroupResponse,
+  GetGroupActivityLogParams,
+  GetGroupActivityLogResponse,
 } from '../types/api';
 
 export class UserService {
@@ -80,15 +89,18 @@ export class UserService {
     return data as UserDetailsResponse;
   }
 
-  // Get all roles and permissions summary - authenticated endpoint
+  // Get all roles and permissions summary - authenticated endpoint.
+  // The backend ignores `page` and pages on `skip` instead, so the page/limit
+  // call signature is translated into the skip/limit contract it honors.
   async getRolesSummary(
     page = 1,
     limit = 100
   ): Promise<GetRolesSummaryResponse> {
     await this.ensureAuthenticated();
+    const skip = (page - 1) * limit;
     const response = await this.authenticatedClient.get<
       GetRolesSummaryResponse | ApiErrorResponse
-    >(`/users/roles/summary?page=${page}&limit=${limit}`);
+    >(`/users/roles/summary?skip=${skip}&limit=${limit}`);
     const data = response.data;
 
     if ('success' in data && !data.success) {
@@ -98,7 +110,11 @@ export class UserService {
     return data as GetRolesSummaryResponse;
   }
 
-  // Get all roles and permissions summary across all pages - authenticated endpoint
+  // Get all roles and permissions summary across all pages - authenticated
+  // endpoint. Defensive against older deployments (and the live staging API)
+  // that ignores `page` and returns the same first page repeatedly: pages are
+  // deduplicated by `_id` (first-seen order preserved) and meta is normalized
+  // to a single page holding the unique set.
   async getAllRolesSummary(limit = 100): Promise<GetRolesSummaryResponse> {
     const firstPage = await this.getRolesSummary(1, limit);
     const roles = [...firstPage.roles];
@@ -109,17 +125,24 @@ export class UserService {
       roles.push(...nextPage.roles);
     }
 
+    const seenRoleIds = new Set<string>();
+    const uniqueRoles = roles.filter(role => {
+      if (seenRoleIds.has(role._id)) return false;
+      seenRoleIds.add(role._id);
+      return true;
+    });
+
     return {
       ...firstPage,
       meta: {
         ...firstPage.meta,
-        total: roles.length,
+        total: uniqueRoles.length,
         page: 1,
         pages: 1,
         skip: 0,
-        limit: roles.length || firstPage.meta.limit,
+        limit: uniqueRoles.length || firstPage.meta.limit,
       },
-      roles,
+      roles: uniqueRoles,
     };
   }
 
@@ -754,6 +777,195 @@ export class UserService {
     }
 
     return data as RequestGroupAccessResponse;
+  }
+
+  // Normalize a paging value supplied by callers. Non-finite, fractional or
+  // out-of-range inputs fall back to the endpoint default so the query
+  // string always carries validated integers.
+  private toPageParam(
+    value: number | undefined,
+    fallback: number,
+    min: number
+  ): number {
+    if (typeof value !== 'number' || !Number.isFinite(value)) {
+      return fallback;
+    }
+    const floored = Math.floor(value);
+    return floored >= min ? floored : fallback;
+  }
+
+  // Get one page of organization (group) summaries - authenticated endpoint.
+  // The endpoint pages with limit/skip (default limit 100) and returns no
+  // total/meta, so full lists are assembled with getAllGroupsSummary.
+  async getGroupsSummary(
+    params?: GetGroupsSummaryParams,
+    signal?: AbortSignal
+  ): Promise<GetGroupsSummaryResponse> {
+    const limit = this.toPageParam(params?.limit, 100, 1);
+    const skip = this.toPageParam(params?.skip, 0, 0);
+    const query = new URLSearchParams();
+    query.set('limit', String(limit));
+    query.set('skip', String(skip));
+
+    await this.ensureAuthenticated();
+    const response = await this.authenticatedClient.get<
+      GetGroupsSummaryResponse | ApiErrorResponse
+    >(
+      `/users/groups/summary?${query.toString()}`,
+      signal ? { signal } : undefined
+    );
+    const data = response.data;
+
+    if ('success' in data && !data.success) {
+      throw new Error(data.message || 'Failed to get groups summary');
+    }
+
+    return data as GetGroupsSummaryResponse;
+  }
+
+  // Get every organization (group) summary by walking the summary endpoint
+  // one fixed-size page at a time (limit=100, skip=page*100). Stops on the
+  // first short page, or when a full page adds zero new `_id`s — which is
+  // what a backend that ignores `skip` and repeats the first page forever
+  // produces, so the loop cannot run away without an arbitrary page cap that
+  // would silently truncate legitimate large lists. Only previously unseen
+  // groups are returned, in first-seen order; the AbortSignal is forwarded to
+  // every page request so cancellation aborts in-flight work.
+  async getAllGroupsSummary(signal?: AbortSignal): Promise<GroupSummary[]> {
+    const pageSize = 100;
+    const groups: GroupSummary[] = [];
+    const seenIds = new Set<string>();
+
+    let page = 0;
+    for (;;) {
+      const response = await this.getGroupsSummary(
+        { limit: pageSize, skip: page * pageSize },
+        signal
+      );
+      page += 1;
+      const batch = response.groups ?? [];
+
+      let newOnPage = 0;
+      for (const group of batch) {
+        if (!seenIds.has(group._id)) {
+          seenIds.add(group._id);
+          groups.push(group);
+          newOnPage += 1;
+        }
+      }
+
+      // A short page means the backend has no more groups.
+      if (batch.length < pageSize) {
+        break;
+      }
+      // A full page of already-seen ids means the backend is ignoring `skip`.
+      if (newOnPage === 0) {
+        break;
+      }
+    }
+
+    return groups;
+  }
+
+  // Get the users assigned to a group - authenticated endpoint. Role data
+  // (role_name/role_id/role_permissions) is flat on each assigned user.
+  async getGroupAssignedUsers(
+    groupId: string,
+    signal?: AbortSignal
+  ): Promise<GetGroupAssignedUsersResponse> {
+    await this.ensureAuthenticated();
+    const response = await this.authenticatedClient.get<
+      GetGroupAssignedUsersResponse | ApiErrorResponse
+    >(
+      `/users/groups/${encodeURIComponent(groupId)}/assigned-users`,
+      signal ? { signal } : undefined
+    );
+    const data = response.data;
+
+    if ('success' in data && !data.success) {
+      throw new Error(data.message || 'Failed to get group assigned users');
+    }
+
+    return data as GetGroupAssignedUsersResponse;
+  }
+
+  // Bulk-unassign users from a group - authenticated endpoint. Axios carries
+  // the DELETE body through the request config's `data` field.
+  async unassignManyUsersFromGroup(
+    groupId: string,
+    request: UnassignManyUsersFromGroupRequest
+  ): Promise<UnassignManyUsersFromGroupResponse> {
+    await this.ensureAuthenticated();
+    const response = await this.authenticatedClient.delete<
+      UnassignManyUsersFromGroupResponse | ApiErrorResponse
+    >(`/users/groups/${encodeURIComponent(groupId)}/unassign-many-users`, {
+      data: request,
+    });
+    const data = response.data;
+
+    if ('success' in data && !data.success) {
+      throw new Error(data.message || 'Failed to unassign users from group');
+    }
+
+    return data as UnassignManyUsersFromGroupResponse;
+  }
+
+  // Delete a group - authenticated endpoint. Deliberately no try/catch: the
+  // backend currently answers 501 ("Group deletion temporarily disabled") and
+  // that axios error must reach the UI so the real message can be displayed
+  // instead of a rewritten one.
+  async deleteGroup(groupId: string): Promise<DeleteGroupResponse> {
+    await this.ensureAuthenticated();
+    const response = await this.authenticatedClient.delete<
+      DeleteGroupResponse | ApiErrorResponse
+    >(`/users/groups/${encodeURIComponent(groupId)}`);
+    const data = response.data;
+
+    if ('success' in data && !data.success) {
+      throw new Error(data.message || 'Failed to delete group');
+    }
+
+    return data as DeleteGroupResponse;
+  }
+
+  // Get one organization's activity log - authenticated endpoint. The backend
+  // pages with limit/skip and IGNORES `page`, and it returns no total count,
+  // so callers treat a full page as "there may be more". `activity_type` is
+  // deliberately not forwarded: the endpoint enum-validates that filter and
+  // rejects known-looking values, so type filtering stays client-side.
+  async getGroupActivityLog(
+    groupId: string,
+    params?: GetGroupActivityLogParams,
+    signal?: AbortSignal
+  ): Promise<GetGroupActivityLogResponse> {
+    const query = new URLSearchParams();
+    query.set('limit', String(this.toPageParam(params?.limit, 20, 1)));
+    query.set('skip', String(this.toPageParam(params?.skip, 0, 0)));
+
+    const userId = params?.user_id?.trim();
+    if (userId) query.set('user_id', userId);
+    const startDate = params?.start_date?.trim();
+    if (startDate) query.set('start_date', startDate);
+    const endDate = params?.end_date?.trim();
+    if (endDate) query.set('end_date', endDate);
+
+    await this.ensureAuthenticated();
+    const response = await this.authenticatedClient.get<
+      GetGroupActivityLogResponse | ApiErrorResponse
+    >(
+      `/users/groups/${encodeURIComponent(groupId)}/activity-log?${query.toString()}`,
+      signal ? { signal } : undefined
+    );
+    const data = response.data;
+
+    if ('success' in data && !data.success) {
+      // The backend message is the useful one here (e.g. an unknown group or
+      // an invalid date range answers 400 with the exact reason), so it is
+      // surfaced verbatim.
+      throw new Error(data.message || 'Failed to get group activity log');
+    }
+
+    return data as GetGroupActivityLogResponse;
   }
 }
 

@@ -205,6 +205,32 @@ const pageMetadata: Record<string, Partial<Metadata>> = {
       description: 'Review and manage organization onboarding requests.',
     },
   },
+  '/system/organizations': {
+    title: 'Organizations',
+    description: 'View and manage organizations across the platform.',
+    openGraph: {
+      title: 'Organizations | AirQo Nexus',
+      description: 'View and manage organizations across the platform.',
+    },
+  },
+  '/system/organizations/[id]': {
+    title: 'Organization Details',
+    description: 'View organization details, members, and role assignments.',
+    openGraph: {
+      title: 'Organization Details | AirQo Nexus',
+      description: 'View organization details, members, and role assignments.',
+    },
+  },
+  // Static route — no dynamic segment, so generatePageMetadata matches it by
+  // exact key and no prefix mapping is needed below.
+  '/system/activity-log': {
+    title: 'Activity Log',
+    description: 'Audit organization membership changes across the platform.',
+    openGraph: {
+      title: 'Activity Log | AirQo Nexus',
+      description: 'Audit organization membership changes across the platform.',
+    },
+  },
   '/system/user-statistics': {
     title: 'User Statistics',
     description: 'Inspect platform user statistics and account activity.',
@@ -317,6 +343,12 @@ export function generatePageMetadata(pathname: string): Metadata {
   }
   if (pathname.startsWith('/system/team-members/')) {
     pageKey = '/system/team-members/[memberId]';
+  }
+
+  // The list route (`/system/organizations`) has no trailing slash, so it
+  // never matches this prefix — only detail routes do.
+  if (pathname.startsWith('/system/organizations/')) {
+    pageKey = '/system/organizations/[id]';
   }
 
   if (pathname.startsWith('/system/billing/customers/')) {

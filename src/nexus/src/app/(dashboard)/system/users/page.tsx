@@ -4,7 +4,6 @@ import React, { useMemo, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Button,
-  Input,
   LoadingState,
   PageHeading,
 } from '@/shared/components/ui';
@@ -18,8 +17,10 @@ import {
 } from '@/shared/utils/errorMessages';
 import { toast } from '@/shared/components/ui/toast';
 import { refreshWithToast } from '@/shared/utils/refreshWithToast';
-import { useUsers, useUpdateUserRole } from '@/shared/hooks/useAdmin';
+import { useUsers } from '@/shared/hooks/useAdmin';
 import { useRolesSummary } from '@/shared/hooks/useAdmin';
+import UserRoleAssignmentDialog from '@/shared/components/UserRoleAssignmentDialog';
+import { getRoleGroupOptions } from '@/shared/utils/roleGrouping';
 import { formatWithPattern } from '@/shared/utils/dateUtils';
 import { buildCsv, buildCsvFilename, downloadCsv } from '@/shared/utils/csv';
 import { toDateString } from '@/shared/services/analyticsService';
@@ -30,9 +31,6 @@ import {
   AqDownload01,
   AqShield02,
 } from '@airqo/icons-react';
-import { Dialog, Select } from '@/shared/components/ui';
-import { SEARCH_TERM_MAX } from '@/shared/lib/validation-limits';
-
 interface UsersTableRow extends User {
   id: string;
 }
@@ -40,21 +38,27 @@ interface UsersTableRow extends User {
 const UserManagementPage: React.FC = () => {
   const router = useRouter();
   const { data, isLoading, isValidating, error, mutate } = useUsers();
-  const { data: rolesResponse, isLoading: rolesLoading } = useRolesSummary();
-  const updateUserRole = useUpdateUserRole();
+  const {
+    data: rolesResponse,
+    isLoading: rolesLoading,
+    error: rolesError,
+    mutate: mutateRoles,
+  } = useRolesSummary();
 
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [search, setSearch] = useState('');
 
   const [roleDialogUser, setRoleDialogUser] = useState<User | null>(null);
-  const [selectedRoleId, setSelectedRoleId] = useState('');
-  const [roleSearch, setRoleSearch] = useState('');
 
   const users = useMemo(() => data?.users ?? [], [data]);
   const availableRoles = useMemo(
     () => rolesResponse?.roles ?? [],
     [rolesResponse]
+  );
+  const roleGroups = useMemo(
+    () => getRoleGroupOptions(availableRoles),
+    [availableRoles]
   );
 
   const filteredUsers = useMemo(() => {
@@ -88,16 +92,6 @@ const UserManagementPage: React.FC = () => {
 
   const totalPages = Math.ceil(filteredUsers.length / pageSize);
 
-  const filteredRoles = useMemo(() => {
-    const q = roleSearch.trim().toLowerCase();
-    if (!q) return availableRoles;
-    return availableRoles.filter(role => {
-      const name = (role.role_name || '').toLowerCase();
-      const group = (role.group?.grp_title || '').toLowerCase();
-      return name.includes(q) || group.includes(q);
-    });
-  }, [availableRoles, roleSearch]);
-
   const handleRefresh = useCallback(async () => {
     try {
       await refreshWithToast(
@@ -109,36 +103,17 @@ const UserManagementPage: React.FC = () => {
     }
   }, [mutate]);
 
-  const openRoleDialog = useCallback((user: User) => {
-    const primaryRoleId =
-      user.groups?.[0]?.role?._id || user.networks?.[0]?.role?._id || '';
-    setRoleDialogUser(user);
-    setSelectedRoleId(primaryRoleId);
-    setRoleSearch('');
-  }, []);
-
-  const handleUpdateRole = async () => {
-    if (!roleDialogUser || !selectedRoleId) {
-      toast.error('Please select a role');
-      return;
-    }
+  const handleRetryRoles = useCallback(async () => {
     try {
-      await updateUserRole.trigger({
-        userId: roleDialogUser._id,
-        roleId: selectedRoleId,
-      });
-      toast.success('User role updated successfully');
-      setRoleDialogUser(null);
-      await mutate();
+      await mutateRoles();
     } catch (err) {
       toast.error(getUserFriendlyErrorMessage(err));
     }
-  };
+  }, [mutateRoles]);
 
-  const selectedRole = useMemo(
-    () => availableRoles.find(role => role._id === selectedRoleId),
-    [availableRoles, selectedRoleId]
-  );
+  const openRoleDialog = useCallback((user: User) => {
+    setRoleDialogUser(user);
+  }, []);
 
   const exportToCSV = () => {
     const headers = [
@@ -327,7 +302,7 @@ const UserManagementPage: React.FC = () => {
               variant="ghost"
               size="sm"
               onClick={() => openRoleDialog(user)}
-              disabled={rolesLoading || availableRoles.length === 0}
+              disabled={rolesLoading || !!rolesError || roleGroups.length === 0}
               title="Update user role"
               aria-label="Update user role"
             >
@@ -337,7 +312,7 @@ const UserManagementPage: React.FC = () => {
         ),
       },
     ],
-    [router, openRoleDialog, rolesLoading, availableRoles.length]
+    [router, openRoleDialog, rolesLoading, rolesError, roleGroups.length]
   );
 
   if (isLoading) {
@@ -359,7 +334,7 @@ const UserManagementPage: React.FC = () => {
       <div className="p-6 space-y-4">
         <ErrorBanner
           title="Failed to load users"
-          message={error?.message || 'An error occurred while loading users'}
+          message={getUserFriendlyErrorMessage(error)}
         />
         <Button
           onClick={handleRefresh}
@@ -405,6 +380,26 @@ const UserManagementPage: React.FC = () => {
         }
       />
 
+      {/* Roles failed to load (e.g. 403) — role actions are disabled above,
+          but the users table must still render. */}
+      {rolesError && (
+        <ErrorBanner
+          title="Failed to load roles"
+          message={getUserFriendlyErrorMessage(rolesError)}
+          actions={
+            <Button
+              variant="outlined"
+              size="sm"
+              onClick={handleRetryRoles}
+              loading={rolesLoading}
+              Icon={AqRefreshCw05}
+            >
+              Retry
+            </Button>
+          }
+        />
+      )}
+
       {/* Users Table */}
       <ServerSideTable
         title="All Users"
@@ -429,84 +424,15 @@ const UserManagementPage: React.FC = () => {
       />
 
       {/* Role Update Dialog */}
-      <Dialog
+      <UserRoleAssignmentDialog
         isOpen={!!roleDialogUser}
+        user={roleDialogUser}
+        roles={availableRoles}
         onClose={() => setRoleDialogUser(null)}
-        title={`Update Role: ${roleDialogUser?.firstName ?? ''} ${
-          roleDialogUser?.lastName ?? ''
-        }`.trim()}
-        primaryAction={{
-          label: 'Update Role',
-          onClick: handleUpdateRole,
-          disabled: updateUserRole.isMutating || !selectedRoleId,
-          loading: updateUserRole.isMutating,
+        onSuccess={async () => {
+          await mutate();
         }}
-        secondaryAction={{
-          label: 'Cancel',
-          onClick: () => setRoleDialogUser(null),
-          disabled: updateUserRole.isMutating,
-          variant: 'outlined',
-        }}
-      >
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-foreground mb-2">
-              Select Role *
-            </label>
-            <Input
-              type="text"
-              value={roleSearch}
-              onChange={e => setRoleSearch(e.target.value)}
-              placeholder="Search roles or groups..."
-              maxLength={SEARCH_TERM_MAX}
-              containerClassName="mb-2"
-            />
-            <Select
-              value={selectedRoleId}
-              onChange={e =>
-                setSelectedRoleId(
-                  (e as React.ChangeEvent<HTMLSelectElement>).target.value
-                )
-              }
-              placeholder="Choose a role..."
-              disabled={rolesLoading}
-            >
-              {filteredRoles.map(role => (
-                <option key={role._id} value={role._id}>
-                  {role.role_name} - {role.group?.grp_title || 'No group'}
-                </option>
-              ))}
-            </Select>
-          </div>
-
-          {selectedRole && (
-            <div className="rounded-lg border bg-muted/30 p-4 space-y-3">
-              <div>
-                <p className="text-sm font-medium">Selected Role</p>
-                <p className="text-sm text-muted-foreground">
-                  {selectedRole.role_name}
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {selectedRole.group?.grp_title || 'No group'}
-                </p>
-              </div>
-              <div>
-                <p className="text-sm font-medium mb-2">Permissions</p>
-                <div className="flex flex-wrap gap-2">
-                  {(selectedRole.role_permissions || []).map(permission => (
-                    <span
-                      key={permission._id}
-                      className="px-2 py-1 rounded-full text-xs bg-primary/10 text-primary"
-                    >
-                      {permission.permission}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      </Dialog>
+      />
     </div>
   );
 };

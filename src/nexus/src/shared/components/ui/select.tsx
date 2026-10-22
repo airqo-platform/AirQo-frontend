@@ -8,6 +8,7 @@ import React, {
   useCallback,
 } from 'react';
 import { usePopper } from 'react-popper';
+import { createPortal } from 'react-dom';
 import { cn } from '@/shared/lib/utils';
 import { SearchField } from './search-field';
 
@@ -94,9 +95,19 @@ const SelectField: React.FC<SelectFieldProps & Record<string, unknown>> = ({
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const [query, setQuery] = useState('');
   const containerRef = useRef<HTMLDivElement | null>(null);
+  // The popper is portalled to document.body, so it lives outside
+  // containerRef and needs its own ref for outside-click detection.
+  const popperRef = useRef<HTMLElement | null>(null);
   const listRef = useRef<HTMLUListElement | null>(null);
   const buttonRef = useRef<HTMLButtonElement | null>(null);
   const searchInputRef = useRef<HTMLInputElement | null>(null);
+  // Stable fallback id: generated once so aria-controls /
+  // aria-activedescendant and label/description ids survive re-renders and
+  // dropdown open/close cycles.
+  const generatedIdRef = useRef<string>('');
+  if (!generatedIdRef.current) {
+    generatedIdRef.current = `select-field-${Math.random().toString(36).substring(7)}`;
+  }
 
   const handleOpenChange = useCallback(
     (nextOpen: boolean) => {
@@ -267,14 +278,24 @@ const SelectField: React.FC<SelectFieldProps & Record<string, unknown>> = ({
           break;
         case 'Escape':
           event.preventDefault();
+          // Close an open dropdown without also closing an enclosing dialog:
+          // stop the Escape from reaching the dialog's document-level
+          // handler. When already closed, let it bubble normally.
+          if (open) {
+            event.stopPropagation();
+          }
           closeDropdown();
           break;
         case 'Tab':
-          closeDropdown(false);
+          // Focus is inside the portalled popper, which the surrounding
+          // layout (e.g. a dialog focus trap) cannot see. Stop Tab from
+          // moving focus into the void and hand it back to the trigger.
+          event.preventDefault();
+          closeDropdown();
           break;
       }
     },
-    [moveHighlight, highlightedIndex, visibleItems, handleSelect, closeDropdown]
+    [moveHighlight, highlightedIndex, visibleItems, handleSelect, closeDropdown, open]
   );
 
   // The trigger keeps full keyboard control when there is no filter box.
@@ -313,6 +334,12 @@ const SelectField: React.FC<SelectFieldProps & Record<string, unknown>> = ({
           break;
         case 'Escape':
           event.preventDefault();
+          // Close an open dropdown without also closing an enclosing dialog
+          // (the dialog listens at the document level). When the dropdown is
+          // already closed, let Escape bubble so the dialog can close.
+          if (open) {
+            event.stopPropagation();
+          }
           closeDropdown();
           break;
         case 'Tab':
@@ -348,10 +375,11 @@ const SelectField: React.FC<SelectFieldProps & Record<string, unknown>> = ({
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (
-        containerRef.current &&
-        !containerRef.current.contains(event.target as Node)
-      ) {
+      const target = event.target as Node | null;
+      if (!target) return;
+      const insideContainer = containerRef.current?.contains(target) ?? false;
+      const insidePopper = popperRef.current?.contains(target) ?? false;
+      if (!insideContainer && !insidePopper) {
         closeDropdown(false);
       }
     };
@@ -398,9 +426,7 @@ const SelectField: React.FC<SelectFieldProps & Record<string, unknown>> = ({
     }
   }, [open, highlightedIndex]);
 
-  const buttonId =
-    (restProps.id as string) ||
-    `select-field-${Math.random().toString(36).substring(7)}`;
+  const buttonId = (restProps.id as string) || generatedIdRef.current;
   const listId = `${buttonId}-list`;
   const optionId = (index: number) => `${listId}-option-${index}`;
   // The filter box takes vertical room, so the list gets whatever is left.
@@ -446,7 +472,10 @@ const SelectField: React.FC<SelectFieldProps & Record<string, unknown>> = ({
                 ? `${buttonId}-description`
                 : undefined
           }
-          aria-controls={open ? listId : undefined}
+          aria-controls={listId}
+          aria-activedescendant={
+            open && highlightedIndex >= 0 ? optionId(highlightedIndex) : undefined
+          }
           className={`
             w-full flex justify-between items-center rounded-md ${
               isControl
@@ -501,77 +530,96 @@ const SelectField: React.FC<SelectFieldProps & Record<string, unknown>> = ({
           </svg>
         </button>
 
-        {open && (
-          <div
-            ref={setPopperElement}
-            style={{
-              ...popperStyles.popper,
-              // Above dialogs (z-[10001]) so the dropdown stays visible
-              // when opened inside a modal.
-              zIndex: 10002,
-              minWidth: referenceElement?.offsetWidth || 'auto',
-              maxHeight: `${maxHeight}px`,
-            }}
-            {...(popperAttributes.popper ?? {})}
-            className={`
+        {open && typeof document !== 'undefined'
+          ? createPortal(
+              <div
+                ref={el => {
+                  popperRef.current = el;
+                  setPopperElement(el);
+                }}
+                style={{
+                  ...popperStyles.popper,
+                  // Above dialogs (z-[10001]) so the dropdown stays visible
+                  // when opened inside a modal.
+                  zIndex: 10002,
+                  minWidth: referenceElement?.offsetWidth || 'auto',
+                  // Pin to the trigger's measured width so long option labels
+                  // cannot stretch the popper past its control, with a hard
+                  // viewport cap for cases where the trigger itself is wider
+                  // than the available space.
+                  width: referenceElement
+                    ? `${referenceElement.offsetWidth}px`
+                    : undefined,
+                  maxWidth: 'calc(100vw - 1rem)',
+                  maxHeight: `${maxHeight}px`,
+                }}
+                {...(popperAttributes.popper ?? {})}
+                className={`
               bg-popover rounded-md shadow-lg
               border border-primary overflow-hidden
               ${listClassName}
             `}
-          >
-            {listHeader ? (
-              <div
-                role="presentation"
-                className="border-b border-border/60 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground"
               >
-                {listHeader}
-              </div>
-            ) : null}
-            {searchable ? (
-              <div className="border-b border-border/60 p-2">
-                <SearchField
-                  ref={searchInputRef}
-                  value={query}
-                  onChange={event => setQuery(event.target.value)}
-                  onKeyDown={handleListKeyDown}
-                  placeholder={searchPlaceholder}
-                  showClearButton={false}
-                  role="combobox"
-                  aria-expanded={open}
-                  aria-controls={listId}
-                  aria-autocomplete="list"
+                {listHeader ? (
+                  <div
+                    role="presentation"
+                    className="border-b border-border/60 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground"
+                  >
+                    {listHeader}
+                  </div>
+                ) : null}
+                {searchable ? (
+                  <div className="border-b border-border/60 p-2">
+                    <SearchField
+                      ref={searchInputRef}
+                      value={query}
+                      onChange={event => setQuery(event.target.value)}
+                      onKeyDown={handleListKeyDown}
+                      placeholder={searchPlaceholder}
+                      showClearButton={false}
+                      role="combobox"
+                      aria-expanded={open}
+                      aria-controls={listId}
+                      aria-autocomplete="list"
+                      aria-labelledby={label ? `${buttonId}-label` : undefined}
+                      aria-activedescendant={
+                        highlightedIndex >= 0
+                          ? optionId(highlightedIndex)
+                          : undefined
+                      }
+                      className="h-9"
+                    />
+                  </div>
+                ) : null}
+                <ul
+                  ref={listRef}
+                  id={listId}
+                  role="listbox"
                   aria-labelledby={label ? `${buttonId}-label` : undefined}
-                  aria-activedescendant={
-                    highlightedIndex >= 0
-                      ? optionId(highlightedIndex)
+                  aria-label={
+                    !label
+                      ? typeof placeholder === 'string'
+                        ? placeholder
+                        : undefined
                       : undefined
                   }
-                  className="h-9"
-                />
-              </div>
-            ) : null}
-            <ul
-              ref={listRef}
-              id={listId}
-              role="listbox"
-              aria-labelledby={buttonId}
-              className="py-1 overflow-y-auto"
-              style={{ maxHeight: `${listMaxHeight}px` }}
-            >
-              {visibleItems.length > 0 ? (
-                visibleItems.map((item: Item, index: number) => (
-                  <li
-                    key={item.value ?? index}
-                    id={optionId(index)}
-                    role="option"
-                    aria-selected={
-                      selectedItem && selectedItem.value === item.value
-                    }
-                    aria-disabled={item.disabled}
-                    onClick={() => handleSelect(item)}
-                    onMouseEnter={() => setHighlightedIndex(index)}
-                    className={`
-                      cursor-pointer transition-colors duration-150 ${
+                  className="py-1 overflow-y-auto"
+                  style={{ maxHeight: `${listMaxHeight}px` }}
+                >
+                  {visibleItems.length > 0 ? (
+                    visibleItems.map((item: Item, index: number) => (
+                      <li
+                        key={item.value ?? index}
+                        id={optionId(index)}
+                        role="option"
+                        aria-selected={
+                          selectedItem && selectedItem.value === item.value
+                        }
+                        aria-disabled={item.disabled}
+                        onClick={() => handleSelect(item)}
+                        onMouseEnter={() => setHighlightedIndex(index)}
+                        className={`
+                      cursor-pointer transition-colors duration-150 [overflow-wrap:anywhere] ${
                         isControl ? 'px-3 py-2 text-sm' : 'px-4 py-2.5 text-sm'
                       }
                       ${
@@ -591,24 +639,26 @@ const SelectField: React.FC<SelectFieldProps & Record<string, unknown>> = ({
                       }
                       ${!item.disabled ? 'hover:bg-primary/10' : ''}
                     `}
-                  >
-                    {item.label}
-                  </li>
-                ))
-              ) : (
-                <li
-                  className={`text-muted-foreground ${
-                    isControl ? 'px-3 py-2 text-sm' : 'px-4 py-2.5 text-sm'
-                  }`}
-                >
-                  {searchable && query.trim()
-                    ? `${noOptionsMessage} for “${query.trim()}”`
-                    : 'No options available'}
-                </li>
-              )}
-            </ul>
-          </div>
-        )}
+                      >
+                        {item.label}
+                      </li>
+                    ))
+                  ) : (
+                    <li
+                      className={`text-muted-foreground ${
+                        isControl ? 'px-3 py-2 text-sm' : 'px-4 py-2.5 text-sm'
+                      }`}
+                    >
+                      {searchable && query.trim()
+                        ? `${noOptionsMessage} for “${query.trim()}”`
+                        : 'No options available'}
+                    </li>
+                  )}
+                </ul>
+              </div>,
+              document.body
+            )
+          : null}
       </div>
 
       {error && (

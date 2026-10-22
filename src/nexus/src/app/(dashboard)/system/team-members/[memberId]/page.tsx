@@ -423,7 +423,7 @@ const TeamMemberDetailContent: React.FC<{ memberId: string }> = ({
             <div>
               <h3 className="text-lg font-semibold">Current Access</h3>
               <p className="text-sm text-muted-foreground">
-                Roles inherited from groups
+                Roles inherited from organizations
               </p>
             </div>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -435,7 +435,7 @@ const TeamMemberDetailContent: React.FC<{ memberId: string }> = ({
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
             <div className="space-y-3">
               <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-                Groups
+                Organizations
               </h4>
               <div className="max-h-[48vh] overflow-y-auto space-y-3 pr-2">
                 {user.groups?.length ? (
@@ -455,7 +455,7 @@ const TeamMemberDetailContent: React.FC<{ memberId: string }> = ({
                   ))
                 ) : (
                   <p className="text-sm text-muted-foreground">
-                    No group roles assigned.
+                    No organization roles assigned.
                   </p>
                 )}
               </div>

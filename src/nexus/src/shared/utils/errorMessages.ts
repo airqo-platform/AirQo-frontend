@@ -166,24 +166,18 @@ export function getUserFriendlyErrorMessage(
       }
     }
 
-    // Priority 2: Check HTTP status code for preset error messages
-    if (
-      axiosError.response?.status &&
-      errorMappings[axiosError.response.status]
-    ) {
-      const statusMessage = errorMappings[axiosError.response.status];
-      if (typeof statusMessage === 'string') {
-        return statusMessage;
-      }
-    }
-
-    // Priority 3: Check response data for general API message (fallback)
+    // Priority 2: Surface a specific backend message ahead of the generic
+    // status-code mapping so the real reason (e.g. why access was denied)
+    // reaches the user instead of a canned status text. Generic boilerplate
+    // ("request failed", "bad request", "axioserror") and blank strings are
+    // ignored so they cannot mask the friendlier mapping below.
     if (axiosError.response?.data) {
       const responseData = axiosError.response.data as ApiErrorResponse;
 
-      if (responseData.message && typeof responseData.message === 'string') {
-        // Only use the root message if we didn't find specific errors above
-        // and it's not a generic error message
+      if (
+        typeof responseData.message === 'string' &&
+        responseData.message.trim()
+      ) {
         const rootMessage = responseData.message.toLowerCase();
         if (
           !rootMessage.includes('request failed') &&
@@ -192,6 +186,17 @@ export function getUserFriendlyErrorMessage(
         ) {
           return responseData.message;
         }
+      }
+    }
+
+    // Priority 3: Check HTTP status code for preset error messages
+    if (
+      axiosError.response?.status &&
+      errorMappings[axiosError.response.status]
+    ) {
+      const statusMessage = errorMappings[axiosError.response.status];
+      if (typeof statusMessage === 'string') {
+        return statusMessage;
       }
     }
 

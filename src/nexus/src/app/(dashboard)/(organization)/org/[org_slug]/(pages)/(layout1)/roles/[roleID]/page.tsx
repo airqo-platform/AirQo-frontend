@@ -211,9 +211,9 @@ const RoleDetailPage = () => {
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-3">
         {/* Role Details Section */}
-        <div className="lg:col-span-1">
+        <div className="min-w-0 lg:col-span-1">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-gray-900">
               Role Details
@@ -255,8 +255,11 @@ const RoleDetailPage = () => {
                   Role Name *
                 </label>
                 {/* Role name is read-only in both modes */}
-                <div className="mt-1">
-                  <span className="font-medium text-gray-900">
+                <div className="mt-1 min-w-0">
+                  <span
+                    className="block break-all font-medium text-gray-900"
+                    title={role.role_name}
+                  >
                     {role.role_name}
                   </span>
                 </div>
@@ -302,7 +305,7 @@ const RoleDetailPage = () => {
                   Role Description
                 </label>
                 <div className="mt-1 p-3 border border-gray-200 rounded-md bg-gray-50 min-h-[80px] flex items-start">
-                  <span className="text-sm text-gray-700">
+                  <span className="min-w-0 break-words text-sm text-gray-700">
                     {role.role_description || 'No description provided'}
                   </span>
                 </div>
@@ -327,10 +330,10 @@ const RoleDetailPage = () => {
                     return (
                       <div
                         key={permissionId}
-                        className="flex items-center gap-2 text-xs"
+                        className="flex min-w-0 items-start gap-2 text-xs"
                       >
-                        <div className="w-1 h-1 bg-blue-500 rounded-full"></div>
-                        <span className="text-blue-600 font-medium">
+                        <div className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-blue-500"></div>
+                        <span className="min-w-0 break-all font-medium text-blue-600">
                           {permission.permission}
                         </span>
                       </div>
@@ -365,7 +368,7 @@ const RoleDetailPage = () => {
         </div>
 
         {/* Permissions Section */}
-        <div className="lg:col-span-2">
+        <div className="min-w-0 lg:col-span-2">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-gray-900">Permissions</h2>
             <span className="bg-green-100 text-green-800 text-xs font-medium px-2 py-1 rounded-full">
@@ -387,7 +390,7 @@ const RoleDetailPage = () => {
 
             {/* Permissions List */}
             <div className="p-4 max-h-96 overflow-y-auto">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              <div className="grid min-w-0 grid-cols-1 gap-2 md:grid-cols-2">
                 {permissionsData?.permissions
                   ?.filter(
                     permission =>
@@ -406,6 +409,10 @@ const RoleDetailPage = () => {
                     return (
                       <div
                         key={permission._id}
+                        role="checkbox"
+                        aria-checked={isSelected}
+                        aria-disabled={canEditRole ? undefined : true}
+                        tabIndex={canEditRole ? 0 : -1}
                         className={`relative p-2 border rounded-lg transition-all min-w-0 ${
                           isSelected
                             ? 'border-primary bg-primary/5 shadow-sm'
@@ -414,24 +421,26 @@ const RoleDetailPage = () => {
                         onClick={() =>
                           canEditRole && handlePermissionToggle(permission._id)
                         }
+                        onKeyDown={event => {
+                          // Read-only users never reach the toggle path from
+                          // the keyboard (the click path is gated too).
+                          if (!canEditRole) return;
+                          if (event.key === ' ' || event.key === 'Enter') {
+                            event.preventDefault();
+                            handlePermissionToggle(permission._id);
+                          }
+                        }}
                       >
                         <div className="absolute top-1.5 right-1.5 pointer-events-none z-10">
                           <Checkbox
                             checked={isSelected}
                             disabled={!canEditRole}
+                            tabIndex={-1}
+                            aria-hidden="true"
                           />
                         </div>
-                        <div
-                          className="absolute top-1.5 right-1.5 w-4 h-4 z-20 cursor-pointer"
-                          onClick={e => {
-                            e.stopPropagation();
-                            if (canEditRole) {
-                              handlePermissionToggle(permission._id);
-                            }
-                          }}
-                        ></div>
                         <div className="pr-8">
-                          <p className="font-medium text-sm text-gray-900 truncate">
+                          <p className="min-w-0 break-all text-sm font-medium text-gray-900">
                             {permission.permission}
                           </p>
                           {permission.description && (

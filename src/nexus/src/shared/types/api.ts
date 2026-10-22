@@ -2772,6 +2772,136 @@ export interface UpdateGroupTitleResponse {
   };
 }
 
+// Organization (group) summary list - System → Organization Management.
+// Backed by GET /users/groups/summary, which pages with limit/skip and has
+// no total/meta, so consumers page until a short page comes back.
+export interface GroupSummary {
+  _id: string;
+  grp_status: string;
+  grp_profile_picture: string;
+  grp_title: string;
+  organization_slug: string;
+  numberOfGroupUsers: number;
+  cohorts?: string[];
+  onboarding_checklist?: {
+    is_dismissed: boolean;
+    completed_steps: string[];
+  };
+  // Extended profile fields — same names as GroupDetails, but only present
+  // on some summaries, so they stay optional here.
+  grp_description?: string;
+  grp_image?: string;
+  grp_country?: string;
+  grp_industry?: string;
+  grp_timezone?: string;
+  grp_website?: string;
+  createdAt?: string;
+}
+
+export interface GetGroupsSummaryResponse {
+  success: boolean;
+  message: string;
+  groups: GroupSummary[];
+}
+
+export interface GetGroupsSummaryParams {
+  limit?: number;
+  skip?: number;
+}
+
+// User assigned to a group - GET /users/groups/{group_id}/assigned-users.
+// Role fields are flat on the user object and optional (a user may have no
+// role attached yet).
+export interface GroupAssignedUser {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  userName: string;
+  isActive: boolean;
+  jobTitle?: string;
+  lastLogin?: string;
+  profilePicture?: string;
+  createdAt?: string;
+  userType?: string;
+  role_name?: string;
+  role_id?: string;
+  role_permissions?: RolePermission[];
+}
+
+export interface GetGroupAssignedUsersResponse {
+  success: boolean;
+  message: string;
+  data: GroupAssignedUser[];
+}
+
+// Bulk unassign users from a group
+export interface UnassignManyUsersFromGroupRequest {
+  user_ids: string[];
+}
+
+export interface UnassignManyUsersFromGroupResponse {
+  success: boolean;
+  message: string;
+  data?: unknown;
+}
+
+// Delete a group. Staging currently returns 501 with the backend message
+// ("Group deletion temporarily disabled") — that message must surface as-is.
+export interface DeleteGroupResponse {
+  success: boolean;
+  message: string;
+}
+
+// One actor in a group activity entry - GET /users/groups/{group_id}/activity-log.
+export interface GroupActivityActor {
+  user_id: string;
+  email: string;
+}
+
+// The user an activity was performed on. Only a name is present for some
+// membership events, so every field stays optional.
+export interface GroupActivityTarget {
+  user_id?: string;
+  email?: string;
+  name?: string;
+}
+
+export interface GroupActivity {
+  id: string;
+  // Free-form on purpose: the backend adds new types and the endpoint
+  // enum-validates its own `activity_type` filter, so unknown values must
+  // still render (humanised with a fallback) instead of narrowing to a union.
+  activity_type: string;
+  actor?: GroupActivityActor;
+  target_user?: GroupActivityTarget;
+  timestamp: string;
+}
+
+// The activity-log endpoint pages with limit/skip (it ignores `page`) and
+// returns no total count, so consumers treat a full page as "there may be
+// more" and page until a short page comes back.
+export interface GetGroupActivityLogResponse {
+  success: boolean;
+  message: string;
+  data: {
+    activities: GroupActivity[];
+    group_name: string;
+    filters_applied: Record<string, string>;
+  };
+}
+
+// Only filters the backend actually honours. `activity_type` is deliberately
+// absent: the endpoint enum-validates it and rejects known-looking values, so
+// type filtering stays client-side.
+export interface GetGroupActivityLogParams {
+  limit?: number;
+  skip?: number;
+  user_id?: string;
+  start_date?: string;
+  end_date?: string;
+}
+
 // User Statistics Types
 export interface UserStatisticsUser {
   userName: string;
