@@ -16,7 +16,7 @@ ingress:
   enabled: false
 resources:
   requests:
-    cpu: 10m
+    cpu: 0m
     memory: 20Mi
   limits:
     cpu: 50m
