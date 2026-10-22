@@ -1,6 +1,7 @@
 'use client';
 
 import React, {
+  useId,
   useState,
   useEffect,
   useRef,
@@ -104,10 +105,7 @@ const SelectField: React.FC<SelectFieldProps & Record<string, unknown>> = ({
   // Stable fallback id: generated once so aria-controls /
   // aria-activedescendant and label/description ids survive re-renders and
   // dropdown open/close cycles.
-  const generatedIdRef = useRef<string>('');
-  if (!generatedIdRef.current) {
-    generatedIdRef.current = `select-field-${Math.random().toString(36).substring(7)}`;
-  }
+  const generatedId = useId();
 
   const handleOpenChange = useCallback(
     (nextOpen: boolean) => {
@@ -295,7 +293,14 @@ const SelectField: React.FC<SelectFieldProps & Record<string, unknown>> = ({
           break;
       }
     },
-    [moveHighlight, highlightedIndex, visibleItems, handleSelect, closeDropdown, open]
+    [
+      moveHighlight,
+      highlightedIndex,
+      visibleItems,
+      handleSelect,
+      closeDropdown,
+      open,
+    ]
   );
 
   // The trigger keeps full keyboard control when there is no filter box.
@@ -426,7 +431,7 @@ const SelectField: React.FC<SelectFieldProps & Record<string, unknown>> = ({
     }
   }, [open, highlightedIndex]);
 
-  const buttonId = (restProps.id as string) || generatedIdRef.current;
+  const buttonId = (restProps.id as string) || `select-field-${generatedId}`;
   const listId = `${buttonId}-list`;
   const optionId = (index: number) => `${listId}-option-${index}`;
   // The filter box takes vertical room, so the list gets whatever is left.
@@ -474,7 +479,9 @@ const SelectField: React.FC<SelectFieldProps & Record<string, unknown>> = ({
           }
           aria-controls={listId}
           aria-activedescendant={
-            open && highlightedIndex >= 0 ? optionId(highlightedIndex) : undefined
+            open && highlightedIndex >= 0
+              ? optionId(highlightedIndex)
+              : undefined
           }
           className={`
             w-full flex justify-between items-center rounded-md ${
@@ -542,7 +549,6 @@ const SelectField: React.FC<SelectFieldProps & Record<string, unknown>> = ({
                   // Above dialogs (z-[10001]) so the dropdown stays visible
                   // when opened inside a modal.
                   zIndex: 10002,
-                  minWidth: referenceElement?.offsetWidth || 'auto',
                   // Pin to the trigger's measured width so long option labels
                   // cannot stretch the popper past its control, with a hard
                   // viewport cap for cases where the trigger itself is wider

@@ -52,9 +52,13 @@ jest.mock('@/shared/components/ui/dialog', () => {
 });
 
 jest.mock('@/shared/components', () => ({
-  PermissionGuard: ({ children }: { children: React.ReactNode }) => (
-    <>{children}</>
-  ),
+  PermissionGuard: ({
+    children,
+    customCheck,
+  }: {
+    children: React.ReactNode;
+    customCheck?: () => boolean;
+  }) => (customCheck && !customCheck() ? null : <>{children}</>),
 }));
 
 jest.mock('@/shared/components/ui/toast', () => ({
@@ -64,18 +68,22 @@ jest.mock('@/shared/components/ui/toast', () => ({
 // Mutable per test so the same pending row can render with and without the
 // MEMBER_INVITE permission.
 let mockCanManageRequests = false;
+let mockCanViewRequests = true;
+let mockActiveGroupId = 'group-1';
 
 jest.mock('@/shared/hooks', () => ({
   useRBAC: () => ({
-    hasAnyPermissionInActiveGroup: () => mockCanManageRequests,
+    hasAnyPermissionInActiveGroup: (permissions: string[]) =>
+      permissions.includes('MEMBER_VIEW')
+        ? mockCanViewRequests
+        : mockCanManageRequests,
   }),
 }));
 
 jest.mock('@/shared/hooks/useUser', () => ({
   useUser: () => ({
-    groups: [
-      { id: 'group-1', title: 'AirQo', organizationSlug: 'airqo' },
-    ],
+    groups: [{ id: 'group-1', title: 'AirQo', organizationSlug: 'airqo' }],
+    activeGroup: { id: mockActiveGroupId },
   }),
 }));
 
@@ -153,6 +161,8 @@ import MemberRequestsPage from '../page';
 describe('Member Requests row actions', () => {
   beforeEach(() => {
     mockCanManageRequests = false;
+    mockCanViewRequests = true;
+    mockActiveGroupId = 'group-1';
     mockJoinRequests.data = {
       success: true,
       message: 'ok',
@@ -185,10 +195,20 @@ describe('Member Requests row actions', () => {
     render(<MemberRequestsPage />);
 
     expect(screen.getByText('Pending')).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: 'Approve' })
-    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Approve' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Reject' })).toBeInTheDocument();
     expect(screen.queryByText('View only')).not.toBeInTheDocument();
+  });
+
+  it("does not render another organization's requests when it is not active", () => {
+    mockActiveGroupId = 'group-2';
+    mockCanManageRequests = true;
+
+    render(<MemberRequestsPage />);
+
+    expect(screen.queryByText('row-id req-1')).not.toBeInTheDocument();
+    expect(
+      screen.queryByText('ada.lovelace@airqo.net')
+    ).not.toBeInTheDocument();
   });
 });

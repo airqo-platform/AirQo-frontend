@@ -690,7 +690,7 @@ const OrganizationDetailPage: React.FC = () => {
       accessDeniedTitle="Access Restricted"
       accessDeniedMessage="You need system administrator permissions to manage this organization."
     >
-      <OrganizationDetailContent groupId={groupId} />
+      <OrganizationDetailContent key={groupId} groupId={groupId} />
     </PermissionGuard>
   );
 };

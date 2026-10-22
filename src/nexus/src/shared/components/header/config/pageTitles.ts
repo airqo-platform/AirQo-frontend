@@ -135,7 +135,7 @@ export const getPageTitle = (pathname: string): string => {
       return 'Invoice Details';
     }
 
-    if (pathname.startsWith('/system/organizations/')) {
+    if (/^\/system\/organizations\/[^/]+(?:\/|$)/.test(pathname)) {
       return 'Organization Details';
     }
 

@@ -281,6 +281,36 @@ describe('System → Activity Log page', () => {
     );
   });
 
+  it('clears the member filter when switching organizations', () => {
+    render(<ActivityLogPage />);
+
+    selectOption('Member', 'Ada Lovelace (ada@example.com)');
+    expect(mockUseOrganizationActivityLog).toHaveBeenLastCalledWith('group-1', {
+      ...defaultActivityParams(),
+      user_id: 'user-1',
+    });
+
+    selectOption('Organization', 'AirQo Nairobi (nairobi-county)');
+
+    expect(mockUseOrganizationActivityLog).toHaveBeenLastCalledWith(
+      'group-2',
+      defaultActivityParams()
+    );
+  });
+
+  it('follows a query-string organization change and clears the member filter', () => {
+    const { rerender } = render(<ActivityLogPage />);
+
+    selectOption('Member', 'Ada Lovelace (ada@example.com)');
+    mockSearchParams = new URLSearchParams('group_id=group-2');
+    rerender(<ActivityLogPage />);
+
+    expect(mockUseOrganizationActivityLog).toHaveBeenLastCalledWith(
+      'group-2',
+      defaultActivityParams()
+    );
+  });
+
   it('disables Next when the returned window is shorter than a full page', () => {
     mockActivityResult = {
       ...mockActivityResult,
@@ -365,13 +395,10 @@ describe('System → Activity Log page', () => {
       target: { value: '' },
     });
 
-    expect(mockUseOrganizationActivityLog).toHaveBeenLastCalledWith(
-      'group-1',
-      {
-        limit: 20,
-        skip: 0,
-      }
-    );
+    expect(mockUseOrganizationActivityLog).toHaveBeenLastCalledWith('group-1', {
+      limit: 20,
+      skip: 0,
+    });
   });
 
   it('renders Access Denied when the activity log request is forbidden', () => {

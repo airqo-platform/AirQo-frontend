@@ -345,9 +345,7 @@ export function generatePageMetadata(pathname: string): Metadata {
     pageKey = '/system/team-members/[memberId]';
   }
 
-  // The list route (`/system/organizations`) has no trailing slash, so it
-  // never matches this prefix — only detail routes do.
-  if (pathname.startsWith('/system/organizations/')) {
+  if (/^\/system\/organizations\/[^/]+(?:\/|$)/.test(pathname)) {
     pageKey = '/system/organizations/[id]';
   }
 

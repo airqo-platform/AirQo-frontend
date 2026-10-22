@@ -30,9 +30,10 @@ jest.mock('@airqo/icons-react', () => {
 });
 
 const mockPush = jest.fn();
+let mockParams = { id: 'org-1' };
 
 jest.mock('next/navigation', () => ({
-  useParams: () => ({ id: 'org-1' }),
+  useParams: () => mockParams,
   useRouter: () => ({ push: mockPush, back: jest.fn() }),
 }));
 
@@ -230,6 +231,7 @@ const assignedUsers = [
 
 beforeEach(() => {
   jest.clearAllMocks();
+  mockParams = { id: 'org-1' };
   mockGuardAllows = true;
   mockPermissions = [
     'SYSTEM_ADMIN',
@@ -275,7 +277,9 @@ describe('System → Organization detail page', () => {
 
     render(<OrganizationDetailPage />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Delete organization' }));
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Delete organization' })
+    );
 
     const dialog = screen.getByRole('dialog');
     fireEvent.change(within(dialog).getByLabelText(/to confirm/), {
@@ -316,9 +320,7 @@ describe('System → Organization detail page', () => {
     ).not.toBeInTheDocument();
     expect(screen.queryByText('Delete organization')).not.toBeInTheDocument();
     // The rest of the page still renders.
-    expect(
-      screen.getByRole('heading', { name: 'AirQo' })
-    ).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'AirQo' })).toBeInTheDocument();
   });
 
   it('opens the confirm dialog from the members card and unassigns the requested users', async () => {
@@ -341,6 +343,19 @@ describe('System → Organization detail page', () => {
     });
     // Confirming closes the dialog once the mutation succeeds.
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('resets group-scoped dialog state when the organization changes', () => {
+    const { rerender } = render(<OrganizationDetailPage />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Unassign user-2' }));
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+
+    mockParams = { id: 'org-2' };
+    rerender(<OrganizationDetailPage />);
+
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(mockUseGroupDetails).toHaveBeenLastCalledWith('org-2');
   });
 
   it('renders Access Denied when the group read is forbidden', () => {
@@ -392,7 +407,9 @@ describe('System → Organization detail page', () => {
     // A null key means "no request" — the assigned-users read must not fire.
     expect(mockUseAssignedUsers).toHaveBeenCalledWith(null);
     expect(
-      screen.getByText('You do not have permission to view organization members.')
+      screen.getByText(
+        'You do not have permission to view organization members.'
+      )
     ).toBeInTheDocument();
     expect(
       screen.queryByRole('heading', { name: 'Manager' })

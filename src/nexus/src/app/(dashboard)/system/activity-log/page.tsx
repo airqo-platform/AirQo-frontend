@@ -1,6 +1,13 @@
 'use client';
 
-import React, { Suspense, useCallback, useMemo, useState } from 'react';
+import React, {
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   Button,
@@ -85,6 +92,17 @@ const ActivityLogContent: React.FC = () => {
   const [memberId, setMemberId] = useState('');
   const [startDate, setStartDate] = useState(defaultDateRange.startDate);
   const [endDate, setEndDate] = useState(defaultDateRange.endDate);
+  const urlGroupId = searchParams?.get('group_id') || null;
+  const previousUrlGroupId = useRef(urlGroupId);
+
+  useEffect(() => {
+    if (previousUrlGroupId.current === urlGroupId) return;
+
+    previousUrlGroupId.current = urlGroupId;
+    setGroupId(urlGroupId);
+    setMemberId('');
+    setPage(0);
+  }, [urlGroupId]);
 
   const { groups, isLoading: groupsLoading } = useOrganizationsSummary();
   const { users, isLoading: membersLoading } =
@@ -145,9 +163,7 @@ const ActivityLogContent: React.FC = () => {
         minWidth: '180px',
         render: (_value: unknown, activity: ActivityRow) => (
           <span className="break-words text-sm text-muted-foreground">
-            {activity.target_user?.name ||
-              activity.target_user?.email ||
-              '—'}
+            {activity.target_user?.name || activity.target_user?.email || '—'}
           </span>
         ),
       },
@@ -186,6 +202,7 @@ const ActivityLogContent: React.FC = () => {
     (event: { target: { value: unknown } }) => {
       const nextGroupId = String(event.target.value ?? '');
       setGroupId(nextGroupId || null);
+      setMemberId('');
       setPage(0);
       syncGroupIdToUrl(nextGroupId);
     },
@@ -330,8 +347,8 @@ const ActivityLogContent: React.FC = () => {
 
           <div className="flex flex-wrap items-center justify-between gap-3">
             <p className="text-xs text-muted-foreground">
-              Activity defaults to the last 7 days. Widen the dates to see
-              older entries.
+              Activity defaults to the last 7 days. Widen the dates to see older
+              entries.
             </p>
             <Button
               variant="outlined"

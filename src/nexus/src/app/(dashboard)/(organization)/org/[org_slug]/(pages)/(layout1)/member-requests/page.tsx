@@ -27,17 +27,18 @@ import { useRBAC } from '@/shared/hooks';
  * PermissionGuard shell below allows this component to mount — a viewer
  * without MEMBER_VIEW never issues the join-requests fetch.
  */
-const MemberRequestsContent: React.FC<{ orgSlug: string }> = ({
-  orgSlug,
-}) => {
-  const { groups } = useUser();
+const MemberRequestsContent: React.FC<{ orgSlug: string }> = ({ orgSlug }) => {
+  const { groups, activeGroup } = useUser();
   const { hasAnyPermissionInActiveGroup } = useRBAC();
-  const canManageRequests = hasAnyPermissionInActiveGroup(['MEMBER_INVITE']);
 
   // Get the current organization from slug
   const currentOrg = useMemo(() => {
     return groups?.find(g => g.organizationSlug === orgSlug);
   }, [groups, orgSlug]);
+
+  const canManageRequests =
+    currentOrg?.id === activeGroup?.id &&
+    hasAnyPermissionInActiveGroup(['MEMBER_INVITE']);
 
   // Utility function to format group name
   const formatGroupName = (name: string | undefined): string => {
@@ -312,7 +313,13 @@ const MemberRequestsContent: React.FC<{ orgSlug: string }> = ({
         },
       },
     ],
-    [handleApprove, handleReject, expandedEmails, toggleExpandEmail, canManageRequests]
+    [
+      handleApprove,
+      handleReject,
+      expandedEmails,
+      toggleExpandEmail,
+      canManageRequests,
+    ]
   );
 
   return (
@@ -406,9 +413,18 @@ const MemberRequestsContent: React.FC<{ orgSlug: string }> = ({
 const MemberRequestsPage: React.FC = () => {
   const params = useParams();
   const org_slug = params.org_slug as string;
+  const { groups, activeGroup } = useUser();
+  const { hasAnyPermissionInActiveGroup } = useRBAC();
+  const currentOrg = useMemo(
+    () => groups?.find(group => group.organizationSlug === org_slug),
+    [groups, org_slug]
+  );
+  const canViewRoute =
+    currentOrg?.id === activeGroup?.id &&
+    hasAnyPermissionInActiveGroup(['MEMBER_VIEW']);
 
   return (
-    <PermissionGuard requiredPermissionsInActiveGroup={['MEMBER_VIEW']}>
+    <PermissionGuard customCheck={() => canViewRoute}>
       <MemberRequestsContent orgSlug={org_slug} />
     </PermissionGuard>
   );
