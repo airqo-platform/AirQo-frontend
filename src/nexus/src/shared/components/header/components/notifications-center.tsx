@@ -34,6 +34,7 @@ import {
   notificationService,
 } from '@/shared/services/notificationService';
 import { useUser } from '@/shared/hooks/useUser';
+import { useUserActions } from '@/shared/hooks/useUserActions';
 import { effectiveOrgSlug } from '@/shared/lib/org-slug';
 import type { NormalizedGroup } from '@/shared/utils/userUtils';
 import type {
@@ -112,12 +113,23 @@ const getStringValue = (value: unknown): string | null => {
   return trimmedValue || null;
 };
 
-const getAccessRequestLink = (
+const ACCESS_REQUEST_CREATED_EVENT = 'access_request.created';
+
+type AccessRequestTarget = {
+  group: NormalizedGroup;
+  requestId: string;
+};
+
+const getAccessRequestTarget = (
   notification: Notification,
   groups: NormalizedGroup[]
-): string | null => {
-  const existingLink = getSafeNotificationLink(notification.link);
-  if (notification.category !== 'access_request') return existingLink;
+): AccessRequestTarget | null => {
+  if (
+    notification.category !== 'access_request' ||
+    notification.event !== ACCESS_REQUEST_CREATED_EVENT
+  ) {
+    return null;
+  }
 
   const metadata = notification.metadata;
   const requestId =
@@ -131,10 +143,20 @@ const getAccessRequestLink = (
   const group = groupId
     ? groups.find(candidate => candidate.id === groupId)
     : undefined;
-  const organizationSlug = group ? effectiveOrgSlug(group) : null;
 
-  if (requestId && organizationSlug) {
-    return `/org/${encodeURIComponent(organizationSlug)}/member-requests?request_id=${encodeURIComponent(requestId)}`;
+  return requestId && group ? { group, requestId } : null;
+};
+
+const getAccessRequestLink = (
+  notification: Notification,
+  groups: NormalizedGroup[]
+): string | null => {
+  const existingLink = getSafeNotificationLink(notification.link);
+  const target = getAccessRequestTarget(notification, groups);
+  const organizationSlug = target ? effectiveOrgSlug(target.group) : null;
+
+  if (target && organizationSlug) {
+    return `/org/${encodeURIComponent(organizationSlug)}/member-requests?request_id=${encodeURIComponent(target.requestId)}`;
   }
 
   // Keep older notifications usable when they predate the request/group
@@ -273,7 +295,8 @@ const NotificationSkeleton = () => (
 
 export const NotificationsCenter: React.FC = () => {
   const { status } = useSession();
-  const { groups } = useUser();
+  const { groups, activeGroup } = useUser();
+  const { switchGroup } = useUserActions();
   const router = useRouter();
   const queryClient = useQueryClient();
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -460,9 +483,16 @@ export const NotificationsCenter: React.FC = () => {
         }
       }
 
+      const accessRequestTarget = getAccessRequestTarget(notification, groups);
       const link = getAccessRequestLink(notification, groups);
       if (!link) return;
       if (link.startsWith('/')) {
+        if (
+          accessRequestTarget &&
+          activeGroup?.id !== accessRequestTarget.group.id
+        ) {
+          switchGroup(accessRequestTarget.group);
+        }
         closeDrawer();
         router.push(link);
         return;
@@ -470,7 +500,14 @@ export const NotificationsCenter: React.FC = () => {
 
       window.open(link, '_blank', 'noopener,noreferrer');
     },
-    [closeDrawer, groups, markReadMutation, router]
+    [
+      activeGroup?.id,
+      closeDrawer,
+      groups,
+      markReadMutation,
+      router,
+      switchGroup,
+    ]
   );
 
   const unreadCount = unreadQuery.data ?? 0;
