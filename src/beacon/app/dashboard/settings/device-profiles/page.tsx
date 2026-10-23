@@ -15,7 +15,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "@/components/ui/use-toast";
+import { cn } from "@/lib/utils";
 import {
   Layers,
   Plus,
@@ -34,6 +36,8 @@ import {
   Activity,
   Zap,
   ShieldAlert,
+  LayoutGrid,
+  List,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useGroup } from "@/lib/group-context";
@@ -48,6 +52,8 @@ export default function DeviceProfilesCatalogPage() {
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
+  // The catalog is a table by default; cards remain as an alternative view
+  const [viewMode, setViewMode] = useState<"table" | "cards">("table");
 
   // Register Modal (Header & Metadata only)
   const [registerModalOpen, setRegisterModalOpen] = useState<boolean>(false);
@@ -308,6 +314,34 @@ export default function DeviceProfilesCatalogPage() {
               </SelectContent>
             </Select>
           </div>
+
+          {/* View toggle */}
+          <div className="inline-flex rounded-md border border-gray-200 bg-slate-50/70 p-0.5 text-xs" role="group" aria-label="Catalog view">
+            <button
+              type="button"
+              onClick={() => setViewMode("table")}
+              aria-pressed={viewMode === "table"}
+              title="Table view"
+              className={cn(
+                "inline-flex items-center gap-1 px-2 py-1 rounded-sm transition-colors",
+                viewMode === "table" ? "bg-white text-primary font-semibold shadow-2xs" : "text-gray-500 hover:text-gray-700"
+              )}
+            >
+              <List className="w-3.5 h-3.5" /> Table
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode("cards")}
+              aria-pressed={viewMode === "cards"}
+              title="Card view"
+              className={cn(
+                "inline-flex items-center gap-1 px-2 py-1 rounded-sm transition-colors",
+                viewMode === "cards" ? "bg-white text-primary font-semibold shadow-2xs" : "text-gray-500 hover:text-gray-700"
+              )}
+            >
+              <LayoutGrid className="w-3.5 h-3.5" /> Cards
+            </button>
+          </div>
         </div>
       </div>
 
@@ -331,6 +365,133 @@ export default function DeviceProfilesCatalogPage() {
               <Plus className="w-3.5 h-3.5" /> Register First Profile
             </Button>
           </div>
+        </div>
+      ) : viewMode === "table" ? (
+        <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-2xs">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-slate-50/60">
+                <TableHead>Profile</TableHead>
+                <TableHead>Vendor</TableHead>
+                <TableHead>Category</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Slots</TableHead>
+                <TableHead className="text-right">Subsystems</TableHead>
+                <TableHead className="text-right">Relations</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredProfiles.map((prof) => {
+                const completeness = getProfileCompleteness(prof);
+                const slotCount =
+                  Object.keys(prof.telemetry_mappings || {}).length +
+                  Object.keys(prof.config_mappings || {}).length +
+                  Object.keys(prof.metadata_mappings || {}).length;
+                const subsystemCount = prof.components?.length || 0;
+                const relCount = prof.relationships?.length || 0;
+                const vendorName = getVendorName(prof.vendor);
+                const href = `/dashboard/settings/device-profiles/${prof.id}`;
+                const count = (value: number, tone: string) => (
+                  <span className={cn("text-xs font-bold tabular-nums", value > 0 ? tone : "text-amber-600")}>{value}</span>
+                );
+
+                return (
+                  <TableRow
+                    key={prof.id}
+                    className={cn("cursor-pointer", !completeness.isComplete && "bg-amber-50/20")}
+                    onClick={() => router.push(href)}
+                  >
+                    <TableCell className="max-w-xs">
+                      <Link
+                        href={href}
+                        onClick={(e) => e.stopPropagation()}
+                        className="text-sm font-bold text-gray-900 hover:text-primary transition-colors"
+                      >
+                        {prof.name}
+                      </Link>
+                      <p className="text-[11px] text-gray-500 truncate" title={prof.description || undefined}>
+                        {prof.description || "No description provided."}
+                      </p>
+                    </TableCell>
+                    <TableCell className="text-xs text-gray-700 whitespace-nowrap">
+                      {vendorName ? (
+                        <span className="inline-flex items-center gap-1">
+                          <Building2 className="w-3 h-3 text-gray-400" />
+                          {vendorName}
+                        </span>
+                      ) : (
+                        <span className="text-gray-400">—</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <Badge
+                        variant="secondary"
+                        className="text-[9px] uppercase font-semibold text-gray-600 bg-slate-100 border-slate-200 whitespace-nowrap"
+                      >
+                        {prof.category.replace(/_/g, " ")}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {completeness.isComplete ? (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200 whitespace-nowrap">
+                          <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                          Complete
+                        </span>
+                      ) : (
+                        <div className="space-y-0.5">
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200 whitespace-nowrap">
+                            <AlertTriangle className="w-3 h-3 text-amber-600" />
+                            Incomplete
+                          </span>
+                          <p className="text-[11px] text-amber-800 max-w-[14rem]">
+                            <span className="font-semibold">Missing:</span> {completeness.missingItems.join(", ")}
+                          </p>
+                        </div>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right">{count(slotCount, "text-blue-600")}</TableCell>
+                    <TableCell className="text-right">{count(subsystemCount, "text-gray-900")}</TableCell>
+                    <TableCell className="text-right">{count(relCount, "text-purple-600")}</TableCell>
+                    <TableCell className="text-right">
+                      <div className="inline-flex items-center justify-end gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => handleExportJSON(e, prof)}
+                          className="h-7 text-xs text-gray-600 hover:text-gray-900 p-1.5"
+                          title="Export JSON"
+                        >
+                          <Download className="w-3.5 h-3.5" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => handleDeleteProfile(e, prof)}
+                          className="h-7 text-xs text-rose-500 hover:text-rose-700 p-1.5"
+                          title="Delete Profile"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          asChild
+                          className={cn(
+                            "h-7 text-xs text-white gap-1 shadow-2xs font-semibold",
+                            completeness.isComplete ? "bg-primary hover:bg-primary/90" : "bg-amber-600 hover:bg-amber-700"
+                          )}
+                        >
+                          <Link href={href} onClick={(e) => e.stopPropagation()}>
+                            {completeness.isComplete ? "View Specs" : "Complete Setup"} <ArrowRight className="w-3 h-3" />
+                          </Link>
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
