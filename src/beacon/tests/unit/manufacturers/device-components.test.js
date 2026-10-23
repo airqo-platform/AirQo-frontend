@@ -125,3 +125,33 @@ test("DeviceDetailsTab explains a device with no data path", () => {
   assert.match(html, /no way to read this device yet/)
   assert.doesNotMatch(html, /Read Key/)
 })
+
+test("ManufacturerProfilesTable lists profiles as rows with readiness, components and issue counts", async () => {
+  const { ManufacturerProfilesTable } = await import("@/components/devices/manufacturer-profiles-table")
+  const html = render(
+    React.createElement(ManufacturerProfilesTable, {
+      profiles: [
+        {
+          name: "iqair_lowcost", network: "iqair", category: "lowcost", profile_id: "p-iqair", diagnosable: true,
+          components: ["pm_sensor", "data_link"], transmission_components: ["data_link"], errors: [],
+          warnings: ["gas_sensor.co2 has no telemetry mapping"],
+        },
+        {
+          name: "airgradient_lowcost", network: "airgradient", category: "lowcost", profile_id: "p-ag", diagnosable: false,
+          components: [], transmission_components: [], errors: ["No component metric is mapped"], warnings: [],
+        },
+      ],
+    })
+  )
+  assert.match(html, /<table/)
+  // Ordered by manufacturer label: AirGradient before IQAir
+  assert.ok(html.indexOf("airgradient_lowcost") < html.indexOf("iqair_lowcost"))
+  assert.match(html, /Not diagnosable/)
+  assert.match(html, />Diagnosable</)
+  assert.match(html, /data_link/)
+  assert.match(html, /No component model/)
+  assert.match(html, /Show iqair_lowcost details/)
+  assert.match(html, /device-profiles\/p-iqair/)
+  // Details stay collapsed until a row is expanded
+  assert.doesNotMatch(html, /has no telemetry mapping/)
+})

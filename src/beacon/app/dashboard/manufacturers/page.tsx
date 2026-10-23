@@ -12,6 +12,8 @@ import {
   DownloadCloud,
   ExternalLink,
   Factory,
+  LayoutGrid,
+  List,
   Radio,
   RefreshCw,
   Rss,
@@ -29,12 +31,13 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { SummaryCard } from "@/components/dashboard/summary-card"
 import { ManufacturerBadge } from "@/components/devices/manufacturer-badge"
+import { ManufacturerProfilesTable, sortProfiles } from "@/components/devices/manufacturer-profiles-table"
 import { useToast } from "@/hooks/use-toast"
 import { useNavigationAccess } from "@/hooks/use-navigation-access"
 import { MANUFACTURER_PROFILES_QUERY_KEY, NETWORKS_QUERY_KEY, useManufacturerProfiles, useNetworks } from "@/hooks/use-networks"
 import { networkService } from "@/services/network.service"
-import { formatNetworkLabel, normalizeNetwork } from "@/lib/manufacturers"
-import { formatCategoryLabel } from "@/lib/utils"
+import { normalizeNetwork } from "@/lib/manufacturers"
+import { cn, formatCategoryLabel } from "@/lib/utils"
 import { ROUTES } from "@/lib/navigation"
 import type { NetworkProfileReadiness, NetworkSummary } from "@/types/network.types"
 
@@ -143,6 +146,7 @@ export default function ManufacturersPage() {
   const networksQuery = useNetworks()
   const profilesQuery = useManufacturerProfiles()
   const [backfillDays, setBackfillDays] = useState(14)
+  const [profilesView, setProfilesView] = useState<"table" | "cards">("table")
 
   const networks = networksQuery.data ?? NO_NETWORKS
   const profiles = profilesQuery.data ?? NO_PROFILES
@@ -534,21 +538,43 @@ export default function ManufacturersPage() {
 
       {/* Manufacturer profiles */}
       <div className="space-y-3">
-        <div>
-          <h2 className="text-base font-semibold text-gray-900 flex items-center gap-2">
-            <Stethoscope className="w-4 h-4 text-primary" /> Diagnostic readiness
-          </h2>
-          <p className="text-xs text-gray-500 mt-0.5">
-            One profile per manufacturer and equipment type, as the diagnostic engine sees it. Devices from a manufacturer
-            are diagnosed once their profile is diagnosable and a full day of readings exists.
-          </p>
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+          <div>
+            <h2 className="text-base font-semibold text-gray-900 flex items-center gap-2">
+              <Stethoscope className="w-4 h-4 text-primary" /> Diagnostic readiness
+            </h2>
+            <p className="text-xs text-gray-500 mt-0.5">
+              One profile per manufacturer and equipment type, as the diagnostic engine sees it. Devices from a manufacturer
+              are diagnosed once their profile is diagnosable and a full day of readings exists.
+            </p>
+          </div>
+          <div className="inline-flex self-start rounded-md border bg-white p-0.5 text-xs" role="group" aria-label="Profiles view">
+            <button
+              type="button"
+              onClick={() => setProfilesView("table")}
+              aria-pressed={profilesView === "table"}
+              className={cn(
+                "inline-flex items-center gap-1 px-2 py-1 rounded-sm transition-colors",
+                profilesView === "table" ? "bg-primary/10 text-primary font-medium" : "text-gray-500 hover:text-gray-700"
+              )}
+            >
+              <List className="h-3.5 w-3.5" /> Table
+            </button>
+            <button
+              type="button"
+              onClick={() => setProfilesView("cards")}
+              aria-pressed={profilesView === "cards"}
+              className={cn(
+                "inline-flex items-center gap-1 px-2 py-1 rounded-sm transition-colors",
+                profilesView === "cards" ? "bg-primary/10 text-primary font-medium" : "text-gray-500 hover:text-gray-700"
+              )}
+            >
+              <LayoutGrid className="h-3.5 w-3.5" /> Cards
+            </button>
+          </div>
         </div>
         {profilesQuery.isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-            <Skeleton className="h-44 rounded-xl" />
-            <Skeleton className="h-44 rounded-xl" />
-            <Skeleton className="h-44 rounded-xl" />
-          </div>
+          <Skeleton className="h-56 w-full rounded-xl" />
         ) : profilesQuery.error ? (
           <Card className="p-6 text-center border-dashed">
             <AlertTriangle className="w-8 h-8 text-amber-500 mx-auto mb-2" />
@@ -562,13 +588,13 @@ export default function ManufacturersPage() {
           <Card className="p-6 text-center border-dashed text-sm text-gray-500">
             No manufacturer profiles yet.{canMaintainDevices ? " Use “Seed manufacturer profiles” above to create them." : ""}
           </Card>
+        ) : profilesView === "table" ? (
+          <ManufacturerProfilesTable profiles={profiles} />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-            {[...profiles]
-              .sort((a, b) => formatNetworkLabel(a.network).localeCompare(formatNetworkLabel(b.network)) || a.name.localeCompare(b.name))
-              .map((profile) => (
-                <ProfileReadinessCard key={profile.profile_id || profile.name} profile={profile} />
-              ))}
+            {sortProfiles(profiles).map((profile) => (
+              <ProfileReadinessCard key={profile.profile_id || profile.name} profile={profile} />
+            ))}
           </div>
         )}
       </div>

@@ -14,6 +14,7 @@ const EXTENSIONS = [".ts", ".tsx", ".js", ".jsx", ".mjs"]
 const STUBS = {
   "next/navigation": path.join(HERE, "stubs/next-navigation.mjs"),
   "next/dynamic": path.join(HERE, "stubs/next-dynamic.mjs"),
+  "next/link": path.join(HERE, "stubs/next-link.mjs"),
 }
 
 const isFile = (candidate) => existsSync(candidate) && statSync(candidate).isFile()
