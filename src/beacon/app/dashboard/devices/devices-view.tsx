@@ -52,8 +52,10 @@ import { ROUTES } from "@/lib/navigation"
 import { useNetworks } from "@/hooks/use-networks"
 import {
   buildNetworkFilterOptions,
+  buildNetworkFilterOptionsFromDevices,
   getDeviceSourceIdentifier,
   matchesNetworkFilter,
+  pruneNetworkSelection,
   serializeNetworkFilter,
 } from "@/lib/manufacturers"
 import { ManufacturerBadge } from "@/components/devices/manufacturer-badge"
@@ -120,9 +122,24 @@ export default function DevicesView({ scope }: Readonly<{ scope: DeviceScope }>)
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(25)
 
-  // Manufacturer filter options come from GET /networks/ (name + fleet-wide device count)
-  const { data: networks = [], isLoading: networksLoading } = useNetworks({ enabled: !groupLoading && Boolean(activeGroup) })
-  const manufacturerOptions = useMemo(() => buildNetworkFilterOptions(networks), [networks])
+  // Manufacturer filter options: GET /networks/ scoped to the active organisation (the same
+  // `group` the device list sends), re-fetched when the organisation changes. My Devices is
+  // filtered in memory, so its options are counted from the devices themselves.
+  const networksQuery = useNetworks({
+    group: activeGroup,
+    onlyWithDevices: true,
+    enabled: !groupLoading && Boolean(activeGroup) && deviceScope === "org",
+  })
+  const networksLoading = deviceScope === "org" ? networksQuery.isLoading : myDevicesLoading
+  const manufacturerOptions = useMemo(
+    () =>
+      deviceScope === "org"
+        ? buildNetworkFilterOptions(networksQuery.data)
+        : buildNetworkFilterOptionsFromDevices(myDevices),
+    [deviceScope, networksQuery.data, myDevices]
+  )
+  // True once the options belong to the current organisation, not a loading or stale list
+  const manufacturerOptionsReady = deviceScope === "org" ? networksQuery.isSuccess : !myDevicesLoading
 
   // Derived loading and error states based on active scope
   const isDataLoading = deviceScope === "org" ? loading : myDevicesLoading
@@ -457,6 +474,17 @@ export default function DevicesView({ scope }: Readonly<{ scope: DeviceScope }>)
     setNetworkFilter(selected)
     setCurrentPage(1) // The result set changes, so start from the first page
   }, [])
+
+  // After an organisation switch, drop manufacturers the new organisation doesn't have, so a
+  // stale selection can't filter the list down to nothing
+  useEffect(() => {
+    if (!manufacturerOptionsReady || networkFilter.length === 0) return
+    const pruned = pruneNetworkSelection(networkFilter, manufacturerOptions)
+    if (pruned !== networkFilter) {
+      setNetworkFilter(pruned)
+      setCurrentPage(1)
+    }
+  }, [manufacturerOptionsReady, manufacturerOptions, networkFilter])
 
   // Get firmware badge info
   const getFirmwareBadge = useCallback((currentFirmware: string | undefined, targetFirmware: string | undefined, downloadState: string | undefined) => {

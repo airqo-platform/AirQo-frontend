@@ -390,8 +390,9 @@ export default function ManufacturersPage() {
             <Database className="w-4 h-4 text-primary" /> Manufacturers
           </CardTitle>
           <CardDescription className="text-xs">
-            Counts cover every mirrored device. A manufacturer seen on devices but not yet synced from the platform has
-            no platform record.
+            Fleet-wide view: counts cover every mirrored device across all organisations (the device list&apos;s manufacturer
+            filter is scoped to the active organisation). A manufacturer seen on devices but not yet synced from the
+            platform has no platform record.
           </CardDescription>
         </CardHeader>
         <CardContent className="p-0">

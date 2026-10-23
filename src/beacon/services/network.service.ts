@@ -4,6 +4,7 @@ import authService from "@/services/api-service"
 import { isMockMode, getMockNetworks, getMockNetworkProfiles } from "@/lib/mock-data"
 import type {
   DataSyncTriggerResponse,
+  NetworkListParams,
   NetworkListResponse,
   NetworkProfileReadiness,
   NetworkProfileSeedResponse,
@@ -44,6 +45,16 @@ const buildHeaders = (requireAuth: boolean): HeadersInit => {
   return headers
 }
 
+/** Query string for GET /networks/: counts on by default, scoped to an organisation when a group is given. */
+export const buildNetworksQuery = (params: NetworkListParams = {}): string => {
+  const query = new URLSearchParams()
+  query.set("include_counts", params.includeCounts === false ? "false" : "true")
+  const group = params.group?.trim()
+  if (group) query.set("group", group)
+  if (params.onlyWithDevices) query.set("only_with_devices", "true")
+  return query.toString()
+}
+
 const parseResponse = async <T>(response: Response, context: string): Promise<T> => {
   if (response.ok) {
     return (await response.json()) as T
@@ -72,14 +83,14 @@ class NetworkService {
     return parseResponse<T>(response, context)
   }
 
-  /** Networks beacon knows, each with its mirrored, deployed, online and readable device counts. */
-  async getNetworks(params: { includeCounts?: boolean } = {}): Promise<NetworkSummary[]> {
+  /**
+   * Networks beacon knows, each with its mirrored, deployed, online and readable device counts.
+   * With `group` the counts cover only that organisation's devices (same group resolution as
+   * the device list); without it they are fleet-wide.
+   */
+  async getNetworks(params: NetworkListParams = {}): Promise<NetworkSummary[]> {
     if (isMockMode()) return getMockNetworks()
-    const includeCounts = params.includeCounts ?? true
-    const response = await this.request<NetworkListResponse>(
-      `/networks/?include_counts=${includeCounts ? "true" : "false"}`,
-      "Fetching manufacturers"
-    )
+    const response = await this.request<NetworkListResponse>(`/networks/?${buildNetworksQuery(params)}`, "Fetching manufacturers")
     return Array.isArray(response?.networks) ? response.networks : []
   }
 
@@ -125,7 +136,7 @@ class NetworkService {
 
 export const networkService = new NetworkService()
 
-export const getNetworks = (params?: { includeCounts?: boolean }) => networkService.getNetworks(params)
+export const getNetworks = (params?: NetworkListParams) => networkService.getNetworks(params)
 export const syncNetworks = () => networkService.syncNetworks()
 export const getManufacturerProfiles = () => networkService.getManufacturerProfiles()
 export const seedManufacturerProfiles = () => networkService.seedManufacturerProfiles()

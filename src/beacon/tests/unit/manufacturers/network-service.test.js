@@ -109,3 +109,31 @@ test("API errors surface the server's detail message and status", async () => {
     (err) => err instanceof NetworkApiError && err.status === 400 && err.message === "Error fetching data from platform"
   )
 })
+
+test("getNetworks scopes the counts to an organisation when a group is given", async () => {
+  withToken(null)
+  const calls = withFetch(() => jsonResponse({ success: true, message: "ok", total: 1, scoped_to_group: true, networks: [] }))
+
+  await networkService.getNetworks({ group: "caanary_stream", onlyWithDevices: true })
+  await networkService.getNetworks({ group: "  ", onlyWithDevices: false })
+
+  const scoped = new URL(calls[0].url)
+  assert.equal(scoped.pathname.endsWith("/networks/"), true)
+  assert.equal(scoped.searchParams.get("include_counts"), "true")
+  assert.equal(scoped.searchParams.get("group"), "caanary_stream")
+  assert.equal(scoped.searchParams.get("only_with_devices"), "true")
+
+  const fleet = new URL(calls[1].url)
+  assert.equal(fleet.searchParams.has("group"), false, "a blank group means the whole fleet")
+  assert.equal(fleet.searchParams.has("only_with_devices"), false)
+})
+
+test("buildNetworksQuery encodes the listing parameters", async () => {
+  const { buildNetworksQuery } = await import("@/services/network.service")
+  assert.equal(buildNetworksQuery(), "include_counts=true")
+  assert.equal(buildNetworksQuery({ includeCounts: false }), "include_counts=false")
+  assert.equal(
+    buildNetworksQuery({ group: "airqo,kcca group", onlyWithDevices: true }),
+    "include_counts=true&group=airqo%2Ckcca+group&only_with_devices=true"
+  )
+})

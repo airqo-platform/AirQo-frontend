@@ -199,6 +199,30 @@ export function buildNetworkFilterOptions(networks: readonly NetworkSummary[] | 
   return Array.from(byValue.values()).sort((a, b) => b.count - a.count || a.label.localeCompare(b.label))
 }
 
+/** Filter options from devices already in memory (e.g. My Devices), counted per manufacturer. */
+export function buildNetworkFilterOptionsFromDevices(
+  devices: ReadonlyArray<{ network?: string | null }> | null | undefined
+): NetworkFilterOption[] {
+  const counts = new Map<string, number>()
+  for (const device of devices ?? []) {
+    const value = normalizeNetwork(device.network)
+    if (value) counts.set(value, (counts.get(value) ?? 0) + 1)
+  }
+  return Array.from(counts, ([value, count]) => ({ value, label: formatNetworkLabel(value), count, enabled: true })).sort(
+    (a, b) => b.count - a.count || a.label.localeCompare(b.label)
+  )
+}
+
+/**
+ * Drops selected manufacturers that are not among the available options, e.g. after switching
+ * organisation. Returns the same array when nothing changes, so callers can compare by reference.
+ */
+export function pruneNetworkSelection(selected: readonly string[], options: readonly NetworkFilterOption[]): string[] {
+  const available = new Set(options.map((option) => option.value))
+  const kept = selected.filter((network) => available.has(normalizeNetwork(network)))
+  return kept.length === selected.length ? (selected as string[]) : kept
+}
+
 /** In-memory counterpart of the API's `network` filter, for lists that are not server-paginated. */
 export function matchesNetworkFilter(network: string | null | undefined, selected: readonly string[]): boolean {
   if (selected.length === 0) return true

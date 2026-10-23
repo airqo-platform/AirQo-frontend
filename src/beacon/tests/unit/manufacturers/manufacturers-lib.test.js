@@ -88,3 +88,37 @@ test("buildNetworkFilterOptions merges case variants and sorts busiest first", (
   )
   assert.deepEqual(buildNetworkFilterOptions(null), [])
 })
+
+test("buildNetworkFilterOptionsFromDevices counts devices per manufacturer", async () => {
+  const { buildNetworkFilterOptionsFromDevices } = await import("@/lib/manufacturers")
+  const options = buildNetworkFilterOptionsFromDevices([
+    { network: "airqo" },
+    { network: "AirQo" },
+    { network: "iqair" },
+    { network: "" },
+    { network: null },
+  ])
+  assert.deepEqual(
+    options.map((o) => [o.value, o.label, o.count]),
+    [
+      ["airqo", "AirQo", 2],
+      ["iqair", "IQAir", 1],
+    ]
+  )
+  assert.deepEqual(buildNetworkFilterOptionsFromDevices(undefined), [])
+})
+
+test("pruneNetworkSelection drops manufacturers the organisation doesn't have", async () => {
+  const { pruneNetworkSelection } = await import("@/lib/manufacturers")
+  const options = [
+    { value: "airqo", label: "AirQo", count: 15, enabled: true },
+    { value: "kcca", label: "KCCA", count: 2, enabled: true },
+  ]
+  const unchanged = ["airqo", "kcca"]
+  assert.equal(pruneNetworkSelection(unchanged, options), unchanged, "same reference when nothing is dropped")
+  assert.deepEqual(pruneNetworkSelection(["airqo", "iqair"], options), ["airqo"])
+  assert.deepEqual(pruneNetworkSelection(["IQAir"], options), [])
+  assert.deepEqual(pruneNetworkSelection(["airqo"], []), [])
+  const empty = []
+  assert.equal(pruneNetworkSelection(empty, options), empty)
+})

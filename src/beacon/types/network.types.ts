@@ -29,11 +29,22 @@ export interface NetworkSummary {
   external_api_devices: number
 }
 
+export interface NetworkListParams {
+  /** Attach per-network device counts (default true) */
+  includeCounts?: boolean
+  /** Comma-separated group title(s); scopes the counts to that organisation's devices */
+  group?: string | null
+  /** Drop networks with no device in scope, for a manufacturer filter */
+  onlyWithDevices?: boolean
+}
+
 export interface NetworkListResponse {
   success: boolean
   message: string
   total: number
   networks: NetworkSummary[]
+  /** Counts are limited to the requested organisation's devices; older API builds omit it */
+  scoped_to_group?: boolean
 }
 
 export interface NetworkSyncResponse {
