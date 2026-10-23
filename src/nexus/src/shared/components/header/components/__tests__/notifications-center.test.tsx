@@ -19,6 +19,17 @@ jest.mock('next/navigation', () => ({
   useRouter: () => ({ push: mockPush }),
 }));
 
+jest.mock('@/shared/hooks/useUser', () => ({
+  useUser: () => ({
+    groups: [
+      {
+        id: 'group-1',
+        organizationSlug: 'nairobi-breathe-cities-initiative-caf',
+      },
+    ],
+  }),
+}));
+
 jest.mock('@/shared/services/notificationService', () => ({
   NOTIFICATIONS_INBOX_QUERY_KEY: ['notifications', 'inbox'],
   NOTIFICATIONS_PAGE_SIZE: 20,
@@ -48,6 +59,17 @@ const notification = {
   priority: 'normal',
   read: false,
   createdAt: new Date().toISOString(),
+};
+
+const accessRequestNotification = {
+  ...notification,
+  _id: 'notification-access-request',
+  event: 'access_request.created',
+  title: 'New access request',
+  message: 'A user requested access to your organization.',
+  link: null,
+  request_id: 'request-123',
+  group_id: 'group-1',
 };
 
 const renderCenter = () => {
@@ -120,6 +142,34 @@ describe('NotificationsCenter', () => {
     await waitFor(() => {
       expect(mockMarkNotificationAsRead).toHaveBeenCalledWith('notification-1');
       expect(mockPush).toHaveBeenCalledWith('/analytics');
+    });
+  });
+
+  it('opens access-request notifications in the matching organization', async () => {
+    const user = userEvent.setup();
+    mockGetUnreadCount.mockResolvedValue(1);
+    mockListNotifications.mockResolvedValue({
+      success: true,
+      message: 'success',
+      notifications: [accessRequestNotification],
+      meta: { total: 1, unread: 1, skip: 0, limit: 20, page: 1, pages: 1 },
+    });
+
+    renderCenter();
+
+    await user.click(
+      await screen.findByRole('button', { name: 'Notifications, 1 unread' })
+    );
+    await user.click(
+      await screen.findByRole('button', {
+        name: 'Read notification: New access request',
+      })
+    );
+
+    await waitFor(() => {
+      expect(mockPush).toHaveBeenCalledWith(
+        '/org/nairobi-breathe-cities-initiative-caf/member-requests?request_id=request-123'
+      );
     });
   });
 });
