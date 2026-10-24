@@ -139,7 +139,7 @@ describe('errorMessages', () => {
         expect(result).toBe('Server error. Please try again later.');
       });
 
-      it('returns status 403 mapped message', () => {
+      it('returns the generic access-denied text for a 403 with no backend message', () => {
         const axiosError = {
           isAxiosError: true,
           response: {
@@ -151,6 +151,30 @@ describe('errorMessages', () => {
         expect(result).toBe(
           'Access denied. You do not have permission to perform this action.'
         );
+      });
+
+      it('prefers a specific backend response.data.message over the 403 status mapping', () => {
+        const axiosError = {
+          isAxiosError: true,
+          response: {
+            status: 403,
+            data: { message: 'Specific backend reason' },
+          },
+        };
+        const result = getUserFriendlyErrorMessage(axiosError);
+        expect(result).toBe('Specific backend reason');
+      });
+
+      it('prefers a specific backend message over the 400 status mapping', () => {
+        const axiosError = {
+          isAxiosError: true,
+          response: {
+            status: 400,
+            data: { message: 'Duplicate sensor serial number' },
+          },
+        };
+        const result = getUserFriendlyErrorMessage(axiosError);
+        expect(result).toBe('Duplicate sensor serial number');
       });
     });
 

@@ -10,6 +10,7 @@ const mockListNotifications = jest.fn();
 const mockMarkNotificationAsRead = jest.fn();
 const mockMarkAllNotificationsAsRead = jest.fn();
 const mockDeleteNotification = jest.fn();
+const mockSwitchGroup = jest.fn();
 
 jest.mock('next-auth/react', () => ({
   useSession: () => ({ status: 'authenticated' }),
@@ -17,6 +18,28 @@ jest.mock('next-auth/react', () => ({
 
 jest.mock('next/navigation', () => ({
   useRouter: () => ({ push: mockPush }),
+}));
+
+jest.mock('@/shared/hooks/useUser', () => ({
+  useUser: () => ({
+    groups: [
+      {
+        id: 'group-1',
+        title: 'Nairobi Breathe Cities Initiative',
+        organizationSlug: 'nairobi-breathe-cities-initiative-caf',
+      },
+      {
+        id: 'group-2',
+        title: 'Kampala Organization',
+        organizationSlug: 'kampala-organization',
+      },
+    ],
+    activeGroup: { id: 'group-1' },
+  }),
+}));
+
+jest.mock('@/shared/hooks/useUserActions', () => ({
+  useUserActions: () => ({ switchGroup: mockSwitchGroup }),
 }));
 
 jest.mock('@/shared/services/notificationService', () => ({
@@ -45,9 +68,22 @@ const notification = {
   title: 'Access request approved',
   message: 'You can now access the organization.',
   link: '/analytics',
+  request_id: 'approved-request-123',
+  group_id: 'group-1',
   priority: 'normal',
   read: false,
   createdAt: new Date().toISOString(),
+};
+
+const accessRequestNotification = {
+  ...notification,
+  _id: 'notification-access-request',
+  event: 'access_request.created',
+  title: 'New access request',
+  message: 'A user requested access to your organization.',
+  link: null,
+  request_id: 'request-123',
+  group_id: 'group-1',
 };
 
 const renderCenter = () => {
@@ -120,6 +156,69 @@ describe('NotificationsCenter', () => {
     await waitFor(() => {
       expect(mockMarkNotificationAsRead).toHaveBeenCalledWith('notification-1');
       expect(mockPush).toHaveBeenCalledWith('/analytics');
+    });
+  });
+
+  it('opens access-request notifications in the matching organization', async () => {
+    const user = userEvent.setup();
+    mockGetUnreadCount.mockResolvedValue(1);
+    mockListNotifications.mockResolvedValue({
+      success: true,
+      message: 'success',
+      notifications: [accessRequestNotification],
+      meta: { total: 1, unread: 1, skip: 0, limit: 20, page: 1, pages: 1 },
+    });
+
+    renderCenter();
+
+    await user.click(
+      await screen.findByRole('button', { name: 'Notifications, 1 unread' })
+    );
+    await user.click(
+      await screen.findByRole('button', {
+        name: 'Read notification: New access request',
+      })
+    );
+
+    await waitFor(() => {
+      expect(mockPush).toHaveBeenCalledWith(
+        '/org/nairobi-breathe-cities-initiative-caf/member-requests?request_id=request-123'
+      );
+    });
+  });
+
+  it('switches to another notification organization before opening its request', async () => {
+    const user = userEvent.setup();
+    mockListNotifications.mockResolvedValue({
+      success: true,
+      message: 'success',
+      notifications: [
+        {
+          ...accessRequestNotification,
+          group_id: 'group-2',
+        },
+      ],
+      meta: { total: 1, unread: 1, skip: 0, limit: 20, page: 1, pages: 1 },
+    });
+
+    renderCenter();
+
+    await user.click(
+      await screen.findByRole('button', { name: 'Notifications, 1 unread' })
+    );
+    await user.click(
+      await screen.findByRole('button', {
+        name: 'Read notification: New access request',
+      })
+    );
+
+    await waitFor(() => {
+      expect(mockSwitchGroup).toHaveBeenCalledWith(
+        expect.objectContaining({ id: 'group-2' })
+      );
+      expect(mockPush).toHaveBeenCalledWith(
+        '/org/kampala-organization/member-requests?request_id=request-123'
+      );
     });
   });
 });

@@ -273,19 +273,23 @@ const ReusableDialog: React.FC<ReusableDialogProps> = ({
 
     return (
       <div className="flex items-center justify-between w-full">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 min-w-0">
           {Icon && (
             <div
-              className={`flex h-10 w-10 items-center justify-center rounded-full ${iconBgColor}`}
+              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${iconBgColor}`}
             >
               <Icon className={`h-5 w-5 ${iconColor}`} />
             </div>
           )}
           {(title || subtitle) && (
-            <div>
-              {title && <h2 className="text-lg text-foreground">{title}</h2>}
+            <div className="min-w-0">
+              {title && (
+                <h2 className="min-w-0 break-words text-lg text-foreground">
+                  {title}
+                </h2>
+              )}
               {subtitle && (
-                <p className="text-xs text-muted-foreground mt-0.5">
+                <p className="min-w-0 break-words text-xs text-muted-foreground mt-0.5">
                   {subtitle}
                 </p>
               )}
