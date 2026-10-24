@@ -1,5 +1,5 @@
 # Optimized multi-stage build for minimal size
-FROM node:20-alpine AS base
+FROM node:24-alpine AS base
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
@@ -36,7 +36,7 @@ COPY . .
 RUN npm run build
 
 # Ultra-minimal runtime - ONLY standalone output
-FROM node:20-alpine AS runner
+FROM node:24-alpine AS runner
 ENV NODE_ENV=production
 WORKDIR /app
 
