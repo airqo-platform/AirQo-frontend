@@ -19,23 +19,31 @@ import { PermissionGuard } from '@/shared/components';
 import type { GroupJoinRequest } from '@/shared/types/api';
 import { ErrorBanner } from '@/shared/components/ui/banner';
 import { useParams } from 'next/navigation';
+import { useRBAC } from '@/shared/hooks';
 
-const MemberRequestsPage: React.FC = () => {
-  const params = useParams();
-  const org_slug = params.org_slug as string;
-  const { groups } = useUser();
+/**
+ * Member requests for one organization: table, search/pagination and the
+ * approve/reject flow. Every hook lives here so they only run when the
+ * PermissionGuard shell below allows this component to mount — a viewer
+ * without MEMBER_VIEW never issues the join-requests fetch.
+ */
+const MemberRequestsContent: React.FC<{ orgSlug: string }> = ({ orgSlug }) => {
+  const { groups, activeGroup } = useUser();
+  const { hasAnyPermissionInActiveGroup } = useRBAC();
 
   // Get the current organization from slug
   const currentOrg = useMemo(() => {
-    return groups?.find(g => g.organizationSlug === org_slug);
-  }, [groups, org_slug]);
+    return groups?.find(g => g.organizationSlug === orgSlug);
+  }, [groups, orgSlug]);
+
+  const canManageRequests =
+    currentOrg?.id === activeGroup?.id &&
+    hasAnyPermissionInActiveGroup(['MEMBER_INVITE']);
 
   // Utility function to format group name
   const formatGroupName = (name: string | undefined): string => {
-    if (!name) return 'THE GROUP';
-    return name
-      .replace(/[_-]/g, ' ') // Replace underscores and hyphens with spaces
-      .toUpperCase(); // Convert to uppercase
+    if (!name) return 'this organization';
+    return name.replace(/[_-]/g, ' '); // Replace underscores and hyphens with spaces
   };
 
   // Pagination and search states for ServerSideTable
@@ -269,6 +277,14 @@ const MemberRequestsPage: React.FC = () => {
             );
           }
 
+          if (!canManageRequests) {
+            return (
+              <span className="text-xs sm:text-sm text-muted-foreground whitespace-nowrap">
+                View only
+              </span>
+            );
+          }
+
           const userName = request.user
             ? `${request.user.firstName} ${request.user.lastName}`
             : request.email;
@@ -297,11 +313,17 @@ const MemberRequestsPage: React.FC = () => {
         },
       },
     ],
-    [handleApprove, handleReject, expandedEmails, toggleExpandEmail]
+    [
+      handleApprove,
+      handleReject,
+      expandedEmails,
+      toggleExpandEmail,
+      canManageRequests,
+    ]
   );
 
   return (
-    <PermissionGuard requiredPermissionsInActiveGroup={['MEMBER_VIEW']}>
+    <>
       {error && (!requestsData || requestsData.success !== true) ? (
         <ErrorBanner
           title="Failed to load member requests"
@@ -316,12 +338,12 @@ const MemberRequestsPage: React.FC = () => {
         <>
           {/* Page Header */}
           <PageHeading
-            title="MEMBER REQUESTS"
+            title="Member Requests"
             subtitle={`Manage membership requests for ${formatGroupName(currentOrg?.title)}`}
           />
 
           {/* Member Requests Table */}
-          <div className="w-full max-w-full overflow-hidden">
+          <div className="w-full max-w-full overflow-x-auto">
             <ServerSideTable
               title="Member Requests"
               data={tableData}
@@ -379,6 +401,31 @@ const MemberRequestsPage: React.FC = () => {
           </ReusableDialog>
         </>
       )}
+    </>
+  );
+};
+
+/**
+ * Guard shell: reads the route param and defers every hook to
+ * MemberRequestsContent, which mounts only when PermissionGuard allows it —
+ * a member without MEMBER_VIEW never issues the join-requests fetch.
+ */
+const MemberRequestsPage: React.FC = () => {
+  const params = useParams();
+  const org_slug = params.org_slug as string;
+  const { groups, activeGroup } = useUser();
+  const { hasAnyPermissionInActiveGroup } = useRBAC();
+  const currentOrg = useMemo(
+    () => groups?.find(group => group.organizationSlug === org_slug),
+    [groups, org_slug]
+  );
+  const canViewRoute =
+    currentOrg?.id === activeGroup?.id &&
+    hasAnyPermissionInActiveGroup(['MEMBER_VIEW']);
+
+  return (
+    <PermissionGuard customCheck={() => canViewRoute}>
+      <MemberRequestsContent orgSlug={org_slug} />
     </PermissionGuard>
   );
 };

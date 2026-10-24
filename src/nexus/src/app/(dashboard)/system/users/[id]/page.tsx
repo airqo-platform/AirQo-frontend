@@ -5,20 +5,13 @@ import { useParams, useRouter } from 'next/navigation';
 import {
   Button,
   Card,
-  Dialog,
   ErrorBanner,
-  Input,
   LoadingState,
   PageHeading,
-  Select,
   toast,
 } from '@/shared/components/ui';
 import { PermissionGuard } from '@/shared/components';
-import {
-  useRolesSummary,
-  useUpdateUserRole,
-  useUserDetails,
-} from '@/shared/hooks';
+import { useRolesSummary, useUserDetails } from '@/shared/hooks';
 import {
   AqChevronLeft,
   AqRefreshCw05,
@@ -31,8 +24,9 @@ import {
   isForbiddenError,
 } from '@/shared/utils/errorMessages';
 import { AccessDenied } from '@/shared/components/AccessDenied';
-import { SEARCH_TERM_MAX } from '@/shared/lib/validation-limits';
 import { refreshWithToast } from '@/shared/utils/refreshWithToast';
+import UserRoleAssignmentDialog from '@/shared/components/UserRoleAssignmentDialog';
+import { getRoleGroupOptions } from '@/shared/utils/roleGrouping';
 
 const UserDetailPage: React.FC = () => {
   const params = useParams();
@@ -51,31 +45,18 @@ const UserDetailPage: React.FC = () => {
     error: rolesError,
     mutate: mutateRoles,
   } = useRolesSummary();
-  const updateUserRole = useUpdateUserRole();
 
   const [isRoleDialogOpen, setIsRoleDialogOpen] = useState(false);
-  const [selectedRoleId, setSelectedRoleId] = useState('');
-  const [roleSearch, setRoleSearch] = useState('');
 
   const user = userResponse?.users?.[0];
   const availableRoles = useMemo(
     () => rolesResponse?.roles || [],
     [rolesResponse?.roles]
   );
-
-  const filteredRoles = useMemo(() => {
-    const q = roleSearch.trim().toLowerCase();
-    if (!q) return availableRoles;
-    return availableRoles.filter(r => {
-      const name = (r.role_name || '').toLowerCase();
-      const group = (r.group?.grp_title || '').toLowerCase();
-      return name.includes(q) || group.includes(q);
-    });
-  }, [availableRoles, roleSearch]);
-
-  const primaryRoleId = useMemo(() => {
-    return user?.networks?.[0]?.role?._id || user?.groups?.[0]?.role?._id || '';
-  }, [user]);
+  const roleGroups = useMemo(
+    () => getRoleGroupOptions(availableRoles),
+    [availableRoles]
+  );
 
   const currentRoleEntries = useMemo(() => {
     const entries: Array<{
@@ -99,11 +80,6 @@ const UserDetailPage: React.FC = () => {
 
   const currentPermissions = user?.permissions || [];
 
-  const selectedRole = useMemo(
-    () => availableRoles.find(role => role._id === selectedRoleId),
-    [availableRoles, selectedRoleId]
-  );
-
   const handleBack = useCallback(() => {
     router.push('/system/users');
   }, [router]);
@@ -118,32 +94,6 @@ const UserDetailPage: React.FC = () => {
       toast.error(getUserFriendlyErrorMessage(error));
     }
   }, [mutateRoles, mutateUser]);
-
-  const openRoleDialog = useCallback(() => {
-    setSelectedRoleId(primaryRoleId);
-    setRoleSearch('');
-    setIsRoleDialogOpen(true);
-  }, [primaryRoleId]);
-
-  const handleUpdateRole = async () => {
-    if (!selectedRoleId) {
-      toast.error('Please select a role');
-      return;
-    }
-
-    try {
-      await updateUserRole.trigger({
-        userId,
-        roleId: selectedRoleId,
-      });
-
-      toast.success('User role updated successfully');
-      setIsRoleDialogOpen(false);
-      await Promise.all([mutateUser(), mutateRoles()]);
-    } catch (error) {
-      toast.error(getUserFriendlyErrorMessage(error));
-    }
-  };
 
   return (
     <PermissionGuard
@@ -304,10 +254,10 @@ const UserDetailPage: React.FC = () => {
                 ) : (
                   <Button
                     variant="outlined"
-                    onClick={openRoleDialog}
+                    onClick={() => setIsRoleDialogOpen(true)}
                     fullWidth
                     loading={rolesLoading}
-                    disabled={rolesLoading || availableRoles.length === 0}
+                    disabled={rolesLoading || roleGroups.length === 0}
                   >
                     Change Role
                   </Button>
@@ -342,7 +292,7 @@ const UserDetailPage: React.FC = () => {
                 <div>
                   <h3 className="text-lg font-semibold">Current Access</h3>
                   <p className="text-sm text-muted-foreground">
-                    Roles inherited from groups
+                    Roles assigned in groups
                   </p>
                 </div>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -404,89 +354,15 @@ const UserDetailPage: React.FC = () => {
             </Card>
           </div>
 
-          <Dialog
+          <UserRoleAssignmentDialog
             isOpen={isRoleDialogOpen}
+            user={user ?? null}
+            roles={availableRoles}
             onClose={() => setIsRoleDialogOpen(false)}
-            title="Update User Role"
-            primaryAction={{
-              label: 'Update Role',
-              onClick: handleUpdateRole,
-              disabled: updateUserRole.isMutating || !selectedRoleId,
-              loading: updateUserRole.isMutating,
+            onSuccess={async () => {
+              await Promise.all([mutateUser(), mutateRoles()]);
             }}
-            secondaryAction={{
-              label: 'Cancel',
-              onClick: () => setIsRoleDialogOpen(false),
-              disabled: updateUserRole.isMutating,
-              variant: 'outlined',
-            }}
-          >
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Select Role *
-                </label>
-                <Input
-                  value={roleSearch}
-                  onChange={e => setRoleSearch(e.target.value)}
-                  placeholder="Search roles or groups..."
-                  maxLength={SEARCH_TERM_MAX}
-                  containerClassName="!mb-2"
-                  className="w-full"
-                />
-                <Select
-                  value={selectedRoleId}
-                  onChange={e =>
-                    setSelectedRoleId(
-                      ((e as React.ChangeEvent<HTMLSelectElement>)?.target
-                        ?.value as string) || ''
-                    )
-                  }
-                  placeholder="Choose a role..."
-                  disabled={rolesLoading}
-                >
-                  {filteredRoles.map(role => (
-                    <option key={role._id} value={role._id}>
-                      {role.role_name} - {role.group?.grp_title || 'No group'}
-                    </option>
-                  ))}
-                </Select>
-                {rolesLoading && (
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    Loading all selectable roles...
-                  </p>
-                )}
-              </div>
-
-              {selectedRole && (
-                <div className="rounded-lg border bg-muted/30 p-4 space-y-3">
-                  <div>
-                    <p className="text-sm font-medium">Selected Role</p>
-                    <p className="text-sm text-muted-foreground">
-                      {selectedRole.role_name}
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {selectedRole.group?.grp_title || 'No group'}
-                    </p>
-                  </div>
-
-                  <div>
-                    <p className="text-sm font-medium mb-2">Permissions</p>
-                    <div className="flex flex-wrap gap-2">
-                      {(selectedRole.role_permissions || []).map(permission => (
-                        <span
-                          key={permission._id}
-                          className="px-2 py-1 rounded-full text-xs bg-primary/10 text-primary"
-                        >
-                          {permission.permission}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </Dialog>
+          />
         </div>
       )}
     </PermissionGuard>

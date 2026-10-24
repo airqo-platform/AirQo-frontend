@@ -1,6 +1,7 @@
 import {
   AqHomeSmile,
   AqUser03,
+  AqBuilding07,
   AqGlobe05,
   AqDownload01,
   AqUsers01,
@@ -295,6 +296,18 @@ const systemSidebarConfig: NavGroup[] = [
         href: '/system/org-requests',
         icon: AqClipboardCheck,
       },
+      {
+        id: 'system-organizations',
+        label: 'Organizations',
+        href: '/system/organizations',
+        icon: AqBuilding07,
+      },
+      {
+        id: 'system-activity-log',
+        label: 'Activity Log',
+        href: '/system/activity-log',
+        icon: AqClipboardCheck,
+      },
     ],
   },
   {
@@ -456,6 +469,18 @@ const globalSidebarConfig: NavGroup[] = [
             label: 'Organization Requests',
             href: '/system/org-requests',
             description: 'Manage organization requests across the platform',
+          },
+          {
+            id: 'system-organizations',
+            label: 'Organizations',
+            href: '/system/organizations',
+            description: 'View and manage organizations across the platform',
+          },
+          {
+            id: 'system-activity-log',
+            label: 'Activity Log',
+            href: '/system/activity-log',
+            description: 'Audit membership changes across organizations',
           },
           {
             id: 'system-feedback',

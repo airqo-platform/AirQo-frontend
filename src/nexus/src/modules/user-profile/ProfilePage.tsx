@@ -4,11 +4,12 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { ProfileForm, SecurityTab, OrgInvitesTab } from './components';
-// API + Subscription tabs moved to the dedicated Console page (/user/console).
+import { ApiClientPage } from '../api-client';
 import ThemeManager from '../themes/components/ThemeManager';
 import {
   AqUserCircle,
   AqLock02,
+  AqKey01,
   AqPalette,
   AqPresentationChart02,
 } from '@airqo/icons-react';
@@ -26,16 +27,14 @@ interface ExtendedSessionUser {
   image?: string | null;
 }
 
-// API (2) and Subscription (3) moved to /console; their params are
-// intentionally omitted here so they never resolve to a local tab. Legacy deep
-// links ?tab=api / ?tab=subscription are redirected client-side to the new
-// Console page (see the redirect effect below) instead of silently falling
-// back to default tab 0. All other tab params behave as before.
-const LEGACY_CONSOLE_TABS = ['api', 'subscription'];
+// Subscription moved to /console. The API tab remains available on Profile,
+// while legacy subscription links still redirect to the dedicated Console.
+const LEGACY_CONSOLE_TABS = ['subscription'];
 
 const TAB_PARAM_MAP: Record<string, number> = {
   profile: 0,
   security: 1,
+  api: 2,
   'org-invites': 4,
   theme: 5,
   usage: 6,
@@ -57,8 +56,8 @@ const ProfilePage: React.FC = () => {
   const sessionUser = session?.user as ExtendedSessionUser | undefined;
   const userId = sessionUser?._id || sessionUser?.id;
 
-  // Legacy deep links for the retired API/Subscription tabs: redirect to the
-  // dedicated Console page. useEffect only runs client-side (SSR-safe), and the
+  // Legacy subscription deep links redirect to the dedicated Console page.
+  // This effect only runs client-side (SSR-safe), and the
   // ref makes the replace fire at most once so no redirect loop can occur.
   const redirectedRef = useRef(false);
   useEffect(() => {
@@ -108,7 +107,7 @@ const ProfilePage: React.FC = () => {
       component: userId ? () => <ProfileForm userId={userId} /> : null,
     },
     { id: 1, title: 'Security', component: () => <SecurityTab /> },
-    // API (2) and Subscription (3) moved to /user/console — kept commented, not deleted.
+    { id: 2, title: 'API', component: () => <ApiClientPage /> },
     { id: 4, title: 'Team Invites', component: () => <OrgInvitesTab /> },
     { id: 5, title: 'Theme', component: () => <ThemeManager /> },
     {
@@ -145,6 +144,9 @@ const ProfilePage: React.FC = () => {
                   )}
                   {tab.id === 1 && (
                     <AqLock02 size={14} className="sm:w-4 sm:h-4" />
+                  )}
+                  {tab.id === 2 && (
+                    <AqKey01 size={14} className="sm:w-4 sm:h-4" />
                   )}
                   {tab.id === 4 && (
                     <AqUserCircle size={14} className="sm:w-4 sm:h-4" />

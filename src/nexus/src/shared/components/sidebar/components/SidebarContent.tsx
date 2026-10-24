@@ -61,9 +61,9 @@ export const SidebarContent: React.FC<SidebarContentProps> = ({
                 if (item.id === 'org-members') {
                   return hasAnyPermissionInActiveGroup(['MEMBER_VIEW']);
                 }
-                // Member Requests require MEMBER_INVITE
+                // Member Requests require MEMBER_VIEW to match the page guard
                 if (item.id === 'org-member-requests') {
-                  return hasAnyPermissionInActiveGroup(['MEMBER_INVITE']);
+                  return hasAnyPermissionInActiveGroup(['MEMBER_VIEW']);
                 }
                 // Roles & Permissions require ROLE_VIEW
                 if (item.id === 'org-roles') {

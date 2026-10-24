@@ -16,6 +16,7 @@ export interface Notification {
   message: string;
   link?: string | null;
   priority: NotificationPriority | string;
+  request_id?: string | null;
   group_id?: string | null;
   sender_id?: string | null;
   broadcast_id?: string | null;
