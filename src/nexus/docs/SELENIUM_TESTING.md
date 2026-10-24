@@ -88,7 +88,7 @@ platform/
 
 ### Prerequisites
 
-1. Node.js 18+
+1. Node.js 24+
 2. Chrome browser (default)
 3. App running at `http://localhost:3000`
 
@@ -464,7 +464,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
       - uses: browser-actions/setup-chrome@latest
       - name: Install e2e dependencies
         working-directory: src/platform/e2e
