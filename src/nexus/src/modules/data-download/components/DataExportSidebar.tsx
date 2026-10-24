@@ -90,6 +90,14 @@ const FieldLabel = ({
   </span>
 );
 
+const MinimumResolutionNotice = () => (
+  <WarningBanner
+    dense
+    title="Hourly is the finest resolution available"
+    message="Nexus exports do not support minute-level or finer data."
+  />
+);
+
 export const DataExportSidebar: React.FC<DataExportSidebarProps> = ({
   fileTitle,
   setFileTitle,
@@ -268,7 +276,7 @@ export const DataExportSidebar: React.FC<DataExportSidebarProps> = ({
             )}
           </div>
 
-      {/* Download Limit Notice — only show when the active frequency cap is exceeded */}
+          {/* Download Limit Notice — only show when the active frequency cap is exceeded */}
           {showDownloadLimitNotice && (
             <WarningBanner
               title="Date Range Exceeds Export Limit"
@@ -356,6 +364,7 @@ export const DataExportSidebar: React.FC<DataExportSidebarProps> = ({
               placeholder="Select frequency"
               showLabel={false}
             />
+            <MinimumResolutionNotice />
           </div>
         </div>
       </aside>
@@ -524,6 +533,7 @@ export const DataExportSidebar: React.FC<DataExportSidebarProps> = ({
                 placeholder="Select frequency"
                 showLabel={false}
               />
+              <MinimumResolutionNotice />
             </div>
           </div>
         </div>
