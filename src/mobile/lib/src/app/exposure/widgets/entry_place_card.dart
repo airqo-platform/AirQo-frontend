@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:airqo/src/app/dashboard/models/user_preferences_model.dart';
+import 'package:airqo/src/app/shared/utils/monitor_place_label.dart';
 import 'package:airqo/src/app/exposure/bloc/declared_places_cubit.dart';
 import 'package:airqo/src/app/exposure/widgets/dashed_rounded_rect_border.dart';
 import 'package:airqo/src/app/exposure/widgets/label_picker_sheet.dart';
@@ -34,7 +35,7 @@ class EntryPlaceCard extends StatelessWidget {
           children: [
             // ── Location name ────────────────────────────────────────────
             Text(
-              site.visibleName,
+              selectedSiteSpokenTitle(site, site.visibleName),
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.w700,
@@ -45,7 +46,7 @@ class EntryPlaceCard extends StatelessWidget {
             const SizedBox(height: 4),
             // ── Subtitle ─────────────────────────────────────────────────
             Text(
-              site.visibleSearchName,
+              selectedSiteSpokenQuietLine(site, site.visibleSearchName),
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w400,

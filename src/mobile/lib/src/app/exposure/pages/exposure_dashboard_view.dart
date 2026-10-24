@@ -25,6 +25,7 @@ import 'package:airqo/src/app/map/bloc/map_bloc.dart';
 import 'package:airqo/src/app/map/utils/map_measurement_filter.dart';
 import 'package:airqo/src/app/shared/widgets/empty_state_view.dart';
 import 'package:airqo/src/app/shared/widgets/system_glyph.dart';
+import 'package:airqo/src/app/shared/utils/monitor_place_label.dart';
 import 'package:airqo/src/app/shared/utils/saved_places_content_status.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 
@@ -83,13 +84,14 @@ List<ExposureFavoriteItem> exposureFavoritesForDashboard(
       ExposureFavoriteItem(
         site: site,
         declaredPlace: declaredBySiteId[site.id]?.copyWith(
-          // Dashboard Favorite cards use searchName as their visible title.
-          // Keep Exposure identical while retaining the canonical monitor
-          // name separately for hourly API response matching.
-          locationName:
-              site.searchName.trim().isEmpty ? site.name : site.searchName,
+          // The large title matches the dashboard card. The canonical monitor
+          // name stays on monitorName for hourly API response matching.
+          locationName: selectedSiteSpokenTitle(
+            site,
+            site.searchName.trim().isEmpty ? site.name : site.searchName,
+          ),
           monitorName: site.name,
-          city: site.geographicCity,
+          city: selectedSiteSpokenQuietLine(site, site.geographicCity),
         ),
       ),
   ];
@@ -126,12 +128,18 @@ List<TripNetworkSite> tripNetworkSitesFromMapState(
     sites[id] = TripNetworkSite(
       site: SelectedSite(
         id: id,
+        // name stays search_name so the flag-off picker title is unchanged.
         name: details.searchName ?? details.name ?? 'AirQo location',
         searchName: details.locationName ??
             details.formattedName ??
             details.city ??
             country,
+        catalogName: details.name,
+        catalogSearchName: details.searchName,
+        generatedName: details.generatedName,
         city: details.city,
+        region: details.region,
+        county: details.county,
         latitude: latitude,
         longitude: longitude,
       ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:loggy/loggy.dart';
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
+import 'package:airqo/src/app/shared/utils/monitor_place_label.dart';
 import 'package:airqo/src/app/dashboard/pages/forecast_overview_page.dart';
 import 'package:airqo/src/app/dashboard/widgets/measurement_card_tour.dart';
 import 'package:airqo/src/app/dashboard/widgets/measurement_card_action_strip.dart';
@@ -156,11 +157,12 @@ class _NearbyMeasurementCardState extends State<NearbyMeasurementCard>
       locationParts.add(siteDetails.country!);
     }
 
-    return locationParts.isNotEmpty
+    final description = locationParts.isNotEmpty
         ? locationParts.join(", ")
         : siteDetails.locationName ??
             siteDetails.formattedName ??
             "Unknown location";
+    return measurementSpokenQuietLine(measurement, description);
   }
 
   Color _getAqiColor(Measurement measurement) {
@@ -195,10 +197,13 @@ class _NearbyMeasurementCardState extends State<NearbyMeasurementCard>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        measurement.siteDetails?.searchName ??
-                            measurement.siteDetails?.name ??
-                            widget.fallbackLocationName ??
-                            "---",
+                        measurementSpokenTitle(
+                          measurement,
+                          measurement.siteDetails?.searchName ??
+                              measurement.siteDetails?.name ??
+                              widget.fallbackLocationName ??
+                              "---",
+                        ),
                         style: TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.w700,
