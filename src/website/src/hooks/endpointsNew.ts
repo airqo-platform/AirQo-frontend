@@ -22,6 +22,7 @@ import {
   gridsService,
   highlightsService,
   impactNumbersService,
+  livePublicationsService,
   networkCoverageService,
   partnersService,
   predictService,
@@ -29,6 +30,7 @@ import {
   publicationsService,
   teamService,
 } from '@/services/website';
+import type { LivePublicationsResponse } from '@/types/publications-feed';
 
 type ServiceQueryOptions<T> = Omit<
   UseQueryOptions<T, Error, T, QueryKey>,
@@ -258,6 +260,20 @@ export const usePublications = (params?: {
     },
   );
 };
+
+// External scholarly metadata feed. Credentials remain server-side in the route.
+export const useLivePublications = (
+  params?: { page?: number; page_size?: number },
+  queryOptions?: ServiceQueryOptions<LivePublicationsResponse>,
+) =>
+  useServiceQuery(
+    apiQueryKeys.livePublications(params),
+    () => livePublicationsService.getLivePublications(params || {}),
+    {
+      staleTime: 6 * 60 * 60 * 1000,
+      ...queryOptions,
+    },
+  );
 
 // Board Members
 export const useBoardMembers = (params?: {
