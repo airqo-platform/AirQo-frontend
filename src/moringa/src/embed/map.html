@@ -1,0 +1,2053 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Air Quality Map</title>
+  <!-- The parent website owns the browser tab icon when this map is embedded.
+       A neutral icon also prevents the standalone map from using /favicon.ico. -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3C/svg%3E" />
+
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+  />
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""
+  ></script>
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #f8fafc;
+    }
+
+    #map {
+      height: 100vh;
+      width: 100%;
+    }
+
+    .search-bar {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      z-index: 1000;
+      display: flex;
+      gap: 6px;
+    }
+
+    .search-bar input {
+      padding: 5px 10px;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      height: 30px;
+      min-width: 230px;
+    }
+
+    .search-bar button {
+      padding: 5px 12px;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      background-color: #0f52ba;
+      color: white;
+      cursor: pointer;
+      font-size: 15px;
+    }
+
+    #search-results {
+      position: absolute;
+      top: 60px;
+      right: 10px;
+      width: 260px;
+      max-height: 320px;
+      overflow-y: auto;
+      background-color: #fff;
+      border: 1px solid #d0d5dd;
+      border-radius: 8px;
+      z-index: 1000;
+      display: none;
+      box-shadow: 0 12px 30px rgba(15, 23, 42, 0.16);
+    }
+
+    .search-result {
+      padding: 10px;
+      border-bottom: 1px solid #eef2f6;
+      cursor: pointer;
+      font-size: 14px;
+      color: #101828;
+    }
+
+    .search-result:hover {
+      background-color: #f8f8f8;
+    }
+
+    .heatmap-control,
+    .site-values-control {
+      display: flex;
+      width: 38px;
+      height: 38px;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      border: 1px solid #dbe3ee;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.96);
+      box-shadow: 0 6px 18px rgba(15, 23, 42, 0.16);
+      color: #344054;
+      cursor: pointer;
+      backdrop-filter: blur(6px);
+    }
+
+    .heatmap-control svg,
+    .site-values-control svg {
+      width: 27px;
+      height: 27px;
+    }
+
+    .heatmap-control.is-hidden {
+      display: none;
+    }
+
+    .heatmap-control:hover,
+    .site-values-control:hover {
+      background: #ffffff;
+    }
+
+    .heatmap-control:focus-visible,
+    .site-values-control:focus-visible {
+      outline: 3px solid #2563eb;
+      outline-offset: 2px;
+    }
+
+    .heatmap-control.is-loading {
+      cursor: wait;
+      opacity: 0.72;
+    }
+
+    .heatmap-control.is-active,
+    .site-values-control.is-active {
+      border-color: #93c5fd;
+      background: #eff6ff;
+      color: #1d4ed8;
+    }
+
+    .heatmap-control.is-error {
+      border-color: #fda4af;
+      background: #fff1f2;
+      color: #be123c;
+    }
+
+    .custom-marker {
+      background: transparent;
+      border: none;
+    }
+
+    .custom-marker .airqo-marker-icon {
+      display: flex;
+      width: 30px;
+      height: 30px;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid #ffffff;
+      border-radius: 50%;
+      filter: drop-shadow(0 5px 7px rgba(15, 23, 42, 0.28));
+      transition: transform 160ms ease, filter 160ms ease;
+    }
+
+    .airqo-marker-value {
+      display: none;
+      font: 700 11px/1 Arial, Helvetica, sans-serif;
+      white-space: nowrap;
+      text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);
+    }
+
+    #map.show-site-values .airqo-marker-value {
+      display: block;
+    }
+
+    .custom-marker:hover .airqo-marker-icon {
+      transform: scale(1.12);
+      filter: drop-shadow(0 7px 10px rgba(15, 23, 42, 0.34));
+    }
+
+    .airqo-marker-tooltip {
+      min-width: 160px;
+      padding: 0;
+      overflow: hidden;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.98);
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.2);
+    }
+
+    .airqo-marker-tooltip::before {
+      border-top-color: #ffffff;
+    }
+
+    .airqo-marker-popup .leaflet-popup-content-wrapper {
+      padding: 0;
+      overflow: hidden;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.98);
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.2);
+    }
+
+    .airqo-marker-popup .leaflet-popup-content {
+      min-width: 160px;
+      margin: 0;
+    }
+
+    .airqo-marker-popup .leaflet-popup-tip {
+      background: #ffffff;
+    }
+
+    .airqo-marker-popup .leaflet-popup-close-button {
+      top: 3px;
+      right: 3px;
+      color: #667085;
+    }
+
+    .marker-tooltip-content {
+      padding: 9px 10px;
+      color: #344054;
+      font-size: 11px;
+      line-height: 1.45;
+    }
+
+    .marker-tooltip-site {
+      display: block;
+      margin-bottom: 5px;
+      color: #101828;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .marker-tooltip-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .marker-tooltip-row strong {
+      color: #101828;
+    }
+
+    .marker-tooltip-aqi {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-weight: 700;
+    }
+
+    .marker-tooltip-dot {
+      width: 8px;
+      height: 8px;
+      flex: 0 0 8px;
+      border-radius: 50%;
+    }
+
+    .legend {
+      width: 43px;
+      min-width: 0;
+      padding: 8px;
+      overflow: hidden;
+      font-family: Arial, Helvetica, sans-serif;
+      background: rgba(255, 255, 255, 0.96);
+      border: 1px solid rgba(226, 232, 240, 0.95);
+      border-radius: 12px;
+      box-shadow: 0 10px 28px rgba(15, 23, 42, 0.18);
+      backdrop-filter: blur(7px);
+      transition: width 220ms ease, padding 220ms ease;
+    }
+
+    .legend:hover,
+    .legend:focus-within {
+      width: 214px;
+      padding: 12px;
+    }
+
+    .legend-title {
+      display: none;
+      margin-bottom: 9px;
+      color: #101828;
+      font-size: 15px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .legend:hover .legend-title,
+    .legend:focus-within .legend-title {
+      display: block;
+    }
+
+    .legend-subtitle {
+      display: block;
+      margin-top: 2px;
+      color: #667085;
+      font-size: 10px;
+      font-weight: 500;
+    }
+
+    .legend ul {
+      display: grid;
+      gap: 5px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .legend li {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      min-height: 26px;
+      color: #344054;
+      font-size: 12px;
+      font-weight: 600;
+      line-height: 1.2;
+    }
+
+    .legend-label {
+      width: 0;
+      overflow: hidden;
+      opacity: 0;
+      white-space: nowrap;
+      transition: width 220ms ease, margin-left 220ms ease, opacity 140ms ease;
+    }
+
+    .legend:hover .legend-label,
+    .legend:focus-within .legend-label {
+      width: 170px;
+      margin-left: 8px;
+      opacity: 1;
+    }
+
+    .legend-icon-wrap {
+      display: flex;
+      width: 18px;
+      height: 18px;
+      flex: 0 0 18px;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid transparent;
+      border-radius: 50%;
+      background: #f2f4f7;
+    }
+
+    .legend-icon {
+      display: none;
+    }
+
+    #forecast-panel {
+      position: absolute;
+      top: 78px;
+      right: 16px;
+      left: auto;
+      z-index: 999;
+      width: 390px;
+      max-width: calc(100vw - 32px);
+      max-height: calc(100vh - 110px);
+      overflow-y: auto;
+      background: rgba(255, 255, 255, 0.97);
+      border: 1px solid #e4e7ec;
+      border-radius: 18px;
+      box-shadow: 0 18px 40px rgba(15, 23, 42, 0.18);
+      display: none;
+    }
+
+    .forecast-header {
+      padding: 16px;
+      border-bottom: 1px solid #eef2f6;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .forecast-site-name {
+      margin: 0;
+      font-size: 17px;
+      color: #101828;
+    }
+
+    .forecast-subtitle {
+      margin: 4px 0 0;
+      font-size: 15px;
+      font-weight: 400;
+      line-height: 1.5;
+      color: #344054;
+    }
+
+    .forecast-subtitle sub {
+      font-size: 70%;
+    }
+
+    .live-pm25-value {
+      color: #101828;
+      font-weight: 800;
+    }
+
+    .live-pm25-unit {
+      font-weight: 400;
+    }
+
+    .live-aqi {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .live-aqi-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      box-shadow: 0 0 0 0 currentColor;
+      animation: aqi-pulse 1.4s ease-out infinite;
+    }
+
+    .live-aqi-category {
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 400;
+      text-transform: none;
+    }
+
+    @keyframes aqi-pulse {
+      0% { box-shadow: 0 0 0 0 currentColor; }
+      70% { box-shadow: 0 0 0 6px transparent; }
+      100% { box-shadow: 0 0 0 0 transparent; }
+    }
+
+    .forecast-close {
+      width: 30px;
+      height: 30px;
+      border: none;
+      border-radius: 50%;
+      background: #f2f4f7;
+      color: #344054;
+      cursor: pointer;
+      font-size: 18px;
+    }
+
+    .forecast-content {
+      padding: 14px 16px 16px;
+    }
+
+    .forecast-section-title {
+      margin: 0 0 10px;
+      font-size: 13px;
+      color: #344054;
+      font-weight: 800;
+      letter-spacing: 0.3px;
+    }
+
+    .forecast-days {
+      display: flex;
+      gap: 7px;
+      overflow-x: auto;
+      padding: 2px 0 8px;
+    }
+
+    .forecast-day-card {
+      min-width: 50px;
+      height: 88px;
+      border-radius: 24px;
+      border: 1.5px solid #f2c15f;
+      background: #fffdf8;
+      text-align: center;
+      color: #111827;
+      cursor: pointer;
+      box-shadow: 0 3px 8px rgba(16, 24, 40, 0.05);
+    }
+
+    .forecast-day-card.active {
+      background: #3478f6;
+      color: #ffffff;
+      border-color: #3478f6;
+    }
+
+    .forecast-dow {
+      padding-top: 7px;
+      font-size: 10px;
+      font-weight: 800;
+    }
+
+    .forecast-date-num {
+      font-size: 10px;
+      font-weight: 900;
+      line-height: 1;
+    }
+
+    .forecast-icon-wrap {
+      width: 16px;
+      height: 16px;
+      margin: 6px auto 2px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #f2f4f7;
+      border: 1px solid transparent;
+    }
+
+    .forecast-icon {
+      display: none;
+    }
+
+    .forecast-pm25 {
+      font-size: 15px;
+      font-weight: 900;
+      line-height: 1.15;
+    }
+
+    #forecast-detail {
+      margin-top: 8px;
+      background: #ffffff;
+      border: 1px solid #e6eaf2;
+      border-radius: 14px;
+      padding: 12px;
+      color: #344054;
+      font-size: 13px;
+    }
+
+    .aqi-pill {
+      display: inline-block;
+      padding: 4px 9px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+      margin-left: 6px;
+    }
+    .forecast-date-header {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      margin-bottom: 10px;
+    }
+
+    .forecast-calendar-date {
+      display: inline-grid;
+      width: 42px;
+      overflow: hidden;
+      border: 1px solid #dbe3ee;
+      border-radius: 8px;
+      background: #ffffff;
+      box-shadow: 0 2px 5px rgba(15, 23, 42, 0.08);
+      text-align: center;
+      flex: 0 0 42px;
+    }
+
+    .forecast-calendar-month {
+      padding: 2px 0;
+      background: #3478f6;
+      color: #ffffff;
+      font-size: 9px;
+      font-weight: 900;
+      line-height: 1.1;
+      text-transform: uppercase;
+    }
+
+    .forecast-calendar-day {
+      padding: 3px 0 2px;
+      color: #101828;
+      font-size: 18px;
+      font-weight: 900;
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+    }
+
+
+    .forecast-detail-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .forecast-metric {
+      min-width: 0;
+      padding: 10px 11px;
+      border: 1px solid #e4e7ec;
+      border-radius: 11px;
+      background: #f8fafc;
+    }
+
+    .forecast-metric span {
+      display: block;
+      color: #667085;
+      font-size: 11px;
+      margin-bottom: 4px;
+    }
+
+    .forecast-metric strong {
+      display: block;
+      color: #101828;
+      font-size: 13px;
+      font-weight: 800;
+      line-height: 1.3;
+      white-space: nowrap;
+    }
+
+    .forecast-confidence {
+      grid-column: 1 / -1;
+      padding: 10px;
+      border: 1px solid #dbe4f0;
+      border-radius: 11px;
+      background: #f8fafc;
+    }
+
+    .confidence-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      color: #344054;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .confidence-header strong {
+      color: #101828;
+      font-size: 14px;
+    }
+
+    .confidence-track {
+      height: 7px;
+      margin: 7px 0 6px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: #e4e7ec;
+    }
+
+    .confidence-fill {
+      height: 100%;
+      border-radius: inherit;
+      transition: width 300ms ease;
+    }
+
+    .confidence-description {
+      margin: 0;
+      color: #667085;
+      font-size: 10px;
+      line-height: 1.45;
+    }
+
+    .met-title {
+      margin: 12px 0 7px;
+      color: #101828;
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .met-row {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 6px;
+    }
+
+    .met-item {
+      display: flex;
+      min-width: 0;
+      padding: 7px 3px;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid #e4e7ec;
+      border-radius: 8px;
+      background: #f8fafc;
+      text-align: center;
+    }
+
+    .met-icon {
+      display: flex;
+      width: 20px;
+      height: 20px;
+      margin: 0 auto 5px;
+      flex: 0 0 20px;
+      align-items: center;
+      justify-content: center;
+      border-radius: 5px;
+      background: #ffffff;
+      color: #64748b;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+      font-size: 12px;
+    }
+
+    .met-value {
+      display: block;
+      overflow: hidden;
+      color: #101828;
+      font-size: 9px;
+      font-weight: 800;
+      line-height: 1.2;
+      text-overflow: ellipsis;
+      white-space: normal;
+    }
+
+    .forecast-guidance {
+      margin-top: 10px;
+      padding: 9px 10px 10px;
+      border: 1px solid #f4c36a;
+      border-radius: 7px;
+      background: #fff8eb;
+      color: #344054;
+      font-size: 11px;
+      line-height: 1.55;
+    }
+
+    .forecast-guidance-title {
+      display: block;
+      margin-bottom: 3px;
+      color: #64748b;
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: 0.35px;
+      text-transform: uppercase;
+    }
+
+    .forecast-guidance-text {
+      margin: 0;
+    }
+
+    .forecast-detail-grid > .forecast-guidance {
+      grid-column: 1 / -1;
+      margin-top: 0;
+    }
+    .forecast-collapse {
+      display: block;
+    }
+
+    .forecast-collapse summary {
+      display: none;
+    }
+
+    .forecast-collapse-body {
+      display: block;
+    }
+
+    .forecast-guidance-trend {
+      margin-top: 7px;
+      background: #f8fafc;
+      border-color: #d8dee8;
+    }
+    .map-loading-screen {
+      position: absolute;
+      inset: 0;
+      z-index: 1200;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(248, 250, 252, 0.82);
+      backdrop-filter: blur(4px);
+    }
+
+    .map-loading-screen[hidden] {
+      display: none;
+    }
+
+    .map-loading-panel {
+      display: grid;
+      min-width: 210px;
+      justify-items: center;
+      gap: 10px;
+      padding: 18px 20px;
+      border: 1px solid #dbe3ee;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.96);
+      box-shadow: 0 18px 40px rgba(15, 23, 42, 0.18);
+      color: #101828;
+      text-align: center;
+    }
+
+    .map-loading-spinner {
+      width: 30px;
+      height: 30px;
+      border: 3px solid #dbeafe;
+      border-top-color: #3478f6;
+      border-radius: 50%;
+      animation: map-loading-spin 800ms linear infinite;
+    }
+
+    .map-loading-title {
+      font-size: 13px;
+      font-weight: 800;
+      line-height: 1.2;
+    }
+
+
+    .map-loading-screen.is-error .map-loading-spinner {
+      display: none;
+    }
+
+    .map-loading-screen.is-error .map-loading-title {
+      color: #be123c;
+    }
+
+    @keyframes map-loading-spin {
+      to { transform: rotate(360deg); }
+    }
+
+    @media (max-width: 700px) {
+      .search-bar,
+      #search-results {
+        display: none;
+      }
+
+      .forecast-collapse {
+        overflow: hidden;
+        border: 1px solid #e6eaf2;
+        border-radius: 11px;
+        background: #ffffff;
+      }
+
+      .forecast-collapse + .forecast-collapse {
+        margin-top: 7px;
+      }
+
+      .forecast-collapse summary {
+        display: flex;
+        min-height: 38px;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 9px 10px;
+        color: #101828;
+        cursor: pointer;
+        font-size: 12px;
+        font-weight: 800;
+        list-style: none;
+      }
+
+      .forecast-collapse summary::-webkit-details-marker {
+        display: none;
+      }
+
+      .forecast-collapse summary::after {
+        content: "+";
+        display: inline-flex;
+        width: 22px;
+        height: 22px;
+        flex: 0 0 22px;
+        align-items: center;
+        justify-content: center;
+        border-radius: 999px;
+        background: #f2f4f7;
+        color: #344054;
+        font-size: 15px;
+        line-height: 1;
+      }
+
+      .forecast-collapse[open] summary::after {
+        content: "-";
+      }
+
+      .forecast-collapse-body {
+        padding: 0 9px 9px;
+      }
+      .leaflet-control-container .leaflet-bottom.leaflet-left {
+        bottom: 12px;
+      }
+
+      .mobile-forecast-open .leaflet-control-container .leaflet-bottom.leaflet-left {
+        display: none;
+      }
+
+      .custom-marker .airqo-marker-icon {
+        width: 22px;
+        height: 22px;
+        border-width: 2px;
+        filter: drop-shadow(0 3px 5px rgba(15, 23, 42, 0.24));
+      }
+
+      .custom-marker:hover .airqo-marker-icon {
+        transform: scale(1.06);
+      }
+
+      .search-bar {
+        top: 8px;
+        left: 8px;
+        right: 8px;
+        gap: 5px;
+      }
+
+      .search-bar input {
+        min-width: 0;
+        flex: 1;
+        height: 34px;
+        padding: 4px 9px;
+        border-color: #d0d5dd;
+        border-radius: 8px;
+        font-size: 13px;
+        box-shadow: 0 5px 14px rgba(15, 23, 42, 0.12);
+      }
+
+      .search-bar button {
+        height: 34px;
+        padding: 4px 10px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 700;
+      }
+
+      #search-results {
+        top: 50px;
+        right: 8px;
+        left: 8px;
+        width: auto;
+        max-height: 260px;
+      }
+
+      #forecast-panel {
+        top: auto;
+        right: 8px;
+        bottom: 8px;
+        left: 8px;
+        width: auto;
+        max-width: none;
+        max-height: min(58vh, 480px);
+        border-radius: 16px;
+        box-shadow: 0 12px 32px rgba(15, 23, 42, 0.22);
+      }
+
+      .forecast-header {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        padding: 10px 12px 8px;
+        background: rgba(255, 255, 255, 0.98);
+      }
+
+      .forecast-site-name {
+        max-width: calc(100vw - 88px);
+        overflow: hidden;
+        font-size: 16px;
+        line-height: 1.2;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .forecast-subtitle {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 5px;
+        margin-top: 5px;
+        font-size: 13px;
+        line-height: 1.25;
+      }
+
+      .live-aqi {
+        gap: 4px;
+      }
+
+      .live-aqi-category {
+        max-width: 150px;
+        overflow: hidden;
+        padding: 3px 7px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .forecast-close {
+        width: 32px;
+        height: 32px;
+        flex: 0 0 32px;
+      }
+
+      .forecast-content {
+        padding: 9px 10px 10px;
+      }
+
+      .forecast-section-title {
+        margin-bottom: 6px;
+        font-size: 11px;
+      }
+
+      .forecast-days {
+        gap: 6px;
+        margin: 0 -2px;
+        padding: 1px 2px 7px;
+        scrollbar-width: thin;
+      }
+
+      .forecast-day-card {
+        min-width: 42px;
+        height: 68px;
+        border-radius: 15px;
+        border-width: 1px;
+      }
+
+      .forecast-dow {
+        padding-top: 5px;
+        font-size: 9px;
+      }
+
+      .forecast-date-num {
+        font-size: 13px;
+      }
+
+      .forecast-icon-wrap {
+        width: 13px;
+        height: 13px;
+        margin: 4px auto 2px;
+      }
+
+      .forecast-icon {
+        display: none;
+      }
+
+      .forecast-pm25 {
+        font-size: 12px;
+      }
+
+      #forecast-detail {
+        margin-top: 5px;
+        padding: 9px;
+        border-radius: 12px;
+        font-size: 12px;
+      }
+
+      .forecast-date-header {
+        margin-bottom: 8px;
+      }
+
+      .forecast-calendar-date {
+        width: 36px;
+        flex-basis: 36px;
+        border-radius: 7px;
+      }
+
+      .forecast-calendar-month {
+        font-size: 8px;
+      }
+
+      .forecast-calendar-day {
+        font-size: 16px;
+      }
+
+      .aqi-pill {
+        max-width: calc(100vw - 98px);
+        margin-left: 0;
+        overflow: hidden;
+        padding: 5px 9px;
+        font-size: 11px;
+        line-height: 1.15;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .forecast-detail-grid {
+        grid-template-columns: 1fr;
+        gap: 7px;
+        margin-top: 8px;
+      }
+
+      .forecast-metric {
+        padding: 8px 9px;
+        border-radius: 9px;
+      }
+
+      .forecast-metric span {
+        font-size: 10px;
+      }
+
+      .forecast-metric strong {
+        font-size: 13px;
+        white-space: normal;
+      }
+
+      .forecast-confidence {
+        padding: 8px 9px;
+        border-radius: 9px;
+      }
+
+      .confidence-header {
+        font-size: 10px;
+      }
+
+      .confidence-description {
+        display: none;
+      }
+
+      .forecast-guidance {
+        margin-top: 8px;
+        padding: 8px 9px;
+        font-size: 10px;
+        line-height: 1.45;
+      }
+
+      .met-title {
+        margin: 9px 0 6px;
+        font-size: 10px;
+      }
+
+      .met-row {
+        grid-template-columns: repeat(5, minmax(44px, 1fr));
+        gap: 5px;
+        overflow-x: auto;
+        padding-bottom: 3px;
+      }
+
+      .met-item {
+        padding: 6px 2px;
+        border-radius: 7px;
+      }
+
+      .met-icon {
+        width: 18px;
+        height: 18px;
+        margin-bottom: 4px;
+        font-size: 11px;
+      }
+
+      .met-value {
+        font-size: 8px;
+      }
+    }
+
+    @media (max-width: 380px) {
+      .forecast-day-card {
+        min-width: 39px;
+      }
+
+      .forecast-days {
+        gap: 5px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="map"></div>
+
+  <div id="map-loading-screen" class="map-loading-screen" role="status" aria-live="polite">
+    <div class="map-loading-panel">
+      <span class="map-loading-spinner" aria-hidden="true"></span>
+      <span id="map-loading-title" class="map-loading-title">Loading map</span>
+    </div>
+  </div>
+
+  <div class="search-bar">
+    <input type="text" id="search-input" placeholder="Search for a place..." />
+    <button id="search-button">Search</button>
+  </div>
+
+  <div id="search-results"></div>
+
+  <div id="forecast-panel">
+    <div class="forecast-header">
+      <div>
+        <h3 id="forecast-site-name" class="forecast-site-name">FORECAST</h3>
+        <p id="forecast-subtitle" class="forecast-subtitle">
+          Click a site marker to view its 7-day PM<sub>2.5</sub> forecast.
+        </p>
+      </div>
+      <button class="forecast-close" onclick="closeForecastPanel()">×</button>
+    </div>
+
+    <div class="forecast-content">
+      <h4 class="forecast-section-title">7-DAY FORECAST</h4>
+      <div id="forecast-days" class="forecast-days"></div>
+      <div id="forecast-detail"></div>
+    </div>
+  </div>
+
+  <script>
+    var map = L.map("map", { attributionControl: false }).setView([0, 20], 9);
+    map.getContainer().classList.add("show-site-values");
+
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: "",
+    }).addTo(map);
+
+    L.control.attribution({
+      prefix: '<a href="https://analytics.airqo.net/" target="_blank">Powered by AirQo</a>',
+      position: "bottomright",
+    }).addTo(map);
+
+    // The Next.js proxy handles credentials; each deployment uses its own origin.
+    var gridId = new URLSearchParams(window.location.search).get("grid_id");
+    var apiEndpoint = "/api/airqo/devices/measurements/grids/" + encodeURIComponent(gridId);
+    var forecastEndpoint = "/api/airqo/predict/daily-forecasting/" + encodeURIComponent(gridId);
+    var heatmapEndpoint = "/api/airqo/spatial/heatmaps/" + encodeURIComponent(gridId);
+    var gridMeasurementsPageLimit = 1000;
+    var mapDataCacheTtlMs = 60 * 60 * 1000;
+
+
+    var apiResponse = null;
+    var forecastBySiteId = {};
+    var markersBySiteId = {};
+    var siteMarkers = [];
+    var heatmapLayer = null;
+    var heatmapBounds = null;
+    var heatmapEnabled = false;
+    var heatmapToggleButton = null;
+    var heatmapControlElement = null;
+    var heatmapRequest = null;
+    var legendAdded = false;
+    var mapDataCacheKey = "";
+    var selectedForecast = null;
+    var forecastLoading = true;
+    var forecastFailed = false;
+
+    var AQI_INDEX_COLORS = {
+      good: "#00e400",
+      moderate: "#ffff00",
+      u4sg: "#ff7e00",
+      unhealthy: "#ff0000",
+      very_unhealthy: "#8f3f97",
+      hazardous: "#7e0023",
+    };
+
+    loadServerConfig();
+
+    function loadServerConfig() {
+      mapDataCacheKey = "airqo:embed:measurements:" + gridId;
+      addHeatmapControl();
+      addSiteValuesControl();
+      fetchHeatmap(false);
+      fetchLiveMeasurements();
+      fetchDailyForecast();
+    }
+
+    function addHeatmapControl() {
+      var HeatmapControl = L.Control.extend({
+        options: { position: "topleft" },
+        onAdd: function () {
+          var container = L.DomUtil.create("button", "heatmap-control is-hidden");
+          container.type = "button";
+          container.setAttribute("aria-label", "Toggle AQI heatmap");
+          container.setAttribute("aria-pressed", "false");
+          container.title = "Show heatmap";
+          container.innerHTML = '<svg viewBox="0 0 28 28" aria-hidden="true">' +
+            '<path d="M3 3h22v22H3z" fill="#f1f5f9" stroke="#64748b" stroke-width="1.5"/>' +
+            '<path d="M3 10h22M3 18h22M10 3v22M18 3v22" fill="none" stroke="#94a3b8" stroke-width="1"/>' +
+            '<circle cx="9" cy="19" r="6" fill="#00a83b" fill-opacity=".78"/>' +
+            '<circle cx="18" cy="17" r="7" fill="#fbbf24" fill-opacity=".78"/>' +
+            '<circle cx="19" cy="9" r="6" fill="#ef4444" fill-opacity=".78"/></svg>';
+          heatmapControlElement = container;
+          heatmapToggleButton = container;
+
+          L.DomEvent.disableClickPropagation(container);
+          L.DomEvent.disableScrollPropagation(container);
+          L.DomEvent.on(container, "click", function () {
+            setHeatmapEnabled(!heatmapEnabled);
+          });
+
+          return container;
+        },
+      });
+
+      map.addControl(new HeatmapControl());
+    }
+
+    function addSiteValuesControl() {
+      var SiteValuesControl = L.Control.extend({
+        options: { position: "topleft" },
+        onAdd: function () {
+          var container = L.DomUtil.create("button", "site-values-control is-active");
+          container.type = "button";
+          container.setAttribute("aria-label", "Show PM2.5 values on site markers");
+          container.setAttribute("aria-pressed", "true");
+          container.title = "Hide PM2.5 values";
+          container.innerHTML = '<svg viewBox="0 0 28 28" aria-hidden="true">' +
+            '<path d="M14 26s9-8 9-16a9 9 0 0 0-18 0c0 8 9 16 9 16z" fill="none" stroke="currentColor" stroke-width="2"/>' +
+            '<circle cx="14" cy="11" r="6.5" fill="#fbbf24"/>' +
+            '<text x="14" y="13.5" text-anchor="middle" fill="#111827" font-family="Arial,sans-serif" font-size="7.5" font-weight="700">42</text></svg>';
+          L.DomEvent.disableClickPropagation(container);
+          L.DomEvent.disableScrollPropagation(container);
+          L.DomEvent.on(container, "click", function () {
+            var showValues = map.getContainer().classList.toggle("show-site-values");
+            container.classList.toggle("is-active", showValues);
+            container.setAttribute("aria-pressed", String(showValues));
+            container.title = showValues ? "Hide PM2.5 values" : "Show PM2.5 values";
+          });
+          return container;
+        },
+      });
+
+      map.addControl(new SiteValuesControl());
+    }
+
+    function setHeatmapControlState(state, label) {
+      if (!heatmapControlElement) return;
+      heatmapControlElement.classList.remove("is-loading", "is-active", "is-error");
+      if (state) heatmapControlElement.classList.add("is-" + state);
+      heatmapControlElement.setAttribute("aria-pressed", String(heatmapEnabled));
+      heatmapControlElement.title = label || "Heatmap";
+    }
+
+    function setSiteMarkersVisible(visible) {
+      siteMarkers.forEach(function (marker) {
+        if (visible) {
+          if (!map.hasLayer(marker)) marker.addTo(map);
+        } else if (map.hasLayer(marker)) {
+          map.removeLayer(marker);
+        }
+      });
+    }
+
+    function setHeatmapEnabled(enabled) {
+      heatmapEnabled = enabled;
+
+      if (!enabled) {
+        if (heatmapLayer && map.hasLayer(heatmapLayer)) map.removeLayer(heatmapLayer);
+        setSiteMarkersVisible(true);
+        setHeatmapControlState("", "Heatmap");
+        return;
+      }
+
+      if (heatmapLayer) {
+        heatmapLayer.addTo(map);
+        setSiteMarkersVisible(true);
+        if (heatmapBounds) map.fitBounds(heatmapBounds, { padding: [20, 20] });
+        setHeatmapControlState("active", "Heatmap on");
+        return;
+      }
+
+      fetchHeatmap(true);
+    }
+
+    function fetchHeatmap(activateAfterLoad) {
+      if (heatmapRequest) return;
+
+      if (activateAfterLoad) setHeatmapControlState("loading", "Loading...");
+      if (heatmapToggleButton) heatmapToggleButton.disabled = true;
+
+      heatmapRequest = $.ajax({
+        url: heatmapEndpoint,
+        method: "GET",
+        success: function (response) {
+          var data = response.data || response;
+          var bounds = data.bounds;
+          var image = data.image;
+
+          if (!isValidHeatmapBounds(bounds) || typeof image !== "string" || !image.startsWith("data:image/")) {
+            handleHeatmapError(new Error("The heatmap API returned invalid bounds or image data."));
+            return;
+          }
+
+          heatmapBounds = L.latLngBounds(bounds);
+          heatmapLayer = L.imageOverlay(image, heatmapBounds, {
+            opacity: 0.78,
+            interactive: false,
+            zIndex: 350,
+          });
+          heatmapControlElement.classList.remove("is-hidden");
+
+          if (activateAfterLoad && heatmapEnabled) {
+            heatmapLayer.addTo(map);
+            setSiteMarkersVisible(true);
+            map.fitBounds(heatmapBounds, { padding: [20, 20] });
+            setHeatmapControlState("active", "Heatmap on");
+          } else {
+            setHeatmapControlState("", "Heatmap");
+          }
+        },
+        error: function (error) {
+          handleHeatmapError(error);
+        },
+        complete: function () {
+          heatmapRequest = null;
+          if (heatmapToggleButton) heatmapToggleButton.disabled = false;
+        },
+      });
+    }
+
+    function handleHeatmapError(error) {
+      console.error("Error fetching AQI heatmap:", error);
+      heatmapEnabled = false;
+      setSiteMarkersVisible(true);
+      if (heatmapControlElement) heatmapControlElement.classList.add("is-hidden");
+    }
+
+    function isValidHeatmapBounds(bounds) {
+      if (!Array.isArray(bounds) || bounds.length !== 2) return false;
+      return bounds.every(function (coordinate) {
+        return Array.isArray(coordinate) && coordinate.length === 2 &&
+          isValidCoordinate(Number(coordinate[0]), Number(coordinate[1]));
+      });
+    }
+
+    function fetchLiveMeasurements() {
+      var cachedResponse = getCachedMapData();
+      var hasCachedMeasurements = cachedResponse && getGridMeasurements(cachedResponse).length > 0;
+
+      if (hasCachedMeasurements) {
+        apiResponse = cachedResponse;
+        renderLiveMeasurements(getGridMeasurements(cachedResponse));
+        hideMapLoadingScreen();
+      } else {
+        setMapLoadingState("loading", "Loading map");
+      }
+
+      $.ajax({
+        url: getGridMeasurementsUrl(1),
+        method: "GET",
+        success: function (response) {
+          fetchRemainingGridMeasurementPages(response)
+            .then(function (pages) {
+              var measurements = mergeGridMeasurementPages(pages);
+              apiResponse = buildMergedGridMeasurementResponse(response, measurements);
+              saveCachedMapData(apiResponse);
+              renderLiveMeasurements(measurements);
+              hideMapLoadingScreen();
+            })
+            .catch(function (error) {
+              console.error("Error fetching paginated live measurements:", error);
+              var measurements = getGridMeasurements(response);
+              apiResponse = buildMergedGridMeasurementResponse(response, measurements);
+              saveCachedMapData(apiResponse);
+              renderLiveMeasurements(measurements);
+              hideMapLoadingScreen();
+            });
+        },
+        error: function (error) {
+          console.error("Error fetching live measurements:", error);
+          if (!hasCachedMeasurements) setMapLoadingState("error", "Map data unavailable");
+        },
+      });
+    }
+
+    function getCachedMapData() {
+      try {
+        var cachedRaw = localStorage.getItem(mapDataCacheKey);
+        var cached = JSON.parse((cachedRaw || "null"));
+        if (!cached || !cached.timestamp || !cached.response) return null;
+
+        if (Date.now() - cached.timestamp > mapDataCacheTtlMs) {
+          try {
+            localStorage.removeItem(mapDataCacheKey);
+          } catch (error) {
+            console.warn("Unable to remove expired cached map data:", error);
+          }
+          return null;
+        }
+
+        return cached.response;
+      } catch (error) {
+        console.warn("Unable to parse cached map data:", error);
+        return null;
+      }
+    }
+
+    function saveCachedMapData(response) {
+      try {
+        localStorage.setItem(mapDataCacheKey, JSON.stringify({
+          timestamp: Date.now(),
+          response: response,
+        }));
+      } catch (error) {
+        console.warn("Unable to cache map data:", error);
+      }
+    }
+
+    function setMapLoadingState(state, title) {
+      var screen = document.getElementById("map-loading-screen");
+      var titleElement = document.getElementById("map-loading-title");
+
+      if (!screen) return;
+
+      screen.hidden = false;
+      screen.classList.toggle("is-error", state === "error");
+      if (titleElement) titleElement.textContent = title || "Loading map";
+    }
+
+    function hideMapLoadingScreen() {
+      var screen = document.getElementById("map-loading-screen");
+      if (screen) screen.hidden = true;
+    }
+
+    function getGridMeasurementsUrl(page) {
+      return apiEndpoint +
+        "?page=" + encodeURIComponent(page) +
+        "&limit=" + encodeURIComponent(gridMeasurementsPageLimit);
+    }
+
+    function fetchRemainingGridMeasurementPages(firstResponse) {
+      var totalPages = getTotalGridMeasurementPages(firstResponse);
+      var pageRequests = [];
+
+      for (var page = 2; page <= totalPages; page += 1) {
+        pageRequests.push($.ajax({
+          url: getGridMeasurementsUrl(page),
+          method: "GET",
+        }));
+      }
+
+      if (pageRequests.length === 0) {
+        return Promise.resolve([firstResponse]);
+      }
+
+      return Promise.allSettled(pageRequests).then(function (results) {
+        var fulfilledPages = results
+          .filter(function (result) { return result.status === "fulfilled"; })
+          .map(function (result) { return result.value; });
+        return [firstResponse].concat(fulfilledPages);
+      });
+    }
+
+    function getTotalGridMeasurementPages(response) {
+      var meta = getGridMeasurementMeta(response);
+      var explicitPages = Number(meta.pages || meta.total_pages || meta.totalPages || meta.page_count || meta.pageCount);
+
+      if (Number.isFinite(explicitPages) && explicitPages > 0) {
+        return Math.ceil(explicitPages);
+      }
+
+      var total = Number(meta.total || meta.total_results || meta.totalResults);
+      var limit = Number(meta.limit || meta.page_size || meta.pageSize || gridMeasurementsPageLimit);
+
+      if (Number.isFinite(total) && Number.isFinite(limit) && limit > 0) {
+        return Math.max(1, Math.ceil(total / limit));
+      }
+
+      return 1;
+    }
+
+    function getGridMeasurementMeta(response) {
+      var data = response.data || {};
+      return response.meta || response.metadata || response.pagination ||
+        data.meta || data.metadata || data.pagination || {};
+    }
+
+    function getGridMeasurements(response) {
+      var data = response.data || {};
+
+      if (Array.isArray(response.measurements)) return response.measurements;
+      if (Array.isArray(data.measurements)) return data.measurements;
+      if (Array.isArray(data)) return data;
+
+      return [];
+    }
+
+    function mergeGridMeasurementPages(pages) {
+      return pages.reduce(function (measurements, pageResponse) {
+        return measurements.concat(getGridMeasurements(pageResponse));
+      }, []);
+    }
+
+    function buildMergedGridMeasurementResponse(response, measurements) {
+      var mergedResponse = $.extend(true, {}, response);
+
+      if (Array.isArray(mergedResponse.data)) {
+        mergedResponse.data = measurements;
+      } else if (mergedResponse.data && Array.isArray(mergedResponse.data.measurements)) {
+        mergedResponse.data.measurements = measurements;
+      } else {
+        mergedResponse.measurements = measurements;
+      }
+      mergedResponse.measurements = measurements;
+
+      return mergedResponse;
+    }
+
+    function renderLiveMeasurements(measurements) {
+      clearSiteMarkers();
+      var siteCoordinates = [];
+
+      measurements.forEach(function (measurement) {
+        var siteDetails = measurement.siteDetails || measurement.site_details || {};
+        var lat = finiteNumber(siteDetails.approximate_latitude ?? siteDetails.latitude);
+        var lon = finiteNumber(siteDetails.approximate_longitude ?? siteDetails.longitude);
+        var pm25Value = Math.round(finiteNumber((measurement.pm2_5 || {}).value));
+        var siteName = siteDetails.description || siteDetails.site_name || siteDetails.name || "Unknown site";
+        var siteId = getSiteId(measurement);
+        var aqiCategory = measurement.aqi_category || getAqiCategoryFromPm25(pm25Value);
+        var aqiColor = normalizeAqiColor(measurement.aqi_color_name || measurement.aqi_color || aqiCategory);
+
+        if (!isValidCoordinate(lat, lon)) return;
+
+        createMarker(lat, lon, aqiColor, aqiCategory, pm25Value, siteName, siteId);
+        siteCoordinates.push([lat, lon]);
+      });
+
+      if (!heatmapEnabled) setInitialSiteView(siteCoordinates);
+
+      if (!legendAdded) {
+        addLegend();
+        legendAdded = true;
+      }
+    }
+
+
+    function clearSiteMarkers() {
+      siteMarkers.forEach(function (marker) {
+        if (map.hasLayer(marker)) map.removeLayer(marker);
+      });
+      siteMarkers = [];
+      markersBySiteId = {};
+    }
+
+    function fetchDailyForecast() {
+      $.ajax({
+        url: forecastEndpoint,
+        method: "GET",
+        success: function (response) {
+          var data = response.data || response;
+          var siteForecasts = data.forecasts || [];
+          forecastLoading = false;
+
+          siteForecasts.forEach(function (siteForecast) {
+            var siteDetails = siteForecast.site_details || siteForecast.siteDetails || {};
+            var siteId = siteDetails.site_id || siteDetails._id || siteForecast.site_id;
+
+            if (siteId) {
+              forecastBySiteId[siteId] = siteForecast;
+            }
+          });
+          if (selectedForecast) showForecast.apply(null, selectedForecast);
+        },
+        error: function (error) {
+          console.error("Error fetching daily forecast:", error);
+          forecastLoading = false;
+          forecastFailed = true;
+          if (selectedForecast) showForecast.apply(null, selectedForecast);
+        },
+      });
+    }
+
+    function createMarker(lat, lon, aqiColor, aqiCategory, pm25Value, siteName, siteId) {
+      var safeSiteName = escapeHtml(siteName);
+      var safeCategory = escapeHtml(aqiCategory);
+      var markerSummaryHtml =
+        '<div class="marker-tooltip-content">' +
+        '<span class="marker-tooltip-site">' + safeSiteName + "</span>" +
+        '<div class="marker-tooltip-row"><span>PM<sub>2.5</sub></span><strong>' +
+        (isNaN(pm25Value) ? "N/A" : pm25Value + " µg/m³") + "</strong></div>" +
+        '<div class="marker-tooltip-row"><span>AQI</span><span class="marker-tooltip-aqi">' +
+        '<span class="marker-tooltip-dot" style="background:' + aqiColor + ';"></span>' +
+        safeCategory + "</span></div></div>";
+
+      var marker = L.marker([lat, lon], {
+        icon: L.divIcon({
+          className: "custom-marker",
+          iconSize: [30, 30],
+          iconAnchor: [15, 15],
+          popupAnchor: [0, -18],
+          html: '<span class="airqo-marker-icon" style="background:' + aqiColor +
+            ';" aria-label="' + safeCategory + '"><span class="airqo-marker-value" style="color:' +
+            readableTextColor(aqiColor) + ';">' +
+            (isNaN(pm25Value) ? "N/A" : pm25Value) + '</span></span>',
+        }),
+      })
+      .addTo(map)
+      .bindPopup(markerSummaryHtml, {
+        className: "airqo-marker-popup",
+        offset: [0, -2],
+      })
+      .bindTooltip(markerSummaryHtml, {
+        direction: "top",
+        offset: [0, -18],
+        opacity: 1,
+        className: "airqo-marker-tooltip",
+      });
+
+      marker.on("click", function () {
+        showForecast(siteId, siteName, pm25Value, aqiCategory, aqiColor);
+      });
+
+      siteMarkers.push(marker);
+
+      if (siteId) {
+        markersBySiteId[siteId] = marker;
+      }
+    }
+
+    function showForecast(siteId, siteName, livePm25, liveCategory, liveColor) {
+      selectedForecast = [siteId, siteName, livePm25, liveCategory, liveColor];
+      var siteForecast = forecastBySiteId[siteId];
+      var siteMarker = markersBySiteId[siteId];
+
+      if (siteMarker) {
+        map.setView(siteMarker.getLatLng(), 14);
+      }
+      var category = liveCategory || "AQI";
+      var categoryColor = normalizeAqiColor(liveColor || category);
+
+      document.body.classList.add("mobile-forecast-open");
+      $("#forecast-panel").show();
+      $("#forecast-site-name").text(siteName || "FORECAST");
+      $("#forecast-subtitle").html(
+        "Current PM<sub>2.5</sub>: " +
+        '<span class="live-pm25-value">' +
+        (isNaN(livePm25) ? "N/A" : livePm25) +
+        '</span><span class="live-pm25-unit">' +
+        (isNaN(livePm25) ? "" : " µg/m³") +
+        "</span>" +
+        ' <span class="live-aqi" style="color:' + categoryColor + ';">' +
+        '<span class="live-aqi-dot" style="background:' + categoryColor + ';"></span>' +
+        '<span class="live-aqi-category" style="background:' + categoryColor + '; color:' +
+        readableTextColor(categoryColor) + ';">' + escapeHtml(category) + "</span></span>"
+      );
+
+      $("#forecast-days").empty();
+      $("#forecast-detail").empty();
+
+      if (!siteForecast || !siteForecast.forecasts || siteForecast.forecasts.length === 0) {
+        $("#forecast-detail").html(
+          '<div class="forecast-guidance">' + (forecastLoading ? "Loading forecast…" : forecastFailed ? "Forecast is temporarily unavailable. Reload the map to retry." : "No daily forecast found for this site.") + '</div>'
+        );
+        return;
+      }
+
+      siteForecast.forecasts.forEach(function (day, index) {
+        var f = day.forecast || {};
+        var aqi = day.aqi || {};
+        var mean = Math.round(Number(f.pm2_5_mean));
+        var dateObj = new Date(day.date + "T00:00:00");
+        var dow = dateObj.toLocaleDateString("en-US", { weekday: "short" });
+        var dateNum = dateObj.getDate();
+
+        var card = $(
+          '<div class="forecast-day-card ' +
+          (index === 0 ? "active" : "") +
+          '">' +
+          '<div class="forecast-dow">' + dow + "</div>" +
+          '<div class="forecast-date-num">' + dateNum + "</div>" +
+          '<div class="forecast-icon-wrap" style="background:' + getAqiCategoryColor(aqi.aqi_category) +
+          '; border-color:' + getAqiCategoryBorderColor(aqi.aqi_category) + ';">' +
+          aqiColorDot(aqi.aqi_category) + "</div>" +
+          '<div class="forecast-pm25">' + (isNaN(mean) ? "N/A" : mean) + "</div>" +
+          "</div>"
+        );
+
+        card.on("click", function () {
+          $(".forecast-day-card").removeClass("active");
+          card.addClass("active");
+          showForecastDetail(day);
+        });
+
+        $("#forecast-days").append(card);
+      });
+
+      showForecastDetail(siteForecast.forecasts[0]);
+    }
+
+    function showForecastDetail(day) {
+      var f = day.forecast || {};
+      var aqi = day.aqi || {};
+      var met = day.met || {};
+      var aqiColor = aqi.aqi_color || normalizeAqiColor(aqi.aqi_color_name || aqi.aqi_category || "moderate");
+      var category = aqi.aqi_category || "AQI";
+      var isMobile = window.matchMedia && window.matchMedia("(max-width: 700px)").matches;
+      var expandedByDefault = !isMobile;
+      var overviewHtml =
+        '<div class="forecast-date-header">' +
+        forecastCalendarDate(day.date) +
+        '<span class="aqi-pill" style="background:' +
+        aqiColor +
+        "; color:" +
+        readableTextColor(aqiColor) +
+        ';">' +
+        escapeHtml(category) +
+        "</span></div>" +
+        '<div class="forecast-detail-grid">' +
+        forecastMetric("Average PM<sub>2.5</sub>", valueOrNA(f.pm2_5_mean) + " &micro;g/m&sup3;") +
+        forecastMetric("Expected Range", valueOrNA(f.pm2_5_low) + " - " + valueOrNA(f.pm2_5_high) + " &micro;g/m&sup3;") +
+        forecastConfidence(f.forecast_confidence, f.pm2_5_low, f.pm2_5_high) +
+        "</div>";
+      var healthHtml =
+        '<div class="forecast-guidance">' +
+        '<span class="forecast-guidance-title">Health guidance</span>' +
+        '<p class="forecast-guidance-text">' +
+        escapeHtml(aqi.label || "No health guidance is available for this forecast.") +
+        "</p></div>";
+      var weatherHtml =
+        '<div class="met-row">' +
+        weatherMetric("&#127777;&#65039;", valueOrNA(met.air_temperature) + " &deg;C", "Temperature") +
+        weatherMetric("&#9730;", valueOrNA(met.precipitation_amount) + " mm", "Rain") +
+        weatherMetric("&#128167;", valueOrNA(met.relative_humidity) + "%", "Humidity") +
+        weatherMetric("&#9729;", valueOrNA(met.cloud_area_fraction) + "%", "Cloud") +
+        weatherMetric("&#8779;", valueOrNA(met.wind_speed) + " m/s<br>" + escapeHtml(met.wind_direction_compass || ""), "Wind") +
+        "</div>";
+      var html =
+        forecastCollapse("Overview", overviewHtml, true) +
+        forecastCollapse("Health guidance", healthHtml, expandedByDefault) +
+        forecastCollapse("Meteorological conditions", weatherHtml, expandedByDefault) +
+        (aqi.trend_message
+          ? forecastCollapse(
+              "Trend",
+              '<div class="forecast-guidance forecast-guidance-trend">' +
+                '<span class="forecast-guidance-title">Trend</span>' +
+                '<p class="forecast-guidance-text">' + escapeHtml(aqi.trend_message) + "</p></div>",
+              expandedByDefault
+            )
+          : "");
+
+      $("#forecast-detail").html(html).show();
+    }
+
+    function forecastCollapse(title, bodyHtml, isOpen) {
+      return '<details class="forecast-collapse"' + (isOpen ? " open" : "") + ">" +
+        "<summary>" + title + "</summary>" +
+        '<div class="forecast-collapse-body">' + bodyHtml + "</div></details>";
+    }
+    function closeForecastPanel() {
+      selectedForecast = null;
+      document.body.classList.remove("mobile-forecast-open");
+      $("#forecast-panel").hide();
+    }
+
+    function forecastMetric(label, value) {
+      return '<div class="forecast-metric"><span>' + label + "</span><strong>" + value + "</strong></div>";
+    }
+
+    function forecastConfidence(confidence, low, high) {
+      var value = finiteNumber(confidence);
+      var hasConfidence = Number.isFinite(value);
+      var percentage = hasConfidence ? Math.max(0, Math.min(100, value)) : 0;
+      var color = percentage >= 75 ? "#16a34a" : percentage >= 50 ? "#f59e0b" : "#dc2626";
+      var range = valueOrNA(low) + "–" + valueOrNA(high) + " µg/m³";
+
+      return '<div class="forecast-confidence">' +
+        '<div class="confidence-header"><span>Forecast confidence</span><strong>' +
+        (hasConfidence ? value.toFixed(1) + "%" : "N/A") + "</strong></div>" +
+        '<div class="confidence-track"><div class="confidence-fill" style="width:' + percentage +
+        "%; background:" + color + ';"></div></div>' +
+        '<p class="confidence-description">Probability PM<sub>2.5</sub> remains within the ' +
+        range + " expected range.</p></div>";
+    }
+
+    function weatherMetric(icon, value, label) {
+      return '<div class="met-item" title="' + label + '"><span class="met-icon">' + icon +
+        '</span><strong class="met-value">' + value + "</strong></div>";
+    }
+
+    function valueOrNA(value) {
+      var number = finiteNumber(value);
+      return isNaN(number) ? "N/A" : number.toFixed(1);
+    }
+
+    function formatDate(dateString) {
+      var dateObj = new Date(dateString + "T00:00:00");
+      if (isNaN(dateObj.getTime())) return dateString || "Date";
+      return dateObj.toLocaleDateString("en-US", {
+        weekday: "long",
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      });
+    }
+
+    function forecastCalendarDate(dateString) {
+      var dateObj = new Date(dateString + "T00:00:00");
+      if (isNaN(dateObj.getTime())) {
+        return '<span class="forecast-calendar-date"><span class="forecast-calendar-month">DATE</span>' +
+          '<span class="forecast-calendar-day">--</span></span>';
+      }
+
+      var month = dateObj.toLocaleDateString("en-US", { month: "short" });
+      var day = dateObj.getDate();
+
+      return '<span class="forecast-calendar-date" aria-label="' + formatDate(dateString) + '">' +
+        '<span class="forecast-calendar-month">' + month + "</span>" +
+        '<span class="forecast-calendar-day">' + day + "</span></span>";
+    }
+
+    function getSiteId(measurement) {
+      var siteDetails = measurement.siteDetails || measurement.site_details || {};
+      return siteDetails.site_id || siteDetails._id || measurement.site_id || measurement.siteId || measurement._id;
+    }
+
+    function normalizeAqiColor(value) {
+      if (!value) return AQI_INDEX_COLORS.moderate;
+
+      var text = String(value).toLowerCase().replace(/\s+/g, "_");
+
+      if (/^#?[0-9a-f]{6}$/i.test(text)) return "#" + text.replace(/^#/, "");
+      if (text.includes("good") || text === "green") return AQI_INDEX_COLORS.good;
+      if (text.includes("moderate") || text === "yellow") return AQI_INDEX_COLORS.moderate;
+      if (text.includes("sensitive") || text.includes("u4sg") || text === "orange") return AQI_INDEX_COLORS.u4sg;
+      if (text.includes("very_unhealthy") || text === "purple") return AQI_INDEX_COLORS.very_unhealthy;
+      if (text.includes("hazardous") || text === "maroon") return AQI_INDEX_COLORS.hazardous;
+      if (text.includes("unhealthy") || text === "red") return AQI_INDEX_COLORS.unhealthy;
+
+      return AQI_INDEX_COLORS.moderate;
+    }
+
+    function getAqiCategoryFromPm25(pm25) {
+      if (isNaN(pm25)) return "Unknown";
+      if (pm25 <= 12) return "Good";
+      if (pm25 <= 35.4) return "Moderate";
+      if (pm25 <= 55.4) return "Unhealthy for Sensitive Groups";
+      if (pm25 <= 150.4) return "Unhealthy";
+      if (pm25 <= 250.4) return "Very Unhealthy";
+      return "Hazardous";
+    }
+
+    function readableTextColor(hexColor) {
+      var color = String(hexColor || "").replace("#", "");
+      if (color.length !== 6) return "#111827";
+
+      var r = parseInt(color.substring(0, 2), 16);
+      var g = parseInt(color.substring(2, 4), 16);
+      var b = parseInt(color.substring(4, 6), 16);
+      var brightness = (r * 299 + g * 587 + b * 114) / 1000;
+
+      return brightness > 145 ? "#111827" : "#ffffff";
+    }
+
+
+    function getAqiCategoryColor(aqiCategory) {
+      var category = String(aqiCategory || "").toLowerCase();
+
+      if (category === "good") return AQI_INDEX_COLORS.good;
+      if (category === "moderate") return AQI_INDEX_COLORS.moderate;
+      if (category === "unhealthy for sensitive groups") return AQI_INDEX_COLORS.u4sg;
+      if (category === "unhealthy") return AQI_INDEX_COLORS.unhealthy;
+      if (category === "very unhealthy") return AQI_INDEX_COLORS.very_unhealthy;
+      if (category === "hazardous") return AQI_INDEX_COLORS.hazardous;
+      return "#e5e7eb";
+    }
+
+    function getAqiCategoryBorderColor(aqiCategory) {
+      var color = getAqiCategoryColor(aqiCategory);
+      return color === AQI_INDEX_COLORS.moderate ? "#d4a900" : color;
+    }
+
+    function aqiColorDot(aqiCategory) {
+      return '<span class="forecast-icon" aria-label="' +
+        (aqiCategory || "Air quality") + '"></span>';
+    }
+
+    function legendItem(label) {
+      var color = getAqiCategoryColor(label);
+      var borderColor = getAqiCategoryBorderColor(label);
+
+      return '<li title="' + label + '"><span class="legend-icon-wrap" style="background:' + color +
+        '; border-color:' + borderColor + ';" aria-label="' + label + '"></span><span class="legend-label">' + label + "</span></li>";
+    }
+    function addLegend() {
+      var legend = L.control({ position: "bottomleft" });
+
+      legend.onAdd = function () {
+        var div = L.DomUtil.create("div", "legend");
+        div.tabIndex = 0;
+        div.setAttribute("aria-label", "Air quality index legend");
+
+        div.innerHTML =
+          '<div class="legend-title">Air quality index' +
+          '<span class="legend-subtitle">AirQo PM<sub>2.5</sub> categories</span></div>' +
+          "<ul>" +
+          legendItem("Good") +
+          legendItem("Moderate") +
+          legendItem("Unhealthy for Sensitive Groups") +
+          legendItem("Unhealthy") +
+          legendItem("Very Unhealthy") +
+          legendItem("Hazardous") +
+          "</ul>";
+
+        return div;
+      };
+
+      legend.addTo(map);
+    }
+
+    $("#search-input").keyup(function (event) {
+      if (event.keyCode === 13) {
+        $("#search-button").click();
+      }
+    });
+
+    $("#search-button").click(function () {
+      if (!apiResponse || !apiResponse.measurements) {
+        displaySearchResults([]);
+        return;
+      }
+
+      var searchQuery = $("#search-input").val().toLowerCase().trim();
+
+      var matchingResults = apiResponse.measurements.filter(function (measurement) {
+        var siteDetails = measurement.siteDetails || measurement.site_details || {};
+        var siteName = siteDetails.description || siteDetails.site_name || siteDetails.name || "";
+        return siteName.toLowerCase().includes(searchQuery);
+      });
+
+      displaySearchResults(matchingResults);
+    });
+
+    function displaySearchResults(results) {
+      var resultsContainer = $("#search-results");
+      resultsContainer.empty();
+
+      if (results.length === 0) {
+        resultsContainer.append('<div class="search-result">No results found.</div>');
+      } else {
+        results.forEach(function (result) {
+          var siteDetails = result.siteDetails || result.site_details || {};
+          var siteName = siteDetails.description || siteDetails.site_name || siteDetails.name || "Unknown site";
+          var lat = siteDetails.approximate_latitude ?? siteDetails.latitude;
+          var lon = siteDetails.approximate_longitude ?? siteDetails.longitude;
+          var siteId = getSiteId(result);
+
+          var resultElement = $('<div class="search-result"></div>');
+          resultElement.text(siteName);
+
+          resultElement.click(function () {
+            setHeatmapEnabled(false);
+            zoomToLocation(lat, lon);
+
+            if (markersBySiteId[siteId]) {
+              markersBySiteId[siteId].openPopup();
+              markersBySiteId[siteId].fire("click");
+            }
+
+            resultsContainer.hide();
+          });
+
+          resultsContainer.append(resultElement);
+        });
+      }
+
+      resultsContainer.show();
+    }
+
+    function isValidCoordinate(lat, lon) {
+      return Number.isFinite(lat) && Number.isFinite(lon) &&
+        lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180;
+    }
+
+    function finiteNumber(value) {
+      if (value === null || value === undefined || value === "" || typeof value === "boolean") return NaN;
+      return Number(value);
+    }
+
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>"']/g, function (character) {
+        return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[character];
+      });
+    }
+
+    function setInitialSiteView(siteCoordinates) {
+      if (siteCoordinates.length === 1) {
+        map.setView(siteCoordinates[0], 14);
+      } else if (siteCoordinates.length > 1) {
+        map.fitBounds(siteCoordinates, { padding: [35, 35], maxZoom: 13 });
+      } else {
+        map.setView([0, 20], 3);
+      }
+    }
+
+    function zoomToLocation(lat, lon) {
+      var latitude = Number(lat);
+      var longitude = Number(lon);
+
+      if (isValidCoordinate(latitude, longitude)) {
+        map.setView([latitude, longitude], 14);
+      }
+    }
+  </script>
+</body>
+</html>
