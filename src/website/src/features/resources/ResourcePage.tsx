@@ -105,10 +105,6 @@ const ResearchPublicationCard: React.FC<{
           </a>
         )}
       </div>
-
-      <p className="mt-5 text-xs text-gray-500">
-        Source: {publication.sourceLabels.join(' · ')}
-      </p>
     </article>
   );
 };

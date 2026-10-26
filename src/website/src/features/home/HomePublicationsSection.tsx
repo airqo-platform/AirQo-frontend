@@ -90,14 +90,8 @@ const PublicationCard = ({
         {publication.authors.join(', ')}
       </p>
 
-      <div className="mt-auto flex min-w-0 items-center justify-between gap-3 border-t border-slate-100 pt-4">
-        <p
-          className="truncate text-xs text-slate-500"
-          title={publication.sourceLabels.join(', ')}
-        >
-          {publication.sourceLabels.join(', ')}
-        </p>
-        {separateOpenAccessUrl && (
+      {separateOpenAccessUrl && (
+        <div className="mt-auto flex justify-end border-t border-slate-100 pt-4">
           <a
             href={separateOpenAccessUrl}
             {...getExternalLinkProps(separateOpenAccessUrl)}
@@ -105,8 +99,8 @@ const PublicationCard = ({
           >
             Open access
           </a>
-        )}
-      </div>
+        </div>
+      )}
     </article>
   );
 };
