@@ -49,6 +49,18 @@ import UpdateDeviceDialog from "@/components/dashboard/update-device-dialog"
 import { formatCategoryLabel } from "@/lib/utils"
 import { useGroup } from "@/lib/group-context"
 import { ROUTES } from "@/lib/navigation"
+import { useNetworks } from "@/hooks/use-networks"
+import {
+  buildNetworkFilterOptions,
+  buildNetworkFilterOptionsFromDevices,
+  getDeviceSourceIdentifier,
+  matchesNetworkFilter,
+  pruneNetworkSelection,
+  serializeNetworkFilter,
+} from "@/lib/manufacturers"
+import { ManufacturerBadge } from "@/components/devices/manufacturer-badge"
+import { DataSourceIndicator } from "@/components/devices/data-source-indicator"
+import { ManufacturerFilter } from "@/components/devices/manufacturer-filter"
 
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
@@ -95,7 +107,10 @@ export default function DevicesView({ scope }: Readonly<{ scope: DeviceScope }>)
   const [error, setError] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
-  const [networkFilter, setNetworkFilter] = useState("all")
+  // Sensor manufacturers (the platform's `network`) to show; empty means all. Sent as the
+  // comma-separated `network` query parameter, so it survives paging and refreshes.
+  const [networkFilter, setNetworkFilter] = useState<string[]>([])
+  const networkFilterParam = serializeNetworkFilter(networkFilter)
   const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(null)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [isSyncing, setIsSyncing] = useState(false)
@@ -106,6 +121,25 @@ export default function DevicesView({ scope }: Readonly<{ scope: DeviceScope }>)
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(25)
+
+  // Manufacturer filter options: GET /networks/ scoped to the active organisation (the same
+  // `group` the device list sends), re-fetched when the organisation changes. My Devices is
+  // filtered in memory, so its options are counted from the devices themselves.
+  const networksQuery = useNetworks({
+    group: activeGroup,
+    onlyWithDevices: true,
+    enabled: !groupLoading && Boolean(activeGroup) && deviceScope === "org",
+  })
+  const networksLoading = deviceScope === "org" ? networksQuery.isLoading : myDevicesLoading
+  const manufacturerOptions = useMemo(
+    () =>
+      deviceScope === "org"
+        ? buildNetworkFilterOptions(networksQuery.data)
+        : buildNetworkFilterOptionsFromDevices(myDevices),
+    [deviceScope, networksQuery.data, myDevices]
+  )
+  // True once the options belong to the current organisation, not a loading or stale list
+  const manufacturerOptionsReady = deviceScope === "org" ? networksQuery.isSuccess : !myDevicesLoading
 
   // Derived loading and error states based on active scope
   const isDataLoading = deviceScope === "org" ? loading : myDevicesLoading
@@ -161,6 +195,10 @@ export default function DevicesView({ scope }: Readonly<{ scope: DeviceScope }>)
 
       if (debouncedSearchTerm && debouncedSearchTerm.trim()) {
         params.search = debouncedSearchTerm.trim()
+      }
+
+      if (networkFilterParam) {
+        params.network = networkFilterParam
       }
 
       const data = await getDevicesForUIPaginated(params)
@@ -252,7 +290,7 @@ export default function DevicesView({ scope }: Readonly<{ scope: DeviceScope }>)
     if (groupLoading || !activeGroup || deviceScope !== "org") return
     fetchDevices()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentPage, itemsPerPage, debouncedSearchTerm, showTracked, activeGroup, groupLoading, deviceScope])
+  }, [currentPage, itemsPerPage, debouncedSearchTerm, networkFilterParam, showTracked, activeGroup, groupLoading, deviceScope])
 
   // Personal devices are filtered and paginated in memory, so only refetch when the source changes
   useEffect(() => {
@@ -347,13 +385,6 @@ export default function DevicesView({ scope }: Readonly<{ scope: DeviceScope }>)
   const offlinePercentage = calculatePercentage(offlineDevicesCount, trackedDevicesCount)
   const deployedPercentage = calculatePercentage(deployedDevicesCount, totalDevicesCount)
 
-  // Get unique networks for filter
-  const uniqueNetworks = useMemo(() => {
-    const activeDevicesList = deviceScope === "org" ? devices : myDevices
-    const networks = new Set(activeDevicesList.map(d => d.network).filter(Boolean))
-    return Array.from(networks)
-  }, [devices, myDevices, deviceScope])
-
   // Sort devices - online devices first, then by name
   const sortedDevices = useMemo(() => {
     return [...devices].sort((a, b) => {
@@ -369,7 +400,8 @@ export default function DevicesView({ scope }: Readonly<{ scope: DeviceScope }>)
       return sortedDevices
     }
 
-    let filtered = myDevices
+    // Personal devices are not server-paginated, so the manufacturer filter applies in memory
+    let filtered = myDevices.filter((d) => matchesNetworkFilter(d.network, networkFilter))
     if (searchTerm && searchTerm.trim()) {
       const term = searchTerm.toLowerCase().trim()
       filtered = filtered.filter((d) => 
@@ -388,7 +420,7 @@ export default function DevicesView({ scope }: Readonly<{ scope: DeviceScope }>)
     })
 
     return sorted
-  }, [deviceScope, sortedDevices, myDevices, searchTerm])
+  }, [deviceScope, sortedDevices, myDevices, searchTerm, networkFilter])
 
   const currentTotalItems = useMemo(() => {
     return deviceScope === "org" ? totalDevices : displayedDevices.length
@@ -438,16 +470,21 @@ export default function DevicesView({ scope }: Readonly<{ scope: DeviceScope }>)
     }
   }, [])
 
-  // Get network badge color
-  const getNetworkBadge = useCallback((network: string | undefined) => {
-    const networkColors: { [key: string]: string } = {
-      airbeam: "bg-purple-100 text-purple-800",
-      airqo: "bg-blue-100 text-blue-800",
-      lowcost: "bg-green-100 text-green-800",
-      default: "bg-gray-100 text-gray-800"
-    }
-    return networkColors[network?.toLowerCase() || 'default'] || networkColors.default
+  const handleManufacturerChange = useCallback((selected: string[]) => {
+    setNetworkFilter(selected)
+    setCurrentPage(1) // The result set changes, so start from the first page
   }, [])
+
+  // After an organisation switch, drop manufacturers the new organisation doesn't have, so a
+  // stale selection can't filter the list down to nothing
+  useEffect(() => {
+    if (!manufacturerOptionsReady || networkFilter.length === 0) return
+    const pruned = pruneNetworkSelection(networkFilter, manufacturerOptions)
+    if (pruned !== networkFilter) {
+      setNetworkFilter(pruned)
+      setCurrentPage(1)
+    }
+  }, [manufacturerOptionsReady, manufacturerOptions, networkFilter])
 
   // Get firmware badge info
   const getFirmwareBadge = useCallback((currentFirmware: string | undefined, targetFirmware: string | undefined, downloadState: string | undefined) => {
@@ -655,6 +692,21 @@ export default function DevicesView({ scope }: Readonly<{ scope: DeviceScope }>)
                   </Button>
                 )}
               </div>
+
+              {/* Manufacturer filter */}
+              <div className="flex items-center gap-2">
+                <ManufacturerFilter
+                  options={manufacturerOptions}
+                  selected={networkFilter}
+                  onChange={handleManufacturerChange}
+                  loading={networksLoading}
+                />
+                {networkFilter.length > 0 && (
+                  <Button variant="ghost" size="sm" className="h-9 text-xs" onClick={() => handleManufacturerChange([])}>
+                    Clear
+                  </Button>
+                )}
+              </div>
             </div>
 
             {isDataLoading && !hasInitialData ? (
@@ -673,7 +725,8 @@ export default function DevicesView({ scope }: Readonly<{ scope: DeviceScope }>)
                       <th className="text-left py-3 px-4 font-medium text-gray-600">Device Name</th>
                       <th className="text-left py-3 px-4 font-medium text-gray-600">Deployment</th>
                       <th className="text-left py-3 px-4 font-medium text-gray-600">Category</th>
-                      <th className="text-left py-3 px-4 font-medium text-gray-600">Channel ID</th>
+                      <th className="text-left py-3 px-4 font-medium text-gray-600">Manufacturer</th>
+                      <th className="text-left py-3 px-4 font-medium text-gray-600">Channel / Serial</th>
                       <th className="text-left py-3 px-4 font-medium text-gray-600">Network ID</th>
                       <th className="text-left py-3 px-4 font-medium text-gray-600">Firmware</th>
                       <th className="text-left py-3 px-4 font-medium text-gray-600">Location</th>
@@ -734,9 +787,22 @@ export default function DevicesView({ scope }: Readonly<{ scope: DeviceScope }>)
                             </span>
                           </td>
                           <td className="py-3 px-4">
-                            <span className="text-sm text-gray-600">
-                              {device.channel_id || "-"}
-                            </span>
+                            <div className="flex items-center gap-2">
+                              <ManufacturerBadge network={device.network} />
+                              <DataSourceIndicator dataSource={device.data_source} variant="icon" />
+                            </div>
+                          </td>
+                          <td className="py-3 px-4">
+                            {(() => {
+                              const identifier = getDeviceSourceIdentifier(device)
+                              return identifier ? (
+                                <span className="text-sm text-gray-600 font-mono" title={identifier.label}>
+                                  {identifier.value}
+                                </span>
+                              ) : (
+                                <span className="text-sm text-gray-400">-</span>
+                              )
+                            })()}
                           </td>
                           <td className="py-3 px-4" onClick={(e) => handleNetworkIdClick(device, e)}>
                             <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-200 cursor-pointer transition-colors">

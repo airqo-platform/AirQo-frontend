@@ -34,6 +34,8 @@ import DeviceDetailsTab from "./device-details-tab"
 import DiagnosticsTab from "./diagnostics-tab"
 import dynamic from "next/dynamic"
 import { useGroup } from "@/lib/group-context"
+import { resolveDeviceDataSource } from "@/lib/manufacturers"
+import type { DeviceDataSource } from "@/types/network.types"
 
 const RemoteTerminalTab = dynamic(() => import("./remote-terminal-tab"), {
   ssr: false,
@@ -49,18 +51,25 @@ interface DeviceDetail {
   _id: string
   name: string
   long_name: string
-  device_number: number
+  /** ThingSpeak channel; AirQo devices only. The device identity is `_id`. */
+  device_number?: number | null
   description?: string
   createdAt: string
 
-  // Network & Identifiers
+  // Network & Identifiers. `network` is the sensor manufacturer / data provider.
   network: string
   network_id: string | null
   device_codes: string[]
+  /** Manufacturer serial number; the identity of non-AirQo devices */
+  serial_number?: string | null
+  /** Manufacturer API URL ("device connection URL") for non-AirQo devices */
+  api_code?: string | null
+  /** thingspeak | external_api | none; older API builds omit it */
+  data_source?: DeviceDataSource | null
 
-  // Keys
-  readKey: string
-  writeKey: string
+  // ThingSpeak keys; AirQo devices only
+  readKey?: string | null
+  writeKey?: string | null
 
   // Status & State
   isActive: boolean
@@ -92,13 +101,18 @@ interface DeviceDetail {
   mountType: string
   powerType: string
 
-  // Firmware
+  // beacon-api's own record
   beacon_data: {
     network_id: string | null
     current_firmware: string | null
     previous_firmware: string | null
     file_upload_state: boolean
     firmware_download_state: string | null
+    device_number?: number | null
+    serial_number?: string | null
+    api_code?: string | null
+    auth_required?: boolean | null
+    data_source?: DeviceDataSource | null
   }
 
   // Location
@@ -197,6 +211,8 @@ export default function DeviceDetailPage() {
           network: "airqo",
           network_id: null,
           device_codes: ["MOCK-001"],
+          serial_number: "SN-MOCK-001",
+          data_source: "thingspeak",
           readKey: "mock-read-key-123456789",
           writeKey: "mock-write-key-987654321",
           isActive: true,
@@ -314,6 +330,9 @@ export default function DeviceDetailPage() {
     })
   }
 
+  // Only AirQo devices read from ThingSpeak and have a channel to configure
+  const dataSource = resolveDeviceDataSource(device)
+
   if (loading) {
     return <LoadingState text="Loading device information..." className="h-full min-h-[50vh]" />
   }
@@ -426,7 +445,7 @@ export default function DeviceDetailPage() {
           <ConfigTab
             deviceId={device.name}
             deviceName={device.long_name || device.name}
-            channelId={device.device_number || 0}
+            channelId={dataSource === "thingspeak" ? device.device_number || 0 : 0}
           />
         </TabsContent>
 
