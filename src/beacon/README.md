@@ -31,7 +31,7 @@ npm run dev
 ```bash
 npm test
 ```
-Runs the `node:test` suites in `tests/unit/manufacturers` through a small loader (`tests/unit/register.mjs`) that transpiles TypeScript, resolves `@/` imports and stubs Next.js runtime modules. No extra test framework is needed.
+Runs the `node:test` suites in `tests/unit/manufacturers` (Node 20 or later) through a small loader (`tests/unit/register.mjs`) that transpiles TypeScript, resolves `@/` imports and stubs Next.js runtime modules. No extra test framework is needed.
 
 ## 📋 Architecture Integration
 

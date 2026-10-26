@@ -381,7 +381,12 @@ export default function DeviceProfilesCatalogPage() {
                   <TableHead className="w-[16%] whitespace-nowrap">
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <span className="cursor-help underline decoration-dotted underline-offset-2">Slots / Sub / Rel</span>
+                        <span
+                          tabIndex={0}
+                          className="cursor-help underline decoration-dotted underline-offset-2 rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1"
+                        >
+                          Slots / Sub / Rel
+                        </span>
                       </TooltipTrigger>
                       <TooltipContent className="text-xs">Ingestion slot mappings / subsystems / topological relationships</TooltipContent>
                     </Tooltip>
@@ -455,7 +460,7 @@ export default function DeviceProfilesCatalogPage() {
                             <TooltipTrigger asChild>
                               <span
                                 tabIndex={0}
-                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200 whitespace-nowrap cursor-help"
+                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200 whitespace-nowrap cursor-help focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1"
                               >
                                 <AlertTriangle className="w-3 h-3 text-amber-600" />
                                 Incomplete
