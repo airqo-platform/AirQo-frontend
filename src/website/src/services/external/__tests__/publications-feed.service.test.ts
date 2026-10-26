@@ -1,6 +1,7 @@
 import {
   formatCrossrefDateParts,
   getCanonicalPublicationUrl,
+  getLivePublications,
   hasAirQoAffiliation,
   isAirQualityTopic,
   mergePublicationResults,
@@ -91,6 +92,44 @@ describe('mergePublicationResults', () => {
     expect(results).toHaveLength(2);
     expect(results[0].title).toBe('Newer Air Quality Study');
     expect(results[1].title).toBe('Older Air Quality Study');
+  });
+});
+
+describe('getLivePublications', () => {
+  it('does not call providers when the OpenAlex API key is missing', async () => {
+    const originalApiKey = process.env.OPENALEX_API_KEY;
+    const originalEnabled = process.env.PUBLICATIONS_FEED_ENABLED;
+    const originalFetch = globalThis.fetch;
+    const fetchMock = jest.fn();
+    globalThis.fetch = fetchMock;
+
+    process.env.OPENALEX_API_KEY = '   ';
+    process.env.PUBLICATIONS_FEED_ENABLED = 'true';
+
+    try {
+      const response = await getLivePublications({ page: 2, pageSize: 4 });
+
+      expect(response).toMatchObject({
+        enabled: false,
+        results: [],
+        count: 0,
+        pageSize: 4,
+        totalPages: 0,
+        currentPage: 2,
+        providers: [],
+      });
+      expect(fetchMock).not.toHaveBeenCalled();
+    } finally {
+      if (originalApiKey === undefined) delete process.env.OPENALEX_API_KEY;
+      else process.env.OPENALEX_API_KEY = originalApiKey;
+
+      if (originalEnabled === undefined)
+        delete process.env.PUBLICATIONS_FEED_ENABLED;
+      else process.env.PUBLICATIONS_FEED_ENABLED = originalEnabled;
+
+      if (originalFetch) globalThis.fetch = originalFetch;
+      else delete (globalThis as { fetch?: typeof fetch }).fetch;
+    }
   });
 });
 

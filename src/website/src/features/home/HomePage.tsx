@@ -7,6 +7,7 @@ import EarthshotFinalistSection from './EarthshotFinalistSection';
 import HomeDeferredSections from './HomeDeferredSections';
 import HomeNetworkCoverageDeferred from './HomeNetworkCoverageDeferred';
 import HomePlayerSection from './HomePlayerSection';
+import HomePublicationsSection from './HomePublicationsSection';
 import ProductsShowcase from './ProductsShowcase';
 
 const images = {
@@ -42,6 +43,9 @@ const HomePage = () => {
         googlePlayLink="https://play.google.com/store/apps/details?id=com.airqo.app"
         mockupImage={images.mobileAppMockup}
       />
+
+      {/* Latest curated and live research publications */}
+      <HomePublicationsSection />
     </div>
   );
 };

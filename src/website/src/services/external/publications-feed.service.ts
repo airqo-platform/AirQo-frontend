@@ -473,16 +473,24 @@ export async function getLivePublications(
   } = {},
 ): Promise<LivePublicationsResponse> {
   const config = getPublicationsFeedConfig();
-
-  if (!config.enabled) {
-    throw new PublicationsFeedError('The live publications feed is disabled');
-  }
-
   const page = toPositiveInteger(options.page, 1);
   const pageSize = Math.min(
     toPositiveInteger(options.pageSize, PUBLICATIONS_FEED_DEFAULT_PAGE_SIZE),
     PUBLICATIONS_FEED_MAX_PAGE_SIZE,
   );
+
+  if (!config.enabled) {
+    return {
+      enabled: false,
+      results: [],
+      count: 0,
+      pageSize,
+      totalPages: 0,
+      currentPage: page,
+      updatedAt: new Date().toISOString(),
+      providers: [],
+    };
+  }
 
   const providerResults = await Promise.allSettled([
     fetchOpenAlex(config),
@@ -507,6 +515,7 @@ export async function getLivePublications(
   const start = (currentPage - 1) * pageSize;
 
   return {
+    enabled: true,
     results: results.slice(start, start + pageSize),
     count: results.length,
     pageSize,

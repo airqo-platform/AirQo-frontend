@@ -8,6 +8,11 @@ import { NoData, Pagination } from '@/components/ui';
 import mainConfig from '@/config/site.config';
 import { useLivePublications, usePublications } from '@/hooks/useApiHooks';
 import { getExternalLinkProps } from '@/lib/security/safeExternalLink';
+import type {
+  CuratedPublication,
+  PublicationFeedItem,
+} from '@/lib/utils/publications';
+import { mergePublicationLists } from '@/lib/utils/publications';
 import type { LivePublication } from '@/types/publications-feed';
 
 type ResourceItem = {
@@ -46,9 +51,9 @@ const getHttpsUrl = (value?: string): string | undefined => {
   }
 };
 
-const LivePublicationCard: React.FC<{ publication: LivePublication }> = ({
-  publication,
-}) => {
+const ResearchPublicationCard: React.FC<{
+  publication: PublicationFeedItem;
+}> = ({ publication }) => {
   const publicationDate = formatPublicationDate(
     publication.publishedDate,
     publication.year,
@@ -73,9 +78,9 @@ const LivePublicationCard: React.FC<{ publication: LivePublication }> = ({
         </p>
       )}
 
-      {publication.abstract && (
+      {(publication.abstract || publication.description) && (
         <p className="mb-6 line-clamp-4 leading-relaxed text-gray-700">
-          {publication.abstract}
+          {publication.abstract || publication.description}
         </p>
       )}
 
@@ -102,7 +107,7 @@ const LivePublicationCard: React.FC<{ publication: LivePublication }> = ({
       </div>
 
       <p className="mt-5 text-xs text-gray-500">
-        Source: {publication.sourceLabel}
+        Source: {publication.sourceLabels.join(' · ')}
       </p>
     </article>
   );
@@ -187,40 +192,32 @@ const ResourcePage: React.FC = () => {
     { enabled: isResearchCategory },
   );
 
-  const { results, totalPages, error, isLoading, liveResults } = useMemo(() => {
+  const { results, totalPages, error, isLoading } = useMemo(() => {
     if (isResearchCategory) {
-      const hasLiveResponse = Boolean(livePublicationsData.data);
+      const curatedResults = (singleCategoryData.data?.results ||
+        []) as CuratedPublication[];
+      const liveResults = (livePublicationsData.data?.results ||
+        []) as LivePublication[];
+      const researchResults = mergePublicationLists(
+        curatedResults,
+        liveResults,
+      );
       const liveRequestIsLoading =
         livePublicationsData.isLoading ||
-        (livePublicationsData.isFetching && !hasLiveResponse);
-      const fallbackResults = singleCategoryData.data?.results || [];
-      const fallbackIsLoading = singleCategoryData.isLoading;
-      const liveRequestFailed = Boolean(livePublicationsData.error);
-      const livePublicationResults = livePublicationsData.data?.results;
-      const hasLiveData = Array.isArray(livePublicationResults);
-      const hasLiveRecords = Boolean(livePublicationResults?.length);
-      const shouldUseCuratedFallback =
-        hasLiveData && !hasLiveRecords && fallbackResults.length > 0;
+        (livePublicationsData.isFetching && !livePublicationsData.data);
       const fallbackTotalPages = singleCategoryData.data?.total_pages || 1;
+      const liveTotalPages = livePublicationsData.data?.totalPages || 0;
 
       return {
-        results: fallbackResults,
-        totalPages: shouldUseCuratedFallback
-          ? fallbackTotalPages
-          : livePublicationsData.data?.totalPages || fallbackTotalPages,
-        error: hasLiveData
-          ? null
-          : liveRequestFailed
-            ? fallbackResults.length > 0
-              ? null
-              : singleCategoryData.error || livePublicationsData.error
-            : singleCategoryData.error,
+        results: researchResults,
+        totalPages: Math.max(fallbackTotalPages, liveTotalPages),
+        error:
+          researchResults.length > 0
+            ? null
+            : singleCategoryData.error || livePublicationsData.error,
         isLoading:
-          liveRequestIsLoading ||
-          ((!hasLiveData || !hasLiveRecords) && fallbackIsLoading),
-        liveResults: shouldUseCuratedFallback
-          ? undefined
-          : livePublicationResults,
+          researchResults.length === 0 &&
+          (singleCategoryData.isLoading || liveRequestIsLoading),
       };
     }
 
@@ -255,7 +252,6 @@ const ResourcePage: React.FC = () => {
           manualPage1.isLoading ||
           manualPage2.isLoading ||
           manualPage3.isLoading,
-        liveResults: undefined,
       };
     }
 
@@ -264,7 +260,6 @@ const ResourcePage: React.FC = () => {
       totalPages: singleCategoryData.data?.total_pages || 1,
       error: singleCategoryData.error,
       isLoading: singleCategoryData.isLoading,
-      liveResults: undefined,
     };
   }, [
     currentPage,
@@ -352,13 +347,13 @@ const ResourcePage: React.FC = () => {
             aria-live="polite"
             aria-label={
               isResearchCategory
-                ? 'Loading live research publications'
+                ? 'Loading research publications'
                 : 'Loading resources'
             }
           >
             <p className="text-sm text-gray-600">
               {isResearchCategory
-                ? 'Loading live research publications...'
+                ? 'Loading research publications...'
                 : 'Loading resources...'}
             </p>
             {[...Array(itemsPerPage)].map((_, index) => (
@@ -378,13 +373,13 @@ const ResourcePage: React.FC = () => {
           </div>
         ) : error ? (
           <NoData message="Failed to load resources. Please try again later." />
-        ) : liveResults ? (
-          liveResults.length === 0 ? (
-            <NoData message="No live publications were found. Please try again later." />
+        ) : isResearchCategory ? (
+          results.length === 0 ? (
+            <NoData message="No publications were found. Please try again later." />
           ) : (
             <div className="space-y-6">
-              {liveResults.map((publication) => (
-                <LivePublicationCard
+              {(results as PublicationFeedItem[]).map((publication) => (
+                <ResearchPublicationCard
                   key={publication.id}
                   publication={publication}
                 />
@@ -447,7 +442,7 @@ const ResourcePage: React.FC = () => {
         )}
       </section>
 
-      {(liveResults ? liveResults.length > 0 : results.length > 0) && (
+      {results.length > 0 && (
         <Pagination
           totalPages={totalPages}
           currentPage={currentPage}

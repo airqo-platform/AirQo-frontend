@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(response, {
       headers: {
-        'Cache-Control': CACHE_CONTROL,
+        'Cache-Control': response.enabled ? CACHE_CONTROL : 'no-store',
       },
     });
   } catch (error) {

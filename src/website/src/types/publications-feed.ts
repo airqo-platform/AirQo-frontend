@@ -18,6 +18,7 @@ export interface LivePublication {
 }
 
 export interface LivePublicationsResponse {
+  enabled: boolean;
   results: LivePublication[];
   count: number;
   pageSize: number;
