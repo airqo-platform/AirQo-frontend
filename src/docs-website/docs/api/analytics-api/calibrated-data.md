@@ -37,17 +37,17 @@ Content-Type: application/json
 | `network` | string | No | Always `"airqo"` (default) |
 | `startDateTime` | string | Yes | Start timestamp (ISO 8601). It must not be in the future. |
 | `endDateTime` | string | Yes | End timestamp (ISO 8601). It must be later than `startDateTime`. The range is at most 90 days for hourly data and at most 365 days for daily, weekly, monthly and yearly data. |
-| `datatype` | string | No | `"calibrated"` (default) for quality-controlled data |
+| `datatype` | string | No | `"calibrated"` (default) for quality-controlled data. The other values are `"raw"`, `"averaged"` and `"consolidated"`. |
 | `downloadType` | string | No | `"json"` (default) or `"csv"` |
 | `outputFormat` | string | No | Columns of a CSV download: `"airqo-standard"` (default) or `"aqcsv"`. `"aqcsv"` supports hourly and daily data. |
 | `frequency` | string | No | `"hourly"`, `"daily"` (default), `"weekly"`, `"monthly"` or `"yearly"`. For raw readings, use the raw-data endpoint. |
-| `device_category` | string | No | `"lowcost"` (default) or `"bam"` |
-| `device_names` | array | No\* | Specific device identifiers |
+| `device_category` | string | No | `"lowcost"` (default), `"bam"`, `"gas"`, `"general"`, `"mobile"` or `"satellite"` |
+| `device_names` | array | No\* | Specific device IDs. This field matches the same column as `device_ids`, so it does not match a human-readable device name. |
 | `device_ids` | array | No\* | Specific device IDs (as returned by the Metadata API) |
 | `sites` | array | No\* | Specific Site IDs |
 | `grid_ids` | array | No\* | One Grid ID |
 | `cohort_ids` | array | No\* | One Cohort ID |
-| `pollutants` | array | Yes | `"pm2_5"`, `"pm10"` or both. A request without a pollutant returns records without measurement values. |
+| `pollutants` | array | Yes | `"pm2_5"`, `"pm10"` or both. A request without a pollutant receives `422`. |
 | `metaDataFields` | array | No | Any of `"latitude"`, `"longitude"` and `"site_id"` |
 | `weatherFields` | array | No | Any of `"temperature"` and `"humidity"` |
 | `cursor` | string | No | The `metadata.next` value of the previous page |
@@ -242,4 +242,4 @@ An error response has this shape:
 | `422` | The request fails validation. The `errors` array names each problem. | Correct the request. |
 | `429` | A rate limit is exceeded. | Wait for the seconds in the `Retry-After` header, then send the same request again. |
 | `500` | An unexpected server error. | Send the request again later. |
-| `503` | The service cannot read the data at that moment. | Send the same request again later. |
+| `503` | The service cannot read the data at that moment. | Send the same request again later. If the request carries a cursor, use the same cursor while it is valid. |

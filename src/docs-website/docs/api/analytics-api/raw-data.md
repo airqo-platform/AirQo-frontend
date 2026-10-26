@@ -37,9 +37,9 @@ Content-Type: application/json
 | `network` | string | No | Always `"airqo"` (default) |
 | `startDateTime` | string | Yes | Start timestamp (ISO 8601). It must not be in the future. |
 | `endDateTime` | string | Yes | End timestamp (ISO 8601). It must be later than `startDateTime`, and the range is at most 31 days. |
-| `pollutants` | array | Yes | `"pm2_5"`, `"pm10"` or both. A request without a pollutant returns records without measurement values. |
-| `device_category` | string | No | `"lowcost"` (default) or `"bam"` |
-| `device_names` | array | No\* | Filter to specific device identifiers |
+| `pollutants` | array | Yes | `"pm2_5"`, `"pm10"` or both. For `bam` devices, only `"pm2_5"`. A request without a pollutant receives `422`. |
+| `device_category` | string | No | `"lowcost"` (default), `"bam"`, `"gas"`, `"general"`, `"mobile"` or `"satellite"` |
+| `device_names` | array | No\* | Filter to specific device IDs. This field matches the same column as `device_ids`, so it does not match a human-readable device name. |
 | `device_ids` | array | No\* | Filter to specific device IDs (as returned by the Metadata API) |
 | `sites` | array | No\* | Filter to specific Site IDs |
 | `grid_ids` | array | No\* | Filter to one Grid ID |
@@ -71,7 +71,7 @@ For `lowcost` devices, the response also automatically includes the raw dual-cha
 | `s1_pm2_5` / `s2_pm2_5` | Raw sensor channel 1 / 2 PM2.5 |
 | `s1_pm10` / `s2_pm10` | Raw sensor channel 1 / 2 PM10 |
 
-For `bam` devices, `pm2_5` returns the keys `realtime_conc`, `hourly_conc` and `short_time_conc`, and `pm10` returns no key. A key whose values are all zero on a page is left out of that page, so treat a missing key as no reading.
+For `bam` devices, request `pm2_5` only. A request for `pm10` receives `422`. Each record carries the keys `realtime_conc`, `hourly_conc` and `short_time_conc`. A key whose values are all zero on a page is left out of that page, so treat a missing key as no reading.
 
 ---
 
@@ -224,7 +224,7 @@ def fetch_all(base_payload, token):
     records, payload = [], dict(base_payload)
     while True:
         response = requests.post(url, json=payload, timeout=120)
-        if response.status_code == 429:
+        if response.status_code in (429, 503):
             time.sleep(int(response.headers.get("Retry-After", 60)))
             continue
         body = response.json()
@@ -264,7 +264,7 @@ An error response has this shape:
 | `422` | The request fails validation. The `errors` array names each problem. | Correct the request. |
 | `429` | A rate limit is exceeded. | Wait for the seconds in the `Retry-After` header, then send the same request again. |
 | `500` | An unexpected server error. | Send the request again later. |
-| `503` | The service cannot read the data at that moment. | Send the same request again later. |
+| `503` | The service cannot read the data at that moment. | Send the same request again later. If the request carries a cursor, use the same cursor while it is valid. |
 
 ---
 
@@ -272,5 +272,5 @@ An error response has this shape:
 
 - **Limit date ranges** — raw data is high-volume. Use windows of 1–6 hours for exploratory queries.
 - **Specify only the pollutants you need** — omitting unused fields speeds up the response.
-- **Watch the rate limit** — this endpoint starts at most 5 exports per minute for each client. Requests that carry a `cursor` count only against the general limit of 100 requests per minute, so pause about one second between pages.
+- **Watch the rate limit** — this endpoint starts at most 5 exports per minute for each client. Requests that carry a `cursor` count only against the general limit of 100 requests per minute, so pause at least one second between pages.
 - **Stay within 31 days** — a raw-data request covers at most 31 days.
