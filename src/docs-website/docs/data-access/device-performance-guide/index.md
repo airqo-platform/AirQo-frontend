@@ -8,7 +8,7 @@ sidebar_label: Overview
 A comprehensive guide to what our devices do, how they operate, the data you can expect, and our commitment to maintaining their performance.
 
 :::info Document version
-Version 1.0 — August 2026
+Version 1.0.1 — October 2026
 :::
 
 ---

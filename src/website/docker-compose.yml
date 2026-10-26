@@ -1,7 +1,7 @@
 services:
   # Development: bind-mounts source, runs `npm run dev` with hot-reload
   web:
-    image: node:20-alpine
+    image: node:24-alpine
     container_name: airqo-website-dev
     working_dir: /app
     volumes:

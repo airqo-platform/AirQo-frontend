@@ -35,6 +35,8 @@ export const PAGE_TITLES: Record<string, string> = {
   '/system/api-keys': 'API Key Usage',
   '/system/feedback': 'Feedback',
   '/system/team-members': 'Members',
+  '/system/organizations': 'Organizations',
+  '/system/activity-log': 'Activity Log',
   '/system/surveys': 'Survey Management',
   '/system/surveys/new': 'Create Survey',
 
@@ -131,6 +133,10 @@ export const getPageTitle = (pathname: string): string => {
 
     if (pathname.startsWith('/system/billing/invoices/')) {
       return 'Invoice Details';
+    }
+
+    if (/^\/system\/organizations\/[^/]+(?:\/|$)/.test(pathname)) {
+      return 'Organization Details';
     }
 
     if (pathname.startsWith('/system/billing/customers/')) {

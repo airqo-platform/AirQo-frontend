@@ -4,6 +4,7 @@ import * as React from 'react';
 import { motion } from 'framer-motion';
 import { useDispatch } from 'react-redux';
 import { useSession } from 'next-auth/react';
+import { usePathname } from 'next/navigation';
 import { cn } from '@/shared/lib/utils';
 import { Card } from '@/shared/components/ui/card';
 import { Button } from '@/shared/components/ui/button';
@@ -33,6 +34,9 @@ export const Header: React.FC<HeaderProps> = ({
   const pageTitle = usePageTitle();
   const isMobile = useMediaQuery({ maxWidth: 768 });
   const { status } = useSession();
+  const pathname = usePathname();
+  const isConsoleRoute =
+    pathname === '/console' || pathname?.startsWith('/console/') === true;
   const shouldShowAuthControls =
     !showAuthControlsOnlyWhenAuthenticated || status === 'authenticated';
 
@@ -66,7 +70,9 @@ export const Header: React.FC<HeaderProps> = ({
 
           {/* App Dropdown and Profile Dropdown */}
           <div className="flex items-center space-x-2">
-            {shouldShowAuthControls && !isMobile && <OrganizationSelector />}
+            {shouldShowAuthControls && !isMobile && !isConsoleRoute && (
+              <OrganizationSelector />
+            )}
             {shouldShowAuthControls && !isMobile && (
               <OrgCohortSwitcher containerClassName="mb-0 w-40 xl:w-44" />
             )}

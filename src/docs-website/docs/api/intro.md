@@ -37,6 +37,10 @@ If you need to know *where* air quality is monitored across Africa — including
 | Spatial heatmaps | Per grid area | Visualisations, city maps | Free+ |
 | Air quality forecasts | Hourly & daily (7-day) | Planning, alerts | Premium |
 
+:::note What "real-time" means
+The finest resolution for calibrated measurements is one hour, so the latest reading is the most recent completed hourly average, not data from the last few minutes. See [Data Freshness →](./reference/data-freshness.md).
+:::
+
 ---
 
 ## How data access is organised

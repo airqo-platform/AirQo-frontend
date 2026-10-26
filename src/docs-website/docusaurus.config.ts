@@ -43,10 +43,10 @@ const config: Config = {
           }) {
             const sidebarItems = await defaultSidebarItemsGenerator(args);
 
-            // Docs hidden from sidebar navigation only (page stays published at its URL).
-            const HIDDEN_DOC_IDS = new Set([
-              "nexus/managing-locations/favorite-locations",
-            ]);
+            // Keep this list for pages that should remain published but not
+            // appear in navigation. Saved Locations is an active user guide
+            // and is intentionally visible in the Nexus sidebar.
+            const HIDDEN_DOC_IDS = new Set<string>([]);
 
             const removeHiddenItems = (items: any[]): any[] =>
               items

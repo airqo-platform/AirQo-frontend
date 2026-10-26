@@ -423,7 +423,7 @@ const TeamMemberDetailContent: React.FC<{ memberId: string }> = ({
             <div>
               <h3 className="text-lg font-semibold">Current Access</h3>
               <p className="text-sm text-muted-foreground">
-                Roles inherited from groups
+                Roles assigned in groups
               </p>
             </div>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">

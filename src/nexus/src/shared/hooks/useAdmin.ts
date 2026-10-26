@@ -296,7 +296,7 @@ export const useUserStatsBreakdown = (months = 12, limit = 8) => {
 // Get all users (optionally filtered by email)
 export const useUsers = (email?: string) => {
   return useSWR(
-    email ? `admin/users?email=${email}` : 'admin/users',
+    email ? `admin/users?email=${encodeURIComponent(email)}` : 'admin/users',
     () => userService.getUsers(email),
     {
       revalidateOnFocus: false,
@@ -335,6 +335,7 @@ export const useUpdateUserRole = () => {
             typeof key === 'string' &&
             (key.startsWith('user/details/') ||
               key.startsWith('admin/users') ||
+              key.startsWith('admin/roles') ||
               key === 'admin/roles/summary/all' ||
               key === 'admin/user-statistics')
         );

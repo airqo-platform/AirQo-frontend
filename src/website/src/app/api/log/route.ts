@@ -11,7 +11,7 @@ function mergeAbortSignals(
 ): AbortSignal {
   const filtered = signals.filter(Boolean) as AbortSignal[];
 
-  // Native fast-path if available (Node.js 20+)
+  // Native fast-path if available (Node.js 24+)
   if (typeof (AbortSignal as any).any === 'function') {
     return (AbortSignal as any).any(filtered);
   }

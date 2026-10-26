@@ -7,6 +7,10 @@ sidebar_label: Recent Measurements
 
 Retrieve the latest hourly calibrated air quality measurements from all devices in your Cohort. This endpoint returns data from approximately the last 7 days.
 
+:::note Data freshness
+Each measurement is an hourly average, so the newest record is for the most recent completed hour, not the last few minutes. See [Data Freshness →](../reference/data-freshness.md) to check how current a reading is and how often to poll.
+:::
+
 :::info Tier requirement
 Available on all tiers including Free.
 :::
@@ -156,6 +160,8 @@ for measurement in data['measurements']:
 | `deviceDetails.isOnline` | Whether device is currently active |
 | `deviceDetails.latitude` | Device latitude |
 | `deviceDetails.longitude` | Device longitude |
+| `deviceDetails.lastActive` | Last calibrated reading timestamp (ISO 8601) |
+| `deviceDetails.lastRawData` | Last raw reading timestamp (ISO 8601). Optional: may be absent. |
 
 ---
 

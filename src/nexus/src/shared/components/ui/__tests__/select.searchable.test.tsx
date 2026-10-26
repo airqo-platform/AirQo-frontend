@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 // react-popper positions via DOM measurement that jsdom cannot provide. Stub it
@@ -166,5 +166,42 @@ describe('SelectField searchable', () => {
     await user.click(screen.getByRole('option', { name: 'Grace Hopper' }));
 
     expect(onChange.mock.calls[0][0].target.value).toBe('2');
+  });
+
+  // The option list is portalled to document.body, so a click inside it lands
+  // outside the select's own container. Outside-click detection has to test
+  // both roots, or typing in the filter box would dismiss the list.
+  it('stays open when the click lands inside the portalled popper', async () => {
+    const user = userEvent.setup();
+    const { container } = render(<AssigneeSelect />);
+
+    await user.click(trigger());
+
+    const popper = screen.getByRole('listbox').parentElement as HTMLElement;
+    // Proof the list really is portalled out of the select's container.
+    expect(document.body).toContainElement(popper);
+    expect(container).not.toContainElement(popper);
+
+    // Clicking the filter box inside the popper must not dismiss the list…
+    fireEvent.mouseDown(searchBox());
+    expect(screen.getByRole('listbox')).toBeInTheDocument();
+    expect(trigger()).toHaveAttribute('aria-expanded', 'true');
+
+    // …nor clicking any other part of the popper.
+    fireEvent.mouseDown(screen.getByRole('option', { name: 'Ada Lovelace' }));
+    expect(screen.getByRole('listbox')).toBeInTheDocument();
+  });
+
+  it('closes on a click outside both the trigger and the popper', async () => {
+    const user = userEvent.setup();
+    render(<AssigneeSelect />);
+
+    await user.click(trigger());
+    expect(screen.getByRole('listbox')).toBeInTheDocument();
+
+    fireEvent.mouseDown(document.body);
+
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+    expect(trigger()).toHaveAttribute('aria-expanded', 'false');
   });
 });
