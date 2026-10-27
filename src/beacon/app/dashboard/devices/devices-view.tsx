@@ -92,6 +92,8 @@ export default function DevicesView({ scope }: Readonly<{ scope: DeviceScope }>)
 
   // Org devices render at /dashboard/devices, personal devices at /dashboard/devices/my-devices
   const deviceScope = scope
+  // My Devices leaves out the Category and Manufacturer columns.
+  const showHardwareColumns = deviceScope === "org"
 
   // State for personal devices (My Devices)
   const [myDevices, setMyDevices] = useState<UIDevice[]>([])
@@ -724,8 +726,12 @@ export default function DevicesView({ scope }: Readonly<{ scope: DeviceScope }>)
                     <tr className="bg-gray-50">
                       <th className="text-left py-3 px-4 font-medium text-gray-600">Device Name</th>
                       <th className="text-left py-3 px-4 font-medium text-gray-600">Deployment</th>
-                      <th className="text-left py-3 px-4 font-medium text-gray-600">Category</th>
-                      <th className="text-left py-3 px-4 font-medium text-gray-600">Manufacturer</th>
+                      {showHardwareColumns && (
+                        <>
+                          <th className="text-left py-3 px-4 font-medium text-gray-600">Category</th>
+                          <th className="text-left py-3 px-4 font-medium text-gray-600">Manufacturer</th>
+                        </>
+                      )}
                       <th className="text-left py-3 px-4 font-medium text-gray-600">Channel / Serial</th>
                       <th className="text-left py-3 px-4 font-medium text-gray-600">Network ID</th>
                       <th className="text-left py-3 px-4 font-medium text-gray-600">Firmware</th>
@@ -781,17 +787,21 @@ export default function DevicesView({ scope }: Readonly<{ scope: DeviceScope }>)
                               {deploymentInfo.text}
                             </Badge>
                           </td>
-                          <td className="py-3 px-4">
-                            <span className="text-sm text-gray-600">
-                              {formatCategoryLabel(device.category)}
-                            </span>
-                          </td>
-                          <td className="py-3 px-4">
-                            <div className="flex items-center gap-2">
-                              <ManufacturerBadge network={device.network} />
-                              <DataSourceIndicator dataSource={device.data_source} variant="icon" />
-                            </div>
-                          </td>
+                          {showHardwareColumns && (
+                            <>
+                              <td className="py-3 px-4">
+                                <span className="text-sm text-gray-600">
+                                  {formatCategoryLabel(device.category)}
+                                </span>
+                              </td>
+                              <td className="py-3 px-4">
+                                <div className="flex items-center gap-2">
+                                  <ManufacturerBadge network={device.network} />
+                                  <DataSourceIndicator dataSource={device.data_source} variant="icon" />
+                                </div>
+                              </td>
+                            </>
+                          )}
                           <td className="py-3 px-4">
                             {(() => {
                               const identifier = getDeviceSourceIdentifier(device)
