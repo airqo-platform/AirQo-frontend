@@ -10,6 +10,10 @@ describe("hasDeviceLocation", () => {
     expect(hasDeviceLocation(device({ site: [], latitude: null, longitude: "" }))).toBe(false);
   });
 
+  it("treats whitespace-only coordinates as missing", () => {
+    expect(hasDeviceLocation(device({ latitude: "  ", longitude: " " }))).toBe(false);
+  });
+
   it("is true when the device sits at a site", () => {
     expect(hasDeviceLocation(device({ site: [{ _id: "s1", name: "Kampala" } as never] }))).toBe(true);
     expect(hasDeviceLocation(device({ site: { _id: "s1", name: "Kampala" } }))).toBe(true);

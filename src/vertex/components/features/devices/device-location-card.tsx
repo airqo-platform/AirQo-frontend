@@ -11,8 +11,10 @@ interface DeviceLocationCardProps {
 }
 
 const toNumberOrNull = (v: unknown) => {
-  if (v === null || v === undefined || v === '') return null;
-  const n = Number(String(v));
+  if (v === null || v === undefined) return null;
+  const s = String(v).trim();
+  if (s === '') return null;
+  const n = Number(s);
   return Number.isFinite(n) ? n : null;
 };
 
