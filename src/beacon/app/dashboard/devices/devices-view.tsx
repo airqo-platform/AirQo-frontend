@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback, useMemo } from "react"
+import { useState, useEffect, useCallback, useMemo, useRef } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
@@ -92,6 +92,8 @@ export default function DevicesView({ scope }: Readonly<{ scope: DeviceScope }>)
 
   // Org devices render at /dashboard/devices, personal devices at /dashboard/devices/my-devices
   const deviceScope = scope
+  // My Devices leaves out the Category and Manufacturer columns.
+  const showHardwareColumns = deviceScope === "org"
 
   // State for personal devices (My Devices)
   const [myDevices, setMyDevices] = useState<UIDevice[]>([])
@@ -108,8 +110,11 @@ export default function DevicesView({ scope }: Readonly<{ scope: DeviceScope }>)
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
   // Sensor manufacturers (the platform's `network`) to show; empty means all. Sent as the
-  // comma-separated `network` query parameter, so it survives paging and refreshes.
-  const [networkFilter, setNetworkFilter] = useState<string[]>([])
+  // comma-separated `network` query parameter, so it survives paging and refreshes. The Devices
+  // list opens on AirQo; an organisation without AirQo devices is pruned back to all below.
+  const [networkFilter, setNetworkFilter] = useState<string[]>(() =>
+    deviceScope === "org" ? ["airqo"] : []
+  )
   const networkFilterParam = serializeNetworkFilter(networkFilter)
   const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(null)
   const [isRefreshing, setIsRefreshing] = useState(false)
@@ -164,8 +169,13 @@ export default function DevicesView({ scope }: Readonly<{ scope: DeviceScope }>)
     }
   }
 
+  // Only the latest list request may update state, so a slower response for an earlier filter
+  // (e.g. the AirQo default before it is pruned) can't overwrite a newer one
+  const devicesRequestRef = useRef(0)
+
   // Fetch devices list with pagination (Org Devices)
   const fetchDevices = async (isBackground = false) => {
+    const requestId = ++devicesRequestRef.current
     if (!activeGroup) {
       setDevices([])
       setDevicesMeta(null)
@@ -202,6 +212,7 @@ export default function DevicesView({ scope }: Readonly<{ scope: DeviceScope }>)
       }
 
       const data = await getDevicesForUIPaginated(params)
+      if (requestId !== devicesRequestRef.current) return
 
       setDevices(data.devices)
       setDevicesMeta(data.meta ?? null)
@@ -210,11 +221,14 @@ export default function DevicesView({ scope }: Readonly<{ scope: DeviceScope }>)
       setHasNext(data.pagination.has_next)
       setHasPrevious(data.pagination.has_previous)
     } catch (err) {
+      if (requestId !== devicesRequestRef.current) return
       console.error("Error fetching devices:", err)
       setError("Failed to load device data")
     } finally {
-      setLoading(false)
-      setIsRefreshing(false)
+      if (requestId === devicesRequestRef.current) {
+        setLoading(false)
+        setIsRefreshing(false)
+      }
     }
   }
 
@@ -724,8 +738,12 @@ export default function DevicesView({ scope }: Readonly<{ scope: DeviceScope }>)
                     <tr className="bg-gray-50">
                       <th className="text-left py-3 px-4 font-medium text-gray-600">Device Name</th>
                       <th className="text-left py-3 px-4 font-medium text-gray-600">Deployment</th>
-                      <th className="text-left py-3 px-4 font-medium text-gray-600">Category</th>
-                      <th className="text-left py-3 px-4 font-medium text-gray-600">Manufacturer</th>
+                      {showHardwareColumns && (
+                        <>
+                          <th className="text-left py-3 px-4 font-medium text-gray-600">Category</th>
+                          <th className="text-left py-3 px-4 font-medium text-gray-600">Manufacturer</th>
+                        </>
+                      )}
                       <th className="text-left py-3 px-4 font-medium text-gray-600">Channel / Serial</th>
                       <th className="text-left py-3 px-4 font-medium text-gray-600">Network ID</th>
                       <th className="text-left py-3 px-4 font-medium text-gray-600">Firmware</th>
@@ -781,17 +799,21 @@ export default function DevicesView({ scope }: Readonly<{ scope: DeviceScope }>)
                               {deploymentInfo.text}
                             </Badge>
                           </td>
-                          <td className="py-3 px-4">
-                            <span className="text-sm text-gray-600">
-                              {formatCategoryLabel(device.category)}
-                            </span>
-                          </td>
-                          <td className="py-3 px-4">
-                            <div className="flex items-center gap-2">
-                              <ManufacturerBadge network={device.network} />
-                              <DataSourceIndicator dataSource={device.data_source} variant="icon" />
-                            </div>
-                          </td>
+                          {showHardwareColumns && (
+                            <>
+                              <td className="py-3 px-4">
+                                <span className="text-sm text-gray-600">
+                                  {formatCategoryLabel(device.category)}
+                                </span>
+                              </td>
+                              <td className="py-3 px-4">
+                                <div className="flex items-center gap-2">
+                                  <ManufacturerBadge network={device.network} />
+                                  <DataSourceIndicator dataSource={device.data_source} variant="icon" />
+                                </div>
+                              </td>
+                            </>
+                          )}
                           <td className="py-3 px-4">
                             {(() => {
                               const identifier = getDeviceSourceIdentifier(device)
