@@ -110,8 +110,11 @@ export default function DevicesView({ scope }: Readonly<{ scope: DeviceScope }>)
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
   // Sensor manufacturers (the platform's `network`) to show; empty means all. Sent as the
-  // comma-separated `network` query parameter, so it survives paging and refreshes.
-  const [networkFilter, setNetworkFilter] = useState<string[]>([])
+  // comma-separated `network` query parameter, so it survives paging and refreshes. The Devices
+  // list opens on AirQo; an organisation without AirQo devices is pruned back to all below.
+  const [networkFilter, setNetworkFilter] = useState<string[]>(() =>
+    deviceScope === "org" ? ["airqo"] : []
+  )
   const networkFilterParam = serializeNetworkFilter(networkFilter)
   const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(null)
   const [isRefreshing, setIsRefreshing] = useState(false)
