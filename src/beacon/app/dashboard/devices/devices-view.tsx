@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback, useMemo } from "react"
+import { useState, useEffect, useCallback, useMemo, useRef } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
@@ -169,8 +169,13 @@ export default function DevicesView({ scope }: Readonly<{ scope: DeviceScope }>)
     }
   }
 
+  // Only the latest list request may update state, so a slower response for an earlier filter
+  // (e.g. the AirQo default before it is pruned) can't overwrite a newer one
+  const devicesRequestRef = useRef(0)
+
   // Fetch devices list with pagination (Org Devices)
   const fetchDevices = async (isBackground = false) => {
+    const requestId = ++devicesRequestRef.current
     if (!activeGroup) {
       setDevices([])
       setDevicesMeta(null)
@@ -207,6 +212,7 @@ export default function DevicesView({ scope }: Readonly<{ scope: DeviceScope }>)
       }
 
       const data = await getDevicesForUIPaginated(params)
+      if (requestId !== devicesRequestRef.current) return
 
       setDevices(data.devices)
       setDevicesMeta(data.meta ?? null)
@@ -215,11 +221,14 @@ export default function DevicesView({ scope }: Readonly<{ scope: DeviceScope }>)
       setHasNext(data.pagination.has_next)
       setHasPrevious(data.pagination.has_previous)
     } catch (err) {
+      if (requestId !== devicesRequestRef.current) return
       console.error("Error fetching devices:", err)
       setError("Failed to load device data")
     } finally {
-      setLoading(false)
-      setIsRefreshing(false)
+      if (requestId === devicesRequestRef.current) {
+        setLoading(false)
+        setIsRefreshing(false)
+      }
     }
   }
 
