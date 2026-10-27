@@ -10,23 +10,31 @@ interface DeviceLocationCardProps {
   device: Device;
 }
 
+const toNumberOrNull = (v: unknown) => {
+  if (v === null || v === undefined || v === '') return null;
+  const n = Number(String(v));
+  return Number.isFinite(n) ? n : null;
+};
+
+const getSiteId = (device: Device) =>
+  Array.isArray(device.site)
+    ? device.site[0]?._id
+    : (device.site as { _id: string })?._id;
+
+// The card only has something to say when the device sits at a site or has coordinates
+export const hasDeviceLocation = (device: Device) =>
+  Boolean(getSiteId(device)) ||
+  (toNumberOrNull(device.latitude) !== null && toNumberOrNull(device.longitude) !== null);
+
 export function DeviceLocationCard({ device }: DeviceLocationCardProps) {
   const router = useRouter();
   const pathname = usePathname();
   const isAdminMode = pathname.startsWith("/admin");
 
-  const toNumberOrNull = (v: unknown) => {
-    if (v === null || v === undefined || v === '') return null;
-    const n = Number(String(v));
-    return Number.isFinite(n) ? n : null;
-  };
-
   const lat = toNumberOrNull(device.latitude);
   const lon = toNumberOrNull(device.longitude);
 
-  const siteId = Array.isArray(device.site)
-    ? device.site[0]?._id
-    : (device.site as { _id: string })?._id;
+  const siteId = getSiteId(device);
 
   const handleEditLocation = () => {
     if (siteId) {

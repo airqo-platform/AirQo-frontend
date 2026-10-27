@@ -19,7 +19,7 @@ import RecallDeviceDialog from "@/components/features/devices/recall-device-dial
 import DecommissionDeviceDialog from "@/components/features/devices/decommission-device-dialog";
 import AddMaintenanceLogModal from "@/components/features/devices/add-maintenance-log-modal";
 import { Device } from "@/app/types/devices";
-import { DeviceLocationCard } from "@/components/features/devices/device-location-card";
+import { DeviceLocationCard, hasDeviceLocation } from "@/components/features/devices/device-location-card";
 import MaintenanceStatusCard from "@/components/features/devices/maintenance-status-card";
 import DeviceCategoryCard from "@/components/features/devices/device-category-card";
 import DeviceHistoryCard from "@/components/features/devices/device-history-card";
@@ -237,9 +237,9 @@ export default function DeviceDetailsLayout({ deviceId }: DeviceDetailsLayoutPro
                             onShowDetailsModal={() => setShowDetailsModal(true)}
                         />
                     </div>
-                    <div className="break-inside-avoid mb-4 inline-block w-full order-2">
+                    {hasDeviceLocation(device) && <div className="break-inside-avoid mb-4 inline-block w-full order-2">
                         <DeviceLocationCard device={device} />
-                    </div>
+                    </div>}
                     <div className="break-inside-avoid mb-4 inline-block w-full order-3">
                         <OnlineStatusCard deviceId={deviceId} />
                     </div>
