@@ -102,6 +102,11 @@ export interface AirQloudWithPerformance extends Cohort {
   device_count: number // Mapped from numberOfDevices
   is_active: boolean // Mapped from visibility
   country: string // defaulted to empty
+  // Sites only
+  generated_name?: string | null
+  city?: string | null
+  district?: string | null
+  region?: string | null
 }
 
 export interface AirQloudBasic extends Cohort {
@@ -126,6 +131,24 @@ export interface AirQloudsQueryParams {
   admin_level?: string
   /** Attach each device's latest diagnosis and a per-entity `diagnostics_summary`. */
   includeDiagnostics?: boolean
+  /** Devices only: comma-separated sensor manufacturer(s), see serializeNetworkFilter. */
+  network?: string
+}
+
+/** Every device at a group's sites rolled up to single values for a window (GET /sites/summary). */
+export interface SitesPerformanceSummary {
+  total_sites: number
+  total_devices: number
+  /** Mean of the devices' uptime, as a percentage */
+  uptime: number | null
+  /** Mean PM2.5 sensor 1 vs sensor 2 difference (µg/m³) over the devices with both sensors */
+  error_margin: number | null
+  error_margin_devices: number
+  /** Mean PM2.5 sensor 1 vs sensor 2 correlation over the devices with both sensors */
+  correlation: number | null
+  correlation_devices: number
+  start_date_time: string
+  end_date_time: string
 }
 
 export interface AirQloudsMeta {
@@ -505,47 +528,6 @@ function mapSyncedDeviceEntity(raw: any): AirQloudWithPerformance {
     error_margin: [],
     timestamp: [],
   }
-}
-
-function toPerformanceData(entity: any): AirQloudPerformanceData {
-  return {
-    id: entity._id || entity.name,
-    name: entity.name,
-    uptime: entity.uptime,
-    data_completeness: entity.data_completeness,
-    sensor_error_margin: entity.sensor_error_margin,
-    error_margin: entity.error_margin,
-    data: entity.data,
-    freq: entity.freq || [],
-    timestamp: entity.timestamp || [],
-    numberOfDevices: entity.numberOfDevices,
-    devices: entity.devices || [],
-  }
-}
-
-// Each site request computes hourly performance, so only a few run at once
-const SITE_REQUEST_CONCURRENCY = 6
-
-/** Like Promise.allSettled, but runs at most `limit` tasks at a time; results keep the input order. */
-async function allSettledLimited<T, R>(
-  items: T[],
-  limit: number,
-  task: (item: T) => Promise<R>
-): Promise<PromiseSettledResult<R>[]> {
-  const results: PromiseSettledResult<R>[] = new Array(items.length)
-  let next = 0
-  const worker = async () => {
-    while (next < items.length) {
-      const index = next++
-      try {
-        results[index] = { status: 'fulfilled', value: await task(items[index]) }
-      } catch (reason) {
-        results[index] = { status: 'rejected', reason }
-      }
-    }
-  }
-  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker))
-  return results
 }
 
 class AirQloudService {
@@ -1189,9 +1171,31 @@ class AirQloudService {
     }
   }
 
-  async getSitesBasic(params: Omit<AirQloudsQueryParams, 'include_performance' | 'performance_days'> = {}): Promise<MappedAirQloudsResponse> {
-    const { includePerformance: _ignored, ...rest } = params
-    return this.getSites(rest)
+  /**
+   * Uptime, error margin and correlation of every device at the group's sites, each as a
+   * single value for the window.
+   *   GET /sites/summary?group=...&startDateTime=...&endDateTime=...
+   */
+  async getSitesPerformanceSummary(params: {
+    group?: string
+    startDateTime: string
+    endDateTime: string
+  }): Promise<SitesPerformanceSummary> {
+    const queryParams = new URLSearchParams()
+    appendParam(queryParams, 'group', params.group)
+    appendParam(queryParams, 'startDateTime', params.startDateTime)
+    appendParam(queryParams, 'endDateTime', params.endDateTime)
+
+    const endpoint = this.getEndpoint('/sites/summary')
+    const url = `${this.baseUrl}${endpoint}?${queryParams.toString()}`
+
+    try {
+      const data = await this.fetchJson(url)
+      return data.summary
+    } catch (error) {
+      console.error('Error fetching the sites performance summary:', error)
+      throw error
+    }
   }
 
   /**
@@ -1235,36 +1239,6 @@ class AirQloudService {
   }
 
   /**
-   * Get performance data for one or more sites. `/sites/` has no ID filter,
-   * so each selected site is fetched on its own, a few at a time; sites that
-   * fail (e.g. no AirQo devices) are skipped unless every one of them fails.
-   */
-  async getSitePerformance(params: {
-    start: string
-    end: string
-    ids: string[]
-    group?: string
-  }): Promise<AirQloudPerformanceData[]> {
-    if (!params.ids || params.ids.length === 0) {
-      return []
-    }
-
-    const results = await allSettledLimited(params.ids, SITE_REQUEST_CONCURRENCY, (id) =>
-      this.getSiteById(id, params.start, params.end, params.group)
-    )
-    const sites = results
-      .filter((result): result is PromiseFulfilledResult<AirQloudWithPerformance> => result.status === 'fulfilled')
-      .map((result) => result.value)
-
-    if (sites.length === 0) {
-      const firstFailure = results.find((result): result is PromiseRejectedResult => result.status === 'rejected')
-      throw firstFailure?.reason ?? new Error('Failed to fetch site performance')
-    }
-
-    return sites.map(toPerformanceData)
-  }
-
-  /**
    * Get the group's devices with per-device performance data, each shaped as
    * a single-device entity for the Performance Analysis table.
    *   GET /devices/synced?group=...&includePerformance=true&startDateTime=...&endDateTime=...&frequency=hourly&skip=&limit=
@@ -1280,6 +1254,7 @@ class AirQloudService {
     appendParam(queryParams, 'search', params.search)
     appendParam(queryParams, 'group', params.group)
     appendParam(queryParams, 'includeDiagnostics', params.includeDiagnostics)
+    appendParam(queryParams, 'network', params.network)
 
     const endpoint = this.getEndpoint('/devices/synced')
     const url = `${this.baseUrl}${endpoint}?${queryParams.toString()}`

@@ -32,7 +32,12 @@ import {
 import type { GridAdminLevel } from "@/types/api.types"
 import type { DeviceDiagnostics, DiagnosticsSummary } from "@/types/diagnostics"
 import { useGroup } from "@/lib/group-context"
+import { ROUTES } from "@/lib/navigation"
 import { DeviceHealthCell, GroupHealthCell } from "@/components/diagnostics/HealthSummary"
+import { ManufacturerFilter } from "@/components/devices/manufacturer-filter"
+import { useNetworks } from "@/hooks/use-networks"
+import { buildNetworkFilterOptions, pruneNetworkSelection, serializeNetworkFilter } from "@/lib/manufacturers"
+import { formatSiteLocation } from "@/lib/maintenance-map"
 import { formatCompactNumber } from "@/lib/utils"
 
 type GridAdminLevelFilter = GridAdminLevel | "all"
@@ -47,7 +52,7 @@ const ENTITY_LABELS: Record<PerformanceEntityType, string> = {
 }
 
 // Window the table summarises: `performanceDays` full days ending yesterday.
-const getPerformanceWindow = (performanceDays: number) => {
+export const getPerformanceWindow = (performanceDays: number) => {
   const endDate = new Date()
   endDate.setDate(endDate.getDate() - 1)
   endDate.setHours(23, 59, 59, 999)
@@ -76,6 +81,8 @@ const GRID_ADMIN_LEVEL_OPTIONS: Array<{ label: string; value: GridAdminLevelFilt
 interface ProcessedAirQloud {
   id: string
   name: string
+  /** A site's generated name, e.g. site_612; empty for other entities */
+  siteId: string
   uptime: number | null
   onlinePercentage: number | null
   numberOfDevices: number
@@ -103,11 +110,20 @@ interface AirQloudsTableProps {
   lockedTags?: string[]
   /** Optional override for the card title. */
   title?: string
+  /** Rows per page; defaults to STANDARD_PAGE_SIZE. */
+  pageSize?: number
+  /** Plural name for the rows, e.g. "Clusters" for cohorts; defaults to ENTITY_LABELS. */
+  entityLabel?: string
 }
 
 function getDefaultCohortTag(activeGroup: string | null): string {
   return activeGroup?.toLowerCase() === "airqo" ? "hardware" : "organizational"
 }
+
+// The data pipeline treats PM2.5 outside 0-1000 µg/m³ as invalid; a corrupt reading
+// such as -1.3e24 would otherwise swamp the error margin and correlation.
+const isValidPm25 = (value: number | null): value is number =>
+  value != null && Number.isFinite(value) && value >= 0 && value <= 1000
 
 // Pearson correlation coefficient between two numeric arrays of equal length.
 // Returns null when correlation cannot be computed (insufficient data or zero variance).
@@ -217,7 +233,7 @@ const summarizeCohortData = (
       const s1Num = s1 == null ? null : Number(s1)
       const s2Num = s2 == null ? null : Number(s2)
 
-      if (s1Num != null && s2Num != null && !Number.isNaN(s1Num) && !Number.isNaN(s2Num)) {
+      if (isValidPm25(s1Num) && isValidPm25(s2Num)) {
         bucket.errorMargins.push(Math.abs(s1Num - s2Num))
         bucket.s1.push(s1Num)
         bucket.s2.push(s2Num)
@@ -358,13 +374,15 @@ const processAirQloudData = (airqloud: AirQloudWithPerformance, performanceDays:
   return {
     id: airqloud.id || airqloud._id || airqloud.name,
     name: airqloud.name,
+    siteId: airqloud.generated_name || "",
     uptime: overallUptime,
     onlinePercentage: overallUptime ?? 0,
     numberOfDevices: numberOfDevices,
     offlineDevices: offlineDevices,
     errorMargin: overallErrorMargin,
     correlation: summary.averageCorrelation,
-    location: airqloud.country || "",
+    // Most specific first, without repeats; cohorts and grids only carry a country
+    location: formatSiteLocation(airqloud),
     uptimeHistory: summary.uptimeHistory,
     errorMarginHistory: summary.errorMarginHistory,
     correlationHistory: summary.correlationHistory,
@@ -374,7 +392,14 @@ const processAirQloudData = (airqloud: AirQloudWithPerformance, performanceDays:
   }
 }
 
-export default function AirQloudsTable({ performanceDays = 14, entityType = "cohorts", lockedTags, title }: AirQloudsTableProps) { //14days
+export default function AirQloudsTable({
+  performanceDays = 14,
+  entityType = "cohorts",
+  lockedTags,
+  title,
+  pageSize = STANDARD_PAGE_SIZE,
+  entityLabel: entityLabelOverride,
+}: AirQloudsTableProps) { //14days
   const router = useRouter()
   const { activeGroup, loading: groupLoading } = useGroup()
   const [searchTerm, setSearchTerm] = useState("")
@@ -382,6 +407,12 @@ export default function AirQloudsTable({ performanceDays = 14, entityType = "coh
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc")
   const [processedData, setProcessedData] = useState<ProcessedAirQloud[]>([])
   const [gridAdminLevel, setGridAdminLevel] = useState<GridAdminLevelFilter>("all")
+  // Devices only: sensor manufacturers to show, empty for all. Like the Devices list it opens on
+  // AirQo, and an organisation without AirQo devices is pruned back to all below.
+  const [networkFilter, setNetworkFilter] = useState<string[]>(["airqo"])
+  const networkFilterParam = serializeNetworkFilter(networkFilter)
+  // Only the latest request may fill the table, so a slow response can't overwrite a newer one
+  const latestRequestRef = useRef(0)
 
   const isTagsLocked = Array.isArray(lockedTags) && lockedTags.length > 0
 
@@ -394,7 +425,6 @@ export default function AirQloudsTable({ performanceDays = 14, entityType = "coh
 
   // Pagination state
   const [page, setPage] = useState(1)
-  const pageSize = STANDARD_PAGE_SIZE
   const [totalItems, setTotalItems] = useState(0)
   const [totalPages, setTotalPages] = useState(1)
 
@@ -404,9 +434,28 @@ export default function AirQloudsTable({ performanceDays = 14, entityType = "coh
   const isGridMode = entityType === "grids"
   const isCohortMode = entityType === "cohorts"
   const isDeviceMode = entityType === "devices"
-  const entityLabel = ENTITY_LABELS[entityType]
+  const isSiteMode = entityType === "sites"
+  // The Sites table leaves these out; its summary cards still show the error margin
+  const showHealthAndErrorMargin = !isSiteMode
+  const entityLabel = entityLabelOverride ?? ENTITY_LABELS[entityType]
   const defaultTitle = `${entityLabel} Performance`
   const selectedGridAdminLevel = gridAdminLevel === "all" ? undefined : gridAdminLevel
+
+  // Manufacturer options: GET /networks/ scoped to the organisation, as on the Devices list
+  const networksQuery = useNetworks({
+    group: activeGroup,
+    onlyWithDevices: true,
+    enabled: isDeviceMode && !groupLoading && Boolean(activeGroup),
+  })
+  const manufacturerOptions = useMemo(() => buildNetworkFilterOptions(networksQuery.data), [networksQuery.data])
+
+  // After an organisation switch, drop manufacturers it doesn't have, so a stale selection
+  // can't filter the table down to nothing
+  useEffect(() => {
+    if (!networksQuery.isSuccess || networkFilter.length === 0) return
+    const pruned = pruneNetworkSelection(networkFilter, manufacturerOptions)
+    if (pruned !== networkFilter) setNetworkFilter(pruned)
+  }, [networksQuery.isSuccess, manufacturerOptions, networkFilter])
 
   // Fetch one page of the current entity type with performance for the window
   const fetchEntities = (skip: number, limit: number, tags: string[] = cohortTags) => {
@@ -430,7 +479,7 @@ export default function AirQloudsTable({ performanceDays = 14, entityType = "coh
       case "sites":
         return airQloudService.getSites(params)
       case "devices":
-        return airQloudService.getDevicesWithPerformance(params)
+        return airQloudService.getDevicesWithPerformance({ ...params, network: networkFilterParam })
       default:
         return airQloudService.getAirQlouds({ ...params, tags: tags.length > 0 ? tags.join(",") : undefined })
     }
@@ -439,6 +488,7 @@ export default function AirQloudsTable({ performanceDays = 14, entityType = "coh
   // Fetch data from API
   const fetchAirQlouds = async () => {
     if (groupLoading || !activeGroup) return
+    const requestId = ++latestRequestRef.current
 
     try {
       setIsLoading(true)
@@ -477,6 +527,7 @@ export default function AirQloudsTable({ performanceDays = 14, entityType = "coh
       }
 
       const { airqlouds, meta } = response
+      if (requestId !== latestRequestRef.current) return
 
       setProcessedData(airqlouds.map(aq => processAirQloudData(aq, performanceDays)))
       const total = Number.isFinite(meta?.total) ? meta.total : airqlouds.length
@@ -487,17 +538,18 @@ export default function AirQloudsTable({ performanceDays = 14, entityType = "coh
       // snap the user back to page 1 right after clicking "Next".
 
     } catch (err) {
+      if (requestId !== latestRequestRef.current) return
       setError(err instanceof Error ? err.message : `Failed to fetch ${entityLabel}`)
       console.error(`Error fetching ${entityLabel}:`, err)
     } finally {
-      setIsLoading(false)
+      if (requestId === latestRequestRef.current) setIsLoading(false)
     }
   }
 
   useEffect(() => {
-    // Reset page to 1 when search or the entity type changes
+    // Reset page to 1 when search, a filter or the entity type changes
     setPage(1)
-  }, [searchTerm, gridAdminLevel, activeGroup, entityType])
+  }, [searchTerm, gridAdminLevel, networkFilterParam, activeGroup, entityType])
 
   useEffect(() => {
     if (groupLoading || isTagsLocked) return
@@ -514,7 +566,7 @@ export default function AirQloudsTable({ performanceDays = 14, entityType = "coh
 
     return () => clearTimeout(timer)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchTerm, performanceDays, page, pageSize, cohortTags, entityType, gridAdminLevel, activeGroup, groupLoading])
+  }, [searchTerm, performanceDays, page, pageSize, cohortTags, entityType, gridAdminLevel, networkFilterParam, activeGroup, groupLoading])
 
   // Sort data (client-side sorting for current page)
   const sortedData = useMemo(() => {
@@ -531,8 +583,8 @@ export default function AirQloudsTable({ performanceDays = 14, entityType = "coh
 
       if (typeof aValue === "string" && typeof bValue === "string") {
         return sortOrder === "asc"
-          ? aValue.localeCompare(bValue)
-          : bValue.localeCompare(aValue)
+          ? aValue.localeCompare(bValue, undefined, { numeric: true })
+          : bValue.localeCompare(aValue, undefined, { numeric: true })
       }
 
       if (typeof aValue === "number" && typeof bValue === "number") {
@@ -561,7 +613,11 @@ export default function AirQloudsTable({ performanceDays = 14, entityType = "coh
       router.push(`/dashboard/devices/${encodeURIComponent(airqloudId)}`)
       return
     }
-    const typeQuery = isGridMode ? '?type=grid' : entityType === "sites" ? '?type=site' : ''
+    if (isSiteMode) {
+      router.push(`${ROUTES.SITES}/${encodeURIComponent(airqloudId)}`)
+      return
+    }
+    const typeQuery = isGridMode ? '?type=grid' : ''
     router.push(`/dashboard/analytics/${airqloudId}${typeQuery}`)
   }
 
@@ -716,8 +772,8 @@ export default function AirQloudsTable({ performanceDays = 14, entityType = "coh
 
         if (typeof aValue === "string" && typeof bValue === "string") {
           return sortOrder === "asc"
-            ? aValue.localeCompare(bValue)
-            : bValue.localeCompare(aValue)
+            ? aValue.localeCompare(bValue, undefined, { numeric: true })
+            : bValue.localeCompare(aValue, undefined, { numeric: true })
         }
 
         if (typeof aValue === "number" && typeof bValue === "number") {
@@ -727,9 +783,10 @@ export default function AirQloudsTable({ performanceDays = 14, entityType = "coh
         return 0
       })
 
-      const headers = ["Name", "Location", "Uptime (%)", isDeviceMode ? "Health Score" : "Average Health Score", isDeviceMode ? "Status" : "Devices", "Error Margin (µg/m³)", "Correlation"]
+      const headers = ["Name", ...(isSiteMode ? ["Site ID"] : []), "Location", "Uptime (%)", isDeviceMode ? "Health Score" : "Average Health Score", isDeviceMode ? "Status" : "Devices", "Error Margin (µg/m³)", "Correlation"]
       const rows = dataToExport.map(aq => [
         escapeCSVValue(aq.name),
+        ...(isSiteMode ? [escapeCSVValue(aq.siteId)] : []),
         escapeCSVValue(aq.location || ""),
         escapeCSVValue(aq.uptime !== null ? aq.uptime.toFixed(2) : "N/A"),
         escapeCSVValue(aq.healthScore ?? "N/A"),
@@ -809,6 +866,21 @@ export default function AirQloudsTable({ performanceDays = 14, entityType = "coh
               </SelectContent>
             </Select>
           )}
+          {isDeviceMode && (
+            <div className="flex items-center gap-2">
+              <ManufacturerFilter
+                options={manufacturerOptions}
+                selected={networkFilter}
+                onChange={setNetworkFilter}
+                loading={networksQuery.isLoading}
+              />
+              {networkFilter.length > 0 && (
+                <Button variant="ghost" size="sm" className="h-9 text-xs" onClick={() => setNetworkFilter([])}>
+                  Clear
+                </Button>
+              )}
+            </div>
+          )}
         </div>
         {/* Tag Filters - hidden when tags are locked */}
         {isCohortMode && !isTagsLocked && (
@@ -854,6 +926,30 @@ export default function AirQloudsTable({ performanceDays = 14, entityType = "coh
                         <ArrowUpDown className="ml-2 h-4 w-4" />
                       </Button>
                     </TableHead>
+                    {isSiteMode && (
+                      <>
+                        <TableHead>
+                          <Button
+                            variant="ghost"
+                            onClick={() => handleSort("siteId")}
+                            className="hover:bg-transparent p-0 h-auto font-semibold"
+                          >
+                            Site ID
+                            <ArrowUpDown className="ml-2 h-4 w-4" />
+                          </Button>
+                        </TableHead>
+                        <TableHead>
+                          <Button
+                            variant="ghost"
+                            onClick={() => handleSort("location")}
+                            className="hover:bg-transparent p-0 h-auto font-semibold"
+                          >
+                            Location
+                            <ArrowUpDown className="ml-2 h-4 w-4" />
+                          </Button>
+                        </TableHead>
+                      </>
+                    )}
                     <TableHead>
                       <Button
                         variant="ghost"
@@ -864,16 +960,18 @@ export default function AirQloudsTable({ performanceDays = 14, entityType = "coh
                         <ArrowUpDown className="ml-2 h-4 w-4" />
                       </Button>
                     </TableHead>
-                    <TableHead>
-                      <Button
-                        variant="ghost"
-                        onClick={() => handleSort("healthScore")}
-                        className="hover:bg-transparent p-0 h-auto font-semibold"
-                      >
-                        Health
-                        <ArrowUpDown className="ml-2 h-4 w-4" />
-                      </Button>
-                    </TableHead>
+                    {showHealthAndErrorMargin && (
+                      <TableHead>
+                        <Button
+                          variant="ghost"
+                          onClick={() => handleSort("healthScore")}
+                          className="hover:bg-transparent p-0 h-auto font-semibold"
+                        >
+                          Health
+                          <ArrowUpDown className="ml-2 h-4 w-4" />
+                        </Button>
+                      </TableHead>
+                    )}
                     <TableHead>
                       <Button
                         variant="ghost"
@@ -884,16 +982,18 @@ export default function AirQloudsTable({ performanceDays = 14, entityType = "coh
                         <ArrowUpDown className="ml-2 h-4 w-4" />
                       </Button>
                     </TableHead>
-                    <TableHead>
-                      <Button
-                        variant="ghost"
-                        onClick={() => handleSort("errorMargin")}
-                        className="hover:bg-transparent p-0 h-auto font-semibold"
-                      >
-                        Error Margin
-                        <ArrowUpDown className="ml-2 h-4 w-4" />
-                      </Button>
-                    </TableHead>
+                    {showHealthAndErrorMargin && (
+                      <TableHead>
+                        <Button
+                          variant="ghost"
+                          onClick={() => handleSort("errorMargin")}
+                          className="hover:bg-transparent p-0 h-auto font-semibold"
+                        >
+                          Error Margin
+                          <ArrowUpDown className="ml-2 h-4 w-4" />
+                        </Button>
+                      </TableHead>
+                    )}
                     <TableHead>
                       <Button
                         variant="ghost"
@@ -923,13 +1023,23 @@ export default function AirQloudsTable({ performanceDays = 14, entityType = "coh
                           <div className="flex items-center justify-between">
                             <div>
                               <div className="font-medium">{airqloud.name}</div>
-                              {airqloud.location && (
+                              {!isSiteMode && airqloud.location && (
                                 <div className="text-sm text-muted-foreground">{airqloud.location}</div>
                               )}
                             </div>
                             {!hasNoData && <ChevronRight className="h-4 w-4 text-muted-foreground" />}
                           </div>
                         </TableCell>
+                        {isSiteMode && (
+                          <>
+                            <TableCell className="font-mono text-sm whitespace-nowrap">
+                              {airqloud.siteId || <span className="text-muted-foreground">—</span>}
+                            </TableCell>
+                            <TableCell className="text-sm text-muted-foreground">
+                              {airqloud.location || "—"}
+                            </TableCell>
+                          </>
+                        )}
                         <TableCell>
                           {hasNoData ? (
                             <span className="text-muted-foreground italic">Data loading...</span>
@@ -940,13 +1050,15 @@ export default function AirQloudsTable({ performanceDays = 14, entityType = "coh
                             />
                           )}
                         </TableCell>
-                        <TableCell>
-                          {isDeviceMode ? (
-                            <DeviceHealthCell diagnosis={airqloud.diagnosis} />
-                          ) : (
-                            <GroupHealthCell summary={airqloud.diagnosticsSummary} />
-                          )}
-                        </TableCell>
+                        {showHealthAndErrorMargin && (
+                          <TableCell>
+                            {isDeviceMode ? (
+                              <DeviceHealthCell diagnosis={airqloud.diagnosis} />
+                            ) : (
+                              <GroupHealthCell summary={airqloud.diagnosticsSummary} />
+                            )}
+                          </TableCell>
+                        )}
                         <TableCell>
                           <div className="flex items-center gap-2">
                             {isDeviceMode ? (
@@ -967,33 +1079,35 @@ export default function AirQloudsTable({ performanceDays = 14, entityType = "coh
                             )}
                           </div>
                         </TableCell>
-                        <TableCell>
-                          {hasNoData ? (
-                            <span className="text-muted-foreground italic">Data loading...</span>
-                          ) : (
-                            <MetricMiniGraph
-                              history={airqloud.errorMarginHistory}
-                              average={airqloud.errorMargin}
-                              valueLabel="Error margin"
-                              formatAverage={(v) => `±${formatCompactNumber(v, 1)}`}
-                              formatValue={(v) => `±${formatCompactNumber(v, 2)} µg/m³`}
-                              getBarColor={(v) => {
-                                if (v <= 3) return "bg-green-500 hover:bg-green-600"
-                                if (v <= 5) return "bg-yellow-500 hover:bg-yellow-600"
-                                return "bg-red-500 hover:bg-red-600"
-                              }}
-                              getTooltipBgColor={(v) => {
-                                if (v <= 3) return "bg-green-600 border-green-700"
-                                if (v <= 5) return "bg-yellow-600 border-yellow-700"
-                                return "bg-red-600 border-red-700"
-                              }}
-                              normalize={(v, all) => {
-                                const ceiling = Math.max(10, ...all)
-                                return v / ceiling
-                              }}
-                            />
-                          )}
-                        </TableCell>
+                        {showHealthAndErrorMargin && (
+                          <TableCell>
+                            {hasNoData ? (
+                              <span className="text-muted-foreground italic">Data loading...</span>
+                            ) : (
+                              <MetricMiniGraph
+                                history={airqloud.errorMarginHistory}
+                                average={airqloud.errorMargin}
+                                valueLabel="Error margin"
+                                formatAverage={(v) => `±${formatCompactNumber(v, 1)}`}
+                                formatValue={(v) => `±${formatCompactNumber(v, 2)} µg/m³`}
+                                getBarColor={(v) => {
+                                  if (v <= 3) return "bg-green-500 hover:bg-green-600"
+                                  if (v <= 5) return "bg-yellow-500 hover:bg-yellow-600"
+                                  return "bg-red-500 hover:bg-red-600"
+                                }}
+                                getTooltipBgColor={(v) => {
+                                  if (v <= 3) return "bg-green-600 border-green-700"
+                                  if (v <= 5) return "bg-yellow-600 border-yellow-700"
+                                  return "bg-red-600 border-red-700"
+                                }}
+                                normalize={(v, all) => {
+                                  const ceiling = Math.max(10, ...all)
+                                  return v / ceiling
+                                }}
+                              />
+                            )}
+                          </TableCell>
+                        )}
                         <TableCell>
                           {hasNoData ? (
                             <span className="text-muted-foreground italic">Data loading...</span>

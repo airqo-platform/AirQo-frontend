@@ -4,6 +4,7 @@ import React from "react"
 import { MaintenanceMapItem } from "@/types/api.types"
 import { Pentagon, X, Download, CheckSquare, Trash2, MapPin } from "lucide-react"
 import { formatCompactNumber } from "@/lib/utils"
+import { MAP_ITEM_NOUNS, countLabel, type MapItemNoun } from "@/lib/maintenance-map"
 
 interface PolygonAreaPanelProps {
   devices: MaintenanceMapItem[]
@@ -13,6 +14,7 @@ interface PolygonAreaPanelProps {
   onExportCSV?: () => void
   onDeviceClick?: (device: MaintenanceMapItem) => void
   selectedDeviceIds?: string[]
+  itemNoun?: MapItemNoun
 }
 
 export const PolygonAreaPanel: React.FC<PolygonAreaPanelProps> = ({
@@ -23,6 +25,7 @@ export const PolygonAreaPanel: React.FC<PolygonAreaPanelProps> = ({
   onExportCSV,
   onDeviceClick,
   selectedDeviceIds = [],
+  itemNoun = MAP_ITEM_NOUNS.devices,
 }) => {
   return (
     <div className="h-full flex flex-col overflow-hidden bg-white dark:bg-gray-900">
@@ -37,7 +40,7 @@ export const PolygonAreaPanel: React.FC<PolygonAreaPanelProps> = ({
               Area Selection
             </h2>
             <span className="text-[10px] text-gray-400">
-              {devices.length} {devices.length === 1 ? "device" : "devices"} enclosed
+              {countLabel(devices.length, itemNoun)} enclosed
             </span>
           </div>
         </div>
@@ -66,7 +69,7 @@ export const PolygonAreaPanel: React.FC<PolygonAreaPanelProps> = ({
           <button
             onClick={onExportCSV}
             className="py-1.5 px-2.5 bg-white hover:bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-gray-600 rounded text-[11px] font-medium flex items-center gap-1 transition-colors"
-            title="Export enclosed devices to CSV"
+            title={`Export enclosed ${itemNoun.plural} to CSV`}
           >
             <Download className="w-3 h-3 text-gray-500" />
             Export CSV
@@ -87,8 +90,8 @@ export const PolygonAreaPanel: React.FC<PolygonAreaPanelProps> = ({
         <table className="w-full text-xs">
           <thead className="bg-gray-50 dark:bg-gray-800 sticky top-0 border-b border-gray-100 dark:border-gray-700">
             <tr>
-              <th className="text-left px-3 py-2 font-semibold text-gray-600 dark:text-gray-300 text-[11px]">
-                Device
+              <th className="text-left px-3 py-2 font-semibold text-gray-600 dark:text-gray-300 text-[11px] capitalize">
+                {itemNoun.singular}
               </th>
               <th className="text-center px-2 py-2 font-semibold text-gray-600 dark:text-gray-300 text-[11px]">
                 Uptime

@@ -2,9 +2,10 @@
 
 import React from "react"
 import { MaintenanceMapItem } from "@/types/api.types"
-import { MapPin, Radio, Signal, CheckCircle2, AlertTriangle, AlertCircle, CircleOff } from "lucide-react"
+import { MapPin, Radio, Signal, CheckCircle2, AlertTriangle, AlertCircle, CircleOff, Route, Check } from "lucide-react"
 import { GatewayCoverageDeviceMapItem } from "@/types/lorawan.types"
 import { formatCompactNumber } from "@/lib/utils"
+import { ERROR_MARGIN_BADGE_CLASSES, getItemErrorMarginBand } from "@/lib/maintenance-map"
 
 interface DeviceLocationCardProps {
   device: MaintenanceMapItem
@@ -12,6 +13,9 @@ interface DeviceLocationCardProps {
   onClick?: () => void
   coverageInfo?: GatewayCoverageDeviceMapItem
   showLoRaWAN?: boolean
+  /** Shows the add-to-route button */
+  onToggleRoute?: () => void
+  isInRoute?: boolean
 }
 
 export const DeviceLocationCard: React.FC<DeviceLocationCardProps> = ({
@@ -20,6 +24,8 @@ export const DeviceLocationCard: React.FC<DeviceLocationCardProps> = ({
   onClick,
   coverageInfo,
   showLoRaWAN = false,
+  onToggleRoute,
+  isInRoute = false,
 }) => {
   // Normalize uptime percentage
   const rawUptime = Number(device.uptime)
@@ -27,7 +33,8 @@ export const DeviceLocationCard: React.FC<DeviceLocationCardProps> = ({
   const isOffline = uptimePct === 0 || !device.last_active
 
   const em = Number(device.error_margin)
-  const errorMarginStr = Number.isFinite(em) ? formatCompactNumber(em, 1) : "–"
+  const errorBand = getItemErrorMarginBand(device, isOffline)
+  const errorMarginStr = errorBand === "none" ? "–" : formatCompactNumber(em, 1)
 
   // Uptime health styling
   let uptimeBadge = {
@@ -102,15 +109,38 @@ export const DeviceLocationCard: React.FC<DeviceLocationCardProps> = ({
           </p>
         </div>
 
-        {/* Pin marker icon container */}
-        <div
-          className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center transition-colors ${
-            isSelected
-              ? "bg-blue-600 text-white"
-              : "bg-gray-100 text-gray-500 hover:text-blue-600 hover:bg-blue-50 dark:bg-gray-700 dark:text-gray-300"
-          }`}
-        >
-          <MapPin className="w-3.5 h-3.5" />
+        {/* Pin marker icon, with the route button under it */}
+        <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
+          <div
+            className={`w-6 h-6 rounded-full flex items-center justify-center transition-colors ${
+              isSelected
+                ? "bg-blue-600 text-white"
+                : "bg-gray-100 text-gray-500 hover:text-blue-600 hover:bg-blue-50 dark:bg-gray-700 dark:text-gray-300"
+            }`}
+          >
+            <MapPin className="w-3.5 h-3.5" />
+          </div>
+
+          {onToggleRoute && (
+            <button
+              type="button"
+              onClick={(event) => {
+                // Picking for the route shouldn't also open the details
+                event.stopPropagation()
+                onToggleRoute()
+              }}
+              aria-pressed={isInRoute}
+              title={isInRoute ? "Remove from the route itinerary" : "Add to the route itinerary"}
+              className={`h-6 px-1.5 rounded-full flex items-center gap-1 text-[10px] font-semibold border transition-colors ${
+                isInRoute
+                  ? "bg-blue-600 border-blue-600 text-white hover:bg-blue-700"
+                  : "bg-white border-gray-200 text-gray-600 hover:text-blue-600 hover:border-blue-300 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300"
+              }`}
+            >
+              {isInRoute ? <Check className="w-3 h-3" /> : <Route className="w-3 h-3" />}
+              <span>{isInRoute ? "In route" : "Route"}</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -124,10 +154,13 @@ export const DeviceLocationCard: React.FC<DeviceLocationCardProps> = ({
           <span>{uptimeBadge.label}</span>
         </div>
 
-        {/* Error Margin Badge */}
-        <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-gray-100 dark:bg-gray-700/80 text-gray-700 dark:text-gray-300 border border-gray-200/60 dark:border-gray-600/60 font-medium">
-          <span className="text-gray-400">Err:</span>
-          <span>±{errorMarginStr}</span>
+        {/* Error Margin Badge, in the map legend's bands */}
+        <div
+          className={`flex items-center gap-1 px-1.5 py-0.5 rounded-md border font-semibold ${ERROR_MARGIN_BADGE_CLASSES[errorBand]}`}
+          title={errorBand === "none" ? "No paired PM2.5 sensor readings" : "PM2.5 sensor 1 vs 2 error margin, µg/m³"}
+        >
+          <span className="opacity-70 font-medium">Err:</span>
+          <span>{errorBand === "none" ? errorMarginStr : `±${errorMarginStr}`}</span>
         </div>
 
         {/* LoRaWAN Signal Badge (only if showLoRaWAN is enabled) */}

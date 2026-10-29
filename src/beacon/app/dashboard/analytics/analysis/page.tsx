@@ -84,18 +84,8 @@ interface AirQloudDetailData {
   devices: DevicePerformanceRaw[]
 }
 
-type AnalysisType = "airqlouds" | "devices" | "grids" | "sites"
-
-// Labels and performance-tab entity for the aggregate (non-device) analyses
-const ENTITY_DETAILS: Record<Exclude<AnalysisType, "devices">, {
-  label: string
-  plural: string
-  tabEntityType: "cohort" | "grid" | "site"
-}> = {
-  airqlouds: { label: "Cohort", plural: "Cohorts", tabEntityType: "cohort" },
-  grids: { label: "Grid", plural: "Grids", tabEntityType: "grid" },
-  sites: { label: "Site", plural: "Sites", tabEntityType: "site" },
-}
+// Clustered Analysis covers cohorts, which it calls clusters, and devices
+type AnalysisType = "airqlouds" | "devices"
 
 const normalizePercentage = (value: number) => {
   if (value >= 0 && value <= 1) return value * 100
@@ -481,7 +471,7 @@ export default function AnalysisResultsPage() {
       try {
         const parsedDateRange = JSON.parse(storedDateRange) as DateRange
         setDateRange(parsedDateRange)
-        setAnalysisType(storedAnalysisType || "airqlouds")
+        setAnalysisType(storedAnalysisType === "devices" ? "devices" : "airqlouds")
 
         if (storedAnalysisType === "devices") {
           // Device analysis - data is array of device performance (flat structure)
@@ -539,7 +529,7 @@ export default function AnalysisResultsPage() {
           <Button variant="ghost" size="sm" asChild>
             <Link href={backHref}>
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Analytics
+              Back to Clustered Analysis
             </Link>
           </Button>
         </div>
@@ -582,7 +572,7 @@ export default function AnalysisResultsPage() {
             <Button variant="ghost" size="sm" asChild>
               <Link href={backHref}>
                 <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Analytics
+                Back to Clustered Analysis
               </Link>
             </Button>
             <div>
@@ -766,9 +756,8 @@ export default function AnalysisResultsPage() {
   const overallAvgErrorMargin = summaryStats.length > 0
     ? summaryStats.reduce((sum, aq) => sum + aq.stats.avgErrorMargin, 0) / summaryStats.length
     : 0
-  const entityDetails = ENTITY_DETAILS[analysisType === "devices" ? "airqlouds" : analysisType]
-  const entityLabel = entityDetails.label
-  const entityLabelPlural = entityDetails.plural
+  const entityLabel = "Cluster"
+  const entityLabelPlural = "Clusters"
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -778,7 +767,7 @@ export default function AnalysisResultsPage() {
           <Button variant="ghost" size="sm" asChild>
             <Link href={backHref}>
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Analytics
+              Back to Clustered Analysis
             </Link>
           </Button>
           <div>
@@ -1071,7 +1060,7 @@ export default function AnalysisResultsPage() {
                           airqloudId={aq.id}
                           airqloudName={aq.name}
                           initialData={aq}
-                          entityType={entityDetails.tabEntityType}
+                          entityType="cohort"
                         />
                       </TabsContent>
                     </Tabs>

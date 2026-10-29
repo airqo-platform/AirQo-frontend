@@ -19,6 +19,7 @@ import { MAP_TILE_STYLES, MapTileStyle, MapStyleDialog } from "./map/map-style-d
 import { MapControls, MapTopControls, MapBottomControls } from "./map/map-controls"
 import { MapLegend } from "./map/map-legend"
 import { DeviceHeatmapLayer, HeatmapMode, maxRadiusPixels, sensorScore } from "./map/device-heatmap-layer"
+import { getErrorMarginBand } from "@/lib/maintenance-map"
 
 // Fix for Leaflet default icon paths in Next.js
 const DefaultIcon = L.icon({
@@ -185,11 +186,7 @@ export default function MaintenanceMap({
     return "critical"
   }
 
-  const getErrorStatus = (errorMargin: number): DeviceHealth => {
-    if (errorMargin <= 10) return "good"
-    if (errorMargin <= 20) return "moderate"
-    return "critical"
-  }
+  const getErrorStatus = (errorMargin: number): DeviceHealth => getErrorMarginBand(errorMargin)
 
   // Create custom marker icons with name label beside it
   const createMarkerIcon = useCallback(
@@ -308,6 +305,7 @@ export default function MaintenanceMap({
   // Initialize Map Instance
   useEffect(() => {
     if (!mapContainer.current) return
+    let sizeTimer: ReturnType<typeof setTimeout> | undefined
     if (!map.current) {
       const initialMap = L.map(mapContainer.current, {
         preferCanvas: true,
@@ -383,14 +381,15 @@ export default function MaintenanceMap({
       map.current = initialMap
 
       // Invalidate map size after DOM mount
-      setTimeout(() => {
-        if (initialMap) {
-          initialMap.invalidateSize()
-        }
+      sizeTimer = setTimeout(() => {
+        initialMap.invalidateSize()
       }, 250)
     }
 
     return () => {
+      // A map removed before the timer fires (e.g. React strict mode's mount, unmount, mount)
+      // has no panes left, and invalidateSize would throw reading _leaflet_pos
+      clearTimeout(sizeTimer)
       if (map.current) {
         map.current.remove()
         map.current = null
@@ -412,6 +411,37 @@ export default function MaintenanceMap({
     }).addTo(map.current)
     tileLayerRef.current = newLayer
   }
+
+  // Fit the map to its items whenever the set of items changes: another organisation, a filter,
+  // or the devices/sites switch. A refresh that returns the same items leaves the view alone, and
+  // selecting, zooming or routing never refits.
+  const plottedItemsKey = useMemo(
+    () =>
+      (data ?? [])
+        .filter((d) => Number.isFinite(Number(d.latitude)) && Number.isFinite(Number(d.longitude)))
+        .map((d) => d.device_id)
+        .sort()
+        .join(","),
+    [data]
+  )
+
+  useEffect(() => {
+    const m = map.current
+    if (!m || !plottedItemsKey) return
+    const points = (data ?? [])
+      .filter((d) => Number.isFinite(Number(d.latitude)) && Number.isFinite(Number(d.longitude)))
+      .map((d) => [Number(d.latitude), Number(d.longitude)] as [number, number])
+    m.invalidateSize()
+    const size = m.getSize()
+    // The other layout's map is hidden and has no size to fit into
+    if (size.x === 0 || size.y === 0) return
+    try {
+      m.fitBounds(L.latLngBounds(points), { padding: [50, 50], maxZoom: 13 })
+    } catch (e) {
+      console.warn("Could not fit the map to its items:", e)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- refit only when the set of items changes
+  }, [plottedItemsKey])
 
   // Handle Programmatic flyTo
   useEffect(() => {

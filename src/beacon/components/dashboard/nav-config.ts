@@ -9,6 +9,7 @@ import {
   AqHomeSmile,
   AqLayersThree01,
   AqLineChartUp01,
+  AqMarkerPin01,
   AqMonitor,
   AqPackage,
   AqTool02,
@@ -81,10 +82,17 @@ const DEVICES_ITEM: NavItemConfig = {
     matchesRoute(pathname, ROUTES.DEVICES) && !matchesRoute(pathname, ROUTES.MY_DEVICES),
 }
 
-// Cohorts, grids, sites and devices are chosen with "Filter By" on the page itself.
+const SITES_ITEM: NavItemConfig = {
+  id: "sites",
+  label: "Sites",
+  href: ROUTES.SITES,
+  icon: AqMarkerPin01,
+}
+
+// Clusters (cohorts) and devices are chosen with "Filter By" on the page itself.
 const ANALYTICS_ITEM: NavItemConfig = {
   id: "analytics",
-  label: "Performance Analysis",
+  label: "Clustered Analysis",
   href: ROUTES.ANALYTICS,
   icon: AqAirQlouds,
 }
@@ -122,17 +130,22 @@ export function getDeviceNavSections(access: NavigationAccess): NavSection[] {
     access.canAccessReports ? REPORTS_ITEM : null,
   ].filter((item): item is NavItemConfig => item !== null)
 
+  const orgAssetItems = [
+    access.showOrgDevices ? DEVICES_ITEM : null,
+    access.canAccessSites ? SITES_ITEM : null,
+  ].filter((item): item is NavItemConfig => item !== null)
+
   const sections: NavSection[] = access.isPersonalContext
     ? [
         { id: "personal-assets", title: "Personal assets", items: [MY_DEVICES_ITEM] },
         {
           id: "network-monitoring",
           title: "Network monitoring",
-          items: access.showOrgDevices ? [DEVICES_ITEM, ...monitoringItems] : monitoringItems,
+          items: [...orgAssetItems, ...monitoringItems],
         },
       ]
     : [
-        { id: "organization-assets", title: "Organization assets", items: [DEVICES_ITEM] },
+        { id: "organization-assets", title: "Organization assets", items: orgAssetItems },
         { id: "monitoring", title: "Monitoring", items: monitoringItems },
       ]
 

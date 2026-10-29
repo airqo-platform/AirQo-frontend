@@ -28,6 +28,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { useGroup } from "@/lib/group-context"
+import { ROUTES, matchesRoute } from "@/lib/navigation"
 import type { DeviceDiagnostics, DiagnosticsSummary } from "@/types/diagnostics"
 import { DeviceHealthCell, HealthSummaryCard } from "@/components/diagnostics/HealthSummary"
 import AirQloudPerformanceTab from "./airqloud-performance-tab"
@@ -393,10 +394,13 @@ export default function AirQloudDetailPage() {
   const airqloudId = params?.id as string
   const entityType = searchParams?.get("type")
   const isGridMode = entityType === "grid"
-  const isSiteMode = entityType === "site"
-  const entityLabel = isGridMode ? "Grid" : isSiteMode ? "Site" : "Cohort"
-  // Return to the analytics page with the same "Filter By" type selected
-  const backHref = `/dashboard/analytics${isGridMode ? "?analysis=grids" : isSiteMode ? "?analysis=sites" : ""}`
+  // Sites open under the Sites page; older `?type=site` analytics links still work
+  const isSiteMode = entityType === "site" || matchesRoute(pathname ?? "", ROUTES.SITES)
+  const entityLabel = isGridMode ? "Grid" : isSiteMode ? "Site" : "Cluster"
+  // Return to where the entity is listed: the Sites page, or Clustered Analysis, which no
+  // longer lists grids, so older grid links go back to its clusters
+  const backHref = isSiteMode ? ROUTES.SITES : ROUTES.ANALYTICS
+  const backLabel = isSiteMode ? "Back to Sites" : "Back to Clustered Analysis"
   const queryString = searchParams?.toString()
   const returnTo = queryString ? `${pathname}?${queryString}` : pathname
 
@@ -507,7 +511,7 @@ export default function AirQloudDetailPage() {
           <Button variant="ghost" size="sm" asChild>
             <Link href={backHref}>
               <ArrowLeft className="h-4 w-4" />
-              Back to Analytics
+              {backLabel}
             </Link>
           </Button>
         </div>
@@ -653,7 +657,7 @@ export default function AirQloudDetailPage() {
         <Button variant="ghost" size="sm" asChild>
           <Link href={backHref}>
             <ArrowLeft className="h-4 w-4" />
-            Back to Analytics
+            {backLabel}
           </Link>
         </Button>
         <div>

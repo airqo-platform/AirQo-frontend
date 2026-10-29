@@ -10,7 +10,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "node --import ./tests/unit/register.mjs --test tests/unit/manufacturers/*.test.js"
+    "test": "node --import ./tests/unit/register.mjs --test tests/unit/manufacturers/*.test.js tests/unit/maintenance/*.test.js"
   },
   "dependencies": {
     "@airqo/icons-react": "^0.2.9",

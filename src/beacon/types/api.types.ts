@@ -540,11 +540,47 @@ export interface MaintenanceMapItem {
   error_margin: number
   cohorts: string[]
   grids?: string[]
+  /** Set on items of the map's Sites view: the site this item stands for */
+  site?: MaintenanceMapSite
 }
 
 export interface MaintenanceMapResponse {
   success: boolean
   data: MaintenanceMapItem[]
+}
+
+/**
+ * A site on the maintenance map (`GET /maintenance/map-view/sites/synced`): the devices deployed
+ * there, rolled up into the device items' metric fields.
+ */
+export interface MaintenanceMapSite {
+  site_id: string
+  site_name: string
+  /** e.g. site_607 */
+  generated_name?: string | null
+  latitude: number | null
+  longitude: number | null
+  city?: string | null
+  district?: string | null
+  region?: string | null
+  country?: string | null
+  /** The latest of its devices */
+  last_active: string | null
+  /** Averages of its devices */
+  uptime: number
+  data_completeness: number
+  /** Average of the devices that read both PM2.5 sensors */
+  error_margin: number
+  error_margin_devices: number
+  cohorts: string[]
+  grids: string[]
+  number_of_devices: number
+  devices: MaintenanceMapItem[]
+}
+
+export interface MaintenanceSiteMapResponse {
+  success: boolean
+  data: MaintenanceMapSite[]
 }
 
 export interface SyncedGrid {

@@ -2,6 +2,7 @@
 
 import React from "react"
 import { Search, X, PanelLeftClose } from "lucide-react"
+import { MAP_ITEM_NOUNS, MAINTENANCE_MAP_VIEWS, type MaintenanceMapView, type MapItemNoun } from "@/lib/maintenance-map"
 
 interface MapHeaderProps {
   searchQuery: string
@@ -11,6 +12,10 @@ interface MapHeaderProps {
   filteredCount?: number
   placeholder?: string
   onCollapse?: () => void
+  view?: MaintenanceMapView
+  /** Shows the Devices | Sites switch */
+  onViewChange?: (view: MaintenanceMapView) => void
+  itemNoun?: MapItemNoun
 }
 
 export const MapHeader: React.FC<MapHeaderProps> = ({
@@ -21,6 +26,9 @@ export const MapHeader: React.FC<MapHeaderProps> = ({
   filteredCount,
   placeholder = "Search devices, sites, cohorts, grids...",
   onCollapse,
+  view = "devices",
+  onViewChange,
+  itemNoun = MAP_ITEM_NOUNS.devices,
 }) => {
   const isSearching = searchQuery.trim().length > 0
 
@@ -32,7 +40,7 @@ export const MapHeader: React.FC<MapHeaderProps> = ({
             Maintenance Map
           </h1>
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 leading-relaxed">
-            Monitor device health, coverage, and routes.
+            Monitor {itemNoun.singular} health, coverage, and routes.
           </p>
         </div>
         {onCollapse && (
@@ -45,6 +53,30 @@ export const MapHeader: React.FC<MapHeaderProps> = ({
           </button>
         )}
       </div>
+
+      {onViewChange && (
+        <div
+          className="mb-3 grid grid-cols-2 gap-0.5 bg-gray-100 dark:bg-gray-800 p-0.5 rounded-lg text-xs font-semibold"
+          role="group"
+          aria-label="Show on the map"
+        >
+          {MAINTENANCE_MAP_VIEWS.map((option) => (
+            <button
+              key={option}
+              type="button"
+              onClick={() => onViewChange(option)}
+              aria-pressed={view === option}
+              className={`py-1.5 rounded-md capitalize transition-all ${
+                view === option
+                  ? "bg-white dark:bg-gray-700 text-blue-600 shadow-xs"
+                  : "text-gray-500 hover:text-gray-800 dark:hover:text-gray-200"
+              }`}
+            >
+              {MAP_ITEM_NOUNS[option].plural}
+            </button>
+          ))}
+        </div>
+      )}
 
       <div className="relative flex items-center">
         <Search className="w-4 h-4 text-gray-400 absolute left-3 pointer-events-none" />
@@ -73,7 +105,7 @@ export const MapHeader: React.FC<MapHeaderProps> = ({
           </span>
           {typeof filteredCount === "number" && (
             <span className="font-medium bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded text-[10px]">
-              {filteredCount} {filteredCount === 1 ? "device" : "devices"}
+              {filteredCount} {filteredCount === 1 ? itemNoun.singular : itemNoun.plural}
             </span>
           )}
         </div>
