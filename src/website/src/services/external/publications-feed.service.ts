@@ -279,9 +279,6 @@ const toCrossrefPublication = (work: CrossrefWork): LivePublication | null => {
     publishedDate,
     doi,
     url: doiUrl,
-    openAccessUrl: work.link?.find(
-      (link) => link.content_type === 'application/pdf',
-    )?.URL,
     source: 'crossref',
     sourceLabel: 'Crossref',
     sourceRecordUrl: doiUrl,

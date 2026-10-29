@@ -449,6 +449,12 @@ describe('getLivePublications', () => {
                       affiliation: [{ name: 'Makerere University' }],
                     },
                   ],
+                  link: [
+                    {
+                      URL: 'https://publisher.example/makerere-study.pdf',
+                      content_type: 'application/pdf',
+                    },
+                  ],
                   published: { 'date-parts': [[2025, 1, 1]] },
                 },
               ],
@@ -474,6 +480,7 @@ describe('getLivePublications', () => {
         source: 'crossref',
         title: 'A study from Makerere University',
       });
+      expect(response.results[0].openAccessUrl).toBeUndefined();
     } finally {
       if (originalApiUrl === undefined) delete process.env.API_URL;
       else process.env.API_URL = originalApiUrl;

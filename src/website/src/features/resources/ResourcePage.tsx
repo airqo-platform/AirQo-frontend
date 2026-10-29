@@ -336,15 +336,17 @@ const ResourcePage: React.FC = () => {
       </section>
 
       <section className={`${mainConfig.containerClass} w-full px-4`}>
-        {isResearchCategory && livePublicationsData.data?.degraded && (
-          <p
-            className="mb-6 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900"
-            role="status"
-          >
-            Live research updates are temporarily unavailable. Existing AirQo
-            publications are still available below.
-          </p>
-        )}
+        {isResearchCategory &&
+          livePublicationsData.data?.degraded &&
+          results.length > 0 && (
+            <p
+              className="mb-6 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900"
+              role="status"
+            >
+              Live research updates are temporarily unavailable. Existing AirQo
+              publications are still available below.
+            </p>
+          )}
         {isLoading ? (
           <div
             className="space-y-6"

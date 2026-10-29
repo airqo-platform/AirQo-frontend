@@ -55,8 +55,24 @@ const normalizeDoi = (value?: string) =>
 const normalizeTitle = (value: string) =>
   value
     .trim()
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '');
+
+const firstHttpsUrl = (...values: Array<string | null | undefined>) =>
+  values
+    .map((value) => value?.trim())
+    .find((value) => {
+      if (!value) return false;
+
+      try {
+        const url = new URL(value);
+        return url.protocol === 'https:' && Boolean(url.hostname);
+      } catch {
+        return false;
+      }
+    });
 
 const toStringArray = (value?: string | string[]): string[] => {
   if (Array.isArray(value)) {
@@ -111,11 +127,17 @@ const toCuratedFeedItem = (
     year,
     publishedDate,
     doi,
-    url: firstNonEmpty(
-      publication.url,
-      publication.link,
-      publication.resource_file_url,
-    ),
+    url:
+      firstHttpsUrl(
+        publication.url,
+        publication.link,
+        publication.resource_file_url,
+      ) ??
+      firstNonEmpty(
+        publication.url,
+        publication.link,
+        publication.resource_file_url,
+      ),
     openAccessUrl: firstNonEmpty(
       publication.openAccessUrl,
       publication.open_access_url,
