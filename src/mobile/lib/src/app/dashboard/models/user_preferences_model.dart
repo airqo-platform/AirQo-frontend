@@ -7,6 +7,7 @@ class SelectedSite extends Equatable {
   final String name;
   final String searchName;
   final String? city;
+  final String? town;
   final String? region;
   final String? county;
   final String? generatedName;
@@ -23,6 +24,7 @@ class SelectedSite extends Equatable {
     required this.name,
     required this.searchName,
     this.city,
+    this.town,
     this.region,
     this.county,
     this.generatedName,
@@ -53,6 +55,7 @@ class SelectedSite extends Equatable {
         name,
         searchName,
         city,
+        town,
         region,
         county,
         generatedName,
@@ -68,6 +71,7 @@ class SelectedSite extends Equatable {
     final String name = json['name'] ?? 'Unknown Location';
     final String searchName = json['search_name'] ?? json['searchName'] ?? name;
     final String? city = json['city'] as String?;
+    final String? town = json['town'] as String?;
     final String? region = json['region'] as String?;
     final String? county = json['county'] as String?;
     final String? generatedName =
@@ -78,6 +82,7 @@ class SelectedSite extends Equatable {
       name: normalizeLocationLabel(name),
       searchName: normalizeLocationLabel(searchName),
       city: normalizeLocationLabelOrNull(city),
+      town: normalizeLocationLabelOrNull(town),
       region: normalizeLocationLabelOrNull(region),
       county: normalizeLocationLabelOrNull(county),
       generatedName: generatedName,
@@ -93,6 +98,7 @@ class SelectedSite extends Equatable {
       "name": name,
       "search_name": searchName,
       if (city != null) "city": city,
+      if (town != null) "town": town,
       if (region != null) "region": region,
       if (county != null) "county": county,
       if (generatedName != null) "generated_name": generatedName,

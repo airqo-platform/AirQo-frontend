@@ -139,6 +139,7 @@ List<TripNetworkSite> tripNetworkSitesFromMapState(
         catalogSearchName: details.searchName,
         generatedName: details.generatedName,
         city: details.city,
+        town: details.town,
         region: details.region,
         county: details.county,
         latitude: latitude,

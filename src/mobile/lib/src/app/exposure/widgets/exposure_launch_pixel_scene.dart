@@ -22,8 +22,19 @@ class _ExposureLaunchPixelSceneState extends State<ExposureLaunchPixelScene>
     super.initState();
     _ticker = createTicker((elapsed) {
       setState(() => _elapsed = elapsed);
-    })
-      ..start();
+    });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final reduceMotion =
+        MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+    if (reduceMotion) {
+      if (_ticker.isActive) _ticker.stop();
+    } else if (!_ticker.isActive) {
+      _ticker.start();
+    }
   }
 
   @override

@@ -27,6 +27,7 @@ class ExposureLaunchAnnouncement {
     final prefs = await SharedPreferences.getInstance();
     final key = await _preferenceKey();
     if (prefs.getBool(key) == true) return;
+    await prefs.setBool(key, true);
     if (!context.mounted) return;
 
     unawaited(AnalyticsService().trackExposureLaunchAnnouncementShown());
@@ -69,7 +70,6 @@ class ExposureLaunchAnnouncement {
       );
     }
 
-    await prefs.setBool(key, true);
   }
 }
 
@@ -104,6 +104,7 @@ class _ExposureLaunchSheetState extends State<_ExposureLaunchSheet> {
   final PageController _pageController = PageController();
   int _page = 0;
   Timer? _autoAdvance;
+  bool _userHasSwiped = false;
 
   static const _slides = <_CarouselSlide>[
     _CarouselSlide(
@@ -121,8 +122,17 @@ class _ExposureLaunchSheetState extends State<_ExposureLaunchSheet> {
   ];
 
   @override
-  void initState() {
-    super.initState();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (MediaQuery.disableAnimationsOf(context) || _userHasSwiped) {
+      _stopAutoAdvance();
+      return;
+    }
+    _startAutoAdvance();
+  }
+
+  void _startAutoAdvance() {
+    if (_autoAdvance != null) return;
     _autoAdvance = Timer.periodic(const Duration(seconds: 5), (_) {
       if (!mounted || !_pageController.hasClients) return;
       final next = (_page + 1) % _slides.length;
@@ -134,9 +144,14 @@ class _ExposureLaunchSheetState extends State<_ExposureLaunchSheet> {
     });
   }
 
+  void _stopAutoAdvance() {
+    _autoAdvance?.cancel();
+    _autoAdvance = null;
+  }
+
   @override
   void dispose() {
-    _autoAdvance?.cancel();
+    _stopAutoAdvance();
     _pageController.dispose();
     super.dispose();
   }
@@ -153,10 +168,15 @@ class _ExposureLaunchSheetState extends State<_ExposureLaunchSheet> {
         decoration: AppSurfaceColors.sheetDecoration(context, topRadius: 24),
         child: SafeArea(
           top: false,
-          child: Padding(
-            padding: EdgeInsets.fromLTRB(0, 10, 0, 12 + bottomInset),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.sizeOf(context).height * 0.92,
+            ),
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(0, 10, 0, 12 + bottomInset),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
                   width: 36,
@@ -230,7 +250,16 @@ class _ExposureLaunchSheetState extends State<_ExposureLaunchSheet> {
                 const SizedBox(height: 8),
                 SizedBox(
                   height: 108,
-                  child: PageView.builder(
+                  child: NotificationListener<ScrollNotification>(
+                    onNotification: (notification) {
+                      if (notification is ScrollStartNotification &&
+                          notification.dragDetails != null) {
+                        _userHasSwiped = true;
+                        _stopAutoAdvance();
+                      }
+                      return false;
+                    },
+                    child: PageView.builder(
                     controller: _pageController,
                     onPageChanged: (index) => setState(() => _page = index),
                     itemCount: _slides.length,
@@ -245,6 +274,7 @@ class _ExposureLaunchSheetState extends State<_ExposureLaunchSheet> {
                         ),
                       );
                     },
+                    ),
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -302,6 +332,8 @@ class _ExposureLaunchSheetState extends State<_ExposureLaunchSheet> {
                   ),
                 ),
               ],
+                ),
+              ),
             ),
           ),
         ),

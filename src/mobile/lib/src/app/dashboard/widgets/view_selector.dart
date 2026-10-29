@@ -129,6 +129,9 @@ class _ViewSelectorState extends State<ViewSelector> {
             TranslatedTooltip(
               tooltipKey: _nearbyTooltipKey,
               message: "View air quality in locations closest to you",
+              triggerMode: widget.tooltipsEnabled
+                  ? null
+                  : TooltipTriggerMode.manual,
               preferBelow: true,
               verticalOffset: 20,
               showDuration: Duration(seconds: 2),
@@ -151,6 +154,9 @@ class _ViewSelectorState extends State<ViewSelector> {
             TranslatedTooltip(
               tooltipKey: _myPlacesTooltipKey,
               message: "Save your most relevant locations in one place",
+              triggerMode: widget.tooltipsEnabled
+                  ? null
+                  : TooltipTriggerMode.manual,
               preferBelow: true,
               verticalOffset: 20,
               showDuration: Duration(seconds: 2),
@@ -174,6 +180,9 @@ class _ViewSelectorState extends State<ViewSelector> {
           if (widget.isGuestUser) ...[
             TranslatedTooltip(
               message: "View air quality in locations closest to you",
+              triggerMode: widget.tooltipsEnabled
+                  ? null
+                  : TooltipTriggerMode.manual,
               preferBelow: true,
               verticalOffset: 20,
               showDuration: Duration(seconds: 2),

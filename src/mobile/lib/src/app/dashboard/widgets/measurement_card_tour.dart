@@ -129,7 +129,9 @@ Rect measurementCardTourTargetRect(
       return Rect.fromLTRB(
         content.left,
         content.top,
-        content.right,
+        content.right -
+            kMeasurementCardHorizontalPadding -
+            kMeasurementCardActionTapTarget,
         content.bottom -
             kMeasurementCardBottomPadding -
             kMeasurementCardActionTapTarget,
@@ -447,7 +449,6 @@ class _MeasurementCardGesturesTourState
 
               return Stack(
                 key: _overlayKey,
-                fit: StackFit.expand,
                 children: [
                   Positioned.fill(
                     child: CustomPaint(

@@ -163,7 +163,7 @@ class _NavPageState extends State<NavPage> with AutomaticKeepAliveClientMixin {
 
     Widget body = Scaffold(
       body: IndexedStack(index: currentIndex, children: [
-        DashboardPage(),
+        DashboardPage(isActive: currentIndex == 0),
         MapScreen(),
         ExposureDashboardView(isActive: currentIndex == 2),
         KyaPage(),

@@ -105,8 +105,9 @@ _Candidate _prepare(String? raw, {String? city, String? town}) {
     return _Candidate(_display(text), _Rank.aside);
   }
   // "Golf Course Kampala. Site 1. Training Area" loses the city after the
-  // ops label is cut. A name that merely contains the city stays whole.
-  if (hadOpsLabel) {
+  // ops label is cut. A street keeps its city word: "Kampala Road Site 1"
+  // stays Kampala Road.
+  if (hadOpsLabel && !_streetPattern.hasMatch(text)) {
     text = _removePlaceWord(text, city);
     text = _removePlaceWord(text, town);
   }
@@ -152,7 +153,9 @@ String _quietLine({
   }
 
   add(_firstNonEmpty(city, town));
-  add(_firstNonEmpty(region, county));
+  final beforeRegion = parts.length;
+  add(region);
+  if (parts.length == beforeRegion) add(county);
   return parts.join(', ');
 }
 

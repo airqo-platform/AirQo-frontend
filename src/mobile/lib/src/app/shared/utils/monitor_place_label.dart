@@ -27,6 +27,7 @@ SpokenPlace? spokenPlaceForSelectedSite(SelectedSite site) {
     searchName: site.catalogSearchName ?? site.searchName,
     generatedName: site.generatedName,
     city: site.city,
+    town: site.town,
     region: site.region,
     county: site.county,
   );

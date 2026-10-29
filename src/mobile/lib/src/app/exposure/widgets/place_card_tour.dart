@@ -229,21 +229,17 @@ class _TooltipBubble extends StatelessWidget {
     final pointerTarget = chevronRect ?? cardRect;
     final spotlightTop = cardRect.top - 8;
     final bubbleBottom = spotlightTop - _gap - _arrowH;
+    final textScaler = MediaQuery.textScalerOf(context);
+    final estimatedHeight = textScaler.scale(168) + _arrowH;
+    final spaceAbove = spotlightTop - (padding.top + 8);
+    final placeBelow = spaceAbove < estimatedHeight + _gap;
 
     // Arrow follows the hourly chevron, not the card centre.
     final arrowCx = pointerTarget.center.dx
         .clamp(_hPad + padding.left + 20, screen.width - _hPad - padding.right - 20)
         .toDouble();
 
-    return Positioned(
-      bottom: screen.height - bubbleBottom,
-      left: _hPad + padding.left,
-      right: _hPad + padding.right,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Bubble body
-          Container(
+    final bubble = Container(
             padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
             decoration: BoxDecoration(
               color: bubbleBg,
@@ -332,21 +328,28 @@ class _TooltipBubble extends StatelessWidget {
                 ),
               ],
             ),
-          ),
+          );
 
-          // Downward pointer aimed at the card chevron.
-          Padding(
-            padding: EdgeInsets.only(
-              left: (arrowCx - _hPad - padding.left - 10)
-                  .clamp(0.0, screen.width - (_hPad + padding.horizontal) - 20)
-                  .toDouble(),
-            ),
-            child: CustomPaint(
-              size: const Size(20, _arrowH),
-              painter: _ArrowPainter(color: bubbleBg, pointsDown: true),
-            ),
-          ),
-        ],
+    final arrow = Padding(
+      padding: EdgeInsets.only(
+        left: (arrowCx - _hPad - padding.left - 10)
+            .clamp(0.0, screen.width - (_hPad + padding.horizontal) - 20)
+            .toDouble(),
+      ),
+      child: CustomPaint(
+        size: const Size(20, _arrowH),
+        painter: _ArrowPainter(color: bubbleBg, pointsDown: !placeBelow),
+      ),
+    );
+
+    return Positioned(
+      top: placeBelow ? cardRect.bottom + _gap : null,
+      bottom: placeBelow ? null : screen.height - bubbleBottom,
+      left: _hPad + padding.left,
+      right: _hPad + padding.right,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: placeBelow ? [arrow, bubble] : [bubble, arrow],
       ),
     );
   }

@@ -159,6 +159,30 @@ void main() {
     expect(result.title.contains('Kampala'), isFalse);
   });
 
+  test('a street keeps the city word in its name', () {
+    final result = place(
+      name: 'Kampala Road Site 1',
+      generatedName: 'site_1',
+      city: 'Kampala',
+      county: 'Wakiso',
+    );
+
+    expect(result.title, 'Kampala Road');
+    expect(result.quietLine, 'Kampala, Wakiso');
+  });
+
+  test('a division region falls through to the county', () {
+    final result = place(
+      name: 'Kira Market',
+      city: 'Kira',
+      region: 'Kawempe Division',
+      county: 'Wakiso',
+    );
+
+    expect(result.title, 'Kira Market');
+    expect(result.quietLine, 'Kira, Wakiso');
+  });
+
   test('an ops nickname keeps the place and drops the city it repeats', () {
     final result = place(
       name: 'Golf Course Kampala. Site 1. Training Area',

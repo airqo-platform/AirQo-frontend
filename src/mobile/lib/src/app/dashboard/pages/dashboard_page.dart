@@ -25,7 +25,9 @@ import 'package:airqo/src/app/shared/services/notification_helper.dart';
 import 'package:loggy/loggy.dart';
 
 class DashboardPage extends StatefulWidget {
-  const DashboardPage({super.key});
+  final bool isActive;
+
+  const DashboardPage({super.key, this.isActive = true});
 
   @override
   State<DashboardPage> createState() => _DashboardPageState();
@@ -53,6 +55,16 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
     _backgroundRefreshTimer = Timer.periodic(Duration(minutes: 30), (_) {
       _silentBackgroundRefresh();
     });
+  }
+
+  @override
+  void didUpdateWidget(covariant DashboardPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.isActive && !widget.isActive) {
+      _hideCardGesturesTour();
+    } else if (!oldWidget.isActive && widget.isActive) {
+      _scheduleCardGesturesTourCheck();
+    }
   }
 
   @override
@@ -121,6 +133,13 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
     _enableViewTooltips();
   }
 
+  void _hideCardGesturesTour() {
+    _tourOverlay?.remove();
+    _tourOverlay = null;
+    if (!mounted || !_showCardGesturesTour) return;
+    setState(() => _showCardGesturesTour = false);
+  }
+
   Future<void> _dismissCardGesturesTour() async {
     _tourOverlay?.remove();
     _tourOverlay = null;
@@ -140,10 +159,16 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
     }
     SharedPreferences.getInstance().then((prefs) {
       final seen = prefs.getBool(measurementCardGesturesTourSeenKey) ?? false;
-      if (!seen && mounted && _tourOverlay == null) {
-        setState(() => _showCardGesturesTour = true);
+      if (!seen && mounted && widget.isActive && _tourOverlay == null) {
+        setState(() {
+          _showCardGesturesTour = true;
+          _viewTooltipsEnabled = false;
+        });
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!mounted || !_showCardGesturesTour || _tourOverlay != null) {
+          if (!mounted ||
+              !widget.isActive ||
+              !_showCardGesturesTour ||
+              _tourOverlay != null) {
             return;
           }
           _tourOverlay = OverlayEntry(
@@ -168,7 +193,7 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
     scheduleMeasurementCardTourReady(
       keys: _cardTourKeys,
       onReady: _maybeShowCardGesturesTour,
-      isActive: () => mounted && !_showCardGesturesTour,
+      isActive: () => mounted && widget.isActive && !_showCardGesturesTour,
     );
   }
 
