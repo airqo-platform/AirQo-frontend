@@ -68,8 +68,15 @@ export interface RouteSuggestion {
   severity: number
 }
 
-const hasCoords = (item: MaintenanceMapItem) =>
-  Number.isFinite(Number(item.latitude)) && Number.isFinite(Number(item.longitude))
+/**
+ * Whether an item has a place on the map. A site without coordinates arrives with null ones, and
+ * `Number(null)` is 0, so null is ruled out before the number check or the site lands at (0, 0).
+ */
+export const hasMapCoordinates = (item: Pick<MaintenanceMapItem, "latitude" | "longitude">): boolean =>
+  item.latitude != null &&
+  item.longitude != null &&
+  Number.isFinite(Number(item.latitude)) &&
+  Number.isFinite(Number(item.longitude))
 
 const toCoords = (item: MaintenanceMapItem): Coordinates => ({
   latitude: Number(item.latitude),
@@ -113,7 +120,7 @@ export function suggestRouteAdditions(
   candidates: MaintenanceMapItem[],
   { maxDetourKm = SUGGESTION_MAX_DETOUR_KM, limit = SUGGESTION_LIMIT, now = Date.now() } = {}
 ): RouteSuggestion[] {
-  const located = route.filter(hasCoords)
+  const located = route.filter(hasMapCoordinates)
   const stops = located.map(toCoords)
   if (stops.length === 0) return []
   const onRoute = new Set(route.map((item) => item.device_id))
@@ -131,7 +138,7 @@ export function suggestRouteAdditions(
   }
 
   return candidates
-    .filter((item) => !onRoute.has(item.device_id) && hasCoords(item))
+    .filter((item) => !onRoute.has(item.device_id) && hasMapCoordinates(item))
     .flatMap((item) => {
       const { severity, reasons } = getAttentionReasons(item, now)
       if (severity === 0) return []
@@ -145,7 +152,8 @@ export function suggestRouteAdditions(
 
 /**
  * A site as a map item. The map keys, selects and routes items by `device_id`, so a site item
- * carries the site id there and the site itself under `site`.
+ * carries the site id there and the site itself under `site`. A site without coordinates keeps
+ * them null, which `hasMapCoordinates` keeps off the map.
  */
 export function siteToMapItem(site: MaintenanceMapSite): MaintenanceMapItem {
   return {

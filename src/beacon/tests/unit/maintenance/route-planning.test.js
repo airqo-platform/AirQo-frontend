@@ -3,13 +3,15 @@ import assert from "node:assert/strict"
 import "../test-env.mjs"
 
 import {
+  GOOGLE_MAPS_PHONE_MAX_WAYPOINTS,
   buildGoogleMapsDirectionsLinks,
   calculateNearestNeighborRoute,
   cheapestInsertionKm,
   haversineDistance,
+  isPhoneBrowser,
   optimizeRoundTrip,
 } from "@/utils/routing-utils"
-import { getAttentionReasons, suggestRouteAdditions } from "@/lib/maintenance-map"
+import { getAttentionReasons, hasMapCoordinates, suggestRouteAdditions } from "@/lib/maintenance-map"
 
 const HOME = { latitude: 0.332078, longitude: 32.570473 }
 const km = (a, b) => haversineDistance(a.latitude, a.longitude, b.latitude, b.longitude)
@@ -116,6 +118,18 @@ test("suggestRouteAdditions offers close items needing a visit, most serious fir
   assert.deepEqual(suggestRouteAdditions(HOME, [], candidates, { now: NOW }), [])
 })
 
+test("a site without coordinates has no place on the map, rather than one at (0, 0)", () => {
+  assert.equal(hasMapCoordinates({ latitude: 0.34, longitude: 32.58 }), true)
+  assert.equal(hasMapCoordinates({ latitude: 0, longitude: 0 }), true)
+  assert.equal(hasMapCoordinates({ latitude: null, longitude: null }), false)
+  assert.equal(hasMapCoordinates({ latitude: 0.34, longitude: null }), false)
+  assert.equal(hasMapCoordinates({ latitude: "abc", longitude: 32.58 }), false)
+
+  const route = [item("stop", 0.34, 32.58)]
+  const unlocated = item("unlocated", null, null, { uptime: 0, last_active: null })
+  assert.deepEqual(suggestRouteAdditions(HOME, route, [unlocated], { now: NOW }), [])
+})
+
 test("buildGoogleMapsDirectionsLinks keeps each link within Google Maps' nine waypoints", () => {
   const params = (url) => new URL(url).searchParams
   const points = Array.from({ length: 13 }, (_, i) => ({ latitude: 0.3 + i / 100, longitude: 32.5 }))
@@ -133,7 +147,20 @@ test("buildGoogleMapsDirectionsLinks keeps each link within Google Maps' nine wa
   assert.equal(params(links[1].url).get("waypoints").split("|").length, 1)
   assert.ok(links.every((link) => link.url.length < 2048))
 
+  // A phone's web browser takes three waypoints a link
+  const phoneLinks = buildGoogleMapsDirectionsLinks(points, GOOGLE_MAPS_PHONE_MAX_WAYPOINTS)
+  assert.deepEqual(phoneLinks.map(({ from, to }) => [from, to]), [[1, 5], [5, 9], [9, 13]])
+  assert.ok(phoneLinks.every((link) => params(link.url).get("waypoints").split("|").length <= 3))
+
   assert.equal(buildGoogleMapsDirectionsLinks(points.slice(0, 2)).length, 1)
   assert.equal(params(buildGoogleMapsDirectionsLinks(points.slice(0, 2))[0].url).get("waypoints"), null)
   assert.deepEqual(buildGoogleMapsDirectionsLinks(points.slice(0, 1)), [])
+})
+
+test("isPhoneBrowser tells phone and tablet browsers from desktop ones", () => {
+  assert.equal(isPhoneBrowser("Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148"), true)
+  assert.equal(isPhoneBrowser("Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 Chrome/130.0 Mobile Safari/537.36"), true)
+  assert.equal(isPhoneBrowser("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/130.0 Safari/537.36"), false)
+  assert.equal(isPhoneBrowser("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/130.0 Safari/537.36"), false)
+  assert.equal(isPhoneBrowser(""), false)
 })

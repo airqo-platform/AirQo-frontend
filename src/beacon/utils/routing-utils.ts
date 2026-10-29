@@ -168,10 +168,16 @@ export const cheapestInsertionKm = (
 };
 
 /**
- * Google Maps takes at most nine waypoints between a link's origin and destination (three in a
- * mobile web browser), see https://developers.google.com/maps/documentation/urls/get-started.
+ * Google Maps takes at most nine waypoints between a link's origin and destination, and three in
+ * a phone's web browser, see https://developers.google.com/maps/documentation/urls/get-started.
  */
 export const GOOGLE_MAPS_MAX_WAYPOINTS = 9;
+export const GOOGLE_MAPS_PHONE_MAX_WAYPOINTS = 3;
+
+/** Whether this is a phone or tablet browser, whose Google Maps links take fewer waypoints. */
+export const isPhoneBrowser = (
+    userAgent: string = typeof navigator !== "undefined" ? navigator.userAgent : ""
+): boolean => /Android|iPhone|iPad|iPod|Mobile/i.test(userAgent);
 
 export interface GoogleMapsLink {
     url: string;
@@ -217,7 +223,8 @@ export const buildGoogleMapsDirectionsLinks = (
 
 /**
  * Road routing (OSRM) is off until NEXT_PUBLIC_ENABLE_ROAD_ROUTING=true; meanwhile routes are
- * optimised on straight-line distances, so no stop coordinates leave the browser.
+ * optimised on straight-line distances and no stop coordinates go to OSRM. Google Maps links
+ * carry the stop coordinates either way, when they are opened, copied or shared.
  */
 export const ROAD_ROUTING_ENABLED =
     typeof process !== "undefined" && process.env.NEXT_PUBLIC_ENABLE_ROAD_ROUTING === "true";
@@ -240,6 +247,8 @@ export interface RoadRoute<T extends RoutePoint = RoutePoint> {
     durationMin: number;
     /** Distance and time of each leg, index i = leg leaving stop i (or the start for i = 0). */
     legs: { distanceKm: number; durationMin: number }[];
+    /** How the stops were put in order: OSRM's trip service, or nearest-neighbour past its limit */
+    planner: "osrm-trip" | "nearest-neighbour";
 }
 
 const toCoordString = (points: Coordinates[]): string =>
@@ -268,7 +277,7 @@ export const calculateRoadRoute = async <T extends RoutePoint>(
     signal?: AbortSignal
 ): Promise<RoadRoute<T>> => {
     if (points.length === 0) {
-        return { order: [], geometry: [], distanceKm: 0, durationMin: 0, legs: [] };
+        return { order: [], geometry: [], distanceKm: 0, durationMin: 0, legs: [], planner: "osrm-trip" };
     }
 
     if (points.length + 1 <= OSRM_MAX_TRIP_POINTS) {
@@ -297,13 +306,14 @@ export const calculateRoadRoute = async <T extends RoutePoint>(
                 distanceKm: l.distance / 1000,
                 durationMin: l.duration / 60,
             })),
+            planner: "osrm-trip",
         };
     }
 
     // Too many stops for the trip service: order locally, then fetch road geometry in chunks.
     const order = calculateNearestNeighborRoute(startPoint, points);
     const road = await fetchRoadGeometry([startPoint, ...order, startPoint], signal);
-    return { order, ...road };
+    return { order, ...road, planner: "nearest-neighbour" };
 };
 
 /**
@@ -313,7 +323,7 @@ export const calculateRoadRoute = async <T extends RoutePoint>(
 export const fetchRoadGeometry = async (
     waypoints: Coordinates[],
     signal?: AbortSignal
-): Promise<Omit<RoadRoute, "order">> => {
+): Promise<Omit<RoadRoute, "order" | "planner">> => {
     const CHUNK = 50;
     const geometry: [number, number][] = [];
     const legs: { distanceKm: number; durationMin: number }[] = [];

@@ -393,9 +393,11 @@ export default function AirQloudDetailPage() {
   const { activeGroup, loading: groupLoading } = useGroup()
   const airqloudId = params?.id as string
   const entityType = searchParams?.get("type")
-  const isGridMode = entityType === "grid"
-  // Sites open under the Sites page; older `?type=site` analytics links still work
-  const isSiteMode = entityType === "site" || matchesRoute(pathname ?? "", ROUTES.SITES)
+  // Sites open under the Sites page, whose path decides over any `?type=`; older `?type=site`
+  // analytics links still work
+  const isSiteRoute = matchesRoute(pathname ?? "", ROUTES.SITES)
+  const isGridMode = entityType === "grid" && !isSiteRoute
+  const isSiteMode = entityType === "site" || isSiteRoute
   const entityLabel = isGridMode ? "Grid" : isSiteMode ? "Site" : "Cluster"
   // Return to where the entity is listed: the Sites page, or Clustered Analysis, which no
   // longer lists grids, so older grid links go back to its clusters
@@ -407,9 +409,12 @@ export default function AirQloudDetailPage() {
   const [data, setData] = useState<AirQloudDetailData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const daysOfData = 13
+  // The Sites page summarises 14 days, so a site opened from it shows the same window
+  const daysOfData = isSiteMode ? 14 : 13
 
   useEffect(() => {
+    // Set on a group switch or unmount, so a slower earlier request can't overwrite the newer one's data
+    let cancelled = false
     const fetchAirQloudDetail = async () => {
       if (!airqloudId) {
         setError(`${entityLabel} ID is required`)
@@ -452,16 +457,19 @@ export default function AirQloudDetailPage() {
               startDate.toISOString(),
               endDate.toISOString()
             )
-        setData(response)
+        if (!cancelled) setData(response)
       } catch (err) {
-        setError(err instanceof Error ? err.message : `Failed to fetch ${entityLabel} details`)
+        if (!cancelled) setError(err instanceof Error ? err.message : `Failed to fetch ${entityLabel} details`)
       } finally {
-        setIsLoading(false)
+        if (!cancelled) setIsLoading(false)
       }
     }
 
     fetchAirQloudDetail()
-  }, [airqloudId, entityLabel, isGridMode, isSiteMode, activeGroup, groupLoading])
+    return () => {
+      cancelled = true
+    }
+  }, [airqloudId, entityLabel, isGridMode, isSiteMode, activeGroup, groupLoading, daysOfData])
 
   if (isLoading) {
     return (

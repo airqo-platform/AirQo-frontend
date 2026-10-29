@@ -19,7 +19,7 @@ import { MAP_TILE_STYLES, MapTileStyle, MapStyleDialog } from "./map/map-style-d
 import { MapControls, MapTopControls, MapBottomControls } from "./map/map-controls"
 import { MapLegend } from "./map/map-legend"
 import { DeviceHeatmapLayer, HeatmapMode, maxRadiusPixels, sensorScore } from "./map/device-heatmap-layer"
-import { getErrorMarginBand } from "@/lib/maintenance-map"
+import { getItemErrorMarginBand, hasMapCoordinates, type ErrorMarginBand } from "@/lib/maintenance-map"
 
 // Fix for Leaflet default icon paths in Next.js
 const DefaultIcon = L.icon({
@@ -186,14 +186,12 @@ export default function MaintenanceMap({
     return "critical"
   }
 
-  const getErrorStatus = (errorMargin: number): DeviceHealth => getErrorMarginBand(errorMargin)
-
   // Create custom marker icons with name label beside it
   const createMarkerIcon = useCallback(
     (
       deviceName: string,
       uptimeStatus: DeviceHealth,
-      errorStatus: DeviceHealth,
+      errorStatus: ErrorMarginBand | "none",
       isSelected: boolean,
       isUncovered: boolean = false
     ) => {
@@ -219,6 +217,8 @@ export default function MaintenanceMap({
         let borderColorClass = "border-emerald-300"
         if (errorStatus === "moderate") borderColorClass = "border-amber-300"
         if (errorStatus === "critical") borderColorClass = "border-red-400"
+        // No paired sensor readings, so no error margin to colour
+        if (errorStatus === "none") borderColorClass = "border-gray-300"
 
         const selectionRing = isSelected ? "ring-3 ring-blue-500 ring-offset-1 scale-110 shadow-lg" : ""
         const uncoveredRing =
@@ -418,7 +418,7 @@ export default function MaintenanceMap({
   const plottedItemsKey = useMemo(
     () =>
       (data ?? [])
-        .filter((d) => Number.isFinite(Number(d.latitude)) && Number.isFinite(Number(d.longitude)))
+        .filter(hasMapCoordinates)
         .map((d) => d.device_id)
         .sort()
         .join(","),
@@ -429,7 +429,7 @@ export default function MaintenanceMap({
     const m = map.current
     if (!m || !plottedItemsKey) return
     const points = (data ?? [])
-      .filter((d) => Number.isFinite(Number(d.latitude)) && Number.isFinite(Number(d.longitude)))
+      .filter(hasMapCoordinates)
       .map((d) => [Number(d.latitude), Number(d.longitude)] as [number, number])
     m.invalidateSize()
     const size = m.getSize()
@@ -561,14 +561,14 @@ export default function MaintenanceMap({
 
     // 2. PLOT MAINTENANCE DEVICES
     data.forEach((device) => {
+      if (!hasMapCoordinates(device)) return
       const lat = Number(device.latitude)
       const lng = Number(device.longitude)
-      if (!Number.isFinite(lat) || !Number.isFinite(lng)) return
 
       const isSelected = selectedDevice?.device_id === device.device_id
       const uptimePct = normalizeUptimePct(device.uptime)
       const uptimeStatus = getUptimeStatus(uptimePct)
-      const errorStatus = getErrorStatus(device.error_margin)
+      const errorStatus = getItemErrorMarginBand(device, uptimeStatus === "offline")
 
       // LoRaWAN Coverage status (only active when LoRaWAN visibility is on)
       const cov = coverageStats.deviceCoverageMap[device.device_id]
@@ -653,11 +653,7 @@ export default function MaintenanceMap({
       if (hasHome) latlngs.push([hLat, hLng])
 
       routePath.forEach((d) => {
-        const dLat = Number(d.latitude)
-        const dLng = Number(d.longitude)
-        if (Number.isFinite(dLat) && Number.isFinite(dLng)) {
-          latlngs.push([dLat, dLng])
-        }
+        if (hasMapCoordinates(d)) latlngs.push([Number(d.latitude), Number(d.longitude)])
       })
 
       if (hasHome) latlngs.push([hLat, hLng])
@@ -721,13 +717,13 @@ export default function MaintenanceMap({
     }
 
     const points = data
+      .filter(hasMapCoordinates)
       .map((device) => ({
         lat: Number(device.latitude),
         lng: Number(device.longitude),
         uptimePct: Math.max(0, Math.min(100, normalizeUptimePct(device.uptime))),
         sensorPct: sensorScore(device.error_margin),
       }))
-      .filter((p) => Number.isFinite(p.lat) && Number.isFinite(p.lng))
 
     if (heatmapLayerRef.current) {
       heatmapLayerRef.current.setData(points, heatmapMode)
@@ -804,7 +800,7 @@ export default function MaintenanceMap({
     try {
       if (data.length > 0) {
         const validPoints = data
-          .filter((d) => Number.isFinite(Number(d.latitude)) && Number.isFinite(Number(d.longitude)))
+          .filter(hasMapCoordinates)
           .map((d) => [Number(d.latitude), Number(d.longitude)] as [number, number])
 
         if (validPoints.length > 0) {

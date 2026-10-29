@@ -24,11 +24,27 @@ export interface MiniHistory extends DailyHistory {
 }
 
 const HISTORY_DAYS = 14
+const DAY_MS = 86400000
 
-const toNum = (v: any): number | null => {
+/**
+ * The window the history covers: the last 14 UTC days, today included, as the date keys the
+ * readings are bucketed under, and the start of the first day to request readings from.
+ */
+function historyWindow(now: Date): { start: Date; days: string[] } {
+  const today = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())
+  const first = today - (HISTORY_DAYS - 1) * DAY_MS
+  const days = Array.from({ length: HISTORY_DAYS }, (_, i) => new Date(first + i * DAY_MS).toISOString().slice(0, 10))
+  return { start: new Date(first), days }
+}
+
+/**
+ * A PM2.5 reading, or null outside the 0–1000 µg/m³ the data pipeline accepts: one corrupt value
+ * such as -1.3e24 would swamp a day's error margin and correlation.
+ */
+const toPm25 = (v: any): number | null => {
   if (v == null) return null
   const n = typeof v === "number" ? v : Number(v)
-  return Number.isFinite(n) ? n : null
+  return Number.isFinite(n) && n >= 0 && n <= 1000 ? n : null
 }
 
 const pearson = (xs: number[], ys: number[]): number | null => {
@@ -60,8 +76,8 @@ function computeMiniHistory(rawPoints: any[]): DailyHistory {
     const dayKey = dt.toISOString().slice(0, 10)
     if (!buckets[dayKey]) buckets[dayKey] = { hours: new Set(), errs: [], s1: [], s2: [] }
     buckets[dayKey].hours.add(dt.getUTCHours())
-    const s1 = toNum(p.s1_pm2_5 ?? p["pm2.5 sensor1"])
-    const s2 = toNum(p.s2_pm2_5 ?? p["pm2.5 sensor2"])
+    const s1 = toPm25(p.s1_pm2_5 ?? p["pm2.5 sensor1"])
+    const s2 = toPm25(p.s2_pm2_5 ?? p["pm2.5 sensor2"])
     if (s1 != null && s2 != null) {
       buckets[dayKey].errs.push(Math.abs(s1 - s2))
       buckets[dayKey].s1.push(s1)
@@ -84,16 +100,17 @@ function computeMiniHistory(rawPoints: any[]): DailyHistory {
 }
 
 /**
- * Several devices' histories as one, as the Sites table summarises a site: each day's uptime
- * averages every device, a device without data that day counting as 0%; error margin and
- * correlation average the devices that have a value that day. One device's history is unchanged.
+ * Several devices' histories as one, as the Sites table summarises a site, over the window's
+ * `days`: each day's uptime averages every device, a device without data that day counting as
+ * 0%, so a day none of them reported is 0% rather than missing; error margin and correlation
+ * average the devices that have a value that day. One device's history is its own.
  */
-function combineHistories(histories: DailyHistory[], deviceCount: number): DailyHistory {
+function combineHistories(histories: DailyHistory[], deviceCount: number, dayKeys: string[]): DailyHistory {
   const byDay = (points: DailyPoint[]) => new Map(points.map((p) => [p.timestamp, p.value]))
   const uptimes = histories.map((h) => byDay(h.uptime))
   const errors = histories.map((h) => byDay(h.error))
   const correlations = histories.map((h) => byDay(h.correlation))
-  const days = Array.from(new Set(uptimes.flatMap((m) => Array.from(m.keys())))).sort()
+  const days = dayKeys.map((d) => `${d}T00:00:00.000Z`)
 
   const meanOfPresent = (maps: Map<string, number>[]) =>
     days.flatMap((ts) => {
@@ -128,12 +145,17 @@ export function usePerformanceHistory(deviceNames: string[]): MiniHistory {
     const names = namesKey ? namesKey.split(",") : []
 
     const loadHistory = async () => {
-      if (groupLoading || !activeGroup || names.length === 0) return
+      // Nothing to ask for, such as a site with no named devices
+      if (names.length === 0) {
+        setHistory({ uptime: [], error: [], correlation: [], loaded: true, loading: false })
+        return
+      }
+      if (groupLoading || !activeGroup) return
       setHistory((prev) => ({ ...prev, loading: true }))
 
       try {
         const end = new Date()
-        const start = new Date(end.getTime() - HISTORY_DAYS * 86400000)
+        const { start, days } = historyWindow(end)
         const resp = await getDevicePerformanceData({
           start: start.toISOString(),
           end: end.toISOString(),
@@ -152,7 +174,7 @@ export function usePerformanceHistory(deviceNames: string[]): MiniHistory {
               : []
           )
         )
-        setHistory({ ...combineHistories(perDevice, names.length), loaded: true, loading: false })
+        setHistory({ ...combineHistories(perDevice, names.length, days), loaded: true, loading: false })
       } catch {
         if (!cancelled) {
           setHistory({ uptime: [], error: [], correlation: [], loaded: false, loading: false, failed: true })

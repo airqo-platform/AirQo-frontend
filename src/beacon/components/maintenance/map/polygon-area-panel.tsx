@@ -4,7 +4,7 @@ import React from "react"
 import { MaintenanceMapItem } from "@/types/api.types"
 import { Pentagon, X, Download, CheckSquare, Trash2, MapPin } from "lucide-react"
 import { formatCompactNumber } from "@/lib/utils"
-import { MAP_ITEM_NOUNS, countLabel, type MapItemNoun } from "@/lib/maintenance-map"
+import { MAP_ITEM_NOUNS, countLabel, getItemErrorMarginBand, type MapItemNoun } from "@/lib/maintenance-map"
 
 interface PolygonAreaPanelProps {
   devices: MaintenanceMapItem[]
@@ -114,14 +114,17 @@ export const PolygonAreaPanel: React.FC<PolygonAreaPanelProps> = ({
                 ? "text-amber-600 font-bold"
                 : "text-red-600 font-bold"
 
+              // "–" without paired sensor readings, as on the list cards
               const em = Number(device.error_margin)
-              const errorColor = !Number.isFinite(em)
-                ? "text-gray-400"
-                : em <= 10
-                ? "text-emerald-600"
-                : em <= 20
-                ? "text-amber-600"
-                : "text-red-600 font-bold"
+              const errorBand = getItemErrorMarginBand(device, isOffline)
+              const errorColor =
+                errorBand === "none"
+                  ? "text-gray-400"
+                  : errorBand === "good"
+                  ? "text-emerald-600"
+                  : errorBand === "moderate"
+                  ? "text-amber-600"
+                  : "text-red-600 font-bold"
 
               const isSelected = selectedDeviceIds.includes(device.device_id)
 
@@ -147,7 +150,7 @@ export const PolygonAreaPanel: React.FC<PolygonAreaPanelProps> = ({
                     {isOffline ? "0%" : `${uptimePct.toFixed(0)}%`}
                   </td>
                   <td className={`px-2 py-2 text-center text-[11px] ${errorColor}`}>
-                    {Number.isFinite(em) ? `±${formatCompactNumber(em, 1)}` : "–"}
+                    {errorBand === "none" ? "–" : `±${formatCompactNumber(em, 1)}`}
                   </td>
                 </tr>
               )

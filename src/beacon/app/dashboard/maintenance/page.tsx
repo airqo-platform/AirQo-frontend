@@ -8,6 +8,7 @@ import {
   MAP_ITEM_NOUNS,
   countLabel,
   getDefaultMaintenanceMapView,
+  hasMapCoordinates,
   isMaintenanceMapView,
   siteToMapItem,
   suggestRouteAdditions,
@@ -27,8 +28,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import {
+  GOOGLE_MAPS_MAX_WAYPOINTS,
+  GOOGLE_MAPS_PHONE_MAX_WAYPOINTS,
   ROAD_ROUTING_ENABLED,
   buildGoogleMapsDirectionsLinks,
+  isPhoneBrowser,
   calculateRoadRoute,
   type GoogleMapsLink,
   optimizeRoundTrip,
@@ -85,7 +89,15 @@ interface RouteSummary {
   legs: RouteLeg[]
   /** Road distances from OSRM, or straight lines while road routing is off */
   byRoad: boolean
+  /** How the stops were put in order, as the PDF report names it */
+  mode: string
 }
+
+const ROUTE_MODE_LABELS = {
+  straightLine: "Nearest neighbour + 2-opt (straight lines)",
+  "osrm-trip": "OSRM trip (roads)",
+  "nearest-neighbour": "Nearest neighbour (roads)",
+} as const
 
 /** Arrow between itinerary stops, labelled with the leg's distance. */
 function RouteLegArrow({ leg }: { leg?: RouteLeg }) {
@@ -285,23 +297,28 @@ function MaintenancePageClient() {
     }
   }, [gridSearch, gridAdminLevelFilter, activeGroup, groupLoading])
 
-  // Fetch Maintenance Map Data
+  // Fetch Maintenance Map Data. Only the latest request's result counts: a refresh still
+  // pending when the view or a filter changes resolves to null rather than the old view's items.
+  const mapRequestRef = useRef(0)
   const fetchMapData = useCallback(async () => {
     if (groupLoading || !activeGroup) return null
+    const requestId = ++mapRequestRef.current
     setLoadingMap(true)
     try {
+      let items: MaintenanceMapItem[]
       if (mapView === "sites") {
         const sites = await getMaintenanceSiteMapData(selectedDays, activeGroup)
-        return sites.map(siteToMapItem)
+        items = sites.map(siteToMapItem)
+      } else {
+        const tagsParam = selectedTags.length > 0 ? selectedTags.join(",") : undefined
+        items = await getMaintenanceMapData(selectedDays, tagsParam, activeGroup)
       }
-      const tagsParam = selectedTags.length > 0 ? selectedTags.join(",") : undefined
-      const response = await getMaintenanceMapData(selectedDays, tagsParam, activeGroup)
-      return response
+      return requestId === mapRequestRef.current ? items : null
     } catch (error) {
       console.error("Failed to fetch Map data", error)
       return null
     } finally {
-      setLoadingMap(false)
+      if (requestId === mapRequestRef.current) setLoadingMap(false)
     }
   }, [mapView, selectedDays, selectedTags, activeGroup, groupLoading])
 
@@ -440,9 +457,7 @@ function MaintenancePageClient() {
       return
     }
 
-    const validDevices = source.filter(
-      (item) => Number.isFinite(Number(item.latitude)) && Number.isFinite(Number(item.longitude))
-    )
+    const validDevices = source.filter(hasMapCoordinates)
 
     if (validDevices.length === 0) {
       toast({
@@ -487,12 +502,15 @@ function MaintenancePageClient() {
       const trip = optimizeRoundTrip(start, routePoints)
       setRoutePath(trip.order as unknown as MaintenanceMapItem[])
       setRouteGeometry(null)
-      setRouteSummary({ distanceKm: trip.distanceKm, legs: trip.legs, byRoad: false })
+      setRouteSummary({ distanceKm: trip.distanceKm, legs: trip.legs, byRoad: false, mode: ROUTE_MODE_LABELS.straightLine })
       toast({
         title: "Route Optimized",
         description: `${reason ? `${reason} ` : ""}${trip.order.length} stops, ordered to keep the trip short. Open it in Google Maps for directions.`,
       })
     }
+
+    // Cancelled while the location was being read
+    if (controller.signal.aborted) return
 
     try {
       if (!ROAD_ROUTING_ENABLED) {
@@ -503,7 +521,13 @@ function MaintenancePageClient() {
       if (controller.signal.aborted) return
       setRoutePath(road.order as unknown as MaintenanceMapItem[])
       setRouteGeometry(road.geometry)
-      setRouteSummary({ distanceKm: road.distanceKm, durationMin: road.durationMin, legs: road.legs, byRoad: true })
+      setRouteSummary({
+        distanceKm: road.distanceKm,
+        durationMin: road.durationMin,
+        legs: road.legs,
+        byRoad: true,
+        mode: ROUTE_MODE_LABELS[road.planner],
+      })
       toast({
         title: "Route Optimized",
         description: `${road.order.length} stops · ${formatDistanceKm(road.distanceKm)} · about ${formatDurationMin(road.durationMin)} driving.`,
@@ -534,15 +558,26 @@ function MaintenancePageClient() {
   // Leg distances are shown for road routes only
   const roadLegs = routeSummary?.byRoad ? routeSummary.legs : undefined
 
-  // The route as Google Maps driving directions: start, the stops in order, back to the start
-  const googleMapsLinks = useMemo(
-    () =>
-      buildGoogleMapsDirectionsLinks([
-        homeLocation,
-        ...routePath.map((stop) => ({ latitude: Number(stop.latitude), longitude: Number(stop.longitude) })),
-        homeLocation,
-      ]),
+  // The route as Google Maps driving directions: start, the stops in order, back to the start.
+  // Links opened here take as many stops as Google Maps allows on this device. Copied or shared
+  // links are mostly opened on a phone, whose browser takes 3, so they keep to that.
+  const onPhone = useMemo(() => isPhoneBrowser(), [])
+  const googleMapsWaypoints = onPhone ? GOOGLE_MAPS_PHONE_MAX_WAYPOINTS : GOOGLE_MAPS_MAX_WAYPOINTS
+  const routeTripPoints = useMemo(
+    () => [
+      homeLocation,
+      ...routePath.map((stop) => ({ latitude: Number(stop.latitude), longitude: Number(stop.longitude) })),
+      homeLocation,
+    ],
     [homeLocation, routePath]
+  )
+  const googleMapsLinks = useMemo(
+    () => buildGoogleMapsDirectionsLinks(routeTripPoints, googleMapsWaypoints),
+    [routeTripPoints, googleMapsWaypoints]
+  )
+  const sharedGoogleMapsLinks = useMemo(
+    () => buildGoogleMapsDirectionsLinks(routeTripPoints, GOOGLE_MAPS_PHONE_MAX_WAYPOINTS),
+    [routeTripPoints]
   )
   const canShare = typeof navigator !== "undefined" && typeof navigator.share === "function"
 
@@ -551,8 +586,8 @@ function MaintenancePageClient() {
       `Maintenance route: ${countLabel(routePath.length, itemNoun)} from ${homeLocation.name ?? "the start"}`,
       ...routePath.map((stop, i) => `${i + 1}. ${stop.device_name || stop.device_id}`),
       "",
-      ...googleMapsLinks.map((link, i) =>
-        googleMapsLinks.length > 1
+      ...sharedGoogleMapsLinks.map((link, i) =>
+        sharedGoogleMapsLinks.length > 1
           ? `Google Maps part ${i + 1} (${describeGoogleMapsLink(link, routePath.length)}): ${link.url}`
           : `Google Maps: ${link.url}`
       ),
@@ -613,12 +648,10 @@ function MaintenancePageClient() {
   }
 
   const handleFocusMapDevice = (device: MaintenanceMapItem) => {
-    const lat = Number(device.latitude)
-    const lng = Number(device.longitude)
-    if (Number.isFinite(lat) && Number.isFinite(lng)) {
+    if (hasMapCoordinates(device)) {
       setFlyToLocation({
-        latitude: lat,
-        longitude: lng,
+        latitude: Number(device.latitude),
+        longitude: Number(device.longitude),
         zoom: 14,
       })
     }
@@ -724,9 +757,11 @@ function MaintenancePageClient() {
     })
   }
 
-  // Fetch map data on filter update
+  // Fetch map data on filter update, or a switch between devices and sites. A route planned
+  // for the previous items is dropped, along with any road request still planning one.
   useEffect(() => {
     let cancelled = false
+    routeAbortRef.current?.abort()
     setIsRouting(false)
     setRoutePath([])
     fetchMapData().then((res) => {
@@ -922,7 +957,7 @@ function MaintenancePageClient() {
                   <DropdownMenuContent align="end" className="w-64 z-[1100]">
                     {googleMapsLinks.length > 1 && (
                       <DropdownMenuLabel className="text-[10px] font-normal text-muted-foreground">
-                        Google Maps takes up to 9 stops per link (3 in a phone&apos;s web browser), so this route is in {googleMapsLinks.length} parts
+                        Google Maps takes up to {googleMapsWaypoints} stops per link{onPhone ? " in a phone's browser" : ""}, so this route is in {googleMapsLinks.length} parts
                       </DropdownMenuLabel>
                     )}
                     {googleMapsLinks.map((link, i) => (
@@ -1194,6 +1229,7 @@ function MaintenancePageClient() {
         itemNoun={itemNoun}
         gateways={gateways}
         routePath={routePath}
+        routeMode={routeSummary?.mode}
         selectedCohort={selectedAirQloud === "all" ? "All Cohorts" : selectedAirQloud}
         selectedGrid={selectedGridLabel}
         periodDays={selectedDays}

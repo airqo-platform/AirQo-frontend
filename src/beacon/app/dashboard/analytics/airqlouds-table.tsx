@@ -1014,10 +1014,11 @@ export default function AirQloudsTable({
                       <TableRow
                         key={airqloud.id}
                         className={hasNoData
-                          ? "opacity-60"
+                          ? `opacity-60${isSiteMode ? " cursor-pointer" : ""}`
                           : "cursor-pointer hover:bg-muted/50 transition-colors"
                         }
-                        onClick={hasNoData ? undefined : () => handleRowClick(airqloud.id)}
+                        // A site without readings still has a details page, listing its devices
+                        onClick={hasNoData && !isSiteMode ? undefined : () => handleRowClick(airqloud.id)}
                       >
                         <TableCell>
                           <div className="flex items-center justify-between">
@@ -1027,7 +1028,7 @@ export default function AirQloudsTable({
                                 <div className="text-sm text-muted-foreground">{airqloud.location}</div>
                               )}
                             </div>
-                            {!hasNoData && <ChevronRight className="h-4 w-4 text-muted-foreground" />}
+                            {(!hasNoData || isSiteMode) && <ChevronRight className="h-4 w-4 text-muted-foreground" />}
                           </div>
                         </TableCell>
                         {isSiteMode && (

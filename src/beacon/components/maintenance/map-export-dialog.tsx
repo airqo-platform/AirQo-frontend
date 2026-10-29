@@ -42,6 +42,8 @@ interface MapExportDialogProps {
   devices: MaintenanceMapItem[]
   gateways: LoRaWANGateway[]
   routePath?: MaintenanceMapItem[]
+  /** How the route's stops were put in order, for the PDF report */
+  routeMode?: string
   selectedCohort?: string
   selectedGrid?: string
   periodDays?: number
@@ -56,6 +58,7 @@ export function MapExportDialog({
   devices,
   gateways,
   routePath,
+  routeMode = "Nearest neighbour + 2-opt (straight lines)",
   selectedCohort = "All Cohorts",
   selectedGrid = "All Grids",
   periodDays = 14,
@@ -201,7 +204,7 @@ export function MapExportDialog({
 
       if (routePath && routePath.length > 0) {
         pdf.text(`• Active Route Stops: ${countLabel(routePath.length, itemNoun)}`, margin + 170, startY + 12)
-        pdf.text(`• Route Mode: Optimized Nearest Neighbor`, margin + 170, startY + 18)
+        pdf.text(`• Route Mode: ${routeMode}`, margin + 170, startY + 18)
       } else {
         pdf.text(`• Active Gateways Deployed: ${gateways.filter(g => g.enabled !== false).length}`, margin + 170, startY + 12)
         pdf.text(`• Terrain Factors: Urban (2-5km) / Rural (10km)`, margin + 170, startY + 18)

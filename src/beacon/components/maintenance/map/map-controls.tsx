@@ -159,7 +159,7 @@ export const MapTopControls: React.FC<MapTopControlsProps> = ({
                 ? "Clear active route"
                 : ROAD_ROUTING_ENABLED
                   ? "Generate optimal maintenance route along roads"
-                  : "Put the stops in the shortest order, then open the route in Google Maps for directions"
+                  : "Put the stops in a short order, then open the route in Google Maps for directions"
           }
         >
           {isRouting ? (
