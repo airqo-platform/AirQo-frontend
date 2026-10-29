@@ -177,6 +177,11 @@ function MaintenancePageClient() {
   const [routeGeometry, setRouteGeometry] = useState<[number, number][] | null>(null)
   const [routeSummary, setRouteSummary] = useState<RouteSummary | null>(null)
   const routeAbortRef = useRef<AbortController | null>(null)
+  // The route as it is now, for a step that carries on after an await
+  const routePathRef = useRef(routePath)
+  useEffect(() => {
+    routePathRef.current = routePath
+  }, [routePath])
 
   // The route starts (and ends) at the head office unless the user opted to start from their own position.
   const homeLocation = useMemo<Coordinates & { name?: string }>(
@@ -300,6 +305,8 @@ function MaintenancePageClient() {
   // Fetch Maintenance Map Data. Only the latest request's result counts: a refresh still
   // pending when the view or a filter changes resolves to null rather than the old view's items.
   const mapRequestRef = useRef(0)
+  // Tags only filter devices, so in the sites view a tag change neither refetches nor drops the route
+  const deviceTagsParam = mapView === "devices" && selectedTags.length > 0 ? selectedTags.join(",") : undefined
   const fetchMapData = useCallback(async () => {
     if (groupLoading || !activeGroup) return null
     const requestId = ++mapRequestRef.current
@@ -310,8 +317,7 @@ function MaintenancePageClient() {
         const sites = await getMaintenanceSiteMapData(selectedDays, activeGroup)
         items = sites.map(siteToMapItem)
       } else {
-        const tagsParam = selectedTags.length > 0 ? selectedTags.join(",") : undefined
-        items = await getMaintenanceMapData(selectedDays, tagsParam, activeGroup)
+        items = await getMaintenanceMapData(selectedDays, deviceTagsParam, activeGroup)
       }
       return requestId === mapRequestRef.current ? items : null
     } catch (error) {
@@ -320,7 +326,7 @@ function MaintenancePageClient() {
     } finally {
       if (requestId === mapRequestRef.current) setLoadingMap(false)
     }
-  }, [mapView, selectedDays, selectedTags, activeGroup, groupLoading])
+  }, [mapView, selectedDays, deviceTagsParam, activeGroup, groupLoading])
 
   // A selection, area or route from one view means nothing in the other
   useEffect(() => {
@@ -629,7 +635,10 @@ function MaintenancePageClient() {
       const pos = await getCurrentPosition()
       setCurrentLocation(pos)
       setRouteStartMode("current")
-      if (routePath.length > 0) calculateRoute(routePath, { ...pos, name: "My Location" })
+      // Replan the route as it is now: a view switch or filter change while the location was
+      // looked up dropped the one this click saw
+      const route = routePathRef.current
+      if (route.length > 0) calculateRoute(route, { ...pos, name: "My Location" })
     } catch (err) {
       toast({
         title: "Location unavailable",
@@ -858,6 +867,7 @@ function MaintenancePageClient() {
             onRefreshData={handleRefreshData}
             isRefreshing={loadingMap}
             flyToLocation={flyToLocation}
+            resetKey={mapView}
             topFilters={
               <>
                 {/* Floating Expand Sidebar Button (when sidebar is collapsed) */}
@@ -1123,6 +1133,7 @@ function MaintenancePageClient() {
             onRefreshData={handleRefreshData}
             isRefreshing={loadingMap}
             flyToLocation={flyToLocation}
+            resetKey={mapView}
           />
         </div>
 

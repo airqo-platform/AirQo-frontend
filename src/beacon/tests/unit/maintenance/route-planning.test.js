@@ -163,4 +163,13 @@ test("isPhoneBrowser tells phone and tablet browsers from desktop ones", () => {
   assert.equal(isPhoneBrowser("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/130.0 Safari/537.36"), false)
   assert.equal(isPhoneBrowser("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/130.0 Safari/537.36"), false)
   assert.equal(isPhoneBrowser(""), false)
+  // An iPad user agent that only the iPad token matches: no Mobile, Android, iPhone or iPod
+  assert.equal(isPhoneBrowser("Mozilla/5.0 (iPad; CPU OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/604.1"), true)
+})
+
+test("isPhoneBrowser tells an iPad asking for desktop sites from a Mac by its touch points", () => {
+  const desktopSafari = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15"
+  assert.equal(isPhoneBrowser(desktopSafari, 5), true)
+  assert.equal(isPhoneBrowser(desktopSafari, 0), false)
+  assert.equal(isPhoneBrowser("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/130.0 Safari/537.36", 10), false)
 })

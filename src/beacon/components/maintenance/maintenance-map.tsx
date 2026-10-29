@@ -96,6 +96,8 @@ interface MaintenanceMapProps {
   mapContainerId?: string
   flyToLocation?: { latitude: number; longitude: number; zoom?: number } | null
   topFilters?: React.ReactNode
+  /** A change clears the drawn area, or one being drawn, e.g. on the devices/sites switch */
+  resetKey?: string
 }
 
 type DeviceHealth = "good" | "moderate" | "critical" | "offline"
@@ -133,6 +135,7 @@ export default function MaintenanceMap({
   mapContainerId = "maintenance-map-container",
   flyToLocation,
   topFilters,
+  resetKey,
 }: MaintenanceMapProps) {
   const mapContainer = useRef<HTMLDivElement>(null)
   const map = useRef<L.Map | null>(null)
@@ -144,6 +147,7 @@ export default function MaintenanceMap({
   const homeMarkerRef = useRef<L.Marker | null>(null)
   const drawnItemsRef = useRef<L.FeatureGroup>(new L.FeatureGroup())
   const drawControlRef = useRef<any>(null)
+  const polygonDrawerRef = useRef<any>(null)
   const [currentStyle, setCurrentStyle] = useState<MapTileStyle>(MAP_TILE_STYLES[0])
   const [styleDialogOpen, setStyleDialogOpen] = useState(false)
   const [isDrawingPolygon, setIsDrawingPolygon] = useState(false)
@@ -425,23 +429,48 @@ export default function MaintenanceMap({
     [data]
   )
 
-  useEffect(() => {
+  // Items a hidden map could not fit to yet, fitted once it has a size
+  const pendingFitRef = useRef<[number, number][] | null>(null)
+
+  /** Fit the map to `points`, or keep them for later while the map is hidden and has no size. */
+  const fitToPoints = useCallback((points: [number, number][]) => {
     const m = map.current
-    if (!m || !plottedItemsKey) return
-    const points = (data ?? [])
-      .filter(hasMapCoordinates)
-      .map((d) => [Number(d.latitude), Number(d.longitude)] as [number, number])
+    if (!m) return
     m.invalidateSize()
     const size = m.getSize()
-    // The other layout's map is hidden and has no size to fit into
-    if (size.x === 0 || size.y === 0) return
+    if (size.x === 0 || size.y === 0) {
+      pendingFitRef.current = points
+      return
+    }
+    pendingFitRef.current = null
     try {
       m.fitBounds(L.latLngBounds(points), { padding: [50, 50], maxZoom: 13 })
     } catch (e) {
       console.warn("Could not fit the map to its items:", e)
     }
+  }, [])
+
+  useEffect(() => {
+    if (!map.current || !plottedItemsKey) return
+    const points = (data ?? [])
+      .filter(hasMapCoordinates)
+      .map((d) => [Number(d.latitude), Number(d.longitude)] as [number, number])
+    fitToPoints(points)
     // eslint-disable-next-line react-hooks/exhaustive-deps -- refit only when the set of items changes
   }, [plottedItemsKey])
+
+  // The page keeps a map for each layout and hides the other one. A map that was hidden when its
+  // items changed fits to them when it is shown.
+  useEffect(() => {
+    const container = mapContainer.current
+    if (!container || typeof ResizeObserver === "undefined") return
+    const observer = new ResizeObserver(() => {
+      const points = pendingFitRef.current
+      if (points && container.clientWidth > 0 && container.clientHeight > 0) fitToPoints(points)
+    })
+    observer.observe(container)
+    return () => observer.disconnect()
+  }, [fitToPoints])
 
   // Handle Programmatic flyTo
   useEffect(() => {
@@ -716,14 +745,20 @@ export default function MaintenanceMap({
       return
     }
 
+    // Without paired sensor readings an item's error margin of 0 says nothing, so it adds no
+    // sensor weight, as its marker shows no band
     const points = data
       .filter(hasMapCoordinates)
-      .map((device) => ({
-        lat: Number(device.latitude),
-        lng: Number(device.longitude),
-        uptimePct: Math.max(0, Math.min(100, normalizeUptimePct(device.uptime))),
-        sensorPct: sensorScore(device.error_margin),
-      }))
+      .map((device) => {
+        const uptimePct = Math.max(0, Math.min(100, normalizeUptimePct(device.uptime)))
+        const band = getItemErrorMarginBand(device, getUptimeStatus(uptimePct) === "offline")
+        return {
+          lat: Number(device.latitude),
+          lng: Number(device.longitude),
+          uptimePct,
+          sensorPct: band === "none" ? null : sensorScore(device.error_margin),
+        }
+      })
 
     if (heatmapLayerRef.current) {
       heatmapLayerRef.current.setData(points, heatmapMode)
@@ -826,8 +861,18 @@ export default function MaintenanceMap({
       return
     }
     // Trigger polygon draw mode
-    new (L as any).Draw.Polygon(map.current!, drawControlRef.current?.options?.draw?.polygon).enable()
+    polygonDrawerRef.current = new (L as any).Draw.Polygon(map.current!, drawControlRef.current?.options?.draw?.polygon)
+    polygonDrawerRef.current.enable()
   }
+
+  // An area drawn over one set of items means nothing for the next; the page has already
+  // dropped its selection
+  useEffect(() => {
+    polygonDrawerRef.current?.disable()
+    polygonDrawerRef.current = null
+    drawnItemsRef.current.clearLayers()
+    setHasPolygon(false)
+  }, [resetKey])
 
   return (
     <div id={mapContainerId} className="relative w-full h-full overflow-hidden bg-gray-100">

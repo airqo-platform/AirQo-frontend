@@ -1009,16 +1009,26 @@ export default function AirQloudsTable({
                 <TableBody>
                   {visibleData.map((airqloud) => {
                     const hasNoData = airqloud.uptime === null && airqloud.errorMargin === null
+                    // A site without readings still has a details page, listing its devices
+                    const opensDetails = !hasNoData || isSiteMode
 
                     return (
                       <TableRow
                         key={airqloud.id}
-                        className={hasNoData
+                        className={`${hasNoData
                           ? `opacity-60${isSiteMode ? " cursor-pointer" : ""}`
                           : "cursor-pointer hover:bg-muted/50 transition-colors"
-                        }
-                        // A site without readings still has a details page, listing its devices
-                        onClick={hasNoData && !isSiteMode ? undefined : () => handleRowClick(airqloud.id)}
+                        }${opensDetails ? " focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset" : ""}`}
+                        onClick={opensDetails ? () => handleRowClick(airqloud.id) : undefined}
+                        onKeyDown={opensDetails ? (e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault()
+                            handleRowClick(airqloud.id)
+                          }
+                        } : undefined}
+                        tabIndex={opensDetails ? 0 : undefined}
+                        role={opensDetails ? "button" : undefined}
+                        aria-label={opensDetails ? `View details for ${airqloud.name}` : undefined}
                       >
                         <TableCell>
                           <div className="flex items-center justify-between">
@@ -1028,7 +1038,7 @@ export default function AirQloudsTable({
                                 <div className="text-sm text-muted-foreground">{airqloud.location}</div>
                               )}
                             </div>
-                            {(!hasNoData || isSiteMode) && <ChevronRight className="h-4 w-4 text-muted-foreground" />}
+                            {opensDetails && <ChevronRight className="h-4 w-4 text-muted-foreground" />}
                           </div>
                         </TableCell>
                         {isSiteMode && (

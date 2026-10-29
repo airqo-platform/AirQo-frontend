@@ -174,10 +174,16 @@ export const cheapestInsertionKm = (
 export const GOOGLE_MAPS_MAX_WAYPOINTS = 9;
 export const GOOGLE_MAPS_PHONE_MAX_WAYPOINTS = 3;
 
-/** Whether this is a phone or tablet browser, whose Google Maps links take fewer waypoints. */
+/**
+ * Whether this is a phone or tablet browser, whose Google Maps links take fewer waypoints. An
+ * iPad asking for desktop sites sends a Mac user agent, so it is told from a Mac by its touch
+ * points: a Mac reports none.
+ */
 export const isPhoneBrowser = (
-    userAgent: string = typeof navigator !== "undefined" ? navigator.userAgent : ""
-): boolean => /Android|iPhone|iPad|iPod|Mobile/i.test(userAgent);
+    userAgent: string = typeof navigator !== "undefined" ? navigator.userAgent : "",
+    maxTouchPoints: number = typeof navigator !== "undefined" ? navigator.maxTouchPoints ?? 0 : 0
+): boolean =>
+    /Android|iPhone|iPad|iPod|Mobile/i.test(userAgent) || (/Macintosh/i.test(userAgent) && maxTouchPoints > 1);
 
 export interface GoogleMapsLink {
     url: string;
