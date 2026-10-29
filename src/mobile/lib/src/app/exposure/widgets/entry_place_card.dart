@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:airqo/src/app/dashboard/models/user_preferences_model.dart';
+import 'package:airqo/src/app/shared/services/analytics_service.dart';
 import 'package:airqo/src/app/shared/utils/monitor_place_label.dart';
 import 'package:airqo/src/app/exposure/bloc/declared_places_cubit.dart';
 import 'package:airqo/src/app/exposure/widgets/dashed_rounded_rect_border.dart';
@@ -77,6 +78,7 @@ class _AddLabelButtonState extends State<_AddLabelButton> {
   bool _pressed = false;
 
   void _handleTap(BuildContext context) {
+    AnalyticsService().trackExposurePlaceSetupStarted(siteId: widget.site.id);
     final cubit = context.read<DeclaredPlacesCubit>();
     showModalBottomSheet(
       context: context,

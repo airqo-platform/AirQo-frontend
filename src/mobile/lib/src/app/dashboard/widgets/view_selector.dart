@@ -18,6 +18,10 @@ class ViewSelector extends StatefulWidget {
   final String? userCountry;
   final Set<String>? activeCountries;
 
+  /// When false, the Near You and Favorites hints stay hidden. The dashboard
+  /// turns this on after the measurement-card tour is dismissed or skipped.
+  final bool tooltipsEnabled;
+
   const ViewSelector({
     super.key,
     required this.currentView,
@@ -26,6 +30,7 @@ class ViewSelector extends StatefulWidget {
     this.isGuestUser = false,
     this.userCountry,
     this.activeCountries,
+    this.tooltipsEnabled = true,
   });
 
   @override
@@ -51,8 +56,13 @@ class _ViewSelectorState extends State<ViewSelector> {
         oldWidget.activeCountries != widget.activeCountries) {
       _sortCountries();
     }
-    if (oldWidget.currentView != widget.currentView) {
+    final tooltipsJustEnabled =
+        !oldWidget.tooltipsEnabled && widget.tooltipsEnabled;
+    if (widget.tooltipsEnabled &&
+        (oldWidget.currentView != widget.currentView || tooltipsJustEnabled)) {
       _triggerTooltipOnViewChange();
+    } else if (oldWidget.tooltipsEnabled && !widget.tooltipsEnabled) {
+      _hideTooltips();
     }
   }
 
@@ -73,8 +83,21 @@ class _ViewSelectorState extends State<ViewSelector> {
     }
   }
 
-  void _triggerTooltipOnViewChange() {
+  void _hideTooltips() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      (_nearbyTooltipKey.currentState as dynamic)?.deactivate();
+      (_myPlacesTooltipKey.currentState as dynamic)?.deactivate();
+    });
+  }
+
+  void _triggerTooltipOnViewChange() {
+    if (!widget.tooltipsEnabled) {
+      _hideTooltips();
+      return;
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !widget.tooltipsEnabled) return;
       if (widget.currentView == DashboardView.favorites) {
         final dynamic tooltipState = _myPlacesTooltipKey.currentState;
         tooltipState?.ensureTooltipVisible();

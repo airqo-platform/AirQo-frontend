@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:airqo/src/app/dashboard/pages/dashboard_page.dart';
 import 'package:airqo/src/app/dashboard/bloc/dashboard/dashboard_bloc.dart';
 import 'package:airqo/src/app/exposure/pages/exposure_dashboard_view.dart';
+import 'package:airqo/src/app/exposure/widgets/exposure_launch_announcement.dart';
 import 'package:airqo/src/app/learn/pages/kya_page.dart';
 import 'package:airqo/src/app/map/pages/map_page.dart';
 import 'package:airqo/src/app/map/services/map_navigation_service.dart';
@@ -78,14 +79,30 @@ class _NavPageState extends State<NavPage> with AutomaticKeepAliveClientMixin {
   }
 
   Future<void> _initializeLocalNotifications() async {
-    await LocalNotificationBootstrap.instance.ensureInitialized();
-    await _maybePromptNotificationPermission();
+    try {
+      await LocalNotificationBootstrap.instance.ensureInitialized();
+      await _maybePromptNotificationPermission();
+    } catch (_) {
+      // Push setup can fail on local debug builds without Firebase.
+    }
 
     if (_surveysEnabled) {
       if (!mounted) return;
       context.read<SurveyBloc>().add(const LoadSurveys());
       await SurveyTriggerService().initialize();
     }
+
+    await _maybeShowExposureLaunchAnnouncement();
+  }
+
+  Future<void> _maybeShowExposureLaunchAnnouncement() async {
+    if (!mounted) return;
+    await ExposureLaunchAnnouncement.showIfNeeded(
+      context,
+      exposureEnabled: true,
+      primaryLabel: 'Try Exposure',
+      onPrimary: () => changeCurrentIndex(2),
+    );
   }
 
   Future<void> _maybePromptNotificationPermission() async {
@@ -183,7 +200,7 @@ class _NavPageState extends State<NavPage> with AutomaticKeepAliveClientMixin {
               "Exposure",
               2,
               "assets/icons/exposure_icon.svg",
-              badgeLabel: 'BETA',
+              badgeLabel: 'NEW',
             ),
             label: "",
           ),

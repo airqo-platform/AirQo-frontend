@@ -361,7 +361,9 @@ class _SwipeableAnalyticsCardState extends State<SwipeableAnalyticsCard>
               },
               child: Transform.translate(
                 offset: Offset(_dragOffset + shakeOffset, 0),
-                child: Container(
+                child: measurementCardTourAnchor(
+                  link: widget.tourKeys?.cardLink,
+                  child: Container(
                   key: widget.tourKeys?.cardKey,
                   margin:
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -473,6 +475,7 @@ class _SwipeableAnalyticsCardState extends State<SwipeableAnalyticsCard>
                             ),
                             MeasurementCardHeaderShare(
                               shareButtonKey: _shareButtonKey,
+                              link: widget.tourKeys?.shareLink,
                               onShare: () => _openShare('dashboard_card'),
                             ),
                           ],
@@ -619,10 +622,12 @@ class _SwipeableAnalyticsCardState extends State<SwipeableAnalyticsCard>
                       ),
                       MeasurementCardFooterForecast(
                         forecastButtonKey: widget.tourKeys?.forecastIconKey,
+                        link: widget.tourKeys?.forecastLink,
                         enabled: _cardActionsEnabled,
                         onForecast: _openForecast,
                       ),
                     ],
+                  ),
                   ),
                 ),
               ),

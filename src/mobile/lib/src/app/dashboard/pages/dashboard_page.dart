@@ -38,6 +38,8 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
   Timer? _backgroundRefreshTimer;
   final MeasurementCardTourKeys _cardTourKeys = MeasurementCardTourKeys();
   bool _showCardGesturesTour = false;
+  OverlayEntry? _tourOverlay;
+  bool _viewTooltipsEnabled = !kMeasurementCardGesturesTourEnabled;
 
   @override
   void initState() {
@@ -46,6 +48,7 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
     context.read<DashboardBloc>().add(LoadDashboard());
 
     _getUserCountry();
+    unawaited(_holdViewTooltipsUntilTourResolves());
 
     _backgroundRefreshTimer = Timer.periodic(Duration(minutes: 30), (_) {
       _silentBackgroundRefresh();
@@ -54,6 +57,8 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
 
   @override
   void dispose() {
+    _tourOverlay?.remove();
+    _tourOverlay = null;
     _backgroundRefreshTimer?.cancel();
     super.dispose();
   }
@@ -91,17 +96,70 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
     });
   }
 
+  void _enableViewTooltips() {
+    if (!mounted || _viewTooltipsEnabled) return;
+    setState(() => _viewTooltipsEnabled = true);
+  }
+
+  /// Keeps the Near You hint off the screen until the card tour is done.
+  /// If the tour was already seen, the hint can show immediately. If the tour
+  /// never appears, the hint is released after a short wait.
+  Future<void> _holdViewTooltipsUntilTourResolves() async {
+    if (!kMeasurementCardGesturesTourEnabled) {
+      _enableViewTooltips();
+      return;
+    }
+    final prefs = await SharedPreferences.getInstance();
+    if (!mounted) return;
+    final seen = prefs.getBool(measurementCardGesturesTourSeenKey) ?? false;
+    if (seen) {
+      _enableViewTooltips();
+      return;
+    }
+    await Future<void>.delayed(const Duration(seconds: 8));
+    if (!mounted || _showCardGesturesTour || _tourOverlay != null) return;
+    _enableViewTooltips();
+  }
+
   Future<void> _dismissCardGesturesTour() async {
-    setState(() => _showCardGesturesTour = false);
+    _tourOverlay?.remove();
+    _tourOverlay = null;
+    setState(() {
+      _showCardGesturesTour = false;
+      _viewTooltipsEnabled = true;
+    });
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(measurementCardGesturesTourSeenKey, true);
   }
 
   void _maybeShowCardGesturesTour() {
-    if (!kMeasurementCardGesturesTourEnabled || _showCardGesturesTour) return;
+    if (!kMeasurementCardGesturesTourEnabled ||
+        _showCardGesturesTour ||
+        _tourOverlay != null) {
+      return;
+    }
     SharedPreferences.getInstance().then((prefs) {
       final seen = prefs.getBool(measurementCardGesturesTourSeenKey) ?? false;
-      if (!seen && mounted) setState(() => _showCardGesturesTour = true);
+      if (!seen && mounted && _tourOverlay == null) {
+        setState(() => _showCardGesturesTour = true);
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted || !_showCardGesturesTour || _tourOverlay != null) {
+            return;
+          }
+          _tourOverlay = OverlayEntry(
+            builder: (_) => Positioned.fill(
+              child: MeasurementCardGesturesTour(
+                tourKeys: _cardTourKeys,
+                steps: buildMeasurementCardGesturesTourSteps(
+                  view: _activeTourView,
+                ),
+                onDismiss: _dismissCardGesturesTour,
+              ),
+            ),
+          );
+          Overlay.of(context, rootOverlay: true).insert(_tourOverlay!);
+        });
+      }
     });
   }
 
@@ -189,6 +247,7 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
                           isGuestUser: isGuest,
                           userCountry: userCountry,
                           activeCountries: activeCountries,
+                          tooltipsEnabled: _viewTooltipsEnabled,
                         );
                       },
                     ),
@@ -219,14 +278,6 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
                   backgroundColor: AppColors.primaryColor,
                   child: const Icon(Icons.add, color: Colors.white),
                 ),
-              ),
-            if (kMeasurementCardGesturesTourEnabled && _showCardGesturesTour)
-              MeasurementCardGesturesTour(
-                tourKeys: _cardTourKeys,
-                steps: buildMeasurementCardGesturesTourSteps(
-                  view: _activeTourView,
-                ),
-                onDismiss: _dismissCardGesturesTour,
               ),
           ],
         ),

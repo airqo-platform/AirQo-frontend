@@ -1,5 +1,6 @@
 import 'package:airqo/src/app/dashboard/models/country_model.dart';
 import 'package:airqo/src/app/dashboard/models/user_preferences_model.dart';
+import 'package:airqo/src/app/shared/services/analytics_service.dart';
 import 'package:airqo/src/app/shared/utils/monitor_place_label.dart';
 import 'package:airqo/src/app/exposure/models/route_exposure_summary.dart';
 import 'package:airqo/src/app/exposure/repository/route_exposure_repository.dart';
@@ -124,6 +125,7 @@ class _MyTripsViewState extends State<MyTripsView> {
   }
 
   void _selectCountry(String country) {
+    AnalyticsService().trackExposureTripCountrySelected(country: country);
     setState(() {
       _country = country;
       _origin = null;
@@ -156,11 +158,19 @@ class _MyTripsViewState extends State<MyTripsView> {
       setState(() {
         _summary = summary;
       });
+      AnalyticsService().trackExposureTripAnalyzed(
+        country: _country,
+        success: true,
+      );
     } catch (error) {
       if (!mounted) return;
       setState(() {
         _errorMessage = error.toString().replaceFirst('Exception: ', '');
       });
+      AnalyticsService().trackExposureTripAnalyzed(
+        country: _country,
+        success: false,
+      );
     } finally {
       if (mounted) {
         setState(() {
@@ -187,6 +197,10 @@ class _MyTripsViewState extends State<MyTripsView> {
           isLoading: _isLoading,
           onCountryChanged: _selectCountry,
           onOriginChanged: (value) {
+            AnalyticsService().trackExposureTripEndpointSelected(
+              endpoint: 'origin',
+              country: _country,
+            );
             setState(() {
               _origin = value;
               _summary = null;
@@ -194,6 +208,10 @@ class _MyTripsViewState extends State<MyTripsView> {
             });
           },
           onDestinationChanged: (value) {
+            AnalyticsService().trackExposureTripEndpointSelected(
+              endpoint: 'destination',
+              country: _country,
+            );
             setState(() {
               _destination = value;
               _summary = null;
@@ -481,7 +499,7 @@ class _TripCountryField extends StatelessWidget {
                     ),
                     const SizedBox(height: 3),
                     Text(
-                      value ?? 'Choose network coverage',
+                      value ?? 'Choose a country',
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
@@ -741,7 +759,10 @@ class _TripLocationPickerSheetState extends State<_TripLocationPickerSheet> {
     final bodyColor = AppTextColors.muted(context);
     final borderColor = AppSurfaceColors.border(context);
     final sites = _filteredSites;
-    final country = widget.sites.firstOrNull?.country ?? 'AirQo network';
+    final country = widget.sites.firstOrNull?.country.trim();
+    final locationScopeLabel = (country == null || country.isEmpty)
+        ? 'Search AirQo monitored locations'
+        : 'Search locations in $country';
 
     return Container(
       height: MediaQuery.sizeOf(context).height * 0.82,
@@ -774,7 +795,7 @@ class _TripLocationPickerSheetState extends State<_TripLocationPickerSheet> {
           ),
           const SizedBox(height: 4),
           Text(
-            '$country network coverage',
+            locationScopeLabel,
             style: TextStyle(fontSize: 13, color: bodyColor),
           ),
           const SizedBox(height: 12),
@@ -783,16 +804,23 @@ class _TripLocationPickerSheetState extends State<_TripLocationPickerSheet> {
             autofocus: true,
             onChanged: (_) => setState(() {}),
             decoration: InputDecoration(
+              isDense: true,
               hintText: 'Search monitored locations',
-              prefixIcon: AqSearchMd(
-                size: 18,
-                color: bodyColor,
-                semanticsLabel: 'Search monitored locations',
+              prefixIcon: Padding(
+                padding: const EdgeInsets.only(left: 12, right: 4),
+                child: AqSearchSm(
+                  size: 18,
+                  color: bodyColor,
+                  semanticsLabel: 'Search monitored locations',
+                ),
               ),
               prefixIconConstraints: const BoxConstraints(
-                minWidth: 40,
-                minHeight: 40,
+                minWidth: 34,
+                maxWidth: 34,
+                minHeight: 34,
+                maxHeight: 34,
               ),
+              contentPadding: const EdgeInsets.symmetric(vertical: 12),
               filled: true,
               fillColor: AppSurfaceColors.nested(context),
               enabledBorder: OutlineInputBorder(

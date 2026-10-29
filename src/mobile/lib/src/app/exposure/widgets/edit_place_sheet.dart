@@ -7,6 +7,7 @@ import 'package:airqo/src/app/exposure/widgets/exposure_place_name_text_field.da
 import 'package:airqo/src/app/exposure/widgets/label_picker_place_type_icon.dart';
 import 'package:airqo/src/app/exposure/widgets/tag_picker_tile.dart';
 import 'package:airqo/src/app/exposure/widgets/time_picker_drum.dart';
+import 'package:airqo/src/app/shared/services/analytics_service.dart';
 import 'package:airqo/src/app/shared/widgets/custom_switch.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 
@@ -297,6 +298,12 @@ class _EditPlaceSheetState extends State<EditPlaceSheet> {
       weekendWindow: TimeWindow(arrive: _weArrive, leave: _weLeave),
       absentOnWeekdays: _absentWeekdays,
       absentOnWeekends: _absentWeekends,
+    );
+    AnalyticsService().trackExposurePlaceSaved(
+      placeType: updated.type.name,
+      source: 'edit',
+      absentWeekdays: updated.absentOnWeekdays,
+      absentWeekends: updated.absentOnWeekends,
     );
     context.read<DeclaredPlacesCubit>().updatePlace(updated);
     Navigator.of(context).pop();

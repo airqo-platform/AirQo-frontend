@@ -2,17 +2,24 @@ import 'package:flutter/material.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:airqo_icons_flutter/airqo_icons_flutter.dart';
 
+/// Keys for the first exposure Favorite card tour.
+class PlaceCardTourKeys {
+  final GlobalKey cardKey = GlobalKey(debugLabel: 'exposure_favorite_card');
+  final GlobalKey chevronKey =
+      GlobalKey(debugLabel: 'exposure_favorite_chevron');
+}
+
 /// Full-screen guided-tour overlay that spotlights the first Favorite card and
 /// tells the user they can tap it to see the hourly PM2.5 breakdown.
 ///
 /// Show it the first time the user configures a Favorite; dismiss on any tap.
 class PlaceCardTour extends StatefulWidget {
-  final GlobalKey cardKey;
+  final PlaceCardTourKeys tourKeys;
   final VoidCallback onDismiss;
 
   const PlaceCardTour({
     super.key,
-    required this.cardKey,
+    required this.tourKeys,
     required this.onDismiss,
   });
 
@@ -24,6 +31,7 @@ class _PlaceCardTourState extends State<PlaceCardTour>
     with SingleTickerProviderStateMixin {
   final GlobalKey _overlayKey = GlobalKey();
   Rect? _cardRect;
+  Rect? _chevronRect;
   late AnimationController _fade;
   late Animation<double> _opacity;
 
@@ -36,9 +44,8 @@ class _PlaceCardTourState extends State<PlaceCardTour>
     );
     _opacity = CurvedAnimation(parent: _fade, curve: Curves.easeOut);
 
-    // Wait for the card to be laid out before reading its position.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _measureCard();
+      _remeasureAfterLayout();
       _fade.forward();
     });
   }
@@ -49,21 +56,54 @@ class _PlaceCardTourState extends State<PlaceCardTour>
     super.dispose();
   }
 
-  void _measureCard() {
-    final ctx = widget.cardKey.currentContext;
-    if (ctx == null) return;
-    final box = ctx.findRenderObject() as RenderBox?;
+  void _remeasureAfterLayout() {
+    final cardContext = widget.tourKeys.cardKey.currentContext;
+    if (cardContext == null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _measureTargets();
+      });
+      return;
+    }
+
+    // Measure only after the card has finished moving. A mid-scroll rect
+    // leaves the cutout a card too low, clipping the title and covering
+    // the next Favorite.
+    Scrollable.ensureVisible(
+      cardContext,
+      alignment: 0.28,
+      duration: const Duration(milliseconds: 280),
+      curve: Curves.easeInOut,
+    ).whenComplete(() {
+      if (!mounted) return;
+      _measureTargets();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _measureTargets();
+      });
+    });
+  }
+
+  void _measureTargets() {
     final overlayBox =
         _overlayKey.currentContext?.findRenderObject() as RenderBox?;
-    if (box == null || !box.hasSize || overlayBox == null) return;
-    final topLeft = overlayBox.globalToLocal(
-      box.localToGlobal(Offset.zero),
-    );
-    if (mounted) {
-      setState(() {
-        _cardRect = topLeft & box.size;
-      });
+    if (overlayBox == null) return;
+
+    Rect? measure(GlobalKey key) {
+      final ctx = key.currentContext;
+      if (ctx == null) return null;
+      final box = ctx.findRenderObject() as RenderBox?;
+      if (box == null || !box.hasSize) return null;
+      final topLeft = overlayBox.globalToLocal(box.localToGlobal(Offset.zero));
+      return topLeft & box.size;
     }
+
+    final card = measure(widget.tourKeys.cardKey);
+    final chevron = measure(widget.tourKeys.chevronKey);
+    if (card == null) return;
+
+    setState(() {
+      _cardRect = card;
+      _chevronRect = chevron;
+    });
   }
 
   void _dismiss() {
@@ -77,24 +117,26 @@ class _PlaceCardTourState extends State<PlaceCardTour>
 
     return FadeTransition(
       opacity: _opacity,
-      child: LayoutBuilder(
-        builder: (context, constraints) => GestureDetector(
+      child: SizedBox.expand(
+        child: GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: _dismiss,
           child: Stack(
             key: _overlayKey,
+            fit: StackFit.expand,
             children: [
               if (cardRect != null)
-                CustomPaint(
-                  size: constraints.biggest,
-                  painter: _SpotlightPainter(spotlight: cardRect),
+                Positioned.fill(
+                  child: CustomPaint(
+                    painter: _SpotlightPainter(spotlight: cardRect),
+                  ),
                 )
               else
-                Container(color: Colors.black54),
+                const ColoredBox(color: Color(0xAD000000)),
               if (cardRect != null)
                 _TooltipBubble(
                   cardRect: cardRect,
-                  overlayHeight: constraints.maxHeight,
+                  chevronRect: _chevronRect,
                   isDark: isDark,
                 ),
             ],
@@ -109,11 +151,11 @@ class _PlaceCardTourState extends State<PlaceCardTour>
 
 class _SpotlightPainter extends CustomPainter {
   final Rect spotlight;
-  // The card Container has margin: EdgeInsets.only(bottom: 12), which is
-  // included in box.size. We expand top/sides by _pad but deflect the bottom
-  // by _pad so the cutout ends inside the card content area, well clear of
-  // the next card.
-  static const double _pad = 8;
+  // The card render box includes `margin: EdgeInsets.only(bottom: 12)`.
+  // Drop that margin before padding, so the cutout frames this Favorite
+  // and does not swallow the next card.
+  static const double _pad = 6;
+  static const double _bottomMargin = 12;
   static const double _radius = 12;
 
   const _SpotlightPainter({required this.spotlight});
@@ -122,8 +164,7 @@ class _SpotlightPainter extends CustomPainter {
         spotlight.left - _pad,
         spotlight.top - _pad,
         spotlight.right + _pad,
-        spotlight.bottom -
-            _pad, // trim bottom: card margin is 12px, so this leaves ~4px gap
+        spotlight.bottom - _bottomMargin + _pad,
       );
 
   @override
@@ -163,39 +204,41 @@ class _SpotlightPainter extends CustomPainter {
 
 class _TooltipBubble extends StatelessWidget {
   final Rect cardRect;
-  final double overlayHeight;
+  final Rect? chevronRect;
   final bool isDark;
   static const double _arrowH = 10.0;
   static const double _hPad = 16.0;
+  static const double _gap = 8.0;
 
   const _TooltipBubble({
     required this.cardRect,
-    required this.overlayHeight,
+    required this.chevronRect,
     required this.isDark,
   });
 
   @override
   Widget build(BuildContext context) {
-    final screen = MediaQuery.of(context).size;
+    final padding = MediaQuery.paddingOf(context);
+    final screen = MediaQuery.sizeOf(context);
     final bubbleBg = isDark ? AppColors.darkHighlight : Colors.white;
     final textColor = isDark ? Colors.white : const Color(0xFF1A1D23);
     // Match card / sheet secondary copy: neutral grey in dark (not blue-grey).
     final subColor =
         isDark ? AppColors.boldHeadlineColor2 : AppColors.boldHeadlineColor3;
 
-    // Keep the guidance above the highlighted card and clear of bottom nav.
-    final bubbleBottom = (overlayHeight - cardRect.top + 6)
-        .clamp(16.0, overlayHeight - 16.0)
+    final pointerTarget = chevronRect ?? cardRect;
+    final spotlightTop = cardRect.top - 8;
+    final bubbleBottom = spotlightTop - _gap - _arrowH;
+
+    // Arrow follows the hourly chevron, not the card centre.
+    final arrowCx = pointerTarget.center.dx
+        .clamp(_hPad + padding.left + 20, screen.width - _hPad - padding.right - 20)
         .toDouble();
 
-    // Arrow horizontal centre follows card centre, clamped to screen.
-    final arrowCx =
-        cardRect.center.dx.clamp(40.0, screen.width - 40.0).toDouble();
-
     return Positioned(
-      bottom: bubbleBottom,
-      left: _hPad,
-      right: _hPad,
+      bottom: screen.height - bubbleBottom,
+      left: _hPad + padding.left,
+      right: _hPad + padding.right,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -239,6 +282,7 @@ class _TooltipBubble extends StatelessWidget {
                           Text(
                             'Tap a card',
                             style: TextStyle(
+                              fontFamily: 'Inter',
                               fontSize: 15,
                               fontWeight: FontWeight.w700,
                               color: textColor,
@@ -250,6 +294,7 @@ class _TooltipBubble extends StatelessWidget {
                           Text(
                             'See the hourly PM2.5 breakdown for each Favorite and how your usual schedule shapes exposure.',
                             style: TextStyle(
+                              fontFamily: 'Inter',
                               fontSize: 13,
                               fontWeight: FontWeight.w400,
                               color: subColor,
@@ -265,19 +310,22 @@ class _TooltipBubble extends StatelessWidget {
                 const SizedBox(height: 14),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Text(
                       'Tap anywhere to dismiss',
                       style: TextStyle(
+                        fontFamily: 'Inter',
                         fontSize: 11,
+                        height: 1,
                         color: subColor,
                         fontWeight: FontWeight.w500,
                         decoration: TextDecoration.none,
                       ),
                     ),
-                    const SizedBox(width: 4),
+                    const SizedBox(width: 2),
                     AqChevronDown(
-                      size: 14,
+                      size: 16,
                       color: subColor,
                     ),
                   ],
@@ -286,11 +334,11 @@ class _TooltipBubble extends StatelessWidget {
             ),
           ),
 
-          // Downward pointer aligned with the highlighted card.
+          // Downward pointer aimed at the card chevron.
           Padding(
             padding: EdgeInsets.only(
-              left: (arrowCx - _hPad - 10)
-                  .clamp(0.0, screen.width - _hPad * 2 - 20)
+              left: (arrowCx - _hPad - padding.left - 10)
+                  .clamp(0.0, screen.width - (_hPad + padding.horizontal) - 20)
                   .toDouble(),
             ),
             child: CustomPaint(

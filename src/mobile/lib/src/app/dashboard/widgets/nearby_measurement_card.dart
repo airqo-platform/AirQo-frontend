@@ -174,7 +174,7 @@ class _NearbyMeasurementCardState extends State<NearbyMeasurementCard>
     final measurement = widget.measurement;
     final locationColor = AppTextColors.muted(context);
 
-    return Container(
+    final card = Container(
       key: widget.tourKeys?.cardKey,
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: AppSurfaceColors.elevatedCardDecoration(context),
@@ -244,6 +244,7 @@ class _NearbyMeasurementCardState extends State<NearbyMeasurementCard>
                 ),
                 MeasurementCardHeaderShare(
                   shareButtonKey: _shareButtonKey,
+                  link: widget.tourKeys?.shareLink,
                   onShare: () => _openShare('dashboard_card'),
                 ),
               ],
@@ -375,10 +376,15 @@ class _NearbyMeasurementCardState extends State<NearbyMeasurementCard>
           ),
           MeasurementCardFooterForecast(
             forecastButtonKey: widget.tourKeys?.forecastIconKey,
+            link: widget.tourKeys?.forecastLink,
             onForecast: _openForecast,
           ),
         ],
       ),
+    );
+    return measurementCardTourAnchor(
+      link: widget.tourKeys?.cardLink,
+      child: card,
     );
   }
 }

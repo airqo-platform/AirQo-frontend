@@ -112,7 +112,7 @@ class _AnalyticsCardState extends State<AnalyticsCard> with UiLoggy {
   Widget build(BuildContext context) {
     final measurement = widget.measurement;
     final locationColor = AppTextColors.muted(context);
-    return Container(
+    final card = Container(
       key: widget.tourKeys?.cardKey,
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: AppSurfaceColors.elevatedCardDecoration(context),
@@ -182,6 +182,7 @@ class _AnalyticsCardState extends State<AnalyticsCard> with UiLoggy {
                 ),
                 MeasurementCardHeaderShare(
                   shareButtonKey: _shareButtonKey,
+                  link: widget.tourKeys?.shareLink,
                   onShare: () => _openShare('dashboard_card'),
                 ),
               ],
@@ -313,10 +314,15 @@ class _AnalyticsCardState extends State<AnalyticsCard> with UiLoggy {
           ),
           MeasurementCardFooterForecast(
             forecastButtonKey: widget.tourKeys?.forecastIconKey,
+            link: widget.tourKeys?.forecastLink,
             onForecast: _openForecast,
           ),
         ],
       ),
+    );
+    return measurementCardTourAnchor(
+      link: widget.tourKeys?.cardLink,
+      child: card,
     );
   }
 }
