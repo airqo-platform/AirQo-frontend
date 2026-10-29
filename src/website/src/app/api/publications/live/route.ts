@@ -8,8 +8,6 @@ import {
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
-const CACHE_CONTROL = 'public, s-maxage=21600, stale-while-revalidate=86400';
-
 const parsePositiveInteger = (value: string | null, fallback: number) => {
   const parsed = Number(value);
   return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback;
@@ -30,7 +28,10 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(response, {
       headers: {
-        'Cache-Control': response.enabled ? CACHE_CONTROL : 'no-store',
+        // The backend policy is admin-controlled. Do not let a cached enabled
+        // response outlive a disable action; provider responses are cached
+        // independently in the service layer.
+        'Cache-Control': 'no-store',
       },
     });
   } catch (error) {

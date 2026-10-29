@@ -1,5 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Allow local development to use a writable cache when the default .next is restricted.
+  distDir: process.env.NEXT_DIST_DIR || '.next',
+
   // Enable standalone output for Docker
   output: 'standalone',
 

@@ -336,6 +336,15 @@ const ResourcePage: React.FC = () => {
       </section>
 
       <section className={`${mainConfig.containerClass} w-full px-4`}>
+        {isResearchCategory && livePublicationsData.data?.degraded && (
+          <p
+            className="mb-6 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900"
+            role="status"
+          >
+            Live research updates are temporarily unavailable. Existing AirQo
+            publications are still available below.
+          </p>
+        )}
         {isLoading ? (
           <div
             className="space-y-6"
@@ -347,11 +356,6 @@ const ResourcePage: React.FC = () => {
                 : 'Loading resources'
             }
           >
-            <p className="text-sm text-gray-600">
-              {isResearchCategory
-                ? 'Loading research publications...'
-                : 'Loading resources...'}
-            </p>
             {[...Array(itemsPerPage)].map((_, index) => (
               <div
                 key={index}
@@ -371,7 +375,13 @@ const ResourcePage: React.FC = () => {
           <NoData message="Failed to load resources. Please try again later." />
         ) : isResearchCategory ? (
           results.length === 0 ? (
-            <NoData message="No publications were found. Please try again later." />
+            <NoData
+              message={
+                livePublicationsData.data?.degraded
+                  ? 'Live updates are temporarily unavailable, and no curated AirQo publications are currently available.'
+                  : 'No publications were found. Please try again later.'
+              }
+            />
           ) : (
             <div className="space-y-6">
               {(results as PublicationFeedItem[]).map((publication) => (

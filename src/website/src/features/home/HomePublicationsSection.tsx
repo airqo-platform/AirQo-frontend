@@ -56,7 +56,7 @@ const PublicationCard = ({
       : undefined;
 
   return (
-    <article className="group flex h-56 flex-col rounded-xl border border-slate-200 bg-white p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-md">
+    <article className="group flex h-56 flex-col rounded-lg bg-card-custom-gradient p-5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
       <div className="flex h-5 min-w-0 items-center gap-2 text-xs text-slate-500">
         {publicationDate && <span className="shrink-0">{publicationDate}</span>}
         {publicationDate && publication.journal && (
@@ -132,6 +132,8 @@ const HomePublicationsSection = () => {
     publications.length === 0 &&
     (curatedQuery.isLoading || liveQuery.isLoading);
 
+  if (!isLoading && publications.length === 0) return null;
+
   return (
     <section
       aria-labelledby="home-publications-heading"
@@ -172,7 +174,7 @@ const HomePublicationsSection = () => {
             {Array.from({ length: HOMEPAGE_PUBLICATION_LIMIT }, (_, index) => (
               <div
                 key={index}
-                className="h-56 animate-pulse rounded-xl border border-slate-200 bg-white p-5"
+                className="h-56 animate-pulse rounded-lg bg-card-custom-gradient p-5 shadow-sm"
               >
                 <div className="mb-5 h-4 w-2/3 rounded bg-slate-200" />
                 <div className="mb-2 h-5 w-full rounded bg-slate-200" />
@@ -181,19 +183,11 @@ const HomePublicationsSection = () => {
               </div>
             ))}
           </div>
-        ) : publications.length > 0 ? (
+        ) : (
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {publications.map((publication) => (
               <PublicationCard key={publication.id} publication={publication} />
             ))}
-          </div>
-        ) : (
-          <div
-            role="status"
-            className="rounded-xl border border-slate-200 bg-white px-6 py-8 text-sm text-slate-600"
-          >
-            No recent publications are available right now. Browse all
-            publications for the complete collection.
           </div>
         )}
       </div>
