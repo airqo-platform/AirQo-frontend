@@ -1,6 +1,7 @@
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
 import 'package:airqo/src/app/dashboard/utils/air_quality_card_utils.dart';
 import 'package:airqo/src/app/dashboard/utils/measurement_location_utils.dart';
+import 'package:airqo/src/app/shared/utils/monitor_place_label.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:flutter/material.dart';
 
@@ -235,7 +236,7 @@ class AirQualityShareCard extends StatelessWidget {
       parts.add(siteDetails.country!);
     }
 
-    return parts.join(', ');
+    return measurementSpokenQuietLine(measurement, parts.join(', '));
   }
 
   double _titleFontSize(String title) {

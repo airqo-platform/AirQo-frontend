@@ -290,6 +290,10 @@ class SiteDetails {
   
   @JsonKey(name: 'search_name')
   final String? searchName;
+
+  /// Ops site id, `site_435`. Used to drop that number from a title. Never printed.
+  @JsonKey(name: 'generated_name')
+  final String? generatedName;
   
   @JsonKey(name: 'sub_county')
   final String? subCounty;
@@ -316,6 +320,7 @@ class SiteDetails {
     String? description,
     String? locationName,
     String? searchName,
+    this.generatedName,
     this.subCounty,
     this.dataProvider,
     this.siteCategory,

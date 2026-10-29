@@ -101,6 +101,9 @@ class SitesImpl extends SitesRepository with NetworkLoggy {
       country: site['country'] as String?,
       formattedName: site['formatted_name'] as String?,
       locationName: site['location_name'] as String?,
+      region: site['region'] as String?,
+      county: site['county'] as String?,
+      generatedName: site['generated_name'] as String?,
     );
   }
 }

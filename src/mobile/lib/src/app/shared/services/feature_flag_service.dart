@@ -3,12 +3,15 @@ import 'package:posthog_flutter/posthog_flutter.dart';
 import 'package:loggy/loggy.dart';
 
 enum AppFeatureFlag {
-  exposureTracking('exposure_tracking'),
   surveys('surveys'),
   dataSharing('data_sharing'),
   feedback('feedback'),
   socialLogin('social_login'),
-  conferenceWall('conference_wall');
+  conferenceWall('conference_wall'),
+
+  /// Titles use the place a person would say. On in debug and internal
+  /// builds, so a local run does not need PostHog.
+  spokenPlaceTitles('spoken_place_titles');
 
   final String key;
   const AppFeatureFlag(this.key);
@@ -32,6 +35,11 @@ class FeatureFlagService with UiLoggy {
   };
 
   bool isEnabled(AppFeatureFlag flag) => _flags[flag] ?? false;
+
+  @visibleForTesting
+  void debugSetEnabled(AppFeatureFlag flag, bool enabled) {
+    _flags[flag] = enabled;
+  }
 
   Future<void> reloadFlags() async {
     try {
