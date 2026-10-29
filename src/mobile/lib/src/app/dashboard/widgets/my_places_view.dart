@@ -23,8 +23,6 @@ import 'package:airqo/src/app/shared/widgets/system_glyph.dart';
 import 'package:airqo/src/app/shared/utils/saved_places_content_status.dart';
 import 'package:airqo/src/app/exposure/models/declared_place.dart';
 import 'package:airqo/src/app/exposure/repository/declared_places_repository_impl.dart';
-import 'package:airqo/src/app/shared/services/feature_flag_service.dart';
-
 class MyPlacesView extends StatefulWidget {
   final UserPreferencesModel? userPreferences;
   final bool prefsLoadFailed;
@@ -74,10 +72,6 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
   }
 
   Future<void> _loadDeclaredPlaces() async {
-    if (!FeatureFlagService.instance
-        .isEnabled(AppFeatureFlag.exposureTracking)) {
-      return;
-    }
     final generation = ++_declaredPlacesGeneration;
     try {
       final places = await DeclaredPlacesRepositoryImpl().getDeclaredPlaces();

@@ -3,7 +3,6 @@ import 'package:posthog_flutter/posthog_flutter.dart';
 import 'package:loggy/loggy.dart';
 
 enum AppFeatureFlag {
-  exposureTracking('exposure_tracking'),
   surveys('surveys'),
   dataSharing('data_sharing'),
   feedback('feedback'),
@@ -11,7 +10,7 @@ enum AppFeatureFlag {
   conferenceWall('conference_wall'),
 
   /// Titles use the place a person would say. On in debug and internal
-  /// builds, same as [exposureTracking], so a local run does not need PostHog.
+  /// builds, so a local run does not need PostHog.
   spokenPlaceTitles('spoken_place_titles');
 
   final String key;
