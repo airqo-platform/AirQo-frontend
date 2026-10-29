@@ -33,6 +33,7 @@ import { MaintenanceMapItem } from "@/types/api.types"
 import { LoRaWANGateway, GatewayCoverageStats } from "@/types/lorawan.types"
 import { generateMapGeoJSON, computeGatewayCoverageStats } from "@/utils/lorawan-utils"
 import { useToast } from "@/hooks/use-toast"
+import { MAP_ITEM_NOUNS, countLabel, type MapItemNoun } from "@/lib/maintenance-map"
 
 interface MapExportDialogProps {
   open: boolean
@@ -41,9 +42,13 @@ interface MapExportDialogProps {
   devices: MaintenanceMapItem[]
   gateways: LoRaWANGateway[]
   routePath?: MaintenanceMapItem[]
+  /** How the route's stops were put in order, for the PDF report */
+  routeMode?: string
   selectedCohort?: string
   selectedGrid?: string
   periodDays?: number
+  /** What the map shows: devices or sites */
+  itemNoun?: MapItemNoun
 }
 
 export function MapExportDialog({
@@ -53,11 +58,15 @@ export function MapExportDialog({
   devices,
   gateways,
   routePath,
+  routeMode = "Nearest neighbour + 2-opt (straight lines)",
   selectedCohort = "All Cohorts",
   selectedGrid = "All Grids",
   periodDays = 14,
+  itemNoun = MAP_ITEM_NOUNS.devices,
 }: MapExportDialogProps) {
   const { toast } = useToast()
+  const Items = `${itemNoun.plural[0].toUpperCase()}${itemNoun.plural.slice(1)}`
+  const isSites = itemNoun.plural === MAP_ITEM_NOUNS.sites.plural
   const [exportingFormat, setExportingFormat] = useState<string | null>(null)
   const [includeGateways, setIncludeGateways] = useState(true)
   const [includeRoute, setIncludeRoute] = useState(true)
@@ -169,7 +178,7 @@ export function MapExportDialog({
       pdf.setTextColor(30, 41, 59)
       pdf.setFontSize(9)
       pdf.setFont("helvetica", "bold")
-      pdf.text(`Cohort: ${selectedCohort}   |   Grid: ${selectedGrid}   |   Devices: ${devices.length}   |   LoRaWAN Gateways: ${gateways.length} (${coverageStats.coveragePercentage}% Covered)`, margin, 25)
+      pdf.text(`Cohort: ${selectedCohort}   |   Grid: ${selectedGrid}   |   ${Items}: ${devices.length}   |   LoRaWAN Gateways: ${gateways.length} (${coverageStats.coveragePercentage}% Covered)`, margin, 25)
 
       // Insert Map Image
       const mapWidth = pageWidth - margin * 2
@@ -187,15 +196,15 @@ export function MapExportDialog({
       pdf.text("COVERAGE & MAINTENANCE SUMMARY", margin + 4, startY + 6)
 
       pdf.setFont("helvetica", "normal")
-      pdf.text(`• Total Tracked Devices: ${devices.length}`, margin + 4, startY + 12)
+      pdf.text(`• Total Tracked ${Items}: ${devices.length}`, margin + 4, startY + 12)
       pdf.text(`• LoRaWAN Strong Zone (≤2km): ${coverageStats.strongCoverageCount}`, margin + 4, startY + 18)
 
       pdf.text(`• LoRaWAN Moderate Zone (2-5km): ${coverageStats.moderateCoverageCount}`, margin + 80, startY + 12)
-      pdf.text(`• Signal Drop / Uncovered Devices: ${coverageStats.uncoveredDevices}`, margin + 80, startY + 18)
+      pdf.text(`• Signal Drop / Uncovered ${Items}: ${coverageStats.uncoveredDevices}`, margin + 80, startY + 18)
 
       if (routePath && routePath.length > 0) {
-        pdf.text(`• Active Route Stops: ${routePath.length} devices`, margin + 170, startY + 12)
-        pdf.text(`• Route Mode: Optimized Nearest Neighbor`, margin + 170, startY + 18)
+        pdf.text(`• Active Route Stops: ${countLabel(routePath.length, itemNoun)}`, margin + 170, startY + 12)
+        pdf.text(`• Route Mode: ${routeMode}`, margin + 170, startY + 18)
       } else {
         pdf.text(`• Active Gateways Deployed: ${gateways.filter(g => g.enabled !== false).length}`, margin + 170, startY + 12)
         pdf.text(`• Terrain Factors: Urban (2-5km) / Rural (10km)`, margin + 170, startY + 18)
@@ -241,7 +250,7 @@ export function MapExportDialog({
 
       toast({
         title: "GeoJSON Exported",
-        description: `Exported ${devices.length} devices and ${gateways.length} gateways to GeoJSON.`,
+        description: `Exported ${countLabel(devices.length, itemNoun)} and ${gateways.length} gateways to GeoJSON.`,
       })
       onOpenChange(false)
     } catch (err: any) {
@@ -270,9 +279,7 @@ export function MapExportDialog({
       }
 
       const headers = [
-        "Device Name",
-        "Device Number",
-        "Device ID",
+        ...(isSites ? ["Site Name", "Site ID", "Devices"] : ["Device Name", "Device Number", "Device ID"]),
         "Latitude",
         "Longitude",
         "Uptime (%)",
@@ -293,10 +300,12 @@ export function MapExportDialog({
         const errorMarginStr = Number.isFinite(em) ? em.toFixed(2) : "N/A"
         const cov = coverageStats.deviceCoverageMap[device.device_id]
 
+        const identity = device.site
+          ? [device.site.site_name, device.site.generated_name ?? "", device.site.number_of_devices]
+          : [device.device_name || "", device.device_number ?? (device as any).deviceNumber ?? "", device.device_id || ""]
+
         return [
-          escapeCSV(device.device_name || ""),
-          escapeCSV(device.device_number ?? (device as any).deviceNumber ?? ""),
-          escapeCSV(device.device_id || ""),
+          ...identity.map(escapeCSV),
           escapeCSV(device.latitude ?? ""),
           escapeCSV(device.longitude ?? ""),
           escapeCSV(uptimePct.toFixed(1)),
@@ -316,14 +325,14 @@ export function MapExportDialog({
       const url = URL.createObjectURL(blob)
       const a = document.createElement("a")
       const timestamp = new Date().toISOString().slice(0, 10)
-      a.download = `airqo-maintenance-devices-${timestamp}.csv`
+      a.download = `airqo-maintenance-${itemNoun.plural}-${timestamp}.csv`
       a.href = url
       a.click()
       URL.revokeObjectURL(url)
 
       toast({
         title: "CSV Exported",
-        description: `Exported ${devices.length} devices with LoRaWAN RF metrics.`,
+        description: `Exported ${countLabel(devices.length, itemNoun)} with LoRaWAN RF metrics.`,
       })
       onOpenChange(false)
     } catch (err: any) {

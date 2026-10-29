@@ -19,6 +19,7 @@ import { MAP_TILE_STYLES, MapTileStyle, MapStyleDialog } from "./map/map-style-d
 import { MapControls, MapTopControls, MapBottomControls } from "./map/map-controls"
 import { MapLegend } from "./map/map-legend"
 import { DeviceHeatmapLayer, HeatmapMode, maxRadiusPixels, sensorScore } from "./map/device-heatmap-layer"
+import { getItemErrorMarginBand, hasMapCoordinates, type ErrorMarginBand } from "@/lib/maintenance-map"
 
 // Fix for Leaflet default icon paths in Next.js
 const DefaultIcon = L.icon({
@@ -95,6 +96,8 @@ interface MaintenanceMapProps {
   mapContainerId?: string
   flyToLocation?: { latitude: number; longitude: number; zoom?: number } | null
   topFilters?: React.ReactNode
+  /** A change clears the drawn area, or one being drawn, e.g. on the devices/sites switch */
+  resetKey?: string
 }
 
 type DeviceHealth = "good" | "moderate" | "critical" | "offline"
@@ -132,6 +135,7 @@ export default function MaintenanceMap({
   mapContainerId = "maintenance-map-container",
   flyToLocation,
   topFilters,
+  resetKey,
 }: MaintenanceMapProps) {
   const mapContainer = useRef<HTMLDivElement>(null)
   const map = useRef<L.Map | null>(null)
@@ -143,6 +147,7 @@ export default function MaintenanceMap({
   const homeMarkerRef = useRef<L.Marker | null>(null)
   const drawnItemsRef = useRef<L.FeatureGroup>(new L.FeatureGroup())
   const drawControlRef = useRef<any>(null)
+  const polygonDrawerRef = useRef<any>(null)
   const [currentStyle, setCurrentStyle] = useState<MapTileStyle>(MAP_TILE_STYLES[0])
   const [styleDialogOpen, setStyleDialogOpen] = useState(false)
   const [isDrawingPolygon, setIsDrawingPolygon] = useState(false)
@@ -185,18 +190,12 @@ export default function MaintenanceMap({
     return "critical"
   }
 
-  const getErrorStatus = (errorMargin: number): DeviceHealth => {
-    if (errorMargin <= 10) return "good"
-    if (errorMargin <= 20) return "moderate"
-    return "critical"
-  }
-
   // Create custom marker icons with name label beside it
   const createMarkerIcon = useCallback(
     (
       deviceName: string,
       uptimeStatus: DeviceHealth,
-      errorStatus: DeviceHealth,
+      errorStatus: ErrorMarginBand | "none",
       isSelected: boolean,
       isUncovered: boolean = false
     ) => {
@@ -222,6 +221,8 @@ export default function MaintenanceMap({
         let borderColorClass = "border-emerald-300"
         if (errorStatus === "moderate") borderColorClass = "border-amber-300"
         if (errorStatus === "critical") borderColorClass = "border-red-400"
+        // No paired sensor readings, so no error margin to colour
+        if (errorStatus === "none") borderColorClass = "border-gray-300"
 
         const selectionRing = isSelected ? "ring-3 ring-blue-500 ring-offset-1 scale-110 shadow-lg" : ""
         const uncoveredRing =
@@ -308,6 +309,7 @@ export default function MaintenanceMap({
   // Initialize Map Instance
   useEffect(() => {
     if (!mapContainer.current) return
+    let sizeTimer: ReturnType<typeof setTimeout> | undefined
     if (!map.current) {
       const initialMap = L.map(mapContainer.current, {
         preferCanvas: true,
@@ -383,14 +385,15 @@ export default function MaintenanceMap({
       map.current = initialMap
 
       // Invalidate map size after DOM mount
-      setTimeout(() => {
-        if (initialMap) {
-          initialMap.invalidateSize()
-        }
+      sizeTimer = setTimeout(() => {
+        initialMap.invalidateSize()
       }, 250)
     }
 
     return () => {
+      // A map removed before the timer fires (e.g. React strict mode's mount, unmount, mount)
+      // has no panes left, and invalidateSize would throw reading _leaflet_pos
+      clearTimeout(sizeTimer)
       if (map.current) {
         map.current.remove()
         map.current = null
@@ -412,6 +415,62 @@ export default function MaintenanceMap({
     }).addTo(map.current)
     tileLayerRef.current = newLayer
   }
+
+  // Fit the map to its items whenever the set of items changes: another organisation, a filter,
+  // or the devices/sites switch. A refresh that returns the same items leaves the view alone, and
+  // selecting, zooming or routing never refits.
+  const plottedItemsKey = useMemo(
+    () =>
+      (data ?? [])
+        .filter(hasMapCoordinates)
+        .map((d) => d.device_id)
+        .sort()
+        .join(","),
+    [data]
+  )
+
+  // Items a hidden map could not fit to yet, fitted once it has a size
+  const pendingFitRef = useRef<[number, number][] | null>(null)
+
+  /** Fit the map to `points`, or keep them for later while the map is hidden and has no size. */
+  const fitToPoints = useCallback((points: [number, number][]) => {
+    const m = map.current
+    if (!m) return
+    m.invalidateSize()
+    const size = m.getSize()
+    if (size.x === 0 || size.y === 0) {
+      pendingFitRef.current = points
+      return
+    }
+    pendingFitRef.current = null
+    try {
+      m.fitBounds(L.latLngBounds(points), { padding: [50, 50], maxZoom: 13 })
+    } catch (e) {
+      console.warn("Could not fit the map to its items:", e)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!map.current || !plottedItemsKey) return
+    const points = (data ?? [])
+      .filter(hasMapCoordinates)
+      .map((d) => [Number(d.latitude), Number(d.longitude)] as [number, number])
+    fitToPoints(points)
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- refit only when the set of items changes
+  }, [plottedItemsKey])
+
+  // The page keeps a map for each layout and hides the other one. A map that was hidden when its
+  // items changed fits to them when it is shown.
+  useEffect(() => {
+    const container = mapContainer.current
+    if (!container || typeof ResizeObserver === "undefined") return
+    const observer = new ResizeObserver(() => {
+      const points = pendingFitRef.current
+      if (points && container.clientWidth > 0 && container.clientHeight > 0) fitToPoints(points)
+    })
+    observer.observe(container)
+    return () => observer.disconnect()
+  }, [fitToPoints])
 
   // Handle Programmatic flyTo
   useEffect(() => {
@@ -531,14 +590,14 @@ export default function MaintenanceMap({
 
     // 2. PLOT MAINTENANCE DEVICES
     data.forEach((device) => {
+      if (!hasMapCoordinates(device)) return
       const lat = Number(device.latitude)
       const lng = Number(device.longitude)
-      if (!Number.isFinite(lat) || !Number.isFinite(lng)) return
 
       const isSelected = selectedDevice?.device_id === device.device_id
       const uptimePct = normalizeUptimePct(device.uptime)
       const uptimeStatus = getUptimeStatus(uptimePct)
-      const errorStatus = getErrorStatus(device.error_margin)
+      const errorStatus = getItemErrorMarginBand(device, uptimeStatus === "offline")
 
       // LoRaWAN Coverage status (only active when LoRaWAN visibility is on)
       const cov = coverageStats.deviceCoverageMap[device.device_id]
@@ -623,11 +682,7 @@ export default function MaintenanceMap({
       if (hasHome) latlngs.push([hLat, hLng])
 
       routePath.forEach((d) => {
-        const dLat = Number(d.latitude)
-        const dLng = Number(d.longitude)
-        if (Number.isFinite(dLat) && Number.isFinite(dLng)) {
-          latlngs.push([dLat, dLng])
-        }
+        if (hasMapCoordinates(d)) latlngs.push([Number(d.latitude), Number(d.longitude)])
       })
 
       if (hasHome) latlngs.push([hLat, hLng])
@@ -690,14 +745,20 @@ export default function MaintenanceMap({
       return
     }
 
+    // Without paired sensor readings an item's error margin of 0 says nothing, so it adds no
+    // sensor weight, as its marker shows no band
     const points = data
-      .map((device) => ({
-        lat: Number(device.latitude),
-        lng: Number(device.longitude),
-        uptimePct: Math.max(0, Math.min(100, normalizeUptimePct(device.uptime))),
-        sensorPct: sensorScore(device.error_margin),
-      }))
-      .filter((p) => Number.isFinite(p.lat) && Number.isFinite(p.lng))
+      .filter(hasMapCoordinates)
+      .map((device) => {
+        const uptimePct = Math.max(0, Math.min(100, normalizeUptimePct(device.uptime)))
+        const band = getItemErrorMarginBand(device, getUptimeStatus(uptimePct) === "offline")
+        return {
+          lat: Number(device.latitude),
+          lng: Number(device.longitude),
+          uptimePct,
+          sensorPct: band === "none" ? null : sensorScore(device.error_margin),
+        }
+      })
 
     if (heatmapLayerRef.current) {
       heatmapLayerRef.current.setData(points, heatmapMode)
@@ -774,7 +835,7 @@ export default function MaintenanceMap({
     try {
       if (data.length > 0) {
         const validPoints = data
-          .filter((d) => Number.isFinite(Number(d.latitude)) && Number.isFinite(Number(d.longitude)))
+          .filter(hasMapCoordinates)
           .map((d) => [Number(d.latitude), Number(d.longitude)] as [number, number])
 
         if (validPoints.length > 0) {
@@ -800,8 +861,18 @@ export default function MaintenanceMap({
       return
     }
     // Trigger polygon draw mode
-    new (L as any).Draw.Polygon(map.current!, drawControlRef.current?.options?.draw?.polygon).enable()
+    polygonDrawerRef.current = new (L as any).Draw.Polygon(map.current!, drawControlRef.current?.options?.draw?.polygon)
+    polygonDrawerRef.current.enable()
   }
+
+  // An area drawn over one set of items means nothing for the next; the page has already
+  // dropped its selection
+  useEffect(() => {
+    polygonDrawerRef.current?.disable()
+    polygonDrawerRef.current = null
+    drawnItemsRef.current.clearLayers()
+    setHasPolygon(false)
+  }, [resetKey])
 
   return (
     <div id={mapContainerId} className="relative w-full h-full overflow-hidden bg-gray-100">

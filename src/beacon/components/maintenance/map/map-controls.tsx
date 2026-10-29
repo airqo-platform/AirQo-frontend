@@ -29,6 +29,7 @@ import {
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { FULL_RADIUS_KM, MAX_RADIUS_KM, type HeatmapMode } from "./device-heatmap-layer"
+import { ROAD_ROUTING_ENABLED } from "@/utils/routing-utils"
 
 export interface MapTopControlsProps {
   onOpenGatewaysDialog?: () => void
@@ -156,7 +157,9 @@ export const MapTopControls: React.FC<MapTopControlsProps> = ({
               ? "Cancel route calculation"
               : hasRoute
                 ? "Clear active route"
-                : "Generate optimal maintenance route along roads"
+                : ROAD_ROUTING_ENABLED
+                  ? "Generate optimal maintenance route along roads"
+                  : "Put the stops in a short order, then open the route in Google Maps for directions"
           }
         >
           {isRouting ? (

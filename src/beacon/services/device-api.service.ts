@@ -25,6 +25,8 @@ import {
   MaintenanceAnalyticsResponse,
   MaintenanceMapResponse,
   MaintenanceMapItem,
+  MaintenanceMapSite,
+  MaintenanceSiteMapResponse,
   SyncedGrid,
   SyncedGridsResponse,
   SyncedGridsQueryParams,
@@ -888,6 +890,21 @@ class ApiService {
     return response.data
   }
 
+  /** The map's devices rolled up into the sites they are deployed at. */
+  async getMaintenanceSiteMapData(period_days: number = 14, group?: string): Promise<MaintenanceMapSite[]> {
+    const cacheKey = this.buildMapCacheKey('maintenance-site-map-view', { period_days, group })
+    const cached = this.getCachedMapResponse<MaintenanceMapSite[]>(cacheKey)
+    if (cached) return cached
+
+    const queryString = this.buildQueryString({ days: period_days, group })
+    const endpoint = this.getEndpoint(`/maintenance/map-view/sites/synced${queryString}`)
+    const url = `${this.baseUrl}${endpoint}`
+
+    const response = await this.fetchWithRetry<MaintenanceSiteMapResponse>(url)
+    this.setCachedMapResponse(cacheKey, response.data)
+    return response.data
+  }
+
   async getSyncedGrids(params?: SyncedGridsQueryParams): Promise<SyncedGrid[]> {
     const adminLevelParam = Array.isArray(params?.admin_level)
       ? params?.admin_level.join(',')
@@ -1149,6 +1166,7 @@ export const getAirQloudStats = (body: MaintenanceStatsBody) => deviceApiService
 export const getDeviceStatsMaintenance = (body: MaintenanceStatsBody) => deviceApiService.getDeviceStatsMaintenance(body)
 export const getMaintenanceAnalytics = (period_days: number = 14) => deviceApiService.getMaintenanceAnalytics(period_days)
 export const getMaintenanceMapData = (period_days: number = 14, tags?: string, group?: string) => deviceApiService.getMaintenanceMapData(period_days, tags, group)
+export const getMaintenanceSiteMapData = (period_days: number = 14, group?: string) => deviceApiService.getMaintenanceSiteMapData(period_days, group)
 export const getSyncedGrids = (params?: SyncedGridsQueryParams) => deviceApiService.getSyncedGrids(params)
 export const syncDevices = () => deviceApiService.syncDevices()
 export const syncDevicePerformance = () => deviceApiService.syncDevicePerformance()

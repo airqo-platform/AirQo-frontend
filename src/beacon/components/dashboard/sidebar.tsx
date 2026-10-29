@@ -24,7 +24,8 @@ import { cn } from "@/lib/utils"
 
 interface SidebarProps {
   sidebarOpen: boolean
-  onToggleSidebar: () => void
+  /** Omit to lock the sidebar at its width with no collapse/expand button, as on the maintenance map */
+  onToggleSidebar?: () => void
   /** Which module's links to show; the layout derives it from the pathname. */
   activeModule: NavModule
 }
@@ -305,21 +306,23 @@ export default function Sidebar({ sidebarOpen, onToggleSidebar, activeModule }: 
       )}
     >
       {/* Floating Collapse / Expand Chevron Button */}
-      <div className="absolute z-50 top-4 -right-3">
-        <button
-          type="button"
-          onClick={onToggleSidebar}
-          className="flex items-center justify-center w-6 h-6 p-1 transition-all duration-200 bg-background border border-border rounded-full shadow-md focus:outline-none hover:shadow-lg hover:scale-105"
-          aria-label={sidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
-          title={sidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
-        >
-          {sidebarOpen ? (
-            <AqChevronLeft className="w-3 h-3 text-muted-foreground hover:text-foreground" />
-          ) : (
-            <AqChevronRight className="w-3 h-3 text-muted-foreground hover:text-foreground" />
-          )}
-        </button>
-      </div>
+      {onToggleSidebar && (
+        <div className="absolute z-50 top-4 -right-3">
+          <button
+            type="button"
+            onClick={onToggleSidebar}
+            className="flex items-center justify-center w-6 h-6 p-1 transition-all duration-200 bg-background border border-border rounded-full shadow-md focus:outline-none hover:shadow-lg hover:scale-105"
+            aria-label={sidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
+            title={sidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
+          >
+            {sidebarOpen ? (
+              <AqChevronLeft className="w-3 h-3 text-muted-foreground hover:text-foreground" />
+            ) : (
+              <AqChevronRight className="w-3 h-3 text-muted-foreground hover:text-foreground" />
+            )}
+          </button>
+        </div>
+      )}
 
       {/* Main Sidebar Card */}
       <Card

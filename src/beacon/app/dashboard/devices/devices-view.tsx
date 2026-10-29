@@ -18,7 +18,6 @@ import {
   Wifi,
   WifiOff,
   BarChart3,
-  RefreshCw,
   AlertCircle,
   Map as MapIcon,
   Activity
@@ -61,6 +60,7 @@ import {
 import { ManufacturerBadge } from "@/components/devices/manufacturer-badge"
 import { DataSourceIndicator } from "@/components/devices/data-source-indicator"
 import { ManufacturerFilter } from "@/components/devices/manufacturer-filter"
+import { SyncMenu } from "@/components/dashboard/sync-menu"
 
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
@@ -575,29 +575,26 @@ export default function DevicesView({ scope }: Readonly<{ scope: DeviceScope }>)
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">{deviceScope === "my" ? "My Devices" : "Device Monitoring"}</h1>
         {isAirqoGroup && (
-          <div className="flex items-center space-x-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className="flex items-center text-blue-600 border-blue-200 hover:bg-blue-50"
-              onClick={handleSyncDevices}
-              disabled={isSyncing || isRefreshing}
-            >
-              <RefreshCw className={`mr-2 h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
-              {isSyncing ? 'Syncing...' : 'Refresh Devices'}
-            </Button>
-
-            <Button
-              variant="outline"
-              size="sm"
-              className="flex items-center"
-              onClick={refreshData}
-              disabled={isRefreshing || isSyncing}
-            >
-              <RefreshCw className={`mr-2 h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-              {isRefreshing ? 'Refreshing...' : 'Refresh Data'}
-            </Button>
-          </div>
+          <SyncMenu
+            items={[
+              {
+                id: "devices",
+                label: "Sync Devices",
+                description: "Devices and their performance from the AirQo platform",
+                onSelect: handleSyncDevices,
+                busy: isSyncing,
+                disabled: isRefreshing,
+              },
+              {
+                id: "refresh",
+                label: "Refresh Data",
+                description: "Reload this list",
+                onSelect: refreshData,
+                busy: isRefreshing,
+                disabled: isSyncing,
+              },
+            ]}
+          />
         )}
       </div>
 

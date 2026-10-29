@@ -49,7 +49,7 @@ const ISSUE_ACTIONS = [
   'Device diagnostics',
   'Remote terminal',
   'Maintenance map',
-  'Performance analysis',
+  'Clustered analysis',
   'Device data analysis',
   'Reports and data export',
   'Alerts',

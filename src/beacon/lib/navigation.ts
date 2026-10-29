@@ -17,6 +17,7 @@ export const ROUTES = {
   ADMIN_OVERVIEW: "/dashboard",
   DEVICES: "/dashboard/devices",
   MY_DEVICES: "/dashboard/devices/my-devices",
+  SITES: "/dashboard/sites",
   ANALYTICS: "/dashboard/analytics",
   NETWORK_HEALTH: "/dashboard/network-health",
   VISUALISE: "/dashboard/visualise",
@@ -88,6 +89,8 @@ export interface NavigationAccess {
   showMyDevices: boolean
   showOrgDevices: boolean
   canAccessAnalytics: boolean
+  /** Sites came out of Clustered Analysis, so they follow its access. */
+  canAccessSites: boolean
   canAccessMaintenance: boolean
   canAccessReports: boolean
   /** The organisation's own fleet health; AirQo staff use Fleet Diagnostics in the admin panel instead. */
@@ -106,6 +109,8 @@ export function getNavigationAccess({
   // Outside the AirQo group every member gets their organisation's tools;
   // inside it, the fleet-wide views need maintainer rights.
   const canUseGroupTools = hasGroup && (!isPersonalContext || canMaintainDevices)
+  const canAccessAnalytics =
+    canUseGroupTools || (hasGroup && hasAnyPermission(["ANALYTICS_VIEW", "DATA_VIEW"]))
 
   return {
     isPersonalContext,
@@ -113,8 +118,8 @@ export function getNavigationAccess({
     canAccessAdminPanel: isPersonalContext && canMaintainDevices,
     showMyDevices: isPersonalContext,
     showOrgDevices: !isPersonalContext || canMaintainDevices,
-    canAccessAnalytics:
-      canUseGroupTools || (hasGroup && hasAnyPermission(["ANALYTICS_VIEW", "DATA_VIEW"])),
+    canAccessAnalytics,
+    canAccessSites: canAccessAnalytics,
     canAccessMaintenance: canUseGroupTools,
     canAccessReports:
       canUseGroupTools ||
@@ -135,6 +140,7 @@ export function isRouteAccessible(pathname: string, access: NavigationAccess): b
   if (matchesRoute(pathname, ROUTES.MY_DEVICES)) return access.showMyDevices
   // Exact match so device detail pages stay reachable from My Devices.
   if (pathname === ROUTES.DEVICES) return access.showOrgDevices
+  if (matchesRoute(pathname, ROUTES.SITES)) return access.canAccessSites
   if (matchesRoute(pathname, ROUTES.ANALYTICS)) return access.canAccessAnalytics
   if (matchesRoute(pathname, ROUTES.NETWORK_HEALTH)) return access.canAccessNetworkHealth
   if (matchesRoute(pathname, ROUTES.MAINTENANCE)) return access.canAccessMaintenance
@@ -161,7 +167,8 @@ export interface RecentPage {
 const RECENT_PAGE_ROUTES: Array<RecentPage & { exact?: boolean }> = [
   { label: "My Devices", href: ROUTES.MY_DEVICES },
   { label: "Devices", href: ROUTES.DEVICES, exact: true },
-  { label: "Performance Analysis", href: ROUTES.ANALYTICS },
+  { label: "Sites", href: ROUTES.SITES },
+  { label: "Clustered Analysis", href: ROUTES.ANALYTICS },
   { label: "Network Health", href: ROUTES.NETWORK_HEALTH },
   { label: "Maintenance", href: ROUTES.MAINTENANCE },
   { label: "Reports", href: ROUTES.REPORTS },
@@ -195,7 +202,8 @@ const PAGE_TITLES: Record<string, string> = {
   "/dashboard": "Network Overview",
   "/dashboard/devices": "Devices",
   "/dashboard/devices/my-devices": "My Devices",
-  "/dashboard/analytics": "Performance Analysis",
+  "/dashboard/sites": "Sites",
+  "/dashboard/analytics": "Clustered Analysis",
   "/dashboard/network-health": "Network Health",
   "/dashboard/maintenance": "Maintenance",
   "/dashboard/reports": "Reports",
@@ -233,6 +241,11 @@ export function getPageTitle(pathname: string | null): string {
     return "Device Details"
   }
 
+  // Site details /dashboard/sites/[id]
+  if (pathname.startsWith("/dashboard/sites/")) {
+    return "Site Details"
+  }
+
   // Collocation subroutes
   if (pathname.startsWith("/dashboard/collocation/inlab/")) {
     return "In-Lab Collocation"
@@ -248,7 +261,7 @@ export function getPageTitle(pathname: string | null): string {
 
   // Analytics subroutes
   if (pathname.startsWith("/dashboard/analytics/")) {
-    return "Performance Analysis"
+    return "Clustered Analysis"
   }
 
   // Fallback
