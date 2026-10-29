@@ -28,6 +28,7 @@ import { useToast } from "@/hooks/use-toast"
 interface ConfigTabProps {
   deviceId: string
   deviceName: string
+  /** ThingSpeak channel for AirQo devices; 0 for devices from other manufacturers */
   channelId: number
 }
 
@@ -203,12 +204,13 @@ export default function ConfigTab({ deviceId, deviceName, channelId }: ConfigTab
     }
   }
 
+  // Config history is stored per device id, so it loads for devices without a ThingSpeak channel too
   useEffect(() => {
-    if (channelId) {
+    if (deviceId) {
       fetchConfigHistory(1)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [channelId])
+  }, [deviceId, channelId])
 
   const handleDateRangeChange = (newDateRange: { from: Date | undefined; to: Date | undefined }) => {
     setDateRange(newDateRange)
