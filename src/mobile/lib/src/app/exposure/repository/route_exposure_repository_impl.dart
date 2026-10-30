@@ -6,6 +6,7 @@ import 'package:airqo/src/app/dashboard/models/user_preferences_model.dart';
 import 'package:airqo/src/app/exposure/models/route_exposure_summary.dart';
 import 'package:airqo/src/app/exposure/repository/route_exposure_repository.dart';
 import 'package:airqo/src/app/exposure/services/route_exposure_summary_builder.dart';
+import 'package:airqo/src/app/shared/utils/monitor_place_label.dart';
 import 'package:airqo/src/app/shared/repository/secure_storage_repository.dart';
 import 'package:airqo/src/meta/utils/api_utils.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -42,10 +43,11 @@ class RouteExposureRepositoryImpl implements RouteExposureRepository {
     }
 
     final directions = await _fetchDirections(
-      originName: origin.name,
+      originName: selectedSiteSpokenTitle(origin, origin.visibleName),
       originLat: originLat,
       originLng: originLng,
-      destinationName: destination.name,
+      destinationName:
+          selectedSiteSpokenTitle(destination, destination.visibleName),
       destinationLat: destinationLat,
       destinationLng: destinationLng,
     );

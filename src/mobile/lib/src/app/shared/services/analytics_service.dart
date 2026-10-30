@@ -9,6 +9,7 @@ import 'package:airqo/src/app/shared/services/feature_flag_service.dart';
 export 'package:airqo/src/app/shared/services/analytics/analytics_app_events.dart';
 export 'package:airqo/src/app/shared/services/analytics/analytics_auth_events.dart';
 export 'package:airqo/src/app/shared/services/analytics/analytics_dashboard_events.dart';
+export 'package:airqo/src/app/shared/services/analytics/analytics_exposure_events.dart';
 export 'package:airqo/src/app/shared/services/analytics/analytics_learn_events.dart';
 export 'package:airqo/src/app/shared/services/analytics/analytics_share_events.dart';
 export 'package:airqo/src/app/shared/services/analytics/analytics_survey_events.dart';

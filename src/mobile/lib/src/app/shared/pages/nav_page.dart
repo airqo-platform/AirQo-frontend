@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:airqo/src/app/dashboard/pages/dashboard_page.dart';
 import 'package:airqo/src/app/dashboard/bloc/dashboard/dashboard_bloc.dart';
 import 'package:airqo/src/app/exposure/pages/exposure_dashboard_view.dart';
+import 'package:airqo/src/app/exposure/widgets/exposure_launch_announcement.dart';
 import 'package:airqo/src/app/learn/pages/kya_page.dart';
 import 'package:airqo/src/app/map/pages/map_page.dart';
 import 'package:airqo/src/app/map/services/map_navigation_service.dart';
@@ -34,18 +35,19 @@ class _NavPageState extends State<NavPage> with AutomaticKeepAliveClientMixin {
   final SurveyNotificationService _notificationService =
       SurveyNotificationService();
 
-  bool get _exposureEnabled =>
-      FeatureFlagService.instance.isEnabled(AppFeatureFlag.exposureTracking);
-
   bool get _surveysEnabled =>
       FeatureFlagService.instance.isEnabled(AppFeatureFlag.surveys);
 
-  // Learn tab index shifts by 1 when the Exposure tab is present.
-  int get _learnTabIndex => _exposureEnabled ? 3 : 2;
+  late final HomeTourHold _homeTourHold;
 
-  List<String> get _tabNames => _exposureEnabled
-      ? ['dashboard', 'map', 'exposure', 'learn']
-      : ['dashboard', 'map', 'learn'];
+  static const int _learnTabIndex = 3;
+
+  static const List<String> _tabNames = [
+    'dashboard',
+    'map',
+    'exposure',
+    'learn',
+  ];
 
   static const _permissionPromptShownKey =
       'notification_permission_prompt_shown';
@@ -53,6 +55,8 @@ class _NavPageState extends State<NavPage> with AutomaticKeepAliveClientMixin {
   @override
   void initState() {
     super.initState();
+    // Before DashboardPage builds, so its forecast tour cannot cover this sheet.
+    _homeTourHold = ExposureLaunchAnnouncement.holdHomeTour();
     MapNavigationService.instance.requestedMeasurement.addListener(
       _handleMapNavigationRequest,
     );
@@ -72,6 +76,7 @@ class _NavPageState extends State<NavPage> with AutomaticKeepAliveClientMixin {
 
   @override
   void dispose() {
+    ExposureLaunchAnnouncement.releaseHomeTour(_homeTourHold);
     MapNavigationService.instance.requestedMeasurement.removeListener(
       _handleMapNavigationRequest,
     );
@@ -79,14 +84,35 @@ class _NavPageState extends State<NavPage> with AutomaticKeepAliveClientMixin {
   }
 
   Future<void> _initializeLocalNotifications() async {
-    await LocalNotificationBootstrap.instance.ensureInitialized();
-    await _maybePromptNotificationPermission();
+    try {
+      try {
+        await LocalNotificationBootstrap.instance.ensureInitialized();
+        await _maybePromptNotificationPermission();
+      } catch (_) {
+        // Push setup can fail on local debug builds without Firebase.
+      }
 
-    if (_surveysEnabled) {
-      if (!mounted) return;
-      context.read<SurveyBloc>().add(const LoadSurveys());
-      await SurveyTriggerService().initialize();
+      if (_surveysEnabled) {
+        if (!mounted) return;
+        context.read<SurveyBloc>().add(const LoadSurveys());
+        await SurveyTriggerService().initialize();
+      }
+
+      await _maybeShowExposureLaunchAnnouncement();
+    } finally {
+      ExposureLaunchAnnouncement.releaseHomeTour(_homeTourHold);
     }
+  }
+
+  Future<void> _maybeShowExposureLaunchAnnouncement() async {
+    if (!mounted) return;
+    await ExposureLaunchAnnouncement.showIfNeeded(
+      context,
+      exposureEnabled: true,
+      primaryLabel: 'Try Exposure',
+      onPrimary: () => changeCurrentIndex(2),
+      hold: _homeTourHold,
+    );
   }
 
   Future<void> _maybePromptNotificationPermission() async {
@@ -128,7 +154,7 @@ class _NavPageState extends State<NavPage> with AutomaticKeepAliveClientMixin {
     setState(() {
       currentIndex = index;
     });
-    if (_exposureEnabled && previousIndex == 2 && index != 2) {
+    if (previousIndex == 2 && index != 2) {
       context.read<DashboardBloc>().add(
             const LoadUserPreferences(forceRefresh: true),
           );
@@ -147,10 +173,9 @@ class _NavPageState extends State<NavPage> with AutomaticKeepAliveClientMixin {
 
     Widget body = Scaffold(
       body: IndexedStack(index: currentIndex, children: [
-        DashboardPage(),
-        MapScreen(),
-        if (_exposureEnabled)
-          ExposureDashboardView(isActive: currentIndex == 2),
+        DashboardPage(isActive: currentIndex == 0),
+        MapScreen(isActive: currentIndex == 1),
+        ExposureDashboardView(isActive: currentIndex == 2),
         KyaPage(),
       ]),
       bottomNavigationBar: BottomNavigationBar(
@@ -180,16 +205,15 @@ class _NavPageState extends State<NavPage> with AutomaticKeepAliveClientMixin {
                     : "assets/icons/search_icon_dark.svg"),
             label: "",
           ),
-          if (_exposureEnabled)
-            BottomNavigationBarItem(
-              icon: _buildNavIcon(
-                "Exposure",
-                2,
-                "assets/icons/exposure_icon.svg",
-                badgeLabel: 'BETA',
-              ),
-              label: "",
+          BottomNavigationBarItem(
+            icon: _buildNavIcon(
+              "Exposure",
+              2,
+              "assets/icons/exposure_icon.svg",
+              badgeLabel: 'NEW',
             ),
+            label: "",
+          ),
           BottomNavigationBarItem(
             icon: _surveysEnabled
                 ? _buildNavIconWithBadge(
