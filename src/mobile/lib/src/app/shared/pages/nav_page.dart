@@ -38,6 +38,8 @@ class _NavPageState extends State<NavPage> with AutomaticKeepAliveClientMixin {
   bool get _surveysEnabled =>
       FeatureFlagService.instance.isEnabled(AppFeatureFlag.surveys);
 
+  late final HomeTourHold _homeTourHold;
+
   static const int _learnTabIndex = 3;
 
   static const List<String> _tabNames = [
@@ -54,7 +56,7 @@ class _NavPageState extends State<NavPage> with AutomaticKeepAliveClientMixin {
   void initState() {
     super.initState();
     // Before DashboardPage builds, so its forecast tour cannot cover this sheet.
-    ExposureLaunchAnnouncement.holdHomeTour();
+    _homeTourHold = ExposureLaunchAnnouncement.holdHomeTour();
     MapNavigationService.instance.requestedMeasurement.addListener(
       _handleMapNavigationRequest,
     );
@@ -74,6 +76,7 @@ class _NavPageState extends State<NavPage> with AutomaticKeepAliveClientMixin {
 
   @override
   void dispose() {
+    ExposureLaunchAnnouncement.releaseHomeTour(_homeTourHold);
     MapNavigationService.instance.requestedMeasurement.removeListener(
       _handleMapNavigationRequest,
     );
@@ -97,7 +100,7 @@ class _NavPageState extends State<NavPage> with AutomaticKeepAliveClientMixin {
 
       await _maybeShowExposureLaunchAnnouncement();
     } finally {
-      ExposureLaunchAnnouncement.releaseHomeTour();
+      ExposureLaunchAnnouncement.releaseHomeTour(_homeTourHold);
     }
   }
 
@@ -108,6 +111,7 @@ class _NavPageState extends State<NavPage> with AutomaticKeepAliveClientMixin {
       exposureEnabled: true,
       primaryLabel: 'Try Exposure',
       onPrimary: () => changeCurrentIndex(2),
+      hold: _homeTourHold,
     );
   }
 

@@ -25,4 +25,21 @@ void main() {
     await waiting;
     expect(released, isTrue);
   });
+
+  test('an older shell cannot open the newest home tour gate', () async {
+    final older = ExposureLaunchAnnouncement.holdHomeTour();
+    final newer = ExposureLaunchAnnouncement.holdHomeTour();
+    var released = false;
+    final waiting = ExposureLaunchAnnouncement.homeTourGate.then((_) {
+      released = true;
+    });
+
+    older.release();
+    await Future<void>.delayed(Duration.zero);
+    expect(released, isFalse);
+
+    ExposureLaunchAnnouncement.releaseHomeTour(newer);
+    await waiting;
+    expect(released, isTrue);
+  });
 }

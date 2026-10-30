@@ -182,7 +182,8 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
           !mounted ||
           !widget.isActive ||
           _showCardGesturesTour ||
-          _tourOverlay != null) {
+          _tourOverlay != null ||
+          !measurementCardTourTargetsReady(_cardTourKeys)) {
         return;
       }
       setState(() {
