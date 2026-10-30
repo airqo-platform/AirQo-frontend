@@ -1,14 +1,10 @@
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
 import 'package:airqo/src/app/dashboard/models/user_preferences_model.dart';
-import 'package:airqo/src/app/shared/services/feature_flag_service.dart';
 import 'package:airqo/src/app/shared/utils/spoken_place.dart';
 
-bool get spokenPlaceTitlesEnabled =>
-    FeatureFlagService.instance.isEnabled(AppFeatureFlag.spokenPlaceTitles);
-
-/// Null when the flag is off, so callers keep today's string.
+/// Null when there is no site, so callers keep today's string.
 SpokenPlace? spokenPlaceForDetails(SiteDetails? details) {
-  if (!spokenPlaceTitlesEnabled || details == null) return null;
+  if (details == null) return null;
   return spokenPlace(
     name: details.name,
     searchName: details.searchName,
@@ -21,7 +17,6 @@ SpokenPlace? spokenPlaceForDetails(SiteDetails? details) {
 }
 
 SpokenPlace? spokenPlaceForSelectedSite(SelectedSite site) {
-  if (!spokenPlaceTitlesEnabled) return null;
   return spokenPlace(
     name: site.catalogName ?? site.name,
     searchName: site.catalogSearchName ?? site.searchName,

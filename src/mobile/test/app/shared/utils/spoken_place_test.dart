@@ -1,6 +1,5 @@
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
 import 'package:airqo/src/app/dashboard/utils/measurement_location_utils.dart';
-import 'package:airqo/src/app/shared/services/feature_flag_service.dart';
 import 'package:airqo/src/app/shared/utils/spoken_place.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -198,18 +197,7 @@ void main() {
     expect(result.title.contains('Makindye'), isFalse);
   });
 
-  test('flag off keeps today\'s search name and country line', () {
-    FeatureFlagService.instance.debugSetEnabled(
-      AppFeatureFlag.spokenPlaceTitles,
-      false,
-    );
-    addTearDown(() {
-      FeatureFlagService.instance.debugSetEnabled(
-        AppFeatureFlag.spokenPlaceTitles,
-        true,
-      );
-    });
-
+  test('a card uses the place a person would say', () {
     final measurement = Measurement(
       siteDetails: SiteDetails(
         name: 'Uhuru Park',
@@ -221,10 +209,10 @@ void main() {
       ),
     );
 
-    expect(measurementDisplayName(measurement), 'Kilimani 435');
+    expect(measurementDisplayName(measurement), 'Uhuru Park');
     expect(
       measurementLocationDescription(measurement),
-      'Nairobi, Nairobi County, Kenya',
+      'Nairobi, Nairobi County',
     );
   });
 }

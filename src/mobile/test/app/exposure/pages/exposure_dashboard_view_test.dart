@@ -2,7 +2,6 @@ import 'package:airqo/src/app/dashboard/bloc/dashboard/dashboard_bloc.dart';
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
 import 'package:airqo/src/app/dashboard/models/user_preferences_model.dart';
 import 'package:airqo/src/app/exposure/pages/exposure_dashboard_view.dart';
-import 'package:airqo/src/app/shared/services/feature_flag_service.dart';
 import 'package:airqo/src/app/exposure/models/declared_place.dart';
 import 'package:airqo/src/app/exposure/widgets/my_trips_view.dart';
 import 'package:airqo/src/app/map/bloc/map_bloc.dart';
@@ -72,11 +71,7 @@ void main() {
     );
   });
 
-  test('Exposure uses the spoken place when the title flag is on', () {
-    FeatureFlagService.instance.debugSetEnabled(
-      AppFeatureFlag.spokenPlaceTitles,
-      true,
-    );
+  test('Exposure uses the place a person would say', () {
     const favorite = SelectedSite(
       id: 'kisumu-site',
       name: "Ang'awa Avenue",
@@ -97,41 +92,6 @@ void main() {
     ).single;
 
     expect(item.declaredPlace?.locationName, "Ang'awa Avenue");
-    expect(item.declaredPlace?.monitorName, "Ang'awa Avenue");
-    expect(item.declaredPlace?.city, 'Kisumu');
-  });
-
-  test('Exposure keeps the search name when the title flag is off', () {
-    FeatureFlagService.instance.debugSetEnabled(
-      AppFeatureFlag.spokenPlaceTitles,
-      false,
-    );
-    addTearDown(() {
-      FeatureFlagService.instance.debugSetEnabled(
-        AppFeatureFlag.spokenPlaceTitles,
-        true,
-      );
-    });
-    const favorite = SelectedSite(
-      id: 'kisumu-site',
-      name: "Ang'awa Avenue",
-      searchName: 'Kisumu 256',
-      city: 'Kisumu',
-    );
-    const declared = DeclaredPlace(
-      siteId: 'kisumu-site',
-      displayName: 'Work',
-      locationName: "Ang'awa Avenue",
-      city: 'Kisumu 256',
-      type: PlaceType.work,
-    );
-
-    final item = exposureFavoritesForDashboard(
-      const [favorite],
-      const [declared],
-    ).single;
-
-    expect(item.declaredPlace?.locationName, 'Kisumu 256');
     expect(item.declaredPlace?.monitorName, "Ang'awa Avenue");
     expect(item.declaredPlace?.city, 'Kisumu');
   });
