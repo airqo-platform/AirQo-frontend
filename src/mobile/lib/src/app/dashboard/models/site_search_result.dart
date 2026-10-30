@@ -1,4 +1,3 @@
-import 'package:airqo/src/app/shared/services/feature_flag_service.dart';
 import 'package:airqo/src/app/shared/utils/location_label.dart';
 import 'package:airqo/src/app/shared/utils/spoken_place.dart';
 
@@ -35,23 +34,16 @@ class SiteSearchResult {
     final legacy = normalizeLocationLabel(
       city ?? town ?? locationName ?? name ?? 'Unknown Location',
     );
-    if (!FeatureFlagService.instance
-        .isEnabled(AppFeatureFlag.spokenPlaceTitles)) {
-      return legacy;
-    }
     final spoken = _spoken;
     return spoken.title.isEmpty ? legacy : spoken.title;
   }
 
   String get displaySubtitle {
-    final legacy = normalizeLocationLabel(
+    final spoken = _spoken.quietLine;
+    if (spoken.isNotEmpty) return spoken;
+    return normalizeLocationLabel(
       searchName ?? name ?? formattedName ?? '---',
     );
-    if (!FeatureFlagService.instance
-        .isEnabled(AppFeatureFlag.spokenPlaceTitles)) {
-      return legacy;
-    }
-    return _spoken.quietLine;
   }
 
   SpokenPlace get _spoken => spokenPlace(

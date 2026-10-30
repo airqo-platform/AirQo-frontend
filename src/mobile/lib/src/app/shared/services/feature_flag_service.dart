@@ -7,11 +7,7 @@ enum AppFeatureFlag {
   dataSharing('data_sharing'),
   feedback('feedback'),
   socialLogin('social_login'),
-  conferenceWall('conference_wall'),
-
-  /// Titles use the place a person would say. On in debug and internal
-  /// builds, so a local run does not need PostHog.
-  spokenPlaceTitles('spoken_place_titles');
+  conferenceWall('conference_wall');
 
   final String key;
   const AppFeatureFlag(this.key);
