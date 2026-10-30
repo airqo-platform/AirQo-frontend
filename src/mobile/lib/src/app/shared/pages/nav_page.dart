@@ -38,6 +38,8 @@ class _NavPageState extends State<NavPage> with AutomaticKeepAliveClientMixin {
   bool get _surveysEnabled =>
       FeatureFlagService.instance.isEnabled(AppFeatureFlag.surveys);
 
+  late final HomeTourHold _homeTourHold;
+
   static const int _learnTabIndex = 3;
 
   static const List<String> _tabNames = [
@@ -53,6 +55,8 @@ class _NavPageState extends State<NavPage> with AutomaticKeepAliveClientMixin {
   @override
   void initState() {
     super.initState();
+    // Before DashboardPage builds, so its forecast tour cannot cover this sheet.
+    _homeTourHold = ExposureLaunchAnnouncement.holdHomeTour();
     MapNavigationService.instance.requestedMeasurement.addListener(
       _handleMapNavigationRequest,
     );
@@ -72,6 +76,7 @@ class _NavPageState extends State<NavPage> with AutomaticKeepAliveClientMixin {
 
   @override
   void dispose() {
+    ExposureLaunchAnnouncement.releaseHomeTour(_homeTourHold);
     MapNavigationService.instance.requestedMeasurement.removeListener(
       _handleMapNavigationRequest,
     );
@@ -80,19 +85,23 @@ class _NavPageState extends State<NavPage> with AutomaticKeepAliveClientMixin {
 
   Future<void> _initializeLocalNotifications() async {
     try {
-      await LocalNotificationBootstrap.instance.ensureInitialized();
-      await _maybePromptNotificationPermission();
-    } catch (_) {
-      // Push setup can fail on local debug builds without Firebase.
-    }
+      try {
+        await LocalNotificationBootstrap.instance.ensureInitialized();
+        await _maybePromptNotificationPermission();
+      } catch (_) {
+        // Push setup can fail on local debug builds without Firebase.
+      }
 
-    if (_surveysEnabled) {
-      if (!mounted) return;
-      context.read<SurveyBloc>().add(const LoadSurveys());
-      await SurveyTriggerService().initialize();
-    }
+      if (_surveysEnabled) {
+        if (!mounted) return;
+        context.read<SurveyBloc>().add(const LoadSurveys());
+        await SurveyTriggerService().initialize();
+      }
 
-    await _maybeShowExposureLaunchAnnouncement();
+      await _maybeShowExposureLaunchAnnouncement();
+    } finally {
+      ExposureLaunchAnnouncement.releaseHomeTour(_homeTourHold);
+    }
   }
 
   Future<void> _maybeShowExposureLaunchAnnouncement() async {
@@ -102,6 +111,7 @@ class _NavPageState extends State<NavPage> with AutomaticKeepAliveClientMixin {
       exposureEnabled: true,
       primaryLabel: 'Try Exposure',
       onPrimary: () => changeCurrentIndex(2),
+      hold: _homeTourHold,
     );
   }
 
@@ -164,7 +174,7 @@ class _NavPageState extends State<NavPage> with AutomaticKeepAliveClientMixin {
     Widget body = Scaffold(
       body: IndexedStack(index: currentIndex, children: [
         DashboardPage(isActive: currentIndex == 0),
-        MapScreen(),
+        MapScreen(isActive: currentIndex == 1),
         ExposureDashboardView(isActive: currentIndex == 2),
         KyaPage(),
       ]),

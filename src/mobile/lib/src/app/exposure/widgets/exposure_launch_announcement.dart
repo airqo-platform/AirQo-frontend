@@ -9,8 +9,44 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
+/// One shell's claim on the home forecast tour.
+///
+/// Login can replace [NavPage] while the previous shell is still starting.
+/// Each shell keeps its own hold so the old one cannot open the new gate.
+class HomeTourHold {
+  final Completer<void> _done = Completer<void>();
+
+  Future<void> get future => _done.future;
+
+  bool get isCompleted => _done.isCompleted;
+
+  void release() {
+    if (!_done.isCompleted) _done.complete();
+  }
+}
+
 /// One-time launch announcement for the Exposure tab (per app version).
 class ExposureLaunchAnnouncement {
+  /// The hold the current shell created. The home tour waits on this one.
+  static HomeTourHold? _activeHold;
+
+  static Future<void> get homeTourGate {
+    final hold = _activeHold;
+    if (hold == null || hold.isCompleted) return Future<void>.value();
+    return hold.future;
+  }
+
+  /// Call before the first frame of the shell that shows both prompts.
+  static HomeTourHold holdHomeTour() {
+    final hold = HomeTourHold();
+    _activeHold = hold;
+    return hold;
+  }
+
+  static void releaseHomeTour([HomeTourHold? hold]) {
+    (hold ?? _activeHold)?.release();
+  }
+
   static Future<String> _preferenceKey() async {
     final info = await PackageInfo.fromPlatform();
     return 'exposure_launch_modal_seen_${info.version}_v7';
@@ -21,55 +57,92 @@ class ExposureLaunchAnnouncement {
     required bool exposureEnabled,
     required String primaryLabel,
     required VoidCallback onPrimary,
+    HomeTourHold? hold,
   }) async {
-    if (!exposureEnabled) return;
+    try {
+      if (!exposureEnabled) return;
 
-    final prefs = await SharedPreferences.getInstance();
-    final key = await _preferenceKey();
-    if (prefs.getBool(key) == true) return;
-    await prefs.setBool(key, true);
-    if (!context.mounted) return;
+      final prefs = await SharedPreferences.getInstance();
+      final key = await _preferenceKey();
+      if (prefs.getBool(key) == true) return;
+      await prefs.setBool(key, true);
+      if (!context.mounted) return;
 
-    unawaited(AnalyticsService().trackExposureLaunchAnnouncementShown());
+      unawaited(AnalyticsService().trackExposureLaunchAnnouncementShown());
 
-    var handledByButton = false;
-    await showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      useRootNavigator: true,
-      barrierColor: Colors.black.withValues(alpha: 0.55),
-      backgroundColor: Colors.transparent,
-      builder: (sheetContext) => _ExposureLaunchSheet(
-        primaryLabel: primaryLabel,
-        onPrimary: () {
-          handledByButton = true;
-          unawaited(
-            AnalyticsService().trackExposureLaunchAnnouncementExplored(),
+      var handledByButton = false;
+      final sheetLeft = Completer<void>();
+      await showModalBottomSheet<void>(
+        context: context,
+        isScrollControlled: true,
+        useRootNavigator: true,
+        barrierColor: Colors.black.withValues(alpha: 0.55),
+        backgroundColor: Colors.transparent,
+        builder: (sheetContext) {
+          _completeWhenSheetLeaves(sheetContext, sheetLeft);
+          return _ExposureLaunchSheet(
+            primaryLabel: primaryLabel,
+            onPrimary: () {
+              handledByButton = true;
+              unawaited(
+                AnalyticsService().trackExposureLaunchAnnouncementExplored(),
+              );
+              Navigator.of(sheetContext).pop();
+              onPrimary();
+            },
+            onDismiss: () {
+              handledByButton = true;
+              unawaited(
+                AnalyticsService().trackExposureLaunchAnnouncementDismissed(
+                  source: 'maybe_later',
+                ),
+              );
+              Navigator.of(sheetContext).pop();
+            },
           );
-          Navigator.of(sheetContext).pop();
-          onPrimary();
         },
-        onDismiss: () {
-          handledByButton = true;
-          unawaited(
-            AnalyticsService().trackExposureLaunchAnnouncementDismissed(
-              source: 'maybe_later',
-            ),
-          );
-          Navigator.of(sheetContext).pop();
-        },
-      ),
-    );
-
-    if (!handledByButton) {
-      // Drag-down / barrier dismiss — not Explore or Maybe later.
-      unawaited(
-        AnalyticsService().trackExposureLaunchAnnouncementDismissed(
-          source: 'sheet_dismiss',
-        ),
       );
+      if (!sheetLeft.isCompleted) await sheetLeft.future;
+
+      if (!handledByButton) {
+        // Drag-down / barrier dismiss — not Explore or Maybe later.
+        unawaited(
+          AnalyticsService().trackExposureLaunchAnnouncementDismissed(
+            source: 'sheet_dismiss',
+          ),
+        );
+      }
+    } finally {
+      releaseHomeTour(hold);
+    }
+  }
+
+  /// The sheet future completes when pop starts, while the route is still
+  /// painting its way out. The home tour uses that same root overlay.
+  static void _completeWhenSheetLeaves(
+    BuildContext context,
+    Completer<void> done,
+  ) {
+    void finish() {
+      if (!done.isCompleted) done.complete();
     }
 
+    final animation = ModalRoute.of(context)?.animation;
+    if (animation == null) {
+      finish();
+      return;
+    }
+    // The route starts dismissed, then plays in. Only a dismissal after
+    // that opening counts as the sheet leaving the overlay.
+    var opened = animation.status == AnimationStatus.forward ||
+        animation.status == AnimationStatus.completed;
+    animation.addStatusListener((status) {
+      if (status == AnimationStatus.forward ||
+          status == AnimationStatus.completed) {
+        opened = true;
+      }
+      if (opened && status == AnimationStatus.dismissed) finish();
+    });
   }
 }
 
