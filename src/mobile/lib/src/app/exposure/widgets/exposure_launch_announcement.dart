@@ -11,6 +11,30 @@ import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 /// One-time launch announcement for the Exposure tab (per app version).
 class ExposureLaunchAnnouncement {
+  /// Incomplete while this sheet should be the only first-run prompt.
+  /// The home forecast tour uses the same root overlay, so it waits.
+  static Completer<void>? _homeTourHold;
+
+  static Future<void> get homeTourGate {
+    final hold = _homeTourHold;
+    if (hold == null || hold.isCompleted) return Future<void>.value();
+    return hold.future;
+  }
+
+  /// Call before the first frame of the shell that shows both prompts.
+  static void holdHomeTour() {
+    if (_homeTourHold == null || _homeTourHold!.isCompleted) {
+      _homeTourHold = Completer<void>();
+    }
+  }
+
+  static void releaseHomeTour() {
+    final hold = _homeTourHold;
+    if (hold != null && !hold.isCompleted) {
+      hold.complete();
+    }
+  }
+
   static Future<String> _preferenceKey() async {
     final info = await PackageInfo.fromPlatform();
     return 'exposure_launch_modal_seen_${info.version}_v7';
@@ -22,54 +46,57 @@ class ExposureLaunchAnnouncement {
     required String primaryLabel,
     required VoidCallback onPrimary,
   }) async {
-    if (!exposureEnabled) return;
+    try {
+      if (!exposureEnabled) return;
 
-    final prefs = await SharedPreferences.getInstance();
-    final key = await _preferenceKey();
-    if (prefs.getBool(key) == true) return;
-    await prefs.setBool(key, true);
-    if (!context.mounted) return;
+      final prefs = await SharedPreferences.getInstance();
+      final key = await _preferenceKey();
+      if (prefs.getBool(key) == true) return;
+      await prefs.setBool(key, true);
+      if (!context.mounted) return;
 
-    unawaited(AnalyticsService().trackExposureLaunchAnnouncementShown());
+      unawaited(AnalyticsService().trackExposureLaunchAnnouncementShown());
 
-    var handledByButton = false;
-    await showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      useRootNavigator: true,
-      barrierColor: Colors.black.withValues(alpha: 0.55),
-      backgroundColor: Colors.transparent,
-      builder: (sheetContext) => _ExposureLaunchSheet(
-        primaryLabel: primaryLabel,
-        onPrimary: () {
-          handledByButton = true;
-          unawaited(
-            AnalyticsService().trackExposureLaunchAnnouncementExplored(),
-          );
-          Navigator.of(sheetContext).pop();
-          onPrimary();
-        },
-        onDismiss: () {
-          handledByButton = true;
-          unawaited(
-            AnalyticsService().trackExposureLaunchAnnouncementDismissed(
-              source: 'maybe_later',
-            ),
-          );
-          Navigator.of(sheetContext).pop();
-        },
-      ),
-    );
-
-    if (!handledByButton) {
-      // Drag-down / barrier dismiss — not Explore or Maybe later.
-      unawaited(
-        AnalyticsService().trackExposureLaunchAnnouncementDismissed(
-          source: 'sheet_dismiss',
+      var handledByButton = false;
+      await showModalBottomSheet<void>(
+        context: context,
+        isScrollControlled: true,
+        useRootNavigator: true,
+        barrierColor: Colors.black.withValues(alpha: 0.55),
+        backgroundColor: Colors.transparent,
+        builder: (sheetContext) => _ExposureLaunchSheet(
+          primaryLabel: primaryLabel,
+          onPrimary: () {
+            handledByButton = true;
+            unawaited(
+              AnalyticsService().trackExposureLaunchAnnouncementExplored(),
+            );
+            Navigator.of(sheetContext).pop();
+            onPrimary();
+          },
+          onDismiss: () {
+            handledByButton = true;
+            unawaited(
+              AnalyticsService().trackExposureLaunchAnnouncementDismissed(
+                source: 'maybe_later',
+              ),
+            );
+            Navigator.of(sheetContext).pop();
+          },
         ),
       );
-    }
 
+      if (!handledByButton) {
+        // Drag-down / barrier dismiss — not Explore or Maybe later.
+        unawaited(
+          AnalyticsService().trackExposureLaunchAnnouncementDismissed(
+            source: 'sheet_dismiss',
+          ),
+        );
+      }
+    } finally {
+      releaseHomeTour();
+    }
   }
 }
 

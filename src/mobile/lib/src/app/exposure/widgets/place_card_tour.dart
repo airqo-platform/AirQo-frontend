@@ -32,6 +32,8 @@ class _PlaceCardTourState extends State<PlaceCardTour>
   final GlobalKey _overlayKey = GlobalKey();
   Rect? _cardRect;
   Rect? _chevronRect;
+  bool _tracking = false;
+  int _layoutWaits = 0;
   late AnimationController _fade;
   late Animation<double> _opacity;
 
@@ -52,6 +54,7 @@ class _PlaceCardTourState extends State<PlaceCardTour>
 
   @override
   void dispose() {
+    _tracking = false;
     _fade.dispose();
     super.dispose();
   }
@@ -59,8 +62,9 @@ class _PlaceCardTourState extends State<PlaceCardTour>
   void _remeasureAfterLayout() {
     final cardContext = widget.tourKeys.cardKey.currentContext;
     if (cardContext == null) {
+      if (_layoutWaits++ > 8) return;
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) _measureTargets();
+        if (mounted) _remeasureAfterLayout();
       });
       return;
     }
@@ -75,11 +79,22 @@ class _PlaceCardTourState extends State<PlaceCardTour>
       curve: Curves.easeInOut,
     ).whenComplete(() {
       if (!mounted) return;
-      _measureTargets();
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) _measureTargets();
-      });
+      _startTracking();
     });
+  }
+
+  void _startTracking() {
+    if (_tracking) return;
+    _tracking = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) => _syncTargets());
+  }
+
+  /// The Favorite card grows when the hourly reading arrives. A one-shot
+  /// rect leaves the cutout on the shorter card.
+  void _syncTargets() {
+    if (!mounted || !_tracking) return;
+    _measureTargets();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _syncTargets());
   }
 
   void _measureTargets() {
@@ -99,11 +114,21 @@ class _PlaceCardTourState extends State<PlaceCardTour>
     final card = measure(widget.tourKeys.cardKey);
     final chevron = measure(widget.tourKeys.chevronKey);
     if (card == null) return;
+    if (!_rectMoved(_cardRect, card) && !_rectMoved(_chevronRect, chevron)) {
+      return;
+    }
 
     setState(() {
       _cardRect = card;
       _chevronRect = chevron;
     });
+  }
+
+  bool _rectMoved(Rect? previous, Rect? next) {
+    if (previous == null || next == null) return previous != next;
+    return (previous.center - next.center).distance > 0.5 ||
+        (previous.width - next.width).abs() > 0.5 ||
+        (previous.height - next.height).abs() > 0.5;
   }
 
   void _dismiss() {

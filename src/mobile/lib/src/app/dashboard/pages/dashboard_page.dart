@@ -1,4 +1,5 @@
 import 'package:airqo/src/app/dashboard/pages/location_selection/location_selection_screen.dart';
+import 'package:airqo/src/app/exposure/widgets/exposure_launch_announcement.dart';
 import 'package:airqo/src/app/dashboard/widgets/measurement_card_tour.dart';
 import 'package:airqo/src/app/shared/utils/location_label.dart';
 import 'package:airqo/src/app/shared/widgets/empty_state_view.dart';
@@ -40,6 +41,7 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
   Timer? _backgroundRefreshTimer;
   final MeasurementCardTourKeys _cardTourKeys = MeasurementCardTourKeys();
   bool _showCardGesturesTour = false;
+  bool _tourStartPending = false;
   OverlayEntry? _tourOverlay;
   bool _viewTooltipsEnabled = !kMeasurementCardGesturesTourEnabled;
 
@@ -121,6 +123,8 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
       _enableViewTooltips();
       return;
     }
+    await ExposureLaunchAnnouncement.homeTourGate;
+    if (!mounted) return;
     final prefs = await SharedPreferences.getInstance();
     if (!mounted) return;
     final seen = prefs.getBool(measurementCardGesturesTourSeenKey) ?? false;
@@ -154,38 +158,60 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
   void _maybeShowCardGesturesTour() {
     if (!kMeasurementCardGesturesTourEnabled ||
         _showCardGesturesTour ||
-        _tourOverlay != null) {
+        _tourOverlay != null ||
+        _tourStartPending) {
       return;
     }
-    SharedPreferences.getInstance().then((prefs) {
-      final seen = prefs.getBool(measurementCardGesturesTourSeenKey) ?? false;
-      if (!seen && mounted && widget.isActive && _tourOverlay == null) {
-        setState(() {
-          _showCardGesturesTour = true;
-          _viewTooltipsEnabled = false;
-        });
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!mounted ||
-              !widget.isActive ||
-              !_showCardGesturesTour ||
-              _tourOverlay != null) {
-            return;
-          }
-          _tourOverlay = OverlayEntry(
-            builder: (_) => Positioned.fill(
-              child: MeasurementCardGesturesTour(
-                tourKeys: _cardTourKeys,
-                steps: buildMeasurementCardGesturesTourSteps(
-                  view: _activeTourView,
-                ),
-                onDismiss: _dismissCardGesturesTour,
-              ),
-            ),
-          );
-          Overlay.of(context, rootOverlay: true).insert(_tourOverlay!);
-        });
+    _tourStartPending = true;
+    unawaited(_showCardGesturesTourAfterAnnouncement());
+  }
+
+  Future<void> _showCardGesturesTourAfterAnnouncement() async {
+    try {
+      await ExposureLaunchAnnouncement.homeTourGate;
+      if (!kMeasurementCardGesturesTourEnabled ||
+          !mounted ||
+          !widget.isActive ||
+          _showCardGesturesTour ||
+          _tourOverlay != null) {
+        return;
       }
-    });
+      final prefs = await SharedPreferences.getInstance();
+      final seen = prefs.getBool(measurementCardGesturesTourSeenKey) ?? false;
+      if (seen ||
+          !mounted ||
+          !widget.isActive ||
+          _showCardGesturesTour ||
+          _tourOverlay != null) {
+        return;
+      }
+      setState(() {
+        _showCardGesturesTour = true;
+        _viewTooltipsEnabled = false;
+      });
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted ||
+            !widget.isActive ||
+            !_showCardGesturesTour ||
+            _tourOverlay != null) {
+          return;
+        }
+        _tourOverlay = OverlayEntry(
+          builder: (_) => Positioned.fill(
+            child: MeasurementCardGesturesTour(
+              tourKeys: _cardTourKeys,
+              steps: buildMeasurementCardGesturesTourSteps(
+                view: _activeTourView,
+              ),
+              onDismiss: _dismissCardGesturesTour,
+            ),
+          ),
+        );
+        Overlay.of(context, rootOverlay: true).insert(_tourOverlay!);
+      });
+    } finally {
+      _tourStartPending = false;
+    }
   }
 
   void _scheduleCardGesturesTourCheck() {

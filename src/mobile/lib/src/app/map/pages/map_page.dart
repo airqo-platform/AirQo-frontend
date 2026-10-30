@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:airqo/src/app/dashboard/bloc/dashboard/dashboard_bloc.dart';
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
 import 'package:airqo/src/app/dashboard/pages/location_selection/utils/location_helpers.dart';
@@ -5,6 +7,7 @@ import 'package:airqo/src/app/dashboard/pages/forecast_overview_page.dart';
 import 'package:airqo/src/app/map/bloc/map_bloc.dart';
 import 'package:airqo/src/app/map/controllers/map_camera_controller.dart';
 import 'package:airqo/src/app/map/utils/map_content_status.dart';
+import 'package:airqo/src/app/map/utils/map_first_visit.dart';
 import 'package:airqo/src/app/map/utils/map_marker_builder.dart';
 import 'package:airqo/src/app/map/widgets/map_aq_card_layer.dart';
 import 'package:airqo/src/app/map/widgets/map_controls.dart';
@@ -28,7 +31,9 @@ import 'package:loggy/loggy.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class MapScreen extends StatefulWidget {
-  const MapScreen({super.key});
+  final bool isActive;
+
+  const MapScreen({super.key, this.isActive = true});
 
   @override
   State<MapScreen> createState() => _MapScreenState();
@@ -68,6 +73,7 @@ class _MapScreenState extends State<MapScreen>
   final GlobalKey _zoomControlKey = GlobalKey();
   bool _showControlsTour = false;
   bool _locationResolved = false;
+  bool _focusQueued = false;
 
   static const LatLng _center = LatLng(0.347596, 32.582520);
   static const double _sheetPeekSize = 0.13;
@@ -76,12 +82,18 @@ class _MapScreenState extends State<MapScreen>
   void _onMapCreated(GoogleMapController controller) {
     _cameraController.onCreated(controller);
     if (mounted) setState(() {});
+    if (!MapFirstVisit.shouldUseDefaultCamera(
+      hasPendingMonitor: _pendingNavigationMeasurement != null,
+      tabVisible: widget.isActive,
+    )) {
+      _focusPendingNavigationMeasurement();
+      return;
+    }
     if (userPosition != null) {
       _cameraController.snapToPosition(userPosition!);
     } else if (_mapMarkers.isNotEmpty) {
       _cameraController.fitMeasurementsInView(allMeasurements);
     }
-    _focusPendingNavigationMeasurement();
   }
 
   void _handleMapNavigationRequest() {
@@ -94,6 +106,29 @@ class _MapScreenState extends State<MapScreen>
   Future<void> _focusPendingNavigationMeasurement() async {
     final requested = _pendingNavigationMeasurement;
     if (requested == null || !mounted) return;
+    // The map lives in an IndexedStack, so the platform view ignores the
+    // first camera update until this tab is actually showing.
+    if (!MapFirstVisit.shouldMoveToPendingMonitor(
+      hasPendingMonitor: true,
+      tabVisible: widget.isActive,
+      cameraReady: _cameraController.isInitialized,
+      focusAlreadyQueued: _focusQueued,
+    )) {
+      return;
+    }
+    _focusQueued = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      unawaited(_applyPendingNavigationFocus(requested));
+    });
+  }
+
+  Future<void> _applyPendingNavigationFocus(Measurement requested) async {
+    _focusQueued = false;
+    if (!mounted ||
+        !widget.isActive ||
+        !identical(_pendingNavigationMeasurement, requested)) {
+      return;
+    }
 
     final requestedSiteId = requested.siteId ?? requested.siteDetails?.id;
     final measurement = requestedSiteId == null
@@ -107,6 +142,11 @@ class _MapScreenState extends State<MapScreen>
 
     setState(() => _selectedCardMeasurement = measurement);
     await _animateSheetTo(_sheetPeekSize);
+    if (!mounted ||
+        !widget.isActive ||
+        !identical(_pendingNavigationMeasurement, requested)) {
+      return;
+    }
 
     final latitude = measurement.siteDetails?.approximateLatitude ??
         measurement.siteDetails?.siteCategory?.latitude;
@@ -116,12 +156,12 @@ class _MapScreenState extends State<MapScreen>
       if (!isInitializing) {
         _pendingNavigationMeasurement = null;
         MapNavigationService.instance.clear(requested);
+        _maybeShowControlsTour();
       }
       return;
     }
-    if (!_cameraController.isInitialized) {
-      return;
-    }
+    if (!_cameraController.isInitialized || !widget.isActive) return;
+    if (userPosition == null && !_locationResolved) return;
 
     if (userPosition != null) {
       await _cameraController.fitMonitorAndUser(
@@ -129,14 +169,16 @@ class _MapScreenState extends State<MapScreen>
         monitorLongitude: longitude,
         userPosition: userPosition!,
       );
-    } else if (_locationResolved) {
-      await _cameraController.animateTo(LatLng(latitude, longitude));
     } else {
+      await _cameraController.animateTo(LatLng(latitude, longitude));
+    }
+    if (!mounted || !identical(_pendingNavigationMeasurement, requested)) {
       return;
     }
 
     _pendingNavigationMeasurement = null;
     MapNavigationService.instance.clear(requested);
+    _maybeShowControlsTour();
   }
 
   Future<void> _applyMapStyle() async {
@@ -245,6 +287,10 @@ class _MapScreenState extends State<MapScreen>
     }
     // Only fit on initial data load, not on later marker refreshes.
     if (source != null &&
+        MapFirstVisit.shouldUseDefaultCamera(
+          hasPendingMonitor: _pendingNavigationMeasurement != null,
+          tabVisible: widget.isActive,
+        ) &&
         _cameraController.isInitialized &&
         _mapMarkers.isNotEmpty &&
         userPosition == null) {
@@ -271,7 +317,10 @@ class _MapScreenState extends State<MapScreen>
 
       if (mounted) setState(() => userPosition = position);
       _updateNearbyMeasurements();
-      if (_pendingNavigationMeasurement == null) {
+      if (MapFirstVisit.shouldUseDefaultCamera(
+        hasPendingMonitor: _pendingNavigationMeasurement != null,
+        tabVisible: widget.isActive,
+      )) {
         _cameraController.snapToPosition(userPosition!);
       }
     } catch (e) {
@@ -292,7 +341,14 @@ class _MapScreenState extends State<MapScreen>
   }
 
   void _maybeShowControlsTour() {
-    if (_showControlsTour || !_locationResolved) return;
+    if (!MapFirstVisit.shouldShowControlsTour(
+      tourAlreadyShowing: _showControlsTour,
+      locationResolved: _locationResolved,
+      tabVisible: widget.isActive,
+      hasPendingMonitor: _pendingNavigationMeasurement != null,
+    )) {
+      return;
+    }
     SharedPreferences.getInstance().then((prefs) {
       final seen = prefs.getBool(_tourSeenKey) ?? false;
       if (!seen && mounted) setState(() => _showControlsTour = true);
@@ -430,6 +486,15 @@ class _MapScreenState extends State<MapScreen>
   void _selectMeasurementFromSheet(Measurement measurement) {
     _animateSheetTo(_sheetPeekSize);
     viewDetails(measurement: measurement);
+  }
+
+  @override
+  void didUpdateWidget(covariant MapScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!oldWidget.isActive && widget.isActive) {
+      _focusPendingNavigationMeasurement();
+      _maybeShowControlsTour();
+    }
   }
 
   @override
