@@ -5,7 +5,7 @@ sidebar_label: Impact Statistics
 
 # Impact Statistics
 
-Returns the aggregate numbers behind the map — total monitors, breakdowns by type/status/manufacturer, and estimated population reached. This is what powers the reference page's headline stats.
+Returns the aggregate numbers behind an Africa Network Map — total monitors, breakdowns by type/status/manufacturer, and estimated population reached, across every network in the registry. Use it for a map's headline stats or for landscape reporting.
 
 ---
 
@@ -20,7 +20,6 @@ GET /api/v2/devices/network-coverage/impact?token={SECRET_TOKEN}
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `token` | string | Required |
-| `tenant` | string | Optional. Defaults to `airqo`. |
 | `activeOnly` | boolean | Optional. Restrict all counts to active monitors. |
 | `types` | string | Optional. Comma-separated: `Reference`, `LCS`. |
 | `network` | string | Optional. Comma-separated network names. |
@@ -99,6 +98,10 @@ curl "https://api.airqo.net/api/v2/devices/network-coverage/impact?token={SECRET
 | `citiesWithPopulationData` | How many of `totalCities` have a known population — use this alongside `totalPopulationReached` to gauge coverage of the population estimate itself |
 | `byCountry[]`, `byCity[]` | Per-country / per-city breakdowns with the same shape as the top-level counts, plus `population` |
 | `bySensorManufacturer[]` | The same full breakdown, scoped to each manufacturer — lets you answer "how much of the network does manufacturer X cover?" |
+
+:::note Monitor counts are sites, not devices
+Every count here (`totalMonitors`, `byType`, `byCountry[].total`, and so on) counts **monitored sites**, the same points shown on the map. An AirQo site is counted only if it has at least one deployed device, and counts once however many devices are deployed there. Each community-registered entry counts once. So these totals aren't a device inventory and won't match a network's own device count, which includes undeployed devices. See [What a monitor count means →](./intro.md#what-a-monitor-count-means).
+:::
 
 :::note Population figures are estimates
 `totalPopulationReached` reflects a monitor being present *somewhere* in a city, not real coverage radius or air-quality representativeness across that city's full population. Treat it as a headline number, not a scientific exposure estimate.

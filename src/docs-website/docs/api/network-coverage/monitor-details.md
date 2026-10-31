@@ -5,7 +5,7 @@ sidebar_label: Monitor Details
 
 # Monitor Details
 
-Fetches the full profile for one monitor — this is what fills the detail panel when a user clicks a pin on the map.
+Fetches the full profile for one monitor — this is what fills the detail panel when a user clicks a pin on an Africa Network Map.
 
 ---
 
@@ -19,14 +19,13 @@ GET /api/v2/devices/network-coverage/monitors/{monitorId}?token={SECRET_TOKEN}
 
 | Parameter | Description |
 |-----------|-------------|
-| `monitorId` | The `id` of a monitor, from the summary or country-monitors response |
+| `monitorId` | The `id` of a monitor from the summary or country-monitors response, or the `monitorId` returned by a [community registry submission](./community-registry.md#reading-the-monitor-back) |
 
 **Query parameters**
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `token` | string | Required |
-| `tenant` | string | Optional. Defaults to `airqo`. |
 
 **Example**
 
@@ -74,7 +73,7 @@ curl "https://api.airqo.net/api/v2/devices/network-coverage/monitors/66f4a2b3c4d
 }
 ```
 
-This particular monitor happens to be a reference instrument contributed by another operator, not an AirQo device — the shape of the response is identical either way, which is the point: your client code doesn't need to special-case who runs a monitor.
+This particular monitor is a reference instrument run by the US Department of State. A monitor from any other network, AirQo's included, has exactly the same shape, so your client code doesn't need to special-case who runs a monitor.
 
 **Monitor fields**
 
