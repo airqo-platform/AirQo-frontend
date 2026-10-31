@@ -11,7 +11,7 @@ interface Props {
   initialCountryId?: string;
   initialCountryName?: string;
   initialCountryIso2?: string;
-  onSaved?: (response: any) => void;
+  onSaved?: (response: any) => void | Promise<void>;
 }
 
 const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
@@ -479,8 +479,12 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
       const response =
         await networkCoverageService.upsertNetworkCoverageRegistry(payload);
 
+      // Wait for the parent to finish refreshing and selecting the new
+      // monitor before closing this dialog. This prevents the save callback
+      // from racing the dialog unmount and turning a successful POST into a
+      // client-side navigation error.
+      await onSaved?.(response);
       setSuccess('Monitor saved');
-      if (onSaved) onSaved(response);
       // small delay to show success then close
       if (closeTimeoutRef.current) {
         clearTimeout(closeTimeoutRef.current);

@@ -77,6 +77,7 @@ const countryResponseMatchesSelection = (
   return false;
 };
 import { type ExportData, generatePdf, generateCsv } from './utils/exportUtils';
+import { extractNetworkCoverageMonitorId } from './networkCoverageRegistry';
 
 const DEFAULT_TENANT = 'airqo';
 
@@ -539,9 +540,7 @@ const NetworkCoveragePage = () => {
   };
 
   const handleAddSaved = async (response: any) => {
-    setIsAddDialogOpen(false);
-
-    const createdId = response?.registry?._id || response?.registry?.id;
+    const createdId = extractNetworkCoverageMonitorId(response);
 
     // Invalidate coverage queries so UI reflects the added monitor
     queryClient.invalidateQueries({
@@ -580,8 +579,6 @@ const NetworkCoveragePage = () => {
       if (createdId) setSelectedMonitorId(createdId);
       setIsSidebarOpen(true);
     }
-
-    setAddDialogCountry(null);
   };
 
   const handleRegisterSnapshot = useCallback(
@@ -946,7 +943,10 @@ const NetworkCoveragePage = () => {
 
         <NetworkCoverageAddMonitorDialog
           isOpen={isAddDialogOpen}
-          onClose={() => setIsAddDialogOpen(false)}
+          onClose={() => {
+            setIsAddDialogOpen(false);
+            setAddDialogCountry(null);
+          }}
           initialCountryId={addDialogCountry?.id ?? undefined}
           initialCountryName={addDialogCountry?.country}
           initialCountryIso2={addDialogCountry?.iso2}

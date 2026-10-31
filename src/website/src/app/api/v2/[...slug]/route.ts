@@ -4,6 +4,7 @@ import {
   buildApiCacheKey,
   getApiCache,
   getApiCachePolicy,
+  invalidateApiCacheByPathPrefix,
   setApiCache,
 } from './apiCache';
 
@@ -195,6 +196,13 @@ async function handleRequest(
 
     // Get response data
     const responseData = await response.json().catch(() => null);
+
+    // Registry writes change the summary, country, and monitor GETs. Clear
+    // every cached variant before the browser refetches after a successful
+    // mutation so the UI cannot select data from a stale five-minute cache.
+    if (method !== 'GET' && response.ok) {
+      invalidateApiCacheByPathPrefix('api/v2/devices/network-coverage');
+    }
 
     // Sanitize response data to remove token from pagination URLs
     const sanitizedData = sanitizeResponseData(responseData);

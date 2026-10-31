@@ -375,7 +375,9 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
         // instead of a blank/empty image (WebGL clears buffer by default).
         preserveDrawingBuffer: true,
         attributionControl: true,
-        customAttribution: ['Powered by <a href="/" rel="noopener">AirQo</a>'],
+        customAttribution: [
+          '<a href="/" rel="noopener">Africa Network Map</a>',
+        ],
       });
       setMapInitError(null);
     } catch {

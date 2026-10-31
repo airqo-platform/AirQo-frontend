@@ -15,6 +15,7 @@ import {
   type NetworkCoverageCountry,
   type NetworkCoverageMonitor,
 } from '../networkCoverageTypes';
+import { getNetworkCoverageSearchMatches } from '../networkCoverageSearch';
 
 import { getEnvironmentAwareUrl } from '@/lib/environmentAwareUrl';
 
@@ -204,17 +205,12 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
   }, [selectedCountryId]);
 
   const filteredCountries = React.useMemo(() => {
-    return countries.filter((country) => {
-      if (!q) return true;
-      if (country.country.toLowerCase().includes(q)) return true;
-      return country.monitors.some((monitor) => {
-        return (
-          (monitor.name || '').toLowerCase().includes(q) ||
-          (monitor.city || '').toLowerCase().includes(q) ||
-          (monitor.network || '').toLowerCase().includes(q)
-        );
-      });
-    });
+    if (!q) return countries;
+    return countries.filter(
+      (country) =>
+        getNetworkCoverageSearchMatches(country, q).countryMatches ||
+        getNetworkCoverageSearchMatches(country, q).monitors.length > 0,
+    );
   }, [countries, q]);
 
   const monitoredCountriesCount = filteredCountries.filter(
@@ -252,13 +248,7 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
   const filteredCountryMonitors = React.useMemo(() => {
     if (!selectedCountry) return [];
     if (!q) return selectedCountry.monitors;
-    return selectedCountry.monitors.filter((monitor) => {
-      return (
-        (monitor.name || '').toLowerCase().includes(q) ||
-        (monitor.city || '').toLowerCase().includes(q) ||
-        (monitor.network || '').toLowerCase().includes(q)
-      );
-    });
+    return getNetworkCoverageSearchMatches(selectedCountry, q).monitors;
   }, [selectedCountry, q]);
 
   React.useEffect(() => {
@@ -463,6 +453,14 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
     const activeMonitors = stats?.active;
     const isNoData = totalMonitors === 0;
     const isPromptOpen = showAddMonitorPromptFor === country.id;
+    const searchMatches = q
+      ? getNetworkCoverageSearchMatches(country, q)
+      : null;
+    const matchingCities = searchMatches?.cities ?? [];
+    const canOpenSingleSearchMatch =
+      !!searchMatches &&
+      !searchMatches.countryMatches &&
+      searchMatches.monitors.length === 1;
 
     return (
       <div key={country.id} data-country-id={countryRowId(country)}>
@@ -488,7 +486,11 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
                 setPromptTop(null);
               }
             }
-            onSelectCountry(country.id);
+            if (canOpenSingleSearchMatch && searchMatches) {
+              onSelectMonitor(searchMatches.monitors[0].id, country.id);
+            } else {
+              onSelectCountry(country.id);
+            }
           }}
           className={`group w-full rounded-xl border px-3.5 py-3 text-left transition-all duration-150 ${
             isNoData
@@ -529,6 +531,12 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
                       </span>
                     </>
                   )}
+                </p>
+              )}
+              {matchingCities.length > 0 && (
+                <p className="mt-1 truncate text-xs font-medium text-blue-700">
+                  Matching city{matchingCities.length > 1 ? 'ies' : ''}:{' '}
+                  {matchingCities.join(', ')}
                 </p>
               )}
             </div>

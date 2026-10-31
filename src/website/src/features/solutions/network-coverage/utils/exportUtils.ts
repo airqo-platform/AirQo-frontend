@@ -249,7 +249,7 @@ export async function generatePdf(data: ExportData): Promise<void> {
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(7);
     doc.setTextColor(120, 130, 160);
-    doc.text('AirQo Network Coverage', MARGIN, FOOTER_Y);
+    doc.text('Africa Network Coverage', MARGIN, FOOTER_Y);
     doc.text(`Page ${currentPage}`, PAGE_W - MARGIN, FOOTER_Y, {
       align: 'right',
     });
