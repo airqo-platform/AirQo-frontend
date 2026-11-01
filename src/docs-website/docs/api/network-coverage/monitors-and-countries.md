@@ -22,6 +22,7 @@ Returns every country with monitors, each with its list of monitors nested insid
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `token` | string | Required |
+| `tenant` | string | Optional. The organisation instance to query. Defaults to `airqo`. |
 | `search` | string | Optional. Filters monitors by country, city, monitor name or network (case-insensitive substring match), or by two-letter country code (exact match, e.g. `KE`). When supplied, the response also includes [`cityMatches`](#city-matches-for-search). |
 | `activeOnly` | boolean | Optional. When `true`, excludes monitors with `status: "inactive"`. |
 | `types` | string | Optional. Comma-separated: `Reference`, `LCS`. Omit to include both. |
@@ -172,7 +173,21 @@ curl "https://api.airqo.net/api/v2/devices/network-coverage?search=Nairobi&token
       "iso2": "KE",
       "stats": { "total": 77, "Reference": 3, "LCS": 74, "Inactive": 0, "active": 40, "inactive": 37 },
       "monitors": [
-        // … full monitor objects, same shape as the example above
+        {
+          "id": "67a1c2d3e4f5a6b7c8d9e0f1",
+          "name": "Nairobi CBD",
+          "city": "Nairobi",
+          "country": "Kenya",
+          "countryId": "kenya",
+          "iso2": "KE",
+          "latitude": -1.2864,
+          "longitude": 36.8172,
+          "type": "LCS",
+          "status": "active",
+          "network": "airqo",
+          "operator": "AirQo",
+          "manufacturer": "AirQo"
+        }
       ]
     }
   ],
@@ -189,10 +204,18 @@ curl "https://api.airqo.net/api/v2/devices/network-coverage?search=Nairobi&token
     }
   ],
   "meta": {
-    // … same fields as the example above
+    "totalCountries": 30,
+    "monitoredCountries": 1,
+    "totalMonitors": 77,
+    "totalPopulationReached": 4400000,
+    "citiesWithPopulationData": 1,
+    "availableNetworks": ["airqo"],
+    "generatedAt": "2025-09-28T09:00:00.000Z"
   }
 }
 ```
+
+*(Only one monitor is shown here, with a few of its fields. The full response lists every matched monitor, with the complete set of fields shown in the first example.)*
 
 | Field | Description |
 |-------|-------------|
@@ -223,7 +246,7 @@ Returns one country's monitors. Use this when a user selects a country instead o
 
 **Query parameters**
 
-Same as the summary endpoint, minus `search`: `token`, `activeOnly`, `types`, `network`.
+Same as the summary endpoint, minus `search`: `token`, `tenant`, `activeOnly`, `types`, `network`.
 
 **Example**
 

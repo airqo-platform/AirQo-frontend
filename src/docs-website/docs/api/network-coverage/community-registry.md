@@ -105,7 +105,7 @@ A successful submission returns `201 Created` for a new entry, or `200 OK` when 
 | `available` | The monitor is readable right away from the [summary](./monitors-and-countries.md), [country-monitors](./monitors-and-countries.md#get-monitors-for-a-single-country), and [monitor-detail](./monitor-details.md) endpoints. |
 | `pending` | The entry is linked to a site that has no active device yet. Those endpoints won't return it until a device is deployed at that site. |
 
-When `availability` is `"available"`, you can rely on read-after-write: the new monitor appears on the very next request to any of those endpoints, so your map can refresh, or open `GET /network-coverage/monitors/{monitorId}`, straight after a successful submission. When it's `"pending"`, tell the user their submission was saved but won't appear on the map until the site has an active device.
+When `availability` is `"available"`, you can rely on read-after-write. To read back the exact monitor you just submitted, call `GET /network-coverage/monitors/{monitorId}` straight after a successful submission. The new monitor also appears on the very next request to the summary and country-monitors endpoints, but only if that request's filters (`search`, `activeOnly`, `types`, `network`) include it. For example, an `inactive` submission won't show up in an `activeOnly=true` list. When it's `"pending"`, tell the user their submission was saved but won't appear on the map until the site has an active device.
 
 ---
 
