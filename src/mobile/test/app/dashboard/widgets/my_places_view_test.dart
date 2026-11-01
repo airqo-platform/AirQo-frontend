@@ -364,7 +364,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(SwipeableAnalyticsCard), findsOneWidget);
-      expect(find.text('Test Location Name'), findsOneWidget);
+      expect(find.text('Test Location'), findsOneWidget);
 
       expect(find.text('25.5'), findsOneWidget);
       expect(find.text('Moderate'), findsOneWidget);

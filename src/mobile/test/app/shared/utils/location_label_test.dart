@@ -61,7 +61,7 @@ void main() {
       );
       expect(
         measurementLocationDescription(measurement),
-        'Yaoundé, Cameroon',
+        'Yaoundé',
       );
       expect(CountryModel.getFlagFromCountryName('Cameroun'), '🇨🇲');
     });

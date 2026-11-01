@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:airqo/src/app/dashboard/models/user_preferences_model.dart';
+import 'package:airqo/src/app/shared/utils/monitor_place_label.dart';
 import 'package:airqo/src/app/exposure/models/declared_place.dart';
 import 'package:airqo/src/app/exposure/widgets/label_picker_place_type_icon.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
@@ -173,9 +174,12 @@ class _UnmatchedSiteCardState extends State<UnmatchedSiteCard> {
                                     const SizedBox(height: 10),
                                   ],
                                   Text(
-                                    widget.site.visibleSearchName.isNotEmpty
-                                        ? widget.site.visibleSearchName
-                                        : widget.site.visibleName,
+                                    selectedSiteSpokenTitle(
+                                      widget.site,
+                                      widget.site.visibleSearchName.isNotEmpty
+                                          ? widget.site.visibleSearchName
+                                          : widget.site.visibleName,
+                                    ),
                                     style: TextStyle(
                                       fontSize: 22,
                                       fontWeight: FontWeight.w700,
@@ -198,10 +202,13 @@ class _UnmatchedSiteCardState extends State<UnmatchedSiteCard> {
                                       SizedBox(width: 4),
                                       Expanded(
                                         child: Text(
-                                          widget.site.name !=
-                                                  widget.site.searchName
-                                              ? widget.site.visibleName
-                                              : "Unknown location",
+                                          selectedSiteSpokenQuietLine(
+                                            widget.site,
+                                            widget.site.name !=
+                                                    widget.site.searchName
+                                                ? widget.site.visibleName
+                                                : "Unknown location",
+                                          ),
                                           style: TextStyle(
                                             fontSize: 14,
                                             color: Theme.of(context)

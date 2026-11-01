@@ -319,7 +319,7 @@ void main() {
 
       // Assert
       expect(find.text('Test Location'), findsOneWidget);
-      expect(find.text('Test City, Test Country'), findsOneWidget);
+      expect(find.text('Test City'), findsOneWidget);
       expect(find.text('35.7'), findsOneWidget);
       expect(find.text(' μg/m³'), findsOneWidget);
       expect(find.text('Unhealthy for Sensitive Groups'), findsOneWidget);

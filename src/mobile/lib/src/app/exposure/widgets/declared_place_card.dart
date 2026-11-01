@@ -7,6 +7,7 @@ import 'package:airqo/src/app/exposure/services/exposure_place_readings.dart';
 import 'package:airqo/src/app/exposure/widgets/hourly_detail_sheet.dart';
 import 'package:airqo/src/app/exposure/widgets/label_picker_place_type_icon.dart';
 import 'package:airqo/src/app/exposure/widgets/edit_place_sheet.dart';
+import 'package:airqo/src/app/shared/services/analytics_service.dart';
 import 'package:airqo/src/app/shared/widgets/edit_icon.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 
@@ -20,12 +21,16 @@ class DeclaredPlaceCard extends StatelessWidget {
   /// Calendar day used for weekday vs weekend window label + card PM average.
   final DateTime dayOfView;
 
+  /// When set, anchors the exposure card tour pointer on the hourly chevron.
+  final GlobalKey? hourlyDetailKey;
+
   const DeclaredPlaceCard({
     super.key,
     required this.place,
     required this.exposureLevel,
     required this.hourlyReadings,
     required this.dayOfView,
+    this.hourlyDetailKey,
   });
 
   ExposureLevel? get _detailExposureLevel {
@@ -50,6 +55,9 @@ class DeclaredPlaceCard extends StatelessWidget {
     final window = place.windowFor(dayOfView);
 
     void openHourlyDetail() {
+      AnalyticsService().trackExposureHourlyDetailOpened(
+        placeType: place.type.name,
+      );
       showModalBottomSheet(
         context: context,
         isScrollControlled: true,
@@ -197,79 +205,87 @@ class DeclaredPlaceCard extends StatelessWidget {
                 const SizedBox(height: 14),
                 Divider(height: 1, thickness: 1, color: dividerColor),
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(22, 10, 22, 16),
+                  padding: const EdgeInsets.fromLTRB(22, 10, 8, 20),
                   child: isAbsent
-                      ? Text(
-                          "You're not usually here today based on your schedule.",
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w400,
-                            color: subtitleColor,
-                            height: 1.6,
+                      ? Padding(
+                          padding: const EdgeInsets.only(right: 14, bottom: 8),
+                          child: Text(
+                            "You're not usually here today based on your schedule.",
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w400,
+                              color: subtitleColor,
+                              height: 1.6,
+                            ),
                           ),
                         )
-                      : Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                      : Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            if (_detailExposureLevel case final level?) ...[
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 16, vertical: 8),
-                                decoration: BoxDecoration(
-                                  color: level.color.withValues(alpha: 0.15),
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: Text(
-                                  level.label,
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
-                                    color: level.color,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 12),
-                              Text(
-                                level.copy,
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w400,
-                                  color: nameColor,
-                                  height: 1.75,
-                                ),
-                              ),
-                            ] else
-                              Text(
-                                'Hourly air quality is not available yet.',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: subtitleColor,
-                                  height: 1.5,
-                                ),
-                              ),
-                            const SizedBox(height: 8),
-                            Align(
-                              alignment: Alignment.centerRight,
-                              child: Semantics(
-                                button: true,
-                                label:
-                                    'View hourly air quality for ${place.displayName}',
-                                child: Tooltip(
-                                  message: 'View hourly air quality',
-                                  child: SizedBox(
-                                    width: 40,
-                                    height: 40,
-                                    child: IconButton(
-                                      onPressed: openHourlyDetail,
-                                      padding: EdgeInsets.zero,
-                                      icon: SvgPicture.asset(
-                                        'assets/icons/chevron-right.svg',
-                                        width: 18,
-                                        height: 18,
-                                        colorFilter: ColorFilter.mode(
-                                          AppTextColors.modalCloseIcon(context),
-                                          BlendMode.srcIn,
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  if (_detailExposureLevel case final level?) ...[
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 16, vertical: 8),
+                                      decoration: BoxDecoration(
+                                        color:
+                                            level.color.withValues(alpha: 0.15),
+                                        borderRadius: BorderRadius.circular(20),
+                                      ),
+                                      child: Text(
+                                        level.label,
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w600,
+                                          color: level.color,
                                         ),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 12),
+                                    Text(
+                                      level.copy,
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w400,
+                                        color: nameColor,
+                                        height: 1.75,
+                                      ),
+                                    ),
+                                  ] else
+                                    Text(
+                                      'Hourly air quality is not available yet.',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: subtitleColor,
+                                        height: 1.5,
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                            Semantics(
+                              key: hourlyDetailKey,
+                              button: true,
+                              label:
+                                  'View hourly air quality for ${place.displayName}',
+                              child: Tooltip(
+                                message: 'View hourly air quality',
+                                child: SizedBox(
+                                  width: 40,
+                                  height: 40,
+                                  child: IconButton(
+                                    onPressed: openHourlyDetail,
+                                    padding: EdgeInsets.zero,
+                                    icon: SvgPicture.asset(
+                                      'assets/icons/chevron-right.svg',
+                                      width: 18,
+                                      height: 18,
+                                      colorFilter: ColorFilter.mode(
+                                        AppTextColors.modalCloseIcon(context),
+                                        BlendMode.srcIn,
                                       ),
                                     ),
                                   ),
@@ -298,6 +314,9 @@ class _EditButton extends StatelessWidget {
       // Stop the tap from bubbling up to the card's GestureDetector.
       behavior: HitTestBehavior.opaque,
       onTap: () {
+        AnalyticsService().trackExposurePlaceEditOpened(
+          placeType: place.type.name,
+        );
         final cubit = context.read<DeclaredPlacesCubit>();
         showModalBottomSheet(
           context: context,

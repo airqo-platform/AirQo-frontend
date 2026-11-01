@@ -308,6 +308,9 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
                     country: m.siteDetails?.country,
                     formattedName: m.siteDetails?.formattedName,
                     locationName: m.siteDetails?.locationName,
+                    region: m.siteDetails?.region,
+                    county: m.siteDetails?.county,
+                    generatedName: m.siteDetails?.generatedName,
                   ))
               .toList();
         });
@@ -340,6 +343,9 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
                   country: m.siteDetails?.country,
                   formattedName: m.siteDetails?.formattedName,
                   locationName: m.siteDetails?.locationName,
+                  region: m.siteDetails?.region,
+                  county: m.siteDetails?.county,
+                  generatedName: m.siteDetails?.generatedName,
                 ))
             .toList();
       });

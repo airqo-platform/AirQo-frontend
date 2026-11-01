@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:loggy/loggy.dart';
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
+import 'package:airqo/src/app/shared/utils/monitor_place_label.dart';
 import 'package:airqo/src/app/dashboard/pages/forecast_overview_page.dart';
 import 'package:airqo/src/app/dashboard/widgets/measurement_card_tour.dart';
 import 'package:airqo/src/app/dashboard/widgets/measurement_card_action_strip.dart';
@@ -95,11 +96,12 @@ class _AnalyticsCardState extends State<AnalyticsCard> with UiLoggy {
       locationParts.add(siteDetails.country!);
     }
 
-    return locationParts.isNotEmpty
+    final description = locationParts.isNotEmpty
         ? locationParts.join(", ")
         : siteDetails.locationName ??
             siteDetails.formattedName ??
             "Unknown location";
+    return measurementSpokenQuietLine(measurement, description);
   }
 
   Color _getAqiColor(Measurement measurement) {
@@ -110,7 +112,7 @@ class _AnalyticsCardState extends State<AnalyticsCard> with UiLoggy {
   Widget build(BuildContext context) {
     final measurement = widget.measurement;
     final locationColor = AppTextColors.muted(context);
-    return Container(
+    final card = Container(
       key: widget.tourKeys?.cardKey,
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: AppSurfaceColors.elevatedCardDecoration(context),
@@ -133,10 +135,13 @@ class _AnalyticsCardState extends State<AnalyticsCard> with UiLoggy {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        measurement.siteDetails?.searchName ??
-                            measurement.siteDetails?.name ??
-                            widget.fallbackLocationName ??
-                            "---",
+                        measurementSpokenTitle(
+                          measurement,
+                          measurement.siteDetails?.searchName ??
+                              measurement.siteDetails?.name ??
+                              widget.fallbackLocationName ??
+                              "---",
+                        ),
                         style: TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.w700,
@@ -177,6 +182,7 @@ class _AnalyticsCardState extends State<AnalyticsCard> with UiLoggy {
                 ),
                 MeasurementCardHeaderShare(
                   shareButtonKey: _shareButtonKey,
+                  link: widget.tourKeys?.shareLink,
                   onShare: () => _openShare('dashboard_card'),
                 ),
               ],
@@ -308,10 +314,15 @@ class _AnalyticsCardState extends State<AnalyticsCard> with UiLoggy {
           ),
           MeasurementCardFooterForecast(
             forecastButtonKey: widget.tourKeys?.forecastIconKey,
+            link: widget.tourKeys?.forecastLink,
             onForecast: _openForecast,
           ),
         ],
       ),
+    );
+    return measurementCardTourAnchor(
+      link: widget.tourKeys?.cardLink,
+      child: card,
     );
   }
 }

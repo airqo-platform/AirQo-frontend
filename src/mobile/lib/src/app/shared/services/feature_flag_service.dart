@@ -3,7 +3,6 @@ import 'package:posthog_flutter/posthog_flutter.dart';
 import 'package:loggy/loggy.dart';
 
 enum AppFeatureFlag {
-  exposureTracking('exposure_tracking'),
   surveys('surveys'),
   dataSharing('data_sharing'),
   feedback('feedback'),
@@ -32,6 +31,11 @@ class FeatureFlagService with UiLoggy {
   };
 
   bool isEnabled(AppFeatureFlag flag) => _flags[flag] ?? false;
+
+  @visibleForTesting
+  void debugSetEnabled(AppFeatureFlag flag, bool enabled) {
+    _flags[flag] = enabled;
+  }
 
   Future<void> reloadFlags() async {
     try {

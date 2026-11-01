@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
+import 'package:airqo/src/app/shared/utils/monitor_place_label.dart';
 import 'package:airqo/src/app/dashboard/models/site_search_result.dart';
 import 'package:airqo/src/app/dashboard/bloc/dashboard/dashboard_bloc.dart';
 import 'package:airqo/src/app/other/places/bloc/google_places_bloc.dart';
@@ -407,9 +408,15 @@ class LocationListView extends StatelessWidget with UiLoggy {
   Widget _buildLocationTitle(
       Measurement measurement, BuildContext context, bool isSelected) {
     final details = measurement.siteDetails;
-    final name = (details?.city?.isNotEmpty == true ? details!.city : null) ??
+    final legacy = (details?.city?.isNotEmpty == true ? details!.city : null) ??
         (details?.town?.isNotEmpty == true ? details!.town : null) ??
-        (details?.locationName?.isNotEmpty == true ? details!.locationName : null);
+        (details?.locationName?.isNotEmpty == true
+            ? details!.locationName
+            : null);
+    final spoken = spokenPlaceForDetails(details);
+    final name = (spoken != null && spoken.title.isNotEmpty)
+        ? spoken.title
+        : legacy;
     final style = TextStyle(
       color: Theme.of(context).textTheme.bodyLarge?.color,
       fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
@@ -451,10 +458,13 @@ class LocationListView extends StatelessWidget with UiLoggy {
             ),
             title: _buildLocationTitle(measurement, context, isSelected),
             subtitle: Text(
-              measurement.siteDetails?.searchName ??
-                  measurement.siteDetails?.name ??
-                  measurement.siteDetails?.formattedName ??
-                  "---",
+              measurementSpokenQuietLine(
+                measurement,
+                measurement.siteDetails?.searchName ??
+                    measurement.siteDetails?.name ??
+                    measurement.siteDetails?.formattedName ??
+                    "---",
+              ),
               style: TextStyle(
                   color: Theme.of(context)
                       .textTheme

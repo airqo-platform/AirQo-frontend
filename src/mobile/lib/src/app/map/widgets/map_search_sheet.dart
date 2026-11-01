@@ -7,6 +7,7 @@ import 'package:airqo/src/app/dashboard/widgets/google_places_loader.dart';
 import 'package:airqo/src/app/map/utils/map_aq_presentation.dart';
 import 'package:airqo/src/app/other/places/bloc/google_places_bloc.dart';
 import 'package:airqo/src/app/shared/utils/location_label.dart';
+import 'package:airqo/src/app/shared/utils/monitor_place_label.dart';
 import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:flutter/material.dart';
@@ -545,9 +546,12 @@ Widget _measurementRow({
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  measurement.siteDetails?.searchName ??
-                      measurement.siteDetails?.name ??
-                      '—',
+                  measurementSpokenTitle(
+                    measurement,
+                    measurement.siteDetails?.searchName ??
+                        measurement.siteDetails?.name ??
+                        '—',
+                  ),
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,

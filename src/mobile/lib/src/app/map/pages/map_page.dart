@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:airqo/src/app/dashboard/bloc/dashboard/dashboard_bloc.dart';
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
 import 'package:airqo/src/app/dashboard/pages/location_selection/utils/location_helpers.dart';
@@ -5,6 +7,7 @@ import 'package:airqo/src/app/dashboard/pages/forecast_overview_page.dart';
 import 'package:airqo/src/app/map/bloc/map_bloc.dart';
 import 'package:airqo/src/app/map/controllers/map_camera_controller.dart';
 import 'package:airqo/src/app/map/utils/map_content_status.dart';
+import 'package:airqo/src/app/map/utils/map_first_visit.dart';
 import 'package:airqo/src/app/map/utils/map_marker_builder.dart';
 import 'package:airqo/src/app/map/widgets/map_aq_card_layer.dart';
 import 'package:airqo/src/app/map/widgets/map_controls.dart';
@@ -28,7 +31,9 @@ import 'package:loggy/loggy.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class MapScreen extends StatefulWidget {
-  const MapScreen({super.key});
+  final bool isActive;
+
+  const MapScreen({super.key, this.isActive = true});
 
   @override
   State<MapScreen> createState() => _MapScreenState();
@@ -68,6 +73,9 @@ class _MapScreenState extends State<MapScreen>
   final GlobalKey _zoomControlKey = GlobalKey();
   bool _showControlsTour = false;
   bool _locationResolved = false;
+  bool _focusQueued = false;
+  int _focusGeneration = 0;
+  bool _defaultCameraDeferred = false;
 
   static const LatLng _center = LatLng(0.347596, 32.582520);
   static const double _sheetPeekSize = 0.13;
@@ -76,12 +84,21 @@ class _MapScreenState extends State<MapScreen>
   void _onMapCreated(GoogleMapController controller) {
     _cameraController.onCreated(controller);
     if (mounted) setState(() {});
+    if (!MapFirstVisit.shouldUseDefaultCamera(
+      hasPendingMonitor: _pendingNavigationMeasurement != null,
+      tabVisible: widget.isActive,
+    )) {
+      _rememberHiddenDefaultCamera();
+      _focusPendingNavigationMeasurement();
+      return;
+    }
     if (userPosition != null) {
       _cameraController.snapToPosition(userPosition!);
+      _defaultCameraDeferred = false;
     } else if (_mapMarkers.isNotEmpty) {
       _cameraController.fitMeasurementsInView(allMeasurements);
+      _defaultCameraDeferred = false;
     }
-    _focusPendingNavigationMeasurement();
   }
 
   void _handleMapNavigationRequest() {
@@ -94,6 +111,62 @@ class _MapScreenState extends State<MapScreen>
   Future<void> _focusPendingNavigationMeasurement() async {
     final requested = _pendingNavigationMeasurement;
     if (requested == null || !mounted) return;
+    // The map lives in an IndexedStack, so the platform view ignores the
+    // first camera update until this tab is actually showing.
+    if (!MapFirstVisit.shouldMoveToPendingMonitor(
+      hasPendingMonitor: true,
+      tabVisible: widget.isActive,
+      cameraReady: _cameraController.isInitialized,
+      focusAlreadyQueued: _focusQueued,
+    )) {
+      return;
+    }
+    _focusQueued = true;
+    final generation = ++_focusGeneration;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      unawaited(_applyPendingNavigationFocus(requested, generation));
+    });
+  }
+
+  bool _focusStillCurrent(Measurement requested, int generation) {
+    return mounted &&
+        widget.isActive &&
+        generation == _focusGeneration &&
+        identical(_pendingNavigationMeasurement, requested);
+  }
+
+  /// The map tab is built offstage. A default snap or fit that arrives then
+  /// has to run once, the first time the tab is actually showing.
+  void _rememberHiddenDefaultCamera() {
+    if (!widget.isActive) _defaultCameraDeferred = true;
+  }
+
+  void _replayDeferredDefaultCamera() {
+    if (!_defaultCameraDeferred) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted ||
+          !_defaultCameraDeferred ||
+          !widget.isActive ||
+          _pendingNavigationMeasurement != null ||
+          !_cameraController.isInitialized) {
+        return;
+      }
+      if (userPosition != null) {
+        _cameraController.snapToPosition(userPosition!);
+        _defaultCameraDeferred = false;
+      } else if (_mapMarkers.isNotEmpty) {
+        _cameraController.fitMeasurementsInView(allMeasurements);
+        _defaultCameraDeferred = false;
+      }
+    });
+  }
+
+  Future<void> _applyPendingNavigationFocus(
+    Measurement requested,
+    int generation,
+  ) async {
+    _focusQueued = false;
+    if (!_focusStillCurrent(requested, generation)) return;
 
     final requestedSiteId = requested.siteId ?? requested.siteDetails?.id;
     final measurement = requestedSiteId == null
@@ -107,36 +180,64 @@ class _MapScreenState extends State<MapScreen>
 
     setState(() => _selectedCardMeasurement = measurement);
     await _animateSheetTo(_sheetPeekSize);
+    if (!_focusStillCurrent(requested, generation)) return;
 
     final latitude = measurement.siteDetails?.approximateLatitude ??
         measurement.siteDetails?.siteCategory?.latitude;
     final longitude = measurement.siteDetails?.approximateLongitude ??
         measurement.siteDetails?.siteCategory?.longitude;
     if (latitude == null || longitude == null) {
-      if (!isInitializing) {
+      if (!isInitializing && _focusStillCurrent(requested, generation)) {
         _pendingNavigationMeasurement = null;
         MapNavigationService.instance.clear(requested);
+        _replayDefaultCameraAfterDroppedFocus();
+        _maybeShowControlsTour();
       }
       return;
     }
-    if (!_cameraController.isInitialized) {
-      return;
-    }
+    if (!_cameraController.isInitialized || !widget.isActive) return;
+    if (userPosition == null && !_locationResolved) return;
 
-    if (userPosition != null) {
-      await _cameraController.fitMonitorAndUser(
-        monitorLatitude: latitude,
-        monitorLongitude: longitude,
-        userPosition: userPosition!,
-      );
-    } else if (_locationResolved) {
-      await _cameraController.animateTo(LatLng(latitude, longitude));
-    } else {
+    try {
+      if (userPosition != null) {
+        await _cameraController.fitMonitorAndUser(
+          monitorLatitude: latitude,
+          monitorLongitude: longitude,
+          userPosition: userPosition!,
+        );
+      } else {
+        await _cameraController.animateTo(LatLng(latitude, longitude));
+      }
+    } catch (e) {
+      loggy.warning('Failed to focus monitor: $e');
+      if (!_focusStillCurrent(requested, generation)) return;
+      // Leave the request in place so the next visit can retry the zoom,
+      // but do not keep the controls tour hidden behind a failed move.
+      _maybeShowControlsTour(ignorePending: true);
       return;
     }
+    if (!_focusStillCurrent(requested, generation)) return;
 
     _pendingNavigationMeasurement = null;
+    _defaultCameraDeferred = false;
     MapNavigationService.instance.clear(requested);
+    _maybeShowControlsTour();
+  }
+
+  void _replayDefaultCameraAfterDroppedFocus() {
+    if (!widget.isActive || !_cameraController.isInitialized) {
+      _rememberHiddenDefaultCamera();
+      return;
+    }
+    if (userPosition != null) {
+      _cameraController.snapToPosition(userPosition!);
+      _defaultCameraDeferred = false;
+    } else if (_mapMarkers.isNotEmpty) {
+      _cameraController.fitMeasurementsInView(allMeasurements);
+      _defaultCameraDeferred = false;
+    } else {
+      _defaultCameraDeferred = true;
+    }
   }
 
   Future<void> _applyMapStyle() async {
@@ -248,7 +349,15 @@ class _MapScreenState extends State<MapScreen>
         _cameraController.isInitialized &&
         _mapMarkers.isNotEmpty &&
         userPosition == null) {
-      _cameraController.fitMeasurementsInView(allMeasurements);
+      if (MapFirstVisit.shouldUseDefaultCamera(
+        hasPendingMonitor: _pendingNavigationMeasurement != null,
+        tabVisible: widget.isActive,
+      )) {
+        _cameraController.fitMeasurementsInView(allMeasurements);
+        _defaultCameraDeferred = false;
+      } else {
+        _rememberHiddenDefaultCamera();
+      }
     }
   }
 
@@ -271,8 +380,14 @@ class _MapScreenState extends State<MapScreen>
 
       if (mounted) setState(() => userPosition = position);
       _updateNearbyMeasurements();
-      if (_pendingNavigationMeasurement == null) {
+      if (MapFirstVisit.shouldUseDefaultCamera(
+        hasPendingMonitor: _pendingNavigationMeasurement != null,
+        tabVisible: widget.isActive,
+      )) {
         _cameraController.snapToPosition(userPosition!);
+        _defaultCameraDeferred = false;
+      } else {
+        _rememberHiddenDefaultCamera();
       }
     } catch (e) {
       loggy.error('Failed to get user location: $e');
@@ -291,8 +406,16 @@ class _MapScreenState extends State<MapScreen>
     await prefs.setBool(_tourSeenKey, true);
   }
 
-  void _maybeShowControlsTour() {
-    if (_showControlsTour || !_locationResolved) return;
+  void _maybeShowControlsTour({bool ignorePending = false}) {
+    if (!MapFirstVisit.shouldShowControlsTour(
+      tourAlreadyShowing: _showControlsTour,
+      locationResolved: _locationResolved,
+      tabVisible: widget.isActive,
+      hasPendingMonitor:
+          ignorePending ? false : _pendingNavigationMeasurement != null,
+    )) {
+      return;
+    }
     SharedPreferences.getInstance().then((prefs) {
       final seen = prefs.getBool(_tourSeenKey) ?? false;
       if (!seen && mounted) setState(() => _showControlsTour = true);
@@ -430,6 +553,16 @@ class _MapScreenState extends State<MapScreen>
   void _selectMeasurementFromSheet(Measurement measurement) {
     _animateSheetTo(_sheetPeekSize);
     viewDetails(measurement: measurement);
+  }
+
+  @override
+  void didUpdateWidget(covariant MapScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!oldWidget.isActive && widget.isActive) {
+      _focusPendingNavigationMeasurement();
+      _replayDeferredDefaultCamera();
+      _maybeShowControlsTour();
+    }
   }
 
   @override
