@@ -505,10 +505,9 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
       const response =
         await networkCoverageService.upsertNetworkCoverageRegistry(payload);
 
-      // Wait for the parent to finish refreshing and selecting the new
-      // monitor before closing this dialog. This prevents the save callback
-      // from racing the dialog unmount and turning a successful POST into a
-      // client-side navigation error.
+      // Let the parent select the country and schedule its background refresh
+      // before closing. The parent deliberately does not wait for the network
+      // refresh here, so the dialog does not remain stuck on "Saving...".
       await onSaved?.(response);
       setSuccess('Monitor saved');
       // small delay to show success then close

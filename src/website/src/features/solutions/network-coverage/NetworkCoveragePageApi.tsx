@@ -158,6 +158,8 @@ const NetworkCoveragePage = () => {
   );
   const [isDownloading, setIsDownloading] = useState(false);
   const [isLoadingImpact, setIsLoadingImpact] = useState(false);
+  const [isRefreshingAfterRegistration, setIsRefreshingAfterRegistration] =
+    useState(false);
   const [downloadError, setDownloadError] = useState<string | null>(null);
   const [flyToMonitorId, setFlyToMonitorId] = useState<string | null>(null);
   const snapshotGetterRef = useRef<
@@ -607,8 +609,9 @@ const NetworkCoveragePage = () => {
     });
   };
 
-  const handleAddSaved = async (response: any) => {
+  const handleAddSaved = (response: any) => {
     const registration = extractNetworkCoverageRegistration(response);
+    setIsRefreshingAfterRegistration(true);
 
     // Refresh active coverage views in the background. Waiting for every
     // summary/country/detail request here kept the dialog in "Saving..." and
@@ -627,10 +630,17 @@ const NetworkCoveragePage = () => {
         },
         refetchType: 'active',
       })
-      .catch(() => {
-        // The saved record remains successful even if a read-after-write refresh
-        // is temporarily unavailable. The user can retry from the page state.
-      });
+      .then(
+        () => {
+          if (isMountedRef.current) setIsRefreshingAfterRegistration(false);
+        },
+        () => {
+          // The saved record remains successful even if a read-after-write
+          // refresh is temporarily unavailable. The user can retry from the
+          // page state.
+          if (isMountedRef.current) setIsRefreshingAfterRegistration(false);
+        },
+      );
 
     const createdCountryId =
       registration.countryId ||
@@ -988,6 +998,7 @@ const NetworkCoveragePage = () => {
   const isInitialLoading = summaryQuery.isLoading && countries.length === 0;
   const isFetchingData =
     summaryQuery.isFetching || countryMonitorsQuery.isFetching;
+  const isMapDataLoading = isInitialLoading || isRefreshingAfterRegistration;
   const summaryError = summaryQuery.error?.message ?? null;
 
   // Human-readable export scope for the header download menu ("All countries"
@@ -1101,7 +1112,10 @@ const NetworkCoveragePage = () => {
             />
           </div>
 
-          <section className="relative h-full min-h-0 flex-1 overflow-hidden">
+          <section
+            className="relative h-full min-h-0 flex-1 overflow-hidden"
+            aria-busy={isMapDataLoading || isFetchingData}
+          >
             <MapLoader
               loadingComponent={
                 <div className="flex h-full w-full items-center justify-center bg-slate-100">
@@ -1139,14 +1153,22 @@ const NetworkCoveragePage = () => {
               </div>
             )}
             {/* Non-blocking "updating" pill for background refetches */}
-            {isFetchingData && !isInitialLoading && (
-              <div className="absolute left-1/2 top-3 z-20 -translate-x-1/2 rounded-xl border border-slate-200/80 bg-white/90 px-3 py-1 text-xs text-slate-600 shadow-sm backdrop-blur-sm">
-                <span className="flex items-center gap-1.5">
-                  <FiLoader className="animate-spin text-blue-600" />
-                  Updating…
-                </span>
-              </div>
-            )}
+            {(isFetchingData || isRefreshingAfterRegistration) &&
+              !isInitialLoading && (
+                <div
+                  className="absolute left-1/2 top-3 z-20 -translate-x-1/2 rounded-xl border border-slate-200/80 bg-white/95 px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm backdrop-blur-sm"
+                  role="status"
+                  aria-live="polite"
+                  data-testid="network-coverage-refresh-state"
+                >
+                  <span className="flex items-center gap-1.5">
+                    <FiLoader className="animate-spin text-blue-600" />
+                    {isRefreshingAfterRegistration
+                      ? 'Refreshing map with the new device…'
+                      : 'Updating map data…'}
+                  </span>
+                </div>
+              )}
             {/* initial loading handled by MapLoader spinner; remove redundant message */}
             {summaryError && !countries.length ? (
               <div className="absolute inset-0 z-20 flex items-center justify-center bg-slate-100/80 px-6">
