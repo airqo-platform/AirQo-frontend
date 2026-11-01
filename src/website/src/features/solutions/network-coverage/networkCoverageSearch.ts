@@ -31,9 +31,9 @@ export const getNetworkCoverageSearchMatches = (
     return { countryMatches: false, monitors: [], cities: [] };
   }
 
-  const countryMatches = normalizeSearchValue(country.country).includes(
-    normalizedQuery,
-  );
+  const countryMatches =
+    normalizeSearchValue(country.country).includes(normalizedQuery) ||
+    normalizeSearchValue(country.iso2) === normalizedQuery;
   const monitors = country.monitors.filter((monitor) =>
     monitorSearchFields(monitor).some((field) =>
       normalizeSearchValue(field).includes(normalizedQuery),

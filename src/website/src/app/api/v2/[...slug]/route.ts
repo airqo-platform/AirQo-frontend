@@ -49,6 +49,11 @@ const API_CACHE_RESPONSE_HEADERS: Record<string, string> = {
   'Cache-Control': 'private, max-age=60, stale-while-revalidate=600',
 };
 
+const getCacheResponseHeaders = (cachePolicy?: { name: string }) =>
+  cachePolicy?.name === 'networkCoverage'
+    ? { 'Cache-Control': 'no-store' }
+    : API_CACHE_RESPONSE_HEADERS;
+
 // Add dynamic force for better production debugging
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -167,7 +172,7 @@ async function handleRequest(
           headers: {
             'Content-Type': 'application/json',
             'X-Cache': 'HIT',
-            ...API_CACHE_RESPONSE_HEADERS,
+            ...getCacheResponseHeaders(cachePolicy),
           },
         });
       }
@@ -219,7 +224,10 @@ async function handleRequest(
       headers: {
         'Content-Type': 'application/json',
         ...(cachePolicy
-          ? { 'X-Cache': 'MISS', ...API_CACHE_RESPONSE_HEADERS }
+          ? {
+              'X-Cache': 'MISS',
+              ...getCacheResponseHeaders(cachePolicy),
+            }
           : {}),
       },
     });

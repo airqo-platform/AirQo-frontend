@@ -30,6 +30,7 @@ import NetworkCoverageMap from './components/NetworkCoverageMap';
 import NetworkCoverageSidebar from './components/NetworkCoverageSidebar';
 import {
   type MonitorType,
+  type NetworkCoverageCityMatch,
   type NetworkCoverageCountry,
   type NetworkCoverageCountryResponse,
   type NetworkCoverageCountryStats,
@@ -77,9 +78,11 @@ const countryResponseMatchesSelection = (
   return false;
 };
 import { type ExportData, generatePdf, generateCsv } from './utils/exportUtils';
-import { extractNetworkCoverageMonitorId } from './networkCoverageRegistry';
+import { extractNetworkCoverageRegistration } from './networkCoverageRegistry';
 
 const DEFAULT_TENANT = 'airqo';
+const NETWORK_COVERAGE_SEARCH_DEBOUNCE_MS = 450;
+const NETWORK_COVERAGE_MIN_SEARCH_LENGTH = 2;
 
 // Builds country stats by counting type/status over the given (already
 // filtered) monitors. Used so sidebar rows show stats consistent with the
@@ -121,6 +124,10 @@ const NetworkCoveragePage = () => {
 
   const [query, setQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
+  const [cityFocus, setCityFocus] = useState<NetworkCoverageCityMatch | null>(
+    null,
+  );
+  const [cityFocusNotice, setCityFocusNotice] = useState<string | null>(null);
 
   // Initialize selection state from URL deep links (?country &monitor &view).
   const [selectedCountryId, setSelectedCountryId] = useState<string | null>(
@@ -175,7 +182,7 @@ const NetworkCoveragePage = () => {
   useEffect(() => {
     const timeout = window.setTimeout(() => {
       setDebouncedQuery(query);
-    }, 300);
+    }, NETWORK_COVERAGE_SEARCH_DEBOUNCE_MS);
 
     return () => window.clearTimeout(timeout);
   }, [query]);
@@ -247,6 +254,34 @@ const NetworkCoveragePage = () => {
   const summaryQuery = useNetworkCoverageSummary(COVERAGE_QUERY_PARAMS, {
     retry: 1,
   });
+
+  // Keep the full summary for the map and local monitor filtering, while also
+  // asking the API for city-level matches and map centers when a search term
+  // is settled. This uses the additive cityMatches contract without making
+  // every keystroke replace the full map dataset.
+  const settledSearchTerm = debouncedQuery.trim();
+  const citySearchEnabled =
+    settledSearchTerm.length >= NETWORK_COVERAGE_MIN_SEARCH_LENGTH;
+
+  const citySearchQuery = useNetworkCoverageSummary(
+    citySearchEnabled
+      ? { ...COVERAGE_QUERY_PARAMS, search: settledSearchTerm }
+      : undefined,
+    {
+      enabled: citySearchEnabled,
+      placeholderData: undefined,
+      retry: 1,
+    },
+  );
+
+  const cityMatches = useMemo<NetworkCoverageCityMatch[]>(
+    () => (citySearchEnabled ? (citySearchQuery.data?.cityMatches ?? []) : []),
+    [citySearchEnabled, citySearchQuery.data?.cityMatches],
+  );
+
+  useEffect(() => {
+    if (!debouncedQuery.trim()) setCityFocus(null);
+  }, [debouncedQuery]);
 
   const impactQuery = useNetworkCoverageImpact(COVERAGE_QUERY_PARAMS, {
     enabled: hasRequestedExport,
@@ -417,13 +452,23 @@ const NetworkCoveragePage = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedCountryId, selectedMonitorId, viewMode]);
 
-  const isSearching = query !== debouncedQuery && query.trim() !== '';
+  const isCitySearchLoading =
+    query.trim() !== debouncedQuery.trim() ||
+    (citySearchEnabled && citySearchQuery.isFetching);
 
   const resetToOverview = () => {
     setSelectedCountryId(null);
     setSelectedMonitorId(null);
     setShowAddMonitorPromptFor(null);
+    setCityFocus(null);
+    setCityFocusNotice(null);
   };
+
+  const handleQueryChange = useCallback((value: string) => {
+    setQuery(value);
+    setCityFocus(null);
+    setCityFocusNotice(null);
+  }, []);
 
   const selectCountry = (countryId: string) => {
     const country = allCountries.find((item) => item.id === countryId);
@@ -445,6 +490,29 @@ const NetworkCoveragePage = () => {
     // (which contains the "Add device" action) stays visible on mobile.
     setIsSidebarOpen(true);
   };
+
+  const selectCity = useCallback(
+    (cityMatch: NetworkCoverageCityMatch) => {
+      const country = allCountries.find(
+        (item) =>
+          item.id === cityMatch.countryId ||
+          (item.iso2 &&
+            item.iso2.toUpperCase() === cityMatch.iso2.toUpperCase()),
+      );
+      if (!country) return;
+
+      setCityFocus(cityMatch);
+      setCityFocusNotice(
+        `Map focused on ${cityMatch.city}, ${cityMatch.country}`,
+      );
+      setSelectedCountryId(country.id);
+      setSelectedMonitorId(null);
+      setShowAddMonitorPromptFor(null);
+      setViewMode('monitors');
+      setIsSidebarOpen(true);
+    },
+    [allCountries],
+  );
 
   const handleOpenAddMonitor = (
     countryId: string,
@@ -540,25 +608,13 @@ const NetworkCoveragePage = () => {
   };
 
   const handleAddSaved = async (response: any) => {
-    const createdId = extractNetworkCoverageMonitorId(response);
+    const registration = extractNetworkCoverageRegistration(response);
 
-    // Invalidate coverage queries so UI reflects the added monitor
-    queryClient.invalidateQueries({
-      predicate: (query) => {
-        const k = Array.isArray(query.queryKey)
-          ? query.queryKey[0]
-          : query.queryKey;
-        return (
-          k === 'networkCoverageSummary' ||
-          k === 'networkCoverageCountryMonitors' ||
-          k === 'networkCoverageMonitor'
-        );
-      },
-    });
-
-    try {
-      // Ensure queries are refetched before attempting to select the new monitor
-      await queryClient.refetchQueries({
+    // Refresh active coverage views in the background. Waiting for every
+    // summary/country/detail request here kept the dialog in "Saving..." and
+    // made a successful registration vulnerable to a read-after-write error.
+    void queryClient
+      .invalidateQueries({
         predicate: (query) => {
           const k = Array.isArray(query.queryKey)
             ? query.queryKey[0]
@@ -569,14 +625,34 @@ const NetworkCoveragePage = () => {
             k === 'networkCoverageMonitor'
           );
         },
+        refetchType: 'active',
+      })
+      .catch(() => {
+        // The saved record remains successful even if a read-after-write refresh
+        // is temporarily unavailable. The user can retry from the page state.
       });
-    } catch {
-      // ignore refetch errors; we'll still attempt to select if possible
-    }
 
-    if (addDialogCountry?.id) {
-      setSelectedCountryId(addDialogCountry.id);
-      if (createdId) setSelectedMonitorId(createdId);
+    const createdCountryId =
+      registration.countryId ||
+      (registration.iso2
+        ? allCountries.find(
+            (country) =>
+              country.iso2?.toUpperCase() === registration.iso2?.toUpperCase(),
+          )?.id
+        : null) ||
+      addDialogCountry?.id ||
+      null;
+
+    if (createdCountryId) {
+      setSelectedCountryId(createdCountryId);
+      // Site-linked registrations can be returned as pending until a device
+      // is active. Do not select a detail ID that the read endpoint cannot yet
+      // resolve; the country view remains usable while the backend catches up.
+      if (registration.monitorId && registration.availability !== 'pending') {
+        setSelectedMonitorId(registration.monitorId);
+      } else {
+        setSelectedMonitorId(null);
+      }
       setIsSidebarOpen(true);
     }
   };
@@ -974,7 +1050,7 @@ const NetworkCoveragePage = () => {
               countries={allCountries}
               query={query}
               searchQuery={debouncedQuery}
-              isSearching={isSearching}
+              isCitySearchLoading={isCitySearchLoading}
               selectedTypes={selectedTypes}
               activeOnly={activeOnly}
               selectedNetworks={selectedNetworks}
@@ -984,10 +1060,11 @@ const NetworkCoveragePage = () => {
                 summaryQuery.data?.meta?.monitoredCountries
               }
               selectedMonitor={selectedMonitor}
+              cityMatches={cityMatches}
               showAddMonitorPromptFor={showAddMonitorPromptFor}
               isLoading={isInitialLoading}
               error={summaryError}
-              onQueryChange={setQuery}
+              onQueryChange={handleQueryChange}
               onToggleType={toggleType}
               onToggleActiveOnly={() => {
                 setActiveOnly((previous) => {
@@ -1002,6 +1079,7 @@ const NetworkCoveragePage = () => {
               }}
               onToggleNetwork={toggleNetwork}
               onSelectCountry={selectCountry}
+              onSelectCity={selectCity}
               onSelectMonitor={selectMonitor}
               // sidebar prompt opens our dialog via onOpenAddMonitor
               onOpenAddMonitor={handleOpenAddMonitor}
@@ -1044,6 +1122,7 @@ const NetworkCoveragePage = () => {
                 onMonitorSelect={selectMonitor}
                 onResetView={resetToOverview}
                 flyToMonitorId={flyToMonitorId}
+                cityFocus={cityFocus}
                 onRegisterSnapshot={handleRegisterSnapshot}
               />
             </MapLoader>
@@ -1146,6 +1225,15 @@ const NetworkCoveragePage = () => {
                 </option>
               </select>
             </div>
+            {cityFocusNotice ? (
+              <div
+                role="status"
+                aria-live="polite"
+                className="absolute left-3 top-3 z-20 max-w-[calc(100%-7rem)] rounded-xl border border-blue-200 bg-white/95 px-3 py-2 text-xs font-medium text-blue-900 shadow-md backdrop-blur-sm sm:left-4 sm:max-w-none"
+              >
+                {cityFocusNotice}
+              </div>
+            ) : null}
             <div className="absolute bottom-4 left-4 z-20">
               <NetworkCoverageLegend viewMode={viewMode} />
             </div>

@@ -8,6 +8,7 @@ import { FiMinus, FiPlus, FiCamera } from 'react-icons/fi';
 import {
   africanIso2Codes,
   normalizeCountryId,
+  type NetworkCoverageCityMatch,
   type MonitorType,
   type NetworkCoverageCountry,
   type NetworkCoverageMonitor,
@@ -48,6 +49,7 @@ interface NetworkCoverageMapProps {
   ) => void;
   onResetView: () => void;
   flyToMonitorId?: string | null;
+  cityFocus?: NetworkCoverageCityMatch | null;
   onRegisterSnapshot?: (
     fn: ((options: SnapshotOptions) => Promise<string | null>) | null,
   ) => void;
@@ -227,6 +229,7 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
   onMonitorSelect,
   onResetView,
   flyToMonitorId,
+  cityFocus,
   onRegisterSnapshot,
 }) => {
   const mapRef = useRef<any>(null);
@@ -338,7 +341,11 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
   };
 
   useEffect(() => {
-    if (typeof window === 'undefined' || mapRef.current) {
+    if (
+      typeof window === 'undefined' ||
+      mapRef.current ||
+      !mapContainerRef.current
+    ) {
       return;
     }
 
@@ -358,10 +365,11 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
       return;
     }
 
+    const container = mapContainerRef.current;
     let mapInstance: any;
     try {
       mapInstance = new mapboxgl.Map({
-        container: mapContainerRef.current,
+        container,
         style: mapStyle,
         // Use pre-calculated Africa center so the map starts at the correct
         // position without a fitBounds animation on load (eliminates jump).
@@ -390,6 +398,7 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
     mapRef.current = mapInstance;
 
     mapRef.current.on('load', () => {
+      if (mapRef.current !== mapInstance) return;
       const map = mapRef.current;
 
       // Ensure the map is constrained to AFRICA_BOUNDS and start at the
@@ -1083,6 +1092,20 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
     // the continent. We still allow selected-country fitBounds to zoom in.
     // The reset control returns the view to the locked default center/zoom.
   }, [allMonitors, mapLoaded, selectedCountry, selectedCountryId]);
+
+  // The backend returns a city center for settled city searches. Prefer that
+  // precise focus over the broader country fit so a search such as Nairobi
+  // visibly resolves to Nairobi rather than only to Kenya.
+  useEffect(() => {
+    if (!mapLoaded || !mapRef.current || !cityFocus?.center) return;
+
+    mapRef.current.flyTo({
+      center: [cityFocus.center.longitude, cityFocus.center.latitude],
+      zoom: 9.5,
+      speed: 0.9,
+      curve: 1.2,
+    });
+  }, [cityFocus, mapLoaded]);
 
   // Fly to a specific monitor when parent requests it (triggered after details load)
   useEffect(() => {

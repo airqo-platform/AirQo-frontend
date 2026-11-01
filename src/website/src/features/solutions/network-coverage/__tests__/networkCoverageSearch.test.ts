@@ -59,6 +59,23 @@ describe('network coverage search', () => {
     expect(result.monitors).toHaveLength(0);
   });
 
+  it('matches exact ISO2 country codes, including countries without monitors', () => {
+    const unmonitored = {
+      ...kenya,
+      id: 'gambia',
+      country: 'The Gambia',
+      iso2: 'GM',
+      monitors: [],
+    };
+
+    expect(
+      getNetworkCoverageSearchMatches(unmonitored, 'gm').countryMatches,
+    ).toBe(true);
+    expect(
+      getNetworkCoverageSearchMatches(unmonitored, 'gma').countryMatches,
+    ).toBe(false);
+  });
+
   it('filters out countries with no city, station, network, or country match', () => {
     expect(filterNetworkCoverageCountries([kenya], 'Kampala')).toEqual([]);
     expect(filterNetworkCoverageCountries([kenya], 'Nairobi')).toEqual([kenya]);

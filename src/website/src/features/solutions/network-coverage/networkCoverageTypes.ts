@@ -66,10 +66,27 @@ export interface NetworkCoverageSummaryMeta {
   generatedAt: string;
 }
 
+export interface NetworkCoverageCityCenter {
+  latitude: number;
+  longitude: number;
+}
+
+export interface NetworkCoverageCityMatch {
+  city: string;
+  country: string;
+  countryId: string;
+  iso2: string;
+  total: number;
+  active: number;
+  inactive: number;
+  center: NetworkCoverageCityCenter | null;
+}
+
 export interface NetworkCoverageSummaryResponse {
   success: boolean;
   message: string;
   countries: NetworkCoverageCountry[];
+  cityMatches?: NetworkCoverageCityMatch[];
   meta: NetworkCoverageSummaryMeta;
 }
 
@@ -354,6 +371,36 @@ export const normalizeNetworkCoverageSummary = (
     : [];
 
   const meta = source.meta ?? {};
+  const cityMatches = Array.isArray(source.cityMatches)
+    ? source.cityMatches
+        .map((match: any): NetworkCoverageCityMatch | null => {
+          const center = match?.center;
+          const latitude = normalizeNumber(center?.latitude);
+          const longitude = normalizeNumber(center?.longitude);
+
+          return {
+            city: normalizeString(match?.city),
+            country: normalizeString(match?.country),
+            countryId: normalizeString(
+              match?.countryId || normalizeCountryId(match?.country),
+            ),
+            iso2: normalizeIso2(match?.iso2),
+            total: normalizeNumber(match?.total, 0) ?? 0,
+            active: normalizeNumber(match?.active, 0) ?? 0,
+            inactive: normalizeNumber(match?.inactive, 0) ?? 0,
+            center:
+              latitude !== null && longitude !== null
+                ? { latitude, longitude }
+                : null,
+          };
+        })
+        .filter(
+          (
+            match: NetworkCoverageCityMatch | null,
+          ): match is NetworkCoverageCityMatch =>
+            Boolean(match && match.city && match.country),
+        )
+    : undefined;
 
   return {
     success: source.success !== false,
@@ -365,6 +412,7 @@ export const normalizeNetworkCoverageSummary = (
       (left: NetworkCoverageCountry, right: NetworkCoverageCountry) =>
         left.country.localeCompare(right.country),
     ),
+    ...(cityMatches ? { cityMatches } : {}),
     meta: {
       totalCountries:
         normalizeNumber(meta.totalCountries, countries.length) ??

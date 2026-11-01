@@ -27,6 +27,7 @@ class ApiClient {
       params,
       headers = {},
       timeout = this.defaultTimeout,
+      signal: requestSignal,
     } = config;
 
     // Build the full URL
@@ -39,42 +40,67 @@ class ApiClient {
       ...headers,
     };
 
+    let externallyAborted = false;
+
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), timeout);
+      const handleExternalAbort = () => {
+        externallyAborted = true;
+        controller.abort();
+      };
 
-      const response = await fetch(fullUrl, {
-        method,
-        headers: requestHeaders,
-        body: data ? JSON.stringify(data) : undefined,
-        signal: controller.signal,
-      });
-
-      clearTimeout(timeoutId);
-
-      const responseData = await response.json().catch(() => null);
-
-      if (!response.ok) {
-        const error: EnhancedApiError = new Error(
-          `HTTP ${response.status}: ${response.statusText}`,
-        );
-        error.statusCode = response.status;
-        error.response = {
-          data: responseData,
-          status: response.status,
-          headers: Object.fromEntries(response.headers.entries()),
-        };
-        throw error;
+      if (requestSignal?.aborted) {
+        handleExternalAbort();
+      } else {
+        requestSignal?.addEventListener('abort', handleExternalAbort, {
+          once: true,
+        });
       }
 
-      return {
-        data: responseData,
-        success: true,
-        statusCode: response.status,
-        headers: Object.fromEntries(response.headers.entries()),
-      };
+      const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+      try {
+        const response = await fetch(fullUrl, {
+          method,
+          headers: requestHeaders,
+          body: data ? JSON.stringify(data) : undefined,
+          signal: controller.signal,
+          // Network Coverage data must be read fresh after a registry write;
+          // the proxy already owns the bounded server-side cache and invalidates
+          // it after mutations.
+          ...(fullUrl.includes('/api/v2/devices/network-coverage')
+            ? { cache: 'no-store' as RequestCache }
+            : {}),
+        });
+
+        const responseData = await response.json().catch(() => null);
+
+        if (!response.ok) {
+          const error: EnhancedApiError = new Error(
+            `HTTP ${response.status}: ${response.statusText}`,
+          );
+          error.statusCode = response.status;
+          error.response = {
+            data: responseData,
+            status: response.status,
+            headers: Object.fromEntries(response.headers.entries()),
+          };
+          throw error;
+        }
+
+        return {
+          data: responseData,
+          success: true,
+          statusCode: response.status,
+          headers: Object.fromEntries(response.headers.entries()),
+        };
+      } finally {
+        clearTimeout(timeoutId);
+        requestSignal?.removeEventListener('abort', handleExternalAbort);
+      }
     } catch (error) {
       if (error instanceof Error && error.name === 'AbortError') {
+        if (externallyAborted) throw error;
         const timeoutError: EnhancedApiError = new Error('Request timeout');
         timeoutError.statusCode = 408;
         throw timeoutError;
