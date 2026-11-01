@@ -238,6 +238,9 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
   // Guards the selected-country fitBounds effect against fighting the export
   // camera positioning, which briefly moves the map for a deterministic shot.
   const isSnapshotPositioningRef = useRef(false);
+  const pendingCityCenterRef = useRef<
+    NetworkCoverageCityMatch['center'] | null
+  >(null);
   // Latest selection + country lookup kept in refs so the registered snapshot
   // getter (captured once on map load) never goes stale when props change.
   // `countryById` is declared further down (useMemo), so start empty and sync in
@@ -655,6 +658,16 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
         }
       }
       isSnapshotPositioningRef.current = false;
+      const pendingCenter = pendingCityCenterRef.current;
+      pendingCityCenterRef.current = null;
+      if (pendingCenter && mapRef.current) {
+        mapRef.current.flyTo({
+          center: [pendingCenter.longitude, pendingCenter.latitude],
+          zoom: 9.5,
+          speed: 0.9,
+          curve: 1.2,
+        });
+      }
     }
   };
 
@@ -1097,7 +1110,16 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
   // precise focus over the broader country fit so a search such as Nairobi
   // visibly resolves to Nairobi rather than only to Kenya.
   useEffect(() => {
-    if (!mapLoaded || !mapRef.current || !cityFocus?.center) return;
+    if (!mapLoaded || !mapRef.current) return;
+    if (!cityFocus?.center) {
+      pendingCityCenterRef.current = null;
+      return;
+    }
+
+    if (isSnapshotPositioningRef.current) {
+      pendingCityCenterRef.current = cityFocus.center;
+      return;
+    }
 
     mapRef.current.flyTo({
       center: [cityFocus.center.longitude, cityFocus.center.latitude],

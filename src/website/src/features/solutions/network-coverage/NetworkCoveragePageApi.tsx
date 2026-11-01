@@ -28,6 +28,7 @@ import NetworkCoverageHeader from './components/NetworkCoverageHeader';
 import NetworkCoverageLegend from './components/NetworkCoverageLegend';
 import NetworkCoverageMap from './components/NetworkCoverageMap';
 import NetworkCoverageSidebar from './components/NetworkCoverageSidebar';
+import { getVisibleNetworkCoverageCityMatch } from './networkCoverageSearch';
 import {
   type MonitorType,
   type NetworkCoverageCityMatch,
@@ -366,25 +367,18 @@ const NetworkCoveragePage = () => {
   );
 
   const cityMatches = useMemo<NetworkCoverageCityMatch[]>(() => {
-    const visibleMatches = rawCityMatches.filter((cityMatch) => {
-      if (activeOnly) return cityMatch.active > 0;
-      if (hasInactive) return cityMatch.inactive > 0;
-      return true;
-    });
-
-    return visibleMatches
-      .filter((cityMatch) => Boolean(findCountryForCityMatch(cityMatch)))
-      .map((cityMatch) => {
-        const visibleTotal = activeOnly
-          ? cityMatch.active
-          : hasInactive
-            ? cityMatch.inactive
-            : cityMatch.total;
-        return visibleTotal === cityMatch.total
-          ? cityMatch
-          : { ...cityMatch, total: visibleTotal };
-      });
-  }, [activeOnly, findCountryForCityMatch, hasInactive, rawCityMatches]);
+    return rawCityMatches
+      .map((cityMatch) =>
+        getVisibleNetworkCoverageCityMatch(
+          cityMatch,
+          findCountryForCityMatch(cityMatch),
+        ),
+      )
+      .filter(
+        (cityMatch): cityMatch is NetworkCoverageCityMatch =>
+          cityMatch !== null,
+      );
+  }, [findCountryForCityMatch, rawCityMatches]);
 
   // Immediate, always-available baseline for the selected country so the
   // sidebar header can show the country name the instant it is picked,
@@ -1065,6 +1059,7 @@ const NetworkCoveragePage = () => {
     summaryQuery.isFetching || countryMonitorsQuery.isFetching;
   const isMapDataLoading = isInitialLoading || isRefreshingAfterRegistration;
   const summaryError = summaryQuery.error?.message ?? null;
+  const citySearchError = citySearchQuery.error?.message ?? null;
 
   // Human-readable export scope for the header download menu ("All countries"
   // or the selected country's name).
@@ -1127,6 +1122,8 @@ const NetworkCoveragePage = () => {
               query={query}
               searchQuery={debouncedQuery}
               isCitySearchLoading={isCitySearchLoading}
+              citySearchError={citySearchError}
+              onRetryCitySearch={() => citySearchQuery.refetch()}
               selectedTypes={selectedTypes}
               activeOnly={activeOnly}
               selectedNetworks={selectedNetworks}

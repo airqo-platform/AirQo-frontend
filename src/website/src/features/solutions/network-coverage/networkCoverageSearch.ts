@@ -1,4 +1,5 @@
 import type {
+  NetworkCoverageCityMatch,
   NetworkCoverageCountry,
   NetworkCoverageMonitor,
 } from './networkCoverageTypes';
@@ -14,6 +15,29 @@ const normalizeSearchValue = (value: unknown): string =>
     .trim()
     .toLowerCase()
     .replace(/\s+/g, ' ');
+
+export const getVisibleNetworkCoverageCityMatch = (
+  cityMatch: NetworkCoverageCityMatch,
+  country?: NetworkCoverageCountry,
+): NetworkCoverageCityMatch | null => {
+  if (!country) return null;
+
+  const normalizedCity = normalizeSearchValue(cityMatch.city);
+  const visibleMonitors = country.monitors.filter(
+    (monitor) => normalizeSearchValue(monitor.city) === normalizedCity,
+  );
+
+  if (visibleMonitors.length === 0) return null;
+
+  return {
+    ...cityMatch,
+    total: visibleMonitors.length,
+    active: visibleMonitors.filter((monitor) => monitor.status === 'active')
+      .length,
+    inactive: visibleMonitors.filter((monitor) => monitor.status === 'inactive')
+      .length,
+  };
+};
 
 const monitorSearchFields = (monitor: NetworkCoverageMonitor): string[] => [
   monitor.name,
@@ -39,16 +63,15 @@ export const getNetworkCoverageSearchMatches = (
       normalizeSearchValue(field).includes(normalizedQuery),
     ),
   );
-  const cities = Array.from(
-    new Set(
-      monitors
-        .filter((monitor) =>
-          normalizeSearchValue(monitor.city).includes(normalizedQuery),
-        )
-        .map((monitor) => monitor.city.trim())
-        .filter(Boolean),
-    ),
-  );
+  const cityByKey = new Map<string, string>();
+  for (const monitor of monitors) {
+    const city = monitor.city.trim();
+    const key = normalizeSearchValue(city);
+    if (city && key.includes(normalizedQuery) && !cityByKey.has(key)) {
+      cityByKey.set(key, city);
+    }
+  }
+  const cities = Array.from(cityByKey.values());
 
   return { countryMatches, monitors, cities };
 };

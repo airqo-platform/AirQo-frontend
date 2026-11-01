@@ -1,6 +1,7 @@
 import {
   filterNetworkCoverageCountries,
   getNetworkCoverageSearchMatches,
+  getVisibleNetworkCoverageCityMatch,
 } from '../networkCoverageSearch';
 import type { NetworkCoverageCountry } from '../networkCoverageTypes';
 
@@ -86,5 +87,58 @@ describe('network coverage search', () => {
 
     expect(result.monitors).toHaveLength(1);
     expect(result.cities).toEqual([]);
+  });
+
+  it('deduplicates city matches case-insensitively while keeping first spelling', () => {
+    const result = getNetworkCoverageSearchMatches(
+      {
+        ...kenya,
+        monitors: [
+          ...kenya.monitors,
+          { ...kenya.monitors[0], id: 'nairobi-2', city: 'nairobi' },
+        ],
+      },
+      'nairobi',
+    );
+
+    expect(result.cities).toEqual(['Nairobi']);
+  });
+
+  it('uses only visible monitors when building a city match', () => {
+    const result = getVisibleNetworkCoverageCityMatch(
+      {
+        city: 'Nairobi',
+        country: 'Kenya',
+        countryId: 'kenya',
+        iso2: 'KE',
+        total: 3,
+        active: 2,
+        inactive: 1,
+        center: { latitude: -1.28, longitude: 36.82 },
+      },
+      kenya,
+    );
+
+    expect(result).toEqual(
+      expect.objectContaining({ total: 1, active: 1, inactive: 0 }),
+    );
+  });
+
+  it('drops a city when no filtered monitor remains visible', () => {
+    expect(
+      getVisibleNetworkCoverageCityMatch(
+        {
+          city: 'Nairobi',
+          country: 'Kenya',
+          countryId: 'kenya',
+          iso2: 'KE',
+          total: 1,
+          active: 1,
+          inactive: 0,
+          center: { latitude: -1.28, longitude: 36.82 },
+        },
+        { ...kenya, monitors: [] },
+      ),
+    ).toBeNull();
   });
 });

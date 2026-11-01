@@ -123,6 +123,8 @@ interface NetworkCoverageSidebarProps {
   selectedMonitor: NetworkCoverageMonitor | null;
   cityMatches: NetworkCoverageCityMatch[];
   isCitySearchLoading?: boolean;
+  citySearchError?: string | null;
+  onRetryCitySearch?: () => void;
   showAddMonitorPromptFor: string | null;
   isLoading?: boolean;
   error?: string | null;
@@ -182,6 +184,8 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
   countryError = null,
   onRetryCountry,
   isCitySearchLoading = false,
+  citySearchError = null,
+  onRetryCitySearch,
   isSummaryLoading = false,
   isOpen = false,
   onClose,
@@ -990,6 +994,27 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
           </div>
         )}
 
+        {citySearchError && q && !isCitySearchLoading && !selectedCountry && (
+          <div
+            role="alert"
+            className="mb-3 rounded-xl border border-red-200 bg-red-50 p-4"
+          >
+            <p className="text-sm font-semibold text-red-900">
+              Unable to search cities
+            </p>
+            <p className="mt-1 text-xs text-red-700">{citySearchError}</p>
+            {onRetryCitySearch && (
+              <button
+                type="button"
+                onClick={onRetryCitySearch}
+                className="mt-3 rounded-lg border border-red-300 bg-white px-3 py-1.5 text-xs font-semibold text-red-800 transition-colors hover:bg-red-50"
+              >
+                Try again
+              </button>
+            )}
+          </div>
+        )}
+
         {/* Structured loading skeletons */}
         {isOverviewLoading && !q ? (
           <div className="space-y-2">
@@ -1078,6 +1103,7 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
         {!selectedCountry &&
         !hasCitySearchResults &&
         !isCitySearchLoading &&
+        !citySearchError &&
         !isOverviewLoading &&
         filteredCountries.length === 0 &&
         !error ? (
