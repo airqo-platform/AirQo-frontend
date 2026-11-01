@@ -38,7 +38,7 @@ curl "https://api.airqo.net/api/v2/devices/network-coverage/export.csv?countryId
 The response is `Content-Type: text/csv`, with a header row followed by one row per matched monitor covering the same fields documented in [Monitor Details](./monitor-details.md) (`name`, `city`, `country`, `type`, `status`, `operator`, `manufacturer`, `pollutants`, and so on).
 
 :::note A raw table, not a formatted report
-`export.csv` returns raw rows, one per monitor. Some Africa Network Maps also offer a formatted download (totals, filters applied, per-country breakdown); the map on [airqo.net/solutions/network-coverage](https://airqo.net/solutions/network-coverage), for example, builds its summary report client-side and never calls this endpoint. For an all-countries report it fetches fresh [impact statistics](./impact-statistics.md) at download time. Country-scoped and filtered reports use only the data the map has already loaded. If you just need a one-row-per-monitor table, call `export.csv` directly — it's simpler than reconstructing a report format.
+`export.csv` returns raw rows, one per monitor. Some Africa Network Maps also offer a formatted download (totals, filters applied, per-country breakdown); the map on [airqo.net/solutions/network-coverage](https://airqo.net/solutions/network-coverage), for example, builds its summary report client-side and never calls this endpoint. For an all-countries report with no data filter active, it fetches fresh [impact statistics](./impact-statistics.md) at download time. Country-scoped and filtered reports use only the data the map has already loaded. If you just need a one-row-per-monitor table, call `export.csv` directly — it's simpler than reconstructing a report format.
 :::
 
 ---
