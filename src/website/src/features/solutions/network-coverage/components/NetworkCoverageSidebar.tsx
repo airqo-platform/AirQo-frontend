@@ -542,7 +542,7 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
               )}
               {matchingCities.length > 0 && (
                 <p className="mt-1 truncate text-xs font-medium text-blue-700">
-                  Matching city{matchingCities.length > 1 ? 'ies' : ''}:{' '}
+                  Matching {matchingCities.length > 1 ? 'cities' : 'city'}:{' '}
                   {matchingCities.join(', ')}
                 </p>
               )}
@@ -1021,8 +1021,6 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
 
         {/* ── Country overview list ── */}
         {!selectedCountry &&
-          !hasCitySearchResults &&
-          !isCitySearchLoading &&
           !isOverviewLoading &&
           filteredCountries.length > 0 && (
             <div className="space-y-3">

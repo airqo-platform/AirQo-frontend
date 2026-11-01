@@ -40,7 +40,14 @@ export const getNetworkCoverageSearchMatches = (
     ),
   );
   const cities = Array.from(
-    new Set(monitors.map((monitor) => monitor.city.trim()).filter(Boolean)),
+    new Set(
+      monitors
+        .filter((monitor) =>
+          normalizeSearchValue(monitor.city).includes(normalizedQuery),
+        )
+        .map((monitor) => monitor.city.trim())
+        .filter(Boolean),
+    ),
   );
 
   return { countryMatches, monitors, cities };

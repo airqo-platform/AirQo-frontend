@@ -80,4 +80,11 @@ describe('network coverage search', () => {
     expect(filterNetworkCoverageCountries([kenya], 'Kampala')).toEqual([]);
     expect(filterNetworkCoverageCountries([kenya], 'Nairobi')).toEqual([kenya]);
   });
+
+  it('does not label a network-only match as a city match', () => {
+    const result = getNetworkCoverageSearchMatches(kenya, 'Africa Network');
+
+    expect(result.monitors).toHaveLength(1);
+    expect(result.cities).toEqual([]);
+  });
 });

@@ -3,6 +3,13 @@ import removeTrailingSlash from '@/lib/utils/removeTrailingSlash';
 import { EnhancedApiError, RequestConfig } from './api-error';
 import { ServiceResponse } from './api-response';
 
+const isAbortError = (error: unknown): boolean =>
+  (error instanceof Error && error.name === 'AbortError') ||
+  (typeof error === 'object' &&
+    error !== null &&
+    'name' in error &&
+    error.name === 'AbortError');
+
 interface ApiClientConfig {
   baseURL: string;
   timeout?: number;
@@ -73,7 +80,12 @@ class ApiClient {
             : {}),
         });
 
-        const responseData = await response.json().catch(() => null);
+        let responseData: any = null;
+        try {
+          responseData = await response.json();
+        } catch (error) {
+          if (isAbortError(error)) throw error;
+        }
 
         if (!response.ok) {
           const error: EnhancedApiError = new Error(
@@ -99,7 +111,7 @@ class ApiClient {
         requestSignal?.removeEventListener('abort', handleExternalAbort);
       }
     } catch (error) {
-      if (error instanceof Error && error.name === 'AbortError') {
+      if (isAbortError(error)) {
         if (externallyAborted) throw error;
         const timeoutError: EnhancedApiError = new Error('Request timeout');
         timeoutError.statusCode = 408;

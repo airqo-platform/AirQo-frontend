@@ -173,6 +173,7 @@ const NetworkCoveragePage = () => {
   const exportInProgressRef = useRef(false);
   const queryClient = useQueryClient();
   const sidebarToggleRef = useRef<HTMLButtonElement | null>(null);
+  const registrationRefreshIdRef = useRef(0);
 
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [addDialogCountry, setAddDialogCountry] = useState<{
@@ -276,13 +277,16 @@ const NetworkCoveragePage = () => {
     },
   );
 
-  const cityMatches = useMemo<NetworkCoverageCityMatch[]>(
+  const rawCityMatches = useMemo<NetworkCoverageCityMatch[]>(
     () => (citySearchEnabled ? (citySearchQuery.data?.cityMatches ?? []) : []),
     [citySearchEnabled, citySearchQuery.data?.cityMatches],
   );
 
   useEffect(() => {
-    if (!debouncedQuery.trim()) setCityFocus(null);
+    if (!debouncedQuery.trim()) {
+      setCityFocus(null);
+      setCityFocusNotice(null);
+    }
   }, [debouncedQuery]);
 
   const impactQuery = useNetworkCoverageImpact(COVERAGE_QUERY_PARAMS, {
@@ -337,6 +341,50 @@ const NetworkCoveragePage = () => {
       } as NetworkCoverageCountry;
     });
   }, [countries]);
+
+  const findCountryForCityMatch = useCallback(
+    (cityMatch: NetworkCoverageCityMatch) => {
+      const cityCountryId = cityMatch.countryId?.trim().toLowerCase();
+      const cityIso2 = cityMatch.iso2?.trim().toUpperCase();
+      const cityCountryName = normalizeCountryNameMatch(cityMatch.country);
+
+      return allCountries.find((country) => {
+        const countryId = country.id?.trim().toLowerCase();
+        const countryIso2 = country.iso2?.trim().toUpperCase();
+        return (
+          (cityCountryId &&
+            (countryId === cityCountryId ||
+              normalizeCountryId(country.id) ===
+                normalizeCountryId(cityMatch.countryId))) ||
+          (cityIso2 && countryIso2 === cityIso2) ||
+          (cityCountryName &&
+            normalizeCountryNameMatch(country.country) === cityCountryName)
+        );
+      });
+    },
+    [allCountries],
+  );
+
+  const cityMatches = useMemo<NetworkCoverageCityMatch[]>(() => {
+    const visibleMatches = rawCityMatches.filter((cityMatch) => {
+      if (activeOnly) return cityMatch.active > 0;
+      if (hasInactive) return cityMatch.inactive > 0;
+      return true;
+    });
+
+    return visibleMatches
+      .filter((cityMatch) => Boolean(findCountryForCityMatch(cityMatch)))
+      .map((cityMatch) => {
+        const visibleTotal = activeOnly
+          ? cityMatch.active
+          : hasInactive
+            ? cityMatch.inactive
+            : cityMatch.total;
+        return visibleTotal === cityMatch.total
+          ? cityMatch
+          : { ...cityMatch, total: visibleTotal };
+      });
+  }, [activeOnly, findCountryForCityMatch, hasInactive, rawCityMatches]);
 
   // Immediate, always-available baseline for the selected country so the
   // sidebar header can show the country name the instant it is picked,
@@ -476,6 +524,9 @@ const NetworkCoveragePage = () => {
     const country = allCountries.find((item) => item.id === countryId);
     if (!country) return;
 
+    setCityFocus(null);
+    setCityFocusNotice(null);
+
     if (country.monitors.length === 0) {
       // Show the in-sidebar prompt for adding a monitor (no dialog)
       setShowAddMonitorPromptFor(countryId);
@@ -495,17 +546,18 @@ const NetworkCoveragePage = () => {
 
   const selectCity = useCallback(
     (cityMatch: NetworkCoverageCityMatch) => {
-      const country = allCountries.find(
-        (item) =>
-          item.id === cityMatch.countryId ||
-          (item.iso2 &&
-            item.iso2.toUpperCase() === cityMatch.iso2.toUpperCase()),
-      );
-      if (!country) return;
+      const country = findCountryForCityMatch(cityMatch);
+      if (!country) {
+        setCityFocus(null);
+        setCityFocusNotice(`Unable to locate ${cityMatch.city} on the map.`);
+        return;
+      }
 
       setCityFocus(cityMatch);
       setCityFocusNotice(
-        `Map focused on ${cityMatch.city}, ${cityMatch.country}`,
+        cityMatch.center
+          ? `Map focused on ${cityMatch.city}, ${cityMatch.country}`
+          : null,
       );
       setSelectedCountryId(country.id);
       setSelectedMonitorId(null);
@@ -513,7 +565,7 @@ const NetworkCoveragePage = () => {
       setViewMode('monitors');
       setIsSidebarOpen(true);
     },
-    [allCountries],
+    [findCountryForCityMatch],
   );
 
   const handleOpenAddMonitor = (
@@ -544,6 +596,8 @@ const NetworkCoveragePage = () => {
     setSelectedCountryId(countryId);
     setSelectedMonitorId(monitorId);
     setShowAddMonitorPromptFor(null);
+    setCityFocus(null);
+    setCityFocusNotice(null);
     setViewMode('monitors');
 
     // If the selection originates from the map, open the sidebar on mobile
@@ -612,6 +666,7 @@ const NetworkCoveragePage = () => {
   const handleAddSaved = (response: any) => {
     const registration = extractNetworkCoverageRegistration(response);
     setIsRefreshingAfterRegistration(true);
+    const refreshId = ++registrationRefreshIdRef.current;
 
     // Refresh active coverage views in the background. Waiting for every
     // summary/country/detail request here kept the dialog in "Saving..." and
@@ -632,13 +687,23 @@ const NetworkCoveragePage = () => {
       })
       .then(
         () => {
-          if (isMountedRef.current) setIsRefreshingAfterRegistration(false);
+          if (
+            isMountedRef.current &&
+            refreshId === registrationRefreshIdRef.current
+          ) {
+            setIsRefreshingAfterRegistration(false);
+          }
         },
         () => {
           // The saved record remains successful even if a read-after-write
           // refresh is temporarily unavailable. The user can retry from the
           // page state.
-          if (isMountedRef.current) setIsRefreshingAfterRegistration(false);
+          if (
+            isMountedRef.current &&
+            refreshId === registrationRefreshIdRef.current
+          ) {
+            setIsRefreshingAfterRegistration(false);
+          }
         },
       );
 

@@ -43,4 +43,19 @@ describe('normalizeNetworkCoverageSummary', () => {
 
     expect(result.cityMatches).toBeUndefined();
   });
+
+  it('normalizes blank and missing country identifiers safely', () => {
+    const result = normalizeNetworkCoverageSummary({
+      countries: [],
+      cityMatches: [
+        { city: 'Kampala', country: ' Uganda ', countryId: '   ' },
+        { city: 'Unknown', country: undefined },
+      ],
+      meta: {},
+    });
+
+    expect(result.cityMatches).toEqual([
+      expect.objectContaining({ city: 'Kampala', countryId: 'uganda' }),
+    ]);
+  });
 });

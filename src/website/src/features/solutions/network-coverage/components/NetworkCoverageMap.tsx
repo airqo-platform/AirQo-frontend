@@ -1105,7 +1105,7 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
       speed: 0.9,
       curve: 1.2,
     });
-  }, [cityFocus, mapLoaded]);
+  }, [allMonitors, cityFocus, mapLoaded]);
 
   // Fly to a specific monitor when parent requests it (triggered after details load)
   useEffect(() => {

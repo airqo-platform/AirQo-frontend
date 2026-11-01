@@ -382,7 +382,8 @@ export const normalizeNetworkCoverageSummary = (
             city: normalizeString(match?.city),
             country: normalizeString(match?.country),
             countryId: normalizeString(
-              match?.countryId || normalizeCountryId(match?.country),
+              normalizeString(match?.countryId) ||
+                normalizeCountryId(normalizeString(match?.country)),
             ),
             iso2: normalizeIso2(match?.iso2),
             total: normalizeNumber(match?.total, 0) ?? 0,
