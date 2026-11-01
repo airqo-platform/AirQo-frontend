@@ -20,7 +20,6 @@ If you're wiring this up to a download button a visitor clicks, don't use a link
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `token` | string | Required |
-| `tenant` | string | Optional. The organisation instance to query. Defaults to `airqo`. |
 | `search` | string | Optional. Filters monitors by name, city, or country. |
 | `activeOnly` | boolean | Optional. |
 | `types` | string | Optional. Comma-separated: `Reference`, `LCS`. |

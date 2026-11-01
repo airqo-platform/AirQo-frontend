@@ -75,7 +75,7 @@ A successful submission returns `201 Created` for a new entry, or `200 OK` when 
 ```json
 {
   "success": true,
-  "message": "Monitor added to registry",
+  "message": "Registry record created successfully",
   "registry": {
     "_id": "66f4a2b3c4d5e6f7a8b9c0d2",
     "monitorId": "66f4a2b3c4d5e6f7a8b9c0d2",
@@ -111,14 +111,30 @@ When `availability` is `"available"`, you can rely on read-after-write. To read 
 
 ## Errors
 
-Failed submissions return a non-2xx status code and a body in this shape:
+Failed submissions return a non-2xx status code with `success: false`, a `message`, and an `errors` object. Validation failures key `errors` by field name, with the reason in `msg`:
 
 ```json
 {
   "success": false,
-  "message": "Validation failed",
+  "message": "Validation Error",
   "errors": {
-    "message": "latitude must be between -90 and 90"
+    "latitude": {
+      "msg": "latitude must be between -90 and 90",
+      "param": "latitude",
+      "location": "body"
+    }
+  }
+}
+```
+
+Every other failure puts the reason in `errors.message`:
+
+```json
+{
+  "success": false,
+  "message": "Site not found",
+  "errors": {
+    "message": "No site with id 66f4a2b3c4d5e6f7a8b9c0d2"
   }
 }
 ```
@@ -127,12 +143,13 @@ Failed submissions return a non-2xx status code and a body in this shape:
 |--------|------|
 | `400 Bad Request` | A field failed validation (missing required field, out-of-range coordinate, invalid `type`, etc.) |
 | `400 Bad Request` | `captchaToken` is missing |
+| `401 Unauthorized` | The `token` is missing or invalid |
 | `403 Forbidden` | `captchaToken` failed hCaptcha verification |
 | `404 Not Found` | The entry is linked to a site that doesn't exist |
 | `409 Conflict` | A registry entry already exists for that site |
 | `429 Too Many Requests` | Rate limit reached — at most **20 submissions per hour per IP address** |
 
-Show `errors.message` (or `message`) to the user. On `429`, ask them to try again later rather than retrying automatically.
+For validation failures, show each field's `msg` to the user; otherwise show `errors.message` (or `message`). On `429`, ask them to try again later rather than retrying automatically.
 
 ---
 

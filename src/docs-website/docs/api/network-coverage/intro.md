@@ -98,6 +98,18 @@ So the totals here are not a device inventory. They won't match a network's own 
 
 ---
 
+## How fresh the data is
+
+The summary, country-monitors, CSV export and impact endpoints share a cached copy of the monitor list, which is at most 5 minutes old:
+
+- **Registry and city population changes** clear the cache, so they show on the next request.
+- **Online status and newly deployed AirQo devices** can take up to 5 minutes to appear.
+- **[Monitor detail](./monitor-details.md)** always reads live data, so it can briefly be newer than the lists.
+
+`generatedAt` in a response shows when the response was built, not when the cached data was computed.
+
+---
+
 ## Next steps
 
 - [List countries and their monitors →](./monitors-and-countries.md)

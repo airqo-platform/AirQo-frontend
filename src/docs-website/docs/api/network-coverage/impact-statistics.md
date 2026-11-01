@@ -20,7 +20,6 @@ GET /api/v2/devices/network-coverage/impact?token={SECRET_TOKEN}
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `token` | string | Required |
-| `tenant` | string | Optional. The organisation instance to query. Defaults to `airqo`. |
 | `activeOnly` | boolean | Optional. Restrict all counts to active monitors. |
 | `types` | string | Optional. Comma-separated: `Reference`, `LCS`. |
 | `network` | string | Optional. Comma-separated network names. |

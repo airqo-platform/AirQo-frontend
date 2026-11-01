@@ -26,7 +26,6 @@ GET /api/v2/devices/network-coverage/monitors/{monitorId}?token={SECRET_TOKEN}
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `token` | string | Required |
-| `tenant` | string | Optional. The organisation instance to query. Defaults to `airqo`. |
 
 **Example**
 

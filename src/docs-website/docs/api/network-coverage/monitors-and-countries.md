@@ -22,7 +22,6 @@ Returns every country with monitors, each with its list of monitors nested insid
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `token` | string | Required |
-| `tenant` | string | Optional. The organisation instance to query. Defaults to `airqo`. |
 | `search` | string | Optional. Filters monitors by country, city, monitor name or network (case-insensitive substring match), or by two-letter country code (exact match, e.g. `KE`). When supplied, the response also includes [`cityMatches`](#city-matches-for-search). |
 | `activeOnly` | boolean | Optional. When `true`, excludes monitors with `status: "inactive"`. |
 | `types` | string | Optional. Comma-separated: `Reference`, `LCS`. Omit to include both. |
@@ -171,7 +170,7 @@ curl "https://api.airqo.net/api/v2/devices/network-coverage?search=Nairobi&token
       "id": "kenya",
       "country": "Kenya",
       "iso2": "KE",
-      "stats": { "total": 77, "Reference": 3, "LCS": 74, "Inactive": 0, "active": 40, "inactive": 37 },
+      "stats": { "total": 77, "Reference": 3, "LCS": 74, "Inactive": 0, "active": 57, "inactive": 20 },
       "monitors": [
         {
           "id": "67a1c2d3e4f5a6b7c8d9e0f1",
@@ -198,9 +197,9 @@ curl "https://api.airqo.net/api/v2/devices/network-coverage?search=Nairobi&token
       "countryId": "kenya",
       "iso2": "KE",
       "total": 77,
-      "active": 40,
-      "inactive": 37,
-      "center": { "latitude": -1.29, "longitude": 36.8 }
+      "active": 57,
+      "inactive": 20,
+      "center": { "latitude": -1.27, "longitude": 36.85 }
     }
   ],
   "meta": {
@@ -246,7 +245,7 @@ Returns one country's monitors. Use this when a user selects a country instead o
 
 **Query parameters**
 
-Same as the summary endpoint, minus `search`: `token`, `tenant`, `activeOnly`, `types`, `network`.
+Same as the summary endpoint, minus `search`: `token`, `activeOnly`, `types`, `network`.
 
 **Example**
 
