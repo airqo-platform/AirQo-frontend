@@ -235,9 +235,9 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
   const mapRef = useRef<any>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const coverageClickHandlerRef = useRef<((event: any) => void) | null>(null);
-  // Guards the selected-country fitBounds effect against fighting the export
-  // camera positioning, which briefly moves the map for a deterministic shot.
-  const isSnapshotPositioningRef = useRef(false);
+  // Counts captures that temporarily position the camera for deterministic
+  // snapshots. Unscoped screenshots do not participate in this coordination.
+  const snapshotPositioningCountRef = useRef(0);
   const pendingCityCenterRef = useRef<
     NetworkCoverageCityMatch['center'] | null
   >(null);
@@ -607,6 +607,7 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
     options?: SnapshotOptions,
   ): Promise<string | null> => {
     let restoreCamera: (() => void) | null = null;
+    let participatesInPositioning = false;
     try {
       if (!mapContainerRef.current) return null;
 
@@ -614,7 +615,8 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
       // the exported snapshot is reproducible (country-fitted or whole-Africa),
       // then restore the user's current view afterwards.
       if (options && mapRef.current) {
-        isSnapshotPositioningRef.current = true;
+        participatesInPositioning = true;
+        snapshotPositioningCountRef.current += 1;
         restoreCamera = await positionMapForSnapshot(
           mapRef.current,
           options.scope,
@@ -657,16 +659,27 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
           // ignore restore failures
         }
       }
-      isSnapshotPositioningRef.current = false;
-      const pendingCenter = pendingCityCenterRef.current;
-      pendingCityCenterRef.current = null;
-      if (pendingCenter && mapRef.current) {
-        mapRef.current.flyTo({
-          center: [pendingCenter.longitude, pendingCenter.latitude],
-          zoom: 9.5,
-          speed: 0.9,
-          curve: 1.2,
-        });
+      if (participatesInPositioning) {
+        snapshotPositioningCountRef.current = Math.max(
+          0,
+          snapshotPositioningCountRef.current - 1,
+        );
+      }
+
+      if (
+        participatesInPositioning &&
+        snapshotPositioningCountRef.current === 0
+      ) {
+        const pendingCenter = pendingCityCenterRef.current;
+        pendingCityCenterRef.current = null;
+        if (pendingCenter && mapRef.current) {
+          mapRef.current.flyTo({
+            center: [pendingCenter.longitude, pendingCenter.latitude],
+            zoom: 9.5,
+            speed: 0.9,
+            curve: 1.2,
+          });
+        }
       }
     }
   };
@@ -1077,7 +1090,7 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
 
     // While the export flow is positioning the map for a deterministic
     // snapshot, skip the user-facing auto-fit so the two don't fight.
-    if (isSnapshotPositioningRef.current) {
+    if (snapshotPositioningCountRef.current > 0) {
       return;
     }
 
@@ -1116,7 +1129,7 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
       return;
     }
 
-    if (isSnapshotPositioningRef.current) {
+    if (snapshotPositioningCountRef.current > 0) {
       pendingCityCenterRef.current = cityFocus.center;
       return;
     }

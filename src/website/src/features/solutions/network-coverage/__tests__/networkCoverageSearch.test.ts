@@ -1,5 +1,6 @@
 import {
   filterNetworkCoverageCountries,
+  findNetworkCoverageCountryForCityMatch,
   getNetworkCoverageSearchMatches,
   getVisibleNetworkCoverageCityMatch,
 } from '../networkCoverageSearch';
@@ -89,6 +90,30 @@ describe('network coverage search', () => {
     expect(result.cities).toEqual([]);
   });
 
+  it('matches monitor ISO2 only by exact equality', () => {
+    const eswatini = {
+      ...kenya,
+      id: 'eswatini',
+      country: 'Eswatini',
+      iso2: 'SZ',
+      monitors: [
+        {
+          ...kenya.monitors[0],
+          id: 'mbabane-1',
+          name: 'Central Sensor',
+          city: 'Mbabane',
+          network: 'AirQo',
+          iso2: 'SZ',
+        },
+      ],
+    };
+
+    expect(getNetworkCoverageSearchMatches(eswatini, 'z').monitors).toEqual([]);
+    expect(
+      getNetworkCoverageSearchMatches(eswatini, 'sz').monitors,
+    ).toHaveLength(1);
+  });
+
   it('deduplicates city matches case-insensitively while keeping first spelling', () => {
     const result = getNetworkCoverageSearchMatches(
       {
@@ -140,5 +165,30 @@ describe('network coverage search', () => {
         { ...kenya, monitors: [] },
       ),
     ).toBeNull();
+  });
+
+  it('rejects city matches whose country identifiers conflict', () => {
+    const uganda = {
+      ...kenya,
+      id: 'uganda',
+      country: 'Uganda',
+      iso2: 'UG',
+    };
+
+    expect(
+      findNetworkCoverageCountryForCityMatch(
+        {
+          city: 'Kampala',
+          country: 'Uganda',
+          countryId: 'kenya',
+          iso2: 'UG',
+          total: 1,
+          active: 1,
+          inactive: 0,
+          center: { latitude: 0.35, longitude: 32.58 },
+        },
+        [kenya, uganda],
+      ),
+    ).toBeUndefined();
   });
 });

@@ -28,7 +28,10 @@ import NetworkCoverageHeader from './components/NetworkCoverageHeader';
 import NetworkCoverageLegend from './components/NetworkCoverageLegend';
 import NetworkCoverageMap from './components/NetworkCoverageMap';
 import NetworkCoverageSidebar from './components/NetworkCoverageSidebar';
-import { getVisibleNetworkCoverageCityMatch } from './networkCoverageSearch';
+import {
+  findNetworkCoverageCountryForCityMatch,
+  getVisibleNetworkCoverageCityMatch,
+} from './networkCoverageSearch';
 import {
   type MonitorType,
   type NetworkCoverageCityMatch,
@@ -344,25 +347,8 @@ const NetworkCoveragePage = () => {
   }, [countries]);
 
   const findCountryForCityMatch = useCallback(
-    (cityMatch: NetworkCoverageCityMatch) => {
-      const cityCountryId = cityMatch.countryId?.trim().toLowerCase();
-      const cityIso2 = cityMatch.iso2?.trim().toUpperCase();
-      const cityCountryName = normalizeCountryNameMatch(cityMatch.country);
-
-      return allCountries.find((country) => {
-        const countryId = country.id?.trim().toLowerCase();
-        const countryIso2 = country.iso2?.trim().toUpperCase();
-        return (
-          (cityCountryId &&
-            (countryId === cityCountryId ||
-              normalizeCountryId(country.id) ===
-                normalizeCountryId(cityMatch.countryId))) ||
-          (cityIso2 && countryIso2 === cityIso2) ||
-          (cityCountryName &&
-            normalizeCountryNameMatch(country.country) === cityCountryName)
-        );
-      });
-    },
+    (cityMatch: NetworkCoverageCityMatch) =>
+      findNetworkCoverageCountryForCityMatch(cityMatch, allCountries),
     [allCountries],
   );
 
