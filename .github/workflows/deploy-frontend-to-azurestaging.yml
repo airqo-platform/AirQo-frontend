@@ -19,7 +19,7 @@ jobs:
   image-tag:
     if: github.event.pull_request.merged == true
     name: create image tag
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       build_id: ${{ steps.prep.outputs.build_id }}
       datetime: ${{ steps.prep.outputs.datetime }}
@@ -46,7 +46,7 @@ jobs:
       run_docs: ${{ steps.check_files.outputs.run_docs }}
       run_nexus: ${{ steps.check_files.outputs.run_nexus }}
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       pull-requests: read
     steps:
@@ -107,7 +107,7 @@ jobs:
     name: Deploy Website to Staging (Container Apps)
     needs: [check, image-tag]
     if: needs.check.outputs.run_website == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
 
@@ -164,7 +164,7 @@ jobs:
     name: build-push-calibrate-app-image
     needs: [check, image-tag]
     if: needs.check.outputs.run_calibrate_app == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -211,7 +211,7 @@ jobs:
     name: build-push-nexus-image
     needs: [check, image-tag]
     if: needs.check.outputs.run_nexus == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -257,7 +257,7 @@ jobs:
     name: build-push-vertex-image
     needs: [check, image-tag]
     if: needs.check.outputs.run_vertex == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -303,7 +303,7 @@ jobs:
     name: build-push-beacon-image
     needs: [check, image-tag]
     if: needs.check.outputs.run_beacon == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -343,7 +343,7 @@ jobs:
     name: build-push-docs-image
     needs: [check, image-tag]
     if: needs.check.outputs.run_docs == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout
         uses: actions/checkout@v4

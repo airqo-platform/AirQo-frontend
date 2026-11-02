@@ -39,7 +39,7 @@ env:
 jobs:
   image-tag:
     name: create image tag
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       build_id: ${{ steps.prep.outputs.build_id }}
       datetime: ${{ steps.prep.outputs.datetime }}
@@ -58,7 +58,7 @@ jobs:
     name: build-push-website
     needs: [image-tag]
     if: inputs.website == true
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -117,7 +117,7 @@ jobs:
     name: build-push-calibrate-app
     needs: [image-tag]
     if: inputs.calibrate_app == true
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -154,7 +154,7 @@ jobs:
     name: build-push-nexus
     needs: [image-tag]
     if: inputs.nexus == true
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -200,7 +200,7 @@ jobs:
     name: build-push-vertex
     needs: [image-tag]
     if: inputs.vertex == true
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -246,7 +246,7 @@ jobs:
     name: build-push-beacon
     needs: [image-tag]
     if: inputs.beacon == true
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -286,7 +286,7 @@ jobs:
     name: build-push-docs
     needs: [image-tag]
     if: inputs.docs == true
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout code
         uses: actions/checkout@v4

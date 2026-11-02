@@ -40,7 +40,7 @@ env:
 jobs:
   image-tag:
     name: create image tag
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       build_id: ${{ steps.prep.outputs.build_id }} # build id
       datetime: ${{ steps.prep.outputs.datetime }} # build date
@@ -61,7 +61,7 @@ jobs:
   #   name: build-push-deploy-website
   #   needs: [image-tag]
   #   if: inputs.website == true
-  #   runs-on: ubuntu-latest
+  #   runs-on: ubuntu-24.04
   #   steps:
   #     - name: Checkout
   #       uses: actions/checkout@v3
@@ -164,7 +164,7 @@ jobs:
     name: build-push-deploy-website2
     needs: [image-tag]
     if: inputs.website2 == true
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -294,7 +294,7 @@ jobs:
     name: build-push-calibrate-app-image
     needs: [image-tag]
     if: inputs.calibrate_app == true
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -362,7 +362,7 @@ jobs:
     name: build-push-analytics-platform-image
     needs: [image-tag]
     if: inputs.analytics_platform == true
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -422,7 +422,7 @@ jobs:
     name: build-push-vertex-image
     needs: [image-tag]
     if: inputs.vertex == true
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -481,7 +481,7 @@ jobs:
     name: build-push-beacon-image
     needs: [image-tag]
     if: inputs.beacon == true
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -540,7 +540,7 @@ jobs:
     name: build-push-docs-image
     needs: [image-tag]
     if: inputs.docs == true
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout
         uses: actions/checkout@v3
