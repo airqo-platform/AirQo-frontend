@@ -130,9 +130,9 @@ export const NAV_ITEMS: NavMenuSection = {
       href: '/resources?tab=policy',
     },
     {
-      title: 'Data access & usage',
-      description: 'Guidance for researchers and data users',
-      href: 'https://platform.airqo.net/docs/data-access/researchers-guide/',
+      title: 'AirQo API data access',
+      description: 'Guidance on finding and using AirQo air quality data',
+      href: 'https://platform.airqo.net/docs/api/intro/',
       newTab: true,
     },
     {
@@ -154,7 +154,7 @@ export const NAV_ITEMS: NavMenuSection = {
   ],
   'About AirQo': [
     { title: 'About AirQo', href: '/about-us' },
-    { title: 'Partners', href: '/partners' },
+    { title: 'Partners', href: '/about-us#partners' },
     { title: 'Press & media', href: '/press' },
     { title: 'Careers', href: '/careers' },
     { title: 'Contact Us', href: '/contact' },

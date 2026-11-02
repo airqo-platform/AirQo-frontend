@@ -37,7 +37,6 @@ describe('routesConfig', () => {
 
   describe('product routes', () => {
     it('has index, monitor, nexus, calibrate, mobile, api', () => {
-      expect(routesConfig.products.index).toBeDefined();
       expect(routesConfig.products.monitor).toBeDefined();
       expect(routesConfig.products.nexus).toBeDefined();
       expect(routesConfig.products.calibrate).toBeDefined();
@@ -48,7 +47,6 @@ describe('routesConfig', () => {
 
   describe('solution routes', () => {
     it('has index, communities, african-cities', () => {
-      expect(routesConfig.solutions.index).toBeDefined();
       expect(routesConfig.solutions.communities).toBeDefined();
       expect(routesConfig.solutions['african-cities']).toBeDefined();
     });
@@ -56,7 +54,6 @@ describe('routesConfig', () => {
 
   describe('developer routes', () => {
     it('has index, packages, airqo-devcon', () => {
-      expect(routesConfig.developers.index).toBeDefined();
       expect(routesConfig.developers.packages).toBeDefined();
       expect(routesConfig.developers['airqo-devcon']).toBeDefined();
     });
@@ -126,7 +123,9 @@ describe('routesConfig', () => {
     it('all paths start with /', () => {
       const routes = collectRoutes(routesConfig);
       routes.forEach((route) => {
-        expect(route.path.startsWith('/')).toBe(true);
+        expect(
+          route.path.startsWith('/') || route.path.startsWith('https://'),
+        ).toBe(true);
       });
     });
 
@@ -139,12 +138,13 @@ describe('routesConfig', () => {
 
     it('has expected path values for key routes', () => {
       expect(routesConfig.home.path).toBe('/home');
-      expect(routesConfig.products.index.path).toBe('/products');
       expect(routesConfig.products.monitor.path).toBe('/products/monitor');
-      expect(routesConfig.solutions.index.path).toBe('/solutions');
-      expect(routesConfig.developers.index.path).toBe('/developers');
-      expect(routesConfig.company.about.path).toBe('/about');
-      expect(routesConfig.legal.terms.path).toBe('/legal/terms');
+      expect(routesConfig.products.mobile.path).toBe('/products/mobile-app');
+      expect(routesConfig.developers.packages.path).toBe('/packages');
+      expect(routesConfig.company.about.path).toBe('/about-us');
+      expect(routesConfig.company.partners.path).toBe('/about-us#partners');
+      expect(routesConfig.legal.terms.path).toBe('/legal/terms-of-service');
+      expect(routesConfig.legal.privacy.path).toBe('/legal/privacy-policy');
       expect(routesConfig.blogs.index.path).toBe('/blogs');
       expect(routesConfig.faqs.path).toBe('/faqs');
     });

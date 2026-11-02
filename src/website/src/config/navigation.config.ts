@@ -16,10 +16,14 @@ export type NavigationConfig = {
 
 const navigationConfig: NavigationConfig = {
   mainNav: [
-    { label: 'Products', href: '/products' },
-    { label: 'Solutions', href: '/solutions' },
-    { label: 'Developers', href: '/developers' },
-    { label: 'About', href: '/about' },
+    { label: 'Products', href: '/explore-data' },
+    { label: 'Solutions', href: '/solutions/african-cities' },
+    {
+      label: 'Developers',
+      href: 'https://platform.airqo.net/docs/api/intro/',
+      isExternal: true,
+    },
+    { label: 'About', href: '/about-us' },
     { label: 'Blogs', href: 'https://blog.airqo.net/', isExternal: true },
     { label: 'FAQs', href: '/faqs' },
   ],
@@ -28,7 +32,7 @@ const navigationConfig: NavigationConfig = {
       { label: 'Monitor', href: '/products/monitor' },
       { label: 'AirQo Nexus', href: '/products/nexus' },
       { label: 'Calibrate', href: '/products/calibrate' },
-      { label: 'Mobile', href: '/products/mobile' },
+      { label: 'Mobile', href: '/products/mobile-app' },
       { label: 'API', href: '/products/api' },
     ],
     solutions: [
@@ -36,15 +40,15 @@ const navigationConfig: NavigationConfig = {
       { label: 'African Cities', href: '/solutions/african-cities' },
     ],
     developers: [
-      { label: 'Packages', href: '/developers/packages' },
+      { label: 'Packages', href: '/packages' },
       { label: 'DevCon', href: '/developers/airqo-devcon' },
     ],
     company: [
-      { label: 'About', href: '/about' },
+      { label: 'About', href: '/about-us' },
       { label: 'Careers', href: '/careers' },
       { label: 'Press', href: '/press' },
       { label: 'Contact', href: '/contact' },
-      { label: 'Partners', href: '/partners' },
+      { label: 'Partners', href: '/about-us#partners' },
     ],
   },
 };
