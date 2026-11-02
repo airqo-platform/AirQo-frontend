@@ -77,6 +77,12 @@ describe('generateMetadata', () => {
     ).toBe('https://airqo.net/images/event.jpg');
   });
 
+  it('skips whitespace-only image candidates', () => {
+    expect(
+      resolveMetadataImage([' ', '/images/event.jpg'], 'https://airqo.net'),
+    ).toBe('https://airqo.net/images/event.jpg');
+  });
+
   it('strips markup and shortens long page descriptions for share cards', () => {
     const metadata = generateMetadata(
       {

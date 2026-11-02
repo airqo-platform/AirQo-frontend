@@ -74,7 +74,7 @@ export const resolveMetadataImage = (
 
   const candidates = Array.isArray(candidate) ? candidate : [candidate];
   for (const imageCandidate of candidates) {
-    if (!imageCandidate) continue;
+    if (!imageCandidate?.trim()) continue;
 
     const resolvedCandidate = isHttpUrl(imageCandidate);
     if (resolvedCandidate) return resolvedCandidate;
