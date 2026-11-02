@@ -53,8 +53,11 @@ describe('generateMetadata', () => {
     );
 
     const openGraphImages = metadata.openGraph?.images;
-    expect(Array.isArray(openGraphImages)).toBe(true);
-    expect(openGraphImages?.[0]).toMatchObject({
+    if (!Array.isArray(openGraphImages)) {
+      throw new Error('Expected Open Graph images to be an array');
+    }
+
+    expect(openGraphImages[0]).toMatchObject({
       url: `https://airqo.net${DEFAULT_METADATA.defaultImage.url}`,
       width: 1200,
       height: 630,
