@@ -23,7 +23,7 @@ jobs:
   #########################################
 
   branch-name:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       lowercase: ${{ steps.string.outputs.lowercase }}
       sanitized: ${{ steps.sanitize.outputs.sanitized }}
@@ -55,7 +55,7 @@ jobs:
   #########################################
 
   check:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       pull-requests: read
     outputs:
@@ -114,7 +114,7 @@ jobs:
   website:
     needs: [check, branch-name]
     if: needs.check.outputs.run_website == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       url: ${{ steps.preview.outputs.url }}
 
@@ -201,7 +201,7 @@ jobs:
   website-pr-comment:
     needs: [check, website]
     if: needs.check.outputs.run_website == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/github-script@v8
         with:
@@ -221,7 +221,7 @@ jobs:
     name: build-push-deploy-beacon-preview
     needs: [check, branch-name]
     if: needs.check.outputs.run_beacon == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       url: ${{ steps.preview.outputs.url }}
 
@@ -309,7 +309,7 @@ jobs:
   beacon-pr-comment:
     needs: [check, beacon]
     if: needs.check.outputs.run_beacon == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/github-script@v6
         with:
@@ -329,7 +329,7 @@ jobs:
     name: build-push-deploy-calibrate-app-preview
     needs: [check, branch-name]
     if: needs.check.outputs.run_calibrate_app == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       url: ${{ steps.preview.outputs.url }}
 
@@ -415,7 +415,7 @@ jobs:
   calibrate-pr-comment:
     needs: [check, calibrate_app]
     if: needs.check.outputs.run_calibrate_app == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/github-script@v6
         with:
@@ -435,7 +435,7 @@ jobs:
     name: build-push-deploy-nexus-preview
     needs: [check, branch-name]
     if: needs.check.outputs.run_nexus == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       url: ${{ steps.preview.outputs.url }}
 
@@ -566,7 +566,7 @@ jobs:
   nexus-pr-comment:
     needs: [check, nexus]
     if: needs.check.outputs.run_nexus == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/github-script@v6
         with:
@@ -586,7 +586,7 @@ jobs:
     name: build-push-deploy-vertex-preview
     needs: [check, branch-name]
     if: needs.check.outputs.run_vertex == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       url: ${{ steps.preview.outputs.url }}
 
@@ -723,7 +723,7 @@ jobs:
   vertex-pr-comment:
     needs: [check, vertex]
     if: needs.check.outputs.run_vertex == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/github-script@v6
         with:
@@ -743,7 +743,7 @@ jobs:
     name: build-push-deploy-docs-preview
     needs: [check, branch-name]
     if: needs.check.outputs.run_docs == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       url: ${{ steps.preview.outputs.url }}
 
@@ -829,7 +829,7 @@ jobs:
   docs-pr-comment:
     needs: [check, docs]
     if: needs.check.outputs.run_docs == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/github-script@v6
         with:
