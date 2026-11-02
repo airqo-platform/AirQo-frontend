@@ -19,10 +19,10 @@ The AirQo API gives you programmatic access to air quality measurements from Air
 | **City or municipality** monitoring a defined geographical area | [Grid ID Access →](./for-cities/intro.md) |
 | **Developer** who needs historical or raw sensor data at scale | [Analytics API →](./analytics-api/raw-data.md) |
 | **Researcher or planner** who needs predictive air quality data | [Forecast API →](./forecasts/overview.md) |
-| **Funder, coalition, or environment agency** mapping who monitors air quality where across Africa — and where the gaps are | [Network Coverage API →](./network-coverage/intro.md) |
+| **Funder, coalition, or environment agency** mapping who monitors air quality where across Africa — and where the gaps are | [Africa Network Coverage API →](./network-coverage/intro.md) |
 
 :::info Not after readings?
-If you need to know *where* air quality is monitored across Africa — including monitors from any manufacturer or operator, and networks AirQo doesn't run — use the [Network Coverage API →](./network-coverage/intro.md). It's a shared registry of monitors that you can embed in your own site and contribute monitors to. It returns monitor locations and profiles, not measurements.
+If you need to know *where* air quality is monitored across Africa — by any network, manufacturer or operator — use the [Africa Network Coverage API →](./network-coverage/intro.md). It's a shared registry of monitors, hosted by AirQo, that you can build your own Africa Network Map on and contribute monitors to. It returns monitor locations and profiles, not measurements.
 :::
 
 ---
@@ -85,4 +85,4 @@ See [Authentication & Setup](./getting-started/authentication.md) for step-by-st
 1. [Set up your account and generate credentials →](./getting-started/authentication.md)
 2. [Choose your subscription tier →](./getting-started/pricing-tiers.md)
 3. [Make your first API call →](./getting-started/quick-start.md)
-4. Mapping monitoring coverage rather than reading measurements? [Start with the Network Coverage API →](./network-coverage/intro.md)
+4. Mapping monitoring coverage rather than reading measurements? [Start with the Africa Network Coverage API →](./network-coverage/intro.md)
