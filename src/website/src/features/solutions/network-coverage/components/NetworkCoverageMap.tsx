@@ -8,6 +8,7 @@ import { FiMinus, FiPlus, FiCamera } from 'react-icons/fi';
 import {
   africanIso2Codes,
   normalizeCountryId,
+  type NetworkCoverageCityMatch,
   type MonitorType,
   type NetworkCoverageCountry,
   type NetworkCoverageMonitor,
@@ -48,6 +49,7 @@ interface NetworkCoverageMapProps {
   ) => void;
   onResetView: () => void;
   flyToMonitorId?: string | null;
+  cityFocus?: NetworkCoverageCityMatch | null;
   onRegisterSnapshot?: (
     fn: ((options: SnapshotOptions) => Promise<string | null>) | null,
   ) => void;
@@ -227,14 +229,18 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
   onMonitorSelect,
   onResetView,
   flyToMonitorId,
+  cityFocus,
   onRegisterSnapshot,
 }) => {
   const mapRef = useRef<any>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const coverageClickHandlerRef = useRef<((event: any) => void) | null>(null);
-  // Guards the selected-country fitBounds effect against fighting the export
-  // camera positioning, which briefly moves the map for a deterministic shot.
-  const isSnapshotPositioningRef = useRef(false);
+  // Counts captures that temporarily position the camera for deterministic
+  // snapshots. Unscoped screenshots do not participate in this coordination.
+  const snapshotPositioningCountRef = useRef(0);
+  const pendingCityCenterRef = useRef<
+    NetworkCoverageCityMatch['center'] | null
+  >(null);
   // Latest selection + country lookup kept in refs so the registered snapshot
   // getter (captured once on map load) never goes stale when props change.
   // `countryById` is declared further down (useMemo), so start empty and sync in
@@ -338,7 +344,11 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
   };
 
   useEffect(() => {
-    if (typeof window === 'undefined' || mapRef.current) {
+    if (
+      typeof window === 'undefined' ||
+      mapRef.current ||
+      !mapContainerRef.current
+    ) {
       return;
     }
 
@@ -358,10 +368,11 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
       return;
     }
 
+    const container = mapContainerRef.current;
     let mapInstance: any;
     try {
       mapInstance = new mapboxgl.Map({
-        container: mapContainerRef.current,
+        container,
         style: mapStyle,
         // Use pre-calculated Africa center so the map starts at the correct
         // position without a fitBounds animation on load (eliminates jump).
@@ -375,7 +386,9 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
         // instead of a blank/empty image (WebGL clears buffer by default).
         preserveDrawingBuffer: true,
         attributionControl: true,
-        customAttribution: ['Powered by <a href="/" rel="noopener">AirQo</a>'],
+        customAttribution: [
+          '<a href="/" rel="noopener">Africa Network Map</a>',
+        ],
       });
       setMapInitError(null);
     } catch {
@@ -388,6 +401,7 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
     mapRef.current = mapInstance;
 
     mapRef.current.on('load', () => {
+      if (mapRef.current !== mapInstance) return;
       const map = mapRef.current;
 
       // Ensure the map is constrained to AFRICA_BOUNDS and start at the
@@ -593,6 +607,7 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
     options?: SnapshotOptions,
   ): Promise<string | null> => {
     let restoreCamera: (() => void) | null = null;
+    let participatesInPositioning = false;
     try {
       if (!mapContainerRef.current) return null;
 
@@ -600,7 +615,8 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
       // the exported snapshot is reproducible (country-fitted or whole-Africa),
       // then restore the user's current view afterwards.
       if (options && mapRef.current) {
-        isSnapshotPositioningRef.current = true;
+        participatesInPositioning = true;
+        snapshotPositioningCountRef.current += 1;
         restoreCamera = await positionMapForSnapshot(
           mapRef.current,
           options.scope,
@@ -643,7 +659,28 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
           // ignore restore failures
         }
       }
-      isSnapshotPositioningRef.current = false;
+      if (participatesInPositioning) {
+        snapshotPositioningCountRef.current = Math.max(
+          0,
+          snapshotPositioningCountRef.current - 1,
+        );
+      }
+
+      if (
+        participatesInPositioning &&
+        snapshotPositioningCountRef.current === 0
+      ) {
+        const pendingCenter = pendingCityCenterRef.current;
+        pendingCityCenterRef.current = null;
+        if (pendingCenter && mapRef.current) {
+          mapRef.current.flyTo({
+            center: [pendingCenter.longitude, pendingCenter.latitude],
+            zoom: 9.5,
+            speed: 0.9,
+            curve: 1.2,
+          });
+        }
+      }
     }
   };
 
@@ -1053,7 +1090,7 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
 
     // While the export flow is positioning the map for a deterministic
     // snapshot, skip the user-facing auto-fit so the two don't fight.
-    if (isSnapshotPositioningRef.current) {
+    if (snapshotPositioningCountRef.current > 0) {
       return;
     }
 
@@ -1081,6 +1118,29 @@ const NetworkCoverageMap: React.FC<NetworkCoverageMapProps> = ({
     // the continent. We still allow selected-country fitBounds to zoom in.
     // The reset control returns the view to the locked default center/zoom.
   }, [allMonitors, mapLoaded, selectedCountry, selectedCountryId]);
+
+  // The backend returns a city center for settled city searches. Prefer that
+  // precise focus over the broader country fit so a search such as Nairobi
+  // visibly resolves to Nairobi rather than only to Kenya.
+  useEffect(() => {
+    if (!mapLoaded || !mapRef.current) return;
+    if (!cityFocus?.center) {
+      pendingCityCenterRef.current = null;
+      return;
+    }
+
+    if (snapshotPositioningCountRef.current > 0) {
+      pendingCityCenterRef.current = cityFocus.center;
+      return;
+    }
+
+    mapRef.current.flyTo({
+      center: [cityFocus.center.longitude, cityFocus.center.latitude],
+      zoom: 9.5,
+      speed: 0.9,
+      curve: 1.2,
+    });
+  }, [allMonitors, cityFocus, mapLoaded]);
 
   // Fly to a specific monitor when parent requests it (triggered after details load)
   useEffect(() => {

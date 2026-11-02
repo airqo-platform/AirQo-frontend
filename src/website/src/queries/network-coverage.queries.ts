@@ -4,16 +4,20 @@ import { networkCoverageService } from '@/services/website';
 
 import { apiQueryKeys } from './query-keys';
 
-export function useNetworkCoverageSummary(params?: {
-  tenant?: string;
-  search?: string;
-  activeOnly?: boolean;
-  types?: string;
-  network?: string;
-}) {
+export function useNetworkCoverageSummary(
+  params?: {
+    tenant?: string;
+    search?: string;
+    activeOnly?: boolean;
+    types?: string;
+    network?: string;
+  },
+  options?: { enabled?: boolean; retry?: number },
+) {
   return useQuery({
     queryKey: apiQueryKeys.networkCoverageSummary(params),
     queryFn: () => networkCoverageService.getNetworkCoverageSummary(params),
+    ...options,
   });
 }
 

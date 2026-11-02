@@ -1,5 +1,6 @@
 import {
   keepPreviousData,
+  type QueryFunctionContext,
   type QueryKey,
   useQuery,
   type UseQueryOptions,
@@ -49,7 +50,7 @@ type ServiceQueryResult<T> = {
 
 function useServiceQuery<T>(
   queryKey: QueryKey,
-  queryFn: () => Promise<T>,
+  queryFn: (context: QueryFunctionContext<QueryKey>) => Promise<T>,
   queryOptions?: ServiceQueryOptions<T>,
 ): ServiceQueryResult<T> {
   const query = useQuery<T, Error, T, QueryKey>({
@@ -521,7 +522,11 @@ export const useNetworkCoverageSummary = (
 ) =>
   useServiceQuery(
     apiQueryKeys.networkCoverageSummary(params),
-    () => networkCoverageService.getNetworkCoverageSummary(params || {}),
+    ({ signal }) =>
+      networkCoverageService.getNetworkCoverageSummary(
+        params || {},
+        signal ? { signal } : undefined,
+      ),
     {
       staleTime: 15 * 60 * 1000,
       placeholderData: keepPreviousData,

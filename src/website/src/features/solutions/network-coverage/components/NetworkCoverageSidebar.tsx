@@ -11,10 +11,12 @@ import {
   FiX,
 } from 'react-icons/fi';
 import {
+  type NetworkCoverageCityMatch,
   type MonitorType,
   type NetworkCoverageCountry,
   type NetworkCoverageMonitor,
 } from '../networkCoverageTypes';
+import { getNetworkCoverageSearchMatches } from '../networkCoverageSearch';
 
 import { getEnvironmentAwareUrl } from '@/lib/environmentAwareUrl';
 
@@ -113,13 +115,16 @@ interface NetworkCoverageSidebarProps {
   countries: NetworkCoverageCountry[];
   query: string;
   searchQuery?: string;
-  isSearching?: boolean;
   selectedTypes: MonitorType[];
   activeOnly: boolean;
   selectedNetworks: string[];
   availableNetworks: string[];
   selectedCountry: NetworkCoverageCountry | null;
   selectedMonitor: NetworkCoverageMonitor | null;
+  cityMatches: NetworkCoverageCityMatch[];
+  isCitySearchLoading?: boolean;
+  citySearchError?: string | null;
+  onRetryCitySearch?: () => void;
   showAddMonitorPromptFor: string | null;
   isLoading?: boolean;
   error?: string | null;
@@ -128,6 +133,7 @@ interface NetworkCoverageSidebarProps {
   onToggleActiveOnly: () => void;
   onToggleNetwork: (network: string) => void;
   onSelectCountry: (countryId: string) => void;
+  onSelectCity: (cityMatch: NetworkCoverageCityMatch) => void;
   onSelectMonitor: (monitorId: string, countryId: string) => void;
   onClosePrompt: () => void;
   monitoredCountriesTotal?: number;
@@ -164,6 +170,7 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
   onToggleActiveOnly,
   onToggleNetwork,
   onSelectCountry,
+  onSelectCity,
   onSelectMonitor,
   onClosePrompt,
   onResetToOverview,
@@ -176,14 +183,19 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
   isCountryLoading = false,
   countryError = null,
   onRetryCountry,
-  // `isSearching` indicates the user is typing and debounce hasn't settled
-  isSearching = false,
+  isCitySearchLoading = false,
+  citySearchError = null,
+  onRetryCitySearch,
   isSummaryLoading = false,
   isOpen = false,
   onClose,
   toggleButtonRef,
+  cityMatches = [],
 }) => {
   const q = (searchQuery || '').trim().toLowerCase();
+  const isClearingSearch = isCitySearchLoading && !query.trim() && Boolean(q);
+  const hasCitySearchResults =
+    Boolean(q) && !isCitySearchLoading && cityMatches.length > 0;
 
   const scrollRef = React.useRef<HTMLDivElement | null>(null);
   const networkDropdownRef = React.useRef<HTMLDivElement | null>(null);
@@ -204,17 +216,12 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
   }, [selectedCountryId]);
 
   const filteredCountries = React.useMemo(() => {
-    return countries.filter((country) => {
-      if (!q) return true;
-      if (country.country.toLowerCase().includes(q)) return true;
-      return country.monitors.some((monitor) => {
-        return (
-          (monitor.name || '').toLowerCase().includes(q) ||
-          (monitor.city || '').toLowerCase().includes(q) ||
-          (monitor.network || '').toLowerCase().includes(q)
-        );
-      });
-    });
+    if (!q) return countries;
+    return countries.filter(
+      (country) =>
+        getNetworkCoverageSearchMatches(country, q).countryMatches ||
+        getNetworkCoverageSearchMatches(country, q).monitors.length > 0,
+    );
   }, [countries, q]);
 
   const monitoredCountriesCount = filteredCountries.filter(
@@ -252,13 +259,7 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
   const filteredCountryMonitors = React.useMemo(() => {
     if (!selectedCountry) return [];
     if (!q) return selectedCountry.monitors;
-    return selectedCountry.monitors.filter((monitor) => {
-      return (
-        (monitor.name || '').toLowerCase().includes(q) ||
-        (monitor.city || '').toLowerCase().includes(q) ||
-        (monitor.network || '').toLowerCase().includes(q)
-      );
-    });
+    return getNetworkCoverageSearchMatches(selectedCountry, q).monitors;
   }, [selectedCountry, q]);
 
   React.useEffect(() => {
@@ -463,6 +464,14 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
     const activeMonitors = stats?.active;
     const isNoData = totalMonitors === 0;
     const isPromptOpen = showAddMonitorPromptFor === country.id;
+    const searchMatches = q
+      ? getNetworkCoverageSearchMatches(country, q)
+      : null;
+    const matchingCities = searchMatches?.cities ?? [];
+    const canOpenSingleSearchMatch =
+      !!searchMatches &&
+      !searchMatches.countryMatches &&
+      searchMatches.monitors.length === 1;
 
     return (
       <div key={country.id} data-country-id={countryRowId(country)}>
@@ -488,7 +497,11 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
                 setPromptTop(null);
               }
             }
-            onSelectCountry(country.id);
+            if (canOpenSingleSearchMatch && searchMatches) {
+              onSelectMonitor(searchMatches.monitors[0].id, country.id);
+            } else {
+              onSelectCountry(country.id);
+            }
           }}
           className={`group w-full rounded-xl border px-3.5 py-3 text-left transition-all duration-150 ${
             isNoData
@@ -529,6 +542,12 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
                       </span>
                     </>
                   )}
+                </p>
+              )}
+              {matchingCities.length > 0 && (
+                <p className="mt-1 truncate text-xs font-medium text-blue-700">
+                  Matching {matchingCities.length > 1 ? 'cities' : 'city'}:{' '}
+                  {matchingCities.join(', ')}
                 </p>
               )}
             </div>
@@ -628,8 +647,21 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
                 onChange={(event) => onQueryChange(event.target.value)}
                 placeholder="Search country, city, network or station..."
                 aria-label="Search countries, cities, networks or stations"
+                aria-busy={isCitySearchLoading}
                 className="w-full rounded-lg border border-slate-300 bg-white py-2 pl-9 pr-8 text-sm text-slate-900 placeholder:text-slate-500 outline-none transition-colors focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
               />
+              {isCitySearchLoading && (
+                <span
+                  role="status"
+                  aria-label="Searching network coverage"
+                  className="absolute right-8 top-1/2 -translate-y-1/2 text-blue-600"
+                >
+                  <FiLoader
+                    className="h-4 w-4 animate-spin"
+                    aria-hidden="true"
+                  />
+                </span>
+              )}
               {query && (
                 <button
                   type="button"
@@ -766,6 +798,27 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
                 <div className="h-4 w-44 animate-pulse rounded bg-slate-200" />
               ) : (
                 (() => {
+                  if (isCitySearchLoading) {
+                    return (
+                      <p className="text-sm font-medium text-slate-700">
+                        {isClearingSearch
+                          ? 'Clearing search…'
+                          : 'Searching cities and countries…'}
+                      </p>
+                    );
+                  }
+
+                  if (hasCitySearchResults) {
+                    return (
+                      <p className="text-sm font-medium text-slate-700">
+                        <span className="font-semibold text-slate-950">
+                          {cityMatches.length}
+                        </span>{' '}
+                        matching {cityMatches.length === 1 ? 'city' : 'cities'}
+                      </p>
+                    );
+                  }
+
                   const hasClientOnlyFilter =
                     !!q ||
                     activeOnly ||
@@ -856,7 +909,7 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
       <div
         ref={scrollRef}
         className="relative min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 py-3"
-        aria-busy={isSummaryLoading}
+        aria-busy={isSummaryLoading || isCitySearchLoading}
         onKeyDown={handleListKeyDown}
       >
         {/* Error state */}
@@ -878,8 +931,92 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
           </div>
         ) : null}
 
+        {hasCitySearchResults && !selectedCountry && (
+          <section
+            aria-label="Matching cities"
+            className="mb-3 rounded-xl border border-blue-100 bg-blue-50/60 p-3"
+          >
+            <p className="px-1 text-[11px] font-semibold uppercase tracking-wide text-blue-700">
+              Matching cities ({cityMatches.length})
+            </p>
+            <p className="px-1 pt-1 text-xs text-slate-600">
+              Select a city to focus the map.
+            </p>
+            <div className="mt-1.5 space-y-1">
+              {cityMatches.slice(0, 6).map((cityMatch) => (
+                <button
+                  key={`${cityMatch.countryId}-${cityMatch.city}`}
+                  type="button"
+                  onClick={() => onSelectCity(cityMatch)}
+                  aria-label={`Focus map on ${cityMatch.city}, ${cityMatch.country}`}
+                  className="flex w-full items-center justify-between gap-3 rounded-lg px-2 py-2 text-left transition-colors hover:bg-white"
+                >
+                  <span className="min-w-0">
+                    <span className="block truncate text-sm font-semibold text-slate-900">
+                      {cityMatch.city}
+                    </span>
+                    <span className="block truncate text-xs text-slate-600">
+                      {cityMatch.country}
+                    </span>
+                  </span>
+                  <span className="flex-shrink-0 text-xs font-medium text-blue-700">
+                    {cityMatch.total} monitor{cityMatch.total === 1 ? '' : 's'}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {isCitySearchLoading && !selectedCountry && (
+          <div
+            role="status"
+            aria-live="polite"
+            className="mb-3 rounded-xl border border-blue-100 bg-blue-50/60 p-4"
+          >
+            <div className="flex items-center gap-2 text-sm font-semibold text-blue-900">
+              <FiLoader className="h-4 w-4 animate-spin text-blue-600" />
+              {isClearingSearch
+                ? 'Clearing search'
+                : `Searching for “${query.trim()}”`}
+            </div>
+            {!isClearingSearch && (
+              <>
+                <p className="mt-1 text-xs text-slate-600">
+                  Checking cities, countries, networks, and monitors…
+                </p>
+                <div className="mt-3 space-y-2" aria-hidden="true">
+                  <div className="h-3 w-2/3 animate-pulse rounded bg-blue-100" />
+                  <div className="h-3 w-1/2 animate-pulse rounded bg-blue-100" />
+                </div>
+              </>
+            )}
+          </div>
+        )}
+
+        {citySearchError && q && !isCitySearchLoading && !selectedCountry && (
+          <div
+            role="alert"
+            className="mb-3 rounded-xl border border-red-200 bg-red-50 p-4"
+          >
+            <p className="text-sm font-semibold text-red-900">
+              Unable to search cities
+            </p>
+            <p className="mt-1 text-xs text-red-700">{citySearchError}</p>
+            {onRetryCitySearch && (
+              <button
+                type="button"
+                onClick={onRetryCitySearch}
+                className="mt-3 rounded-lg border border-red-300 bg-white px-3 py-1.5 text-xs font-semibold text-red-800 transition-colors hover:bg-red-50"
+              >
+                Try again
+              </button>
+            )}
+          </div>
+        )}
+
         {/* Structured loading skeletons */}
-        {isOverviewLoading || (!selectedCountry && isSearching) ? (
+        {isOverviewLoading && !q ? (
           <div className="space-y-2">
             {[...Array(6)].map((_, index) => (
               <div
@@ -964,6 +1101,9 @@ const NetworkCoverageSidebar: React.FC<NetworkCoverageSidebarProps> = ({
 
         {/* Empty search result state */}
         {!selectedCountry &&
+        !hasCitySearchResults &&
+        !isCitySearchLoading &&
+        !citySearchError &&
         !isOverviewLoading &&
         filteredCountries.length === 0 &&
         !error ? (

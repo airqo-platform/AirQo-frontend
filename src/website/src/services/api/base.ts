@@ -1,5 +1,5 @@
 import apiClient from './api-client';
-import { EnhancedApiError } from './api-error';
+import { EnhancedApiError, RequestConfig } from './api-error';
 import { ServiceOptions, ServiceResponse } from './api-response';
 
 export class BaseApiService {
@@ -55,7 +55,7 @@ export class BaseApiService {
     params?: Record<string, any>,
     options: ServiceOptions = {},
   ): Promise<ServiceResponse<T>> {
-    const { timeout, throwOnError = true, language } = options;
+    const { timeout, throwOnError = true, language, signal } = options;
 
     const headers: Record<string, string> = {};
 
@@ -64,17 +64,24 @@ export class BaseApiService {
     }
 
     try {
-      const response = await apiClient.request<T>({
+      const requestConfig: RequestConfig & { timeout?: number } = {
         method,
         url,
         data,
         params,
         headers,
         timeout,
-      });
+      };
+
+      if (signal) requestConfig.signal = signal;
+
+      const response = await apiClient.request<T>(requestConfig);
 
       return response;
     } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw error;
+      }
       if (throwOnError) {
         throw error;
       }

@@ -13,4 +13,5 @@ export interface ServiceOptions {
   timeout?: number;
   retryCount?: number;
   throwOnError?: boolean;
+  signal?: AbortSignal;
 }

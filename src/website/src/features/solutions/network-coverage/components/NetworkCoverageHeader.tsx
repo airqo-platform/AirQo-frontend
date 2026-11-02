@@ -4,7 +4,7 @@ import { TbMenu2 } from 'react-icons/tb';
 
 import NetworkCoverageNavDrawer from './NetworkCoverageNavDrawer';
 
-const PAGE_TITLE = 'Air Quality Monitoring Landscape in Africa';
+const PAGE_TITLE = 'Africa Network Map';
 
 const INTRO_PARAGRAPHS = [
   "This platform provides a unified view of Africa's air quality monitoring landscape. It integrates metadata on monitoring initiatives across the continent, combining both low-cost sensors and high-precision reference monitors. Users can explore the geographic distribution of monitoring stations by country, identify active coverage, understand the types of instrumentation in use, and review institutional stewardship for each monitoring location.",
@@ -93,7 +93,7 @@ const NetworkCoverageHeader: React.FC<NetworkCoverageHeaderProps> = ({
             <TbMenu2 className="h-5 w-5" />
           </button>
 
-          {/* AirQo logo removed for Network Coverage page */}
+          {/* The map has its own neutral identity and does not use site branding. */}
 
           {/* Title */}
           <h1 className="min-w-0 flex-1 truncate text-lg font-bold tracking-tight text-black sm:text-xl lg:text-2xl">

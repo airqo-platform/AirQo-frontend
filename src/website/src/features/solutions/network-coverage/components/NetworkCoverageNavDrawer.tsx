@@ -1,6 +1,5 @@
 'use client';
 
-import Image from 'next/image';
 import Link from 'next/link';
 import React, { useEffect, useState } from 'react';
 import { FiChevronDown, FiX } from 'react-icons/fi';
@@ -8,7 +7,6 @@ import { HiOutlineArrowTopRightOnSquare } from 'react-icons/hi2';
 
 import useLockBodyScroll from '@/hooks/useLockBodyScroll';
 import { NAV_ITEMS } from '@/lib/navItems';
-import { CLOUDINARY_IMAGES } from '@/services/external/cloudinary.service';
 // Nav item types are defined in src/lib/navItems.ts; this component uses the shared NAV_ITEMS constant.
 
 interface NetworkCoverageNavDrawerProps {
@@ -71,14 +69,14 @@ const NetworkCoverageNavDrawer: React.FC<NetworkCoverageNavDrawerProps> = ({
       >
         {/* Drawer header */}
         <div className="flex flex-shrink-0 items-center justify-between border-b border-slate-100 bg-white px-4 py-3.5">
-          <Link href="/home" className="flex items-center" onClick={onClose}>
-            <Image
-              src={CLOUDINARY_IMAGES.logo}
-              alt="AirQo"
-              width={64}
-              height={44}
-              className="h-8 w-auto"
-            />
+          <Link
+            href="/solutions/network-coverage"
+            className="flex items-center"
+            onClick={onClose}
+          >
+            <span className="text-sm font-bold tracking-tight text-slate-950">
+              Africa Network Map
+            </span>
           </Link>
           <button
             type="button"
