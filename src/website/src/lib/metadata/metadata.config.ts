@@ -60,7 +60,7 @@ export const cleanMetadataText = (
 };
 
 export const resolveMetadataImage = (
-  candidate: string | null | undefined,
+  candidate: string | null | undefined | (string | null | undefined)[],
   siteUrl: string,
 ): string => {
   const isHttpUrl = (value: string): string | null => {
@@ -72,10 +72,15 @@ export const resolveMetadataImage = (
     }
   };
 
-  return (
-    (candidate && isHttpUrl(candidate)) ||
-    isHttpUrl(DEFAULT_METADATA.defaultImage.url)!
-  );
+  const candidates = Array.isArray(candidate) ? candidate : [candidate];
+  for (const imageCandidate of candidates) {
+    if (!imageCandidate) continue;
+
+    const resolvedCandidate = isHttpUrl(imageCandidate);
+    if (resolvedCandidate) return resolvedCandidate;
+  }
+
+  return isHttpUrl(DEFAULT_METADATA.defaultImage.url)!;
 };
 
 export const compact = (obj: Record<string, any>) =>

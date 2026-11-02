@@ -8,6 +8,11 @@ const PARTNERS_ENDPOINTS = {
   PARTNERS: '/website/api/v2/partners/',
 } as const;
 
+export interface PartnerDetailsResult {
+  partner: Partner | null;
+  notFound: boolean;
+}
+
 class PartnersService extends BaseApiService {
   constructor() {
     super('PartnersService');
@@ -47,6 +52,21 @@ class PartnersService extends BaseApiService {
     publicIdentifier: string,
     options: ServiceOptions = {},
   ): Promise<Partner | null> {
+    const result = await this.getPartnerDetailsResult(
+      publicIdentifier,
+      options,
+    );
+    return result.partner;
+  }
+
+  /**
+   * Get partner details while distinguishing a confirmed 404 from a failed
+   * lookup. This lets metadata avoid marking transient API failures noindex.
+   */
+  async getPartnerDetailsResult(
+    publicIdentifier: string,
+    options: ServiceOptions = {},
+  ): Promise<PartnerDetailsResult> {
     const response = await this.get<Partner>(
       `${PARTNERS_ENDPOINTS.PARTNERS}${publicIdentifier}/`,
       undefined,
@@ -56,11 +76,10 @@ class PartnersService extends BaseApiService {
       },
     );
 
-    if (response.success) {
-      return response.data;
-    }
-
-    return null;
+    return {
+      partner: response.success ? response.data : null,
+      notFound: !response.success && response.statusCode === 404,
+    };
   }
 }
 

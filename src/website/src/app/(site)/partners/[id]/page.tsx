@@ -30,20 +30,27 @@ export async function generateMetadata({
   );
   const siteUrl = getPrimarySiteUrl(requestHost, requestProtocol);
 
-  let partner = null;
+  let partnerLookup: Awaited<
+    ReturnType<typeof partnersService.getPartnerDetailsResult>
+  > | null = null;
   try {
-    partner = await partnersService.getPartnerDetails(params.id);
+    partnerLookup = await partnersService.getPartnerDetailsResult(params.id);
   } catch {
-    // A missing partner record should not make the page metadata request fail.
+    // Keep the page indexable when the partner lookup fails unexpectedly.
   }
 
+  const partner = partnerLookup?.partner ?? null;
+  const partnerNotFound = partnerLookup?.notFound ?? false;
   const partnerName = partner?.partner_name?.trim() || partner?.name?.trim();
   const title = partnerName
     ? `${partnerName} | AirQo partner`
     : 'Partner details | AirQo';
+  const cleanedDescriptions = cleanMetadataText(
+    partner?.descriptions?.map(({ description: text }) => text).join(' '),
+    '',
+  );
   const description = cleanMetadataText(
-    partner?.descriptions?.map(({ description: text }) => text).join(' ') ||
-      partner?.description,
+    cleanedDescriptions || partner?.description,
     partnerName
       ? `Learn about ${partnerName} and its work with AirQo.`
       : 'Organizations working with AirQo to improve air quality across Africa.',
@@ -75,7 +82,7 @@ export async function generateMetadata({
       description,
       images: [{ url: imageUrl, alt: imageAlt }],
     },
-    robots: { index: Boolean(partner), follow: true },
+    robots: { index: !partnerNotFound, follow: true },
   };
 }
 

@@ -10,14 +10,13 @@ import {
 } from '@/lib/metadata';
 import { buildSiteUrl, getPrimarySiteUrl } from '@/lib/siteUrl';
 import { eventsService } from '@/services/website';
-import type { EventV2 } from '@/types/api';
 
-const getEvent = async (id: string): Promise<EventV2 | null> => {
+const getEvent = async (id: string) => {
   try {
-    return await eventsService.getEventDetails(id);
+    return await eventsService.getEventDetailsResult(id);
   } catch {
     // Never let metadata generation crash; fall back to generic metadata.
-    return null;
+    return { event: null, notFound: false };
   }
 };
 
@@ -40,7 +39,8 @@ export async function generateMetadata({
   );
   const siteUrl = getPrimarySiteUrl(requestHost, requestProtocol);
 
-  const event = await getEvent(params.id);
+  const eventLookup = await getEvent(params.id);
+  const event = eventLookup.event;
 
   const fallbackTitle = 'AirQo event';
   const fallbackDescription =
@@ -49,14 +49,16 @@ export async function generateMetadata({
     ? `${event.title.trim()} | AirQo`
     : fallbackTitle;
   const description = cleanMetadataText(
-    event?.description || event?.event_details,
+    event?.description,
     fallbackDescription,
   );
   const imageUrl = resolveMetadataImage(
-    event?.event_image_url ||
-      event?.event_image ||
-      event?.background_image_url ||
+    [
+      event?.event_image_url,
+      event?.event_image,
+      event?.background_image_url,
       event?.background_image,
+    ],
     siteUrl,
   );
 
@@ -96,7 +98,7 @@ export async function generateMetadata({
       ],
     },
     robots: {
-      index: Boolean(event),
+      index: !eventLookup.notFound,
       follow: true,
     },
     other: {

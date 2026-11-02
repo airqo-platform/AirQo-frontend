@@ -67,7 +67,7 @@ const HomeNetworkCoverage = () => {
             <Button
               asChild
               size="lg"
-              className="mt-8 h-auto w-fit max-w-full gap-2 whitespace-normal bg-white px-5 py-3 text-left text-[#0B1B3A] hover:bg-blue-50"
+              className="h-auto w-fit max-w-full gap-2 whitespace-normal bg-white px-5 py-3 text-left text-[#0B1B3A] hover:bg-blue-50"
             >
               <Link href="/solutions/network-coverage">
                 Discover network coverage

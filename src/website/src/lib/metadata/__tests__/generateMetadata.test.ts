@@ -1,5 +1,8 @@
 import { generateMetadata } from '@/lib/metadata/generateMetadata';
-import { DEFAULT_METADATA } from '@/lib/metadata/metadata.config';
+import {
+  DEFAULT_METADATA,
+  resolveMetadataImage,
+} from '@/lib/metadata/metadata.config';
 
 describe('generateMetadata', () => {
   const originalSiteUrl = process.env.NEXT_PUBLIC_SITE_URL;
@@ -63,6 +66,15 @@ describe('generateMetadata', () => {
       height: 630,
       type: 'image/jpeg',
     });
+  });
+
+  it('uses the first valid image from an ordered list of candidates', () => {
+    expect(
+      resolveMetadataImage(
+        ['javascript:invalid', '/images/event.jpg'],
+        'https://airqo.net',
+      ),
+    ).toBe('https://airqo.net/images/event.jpg');
   });
 
   it('strips markup and shortens long page descriptions for share cards', () => {
