@@ -311,17 +311,14 @@ const Footer = () => {
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="text-[11px] uppercase tracking-wider text-gray-400">
-            A project by
-          </span>
           {makerereImageFailed ? (
             <span className="text-sm font-medium text-gray-600">
-              Makerere University
+              A project by Makerere University
             </span>
           ) : (
             <Image
               src={CLOUDINARY_IMAGES.makerereName}
-              alt="Makerere University"
+              alt="A project by Makerere University"
               width={160}
               height={26}
               onError={() => setMakerereImageFailed(true)}
