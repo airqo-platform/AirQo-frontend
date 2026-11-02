@@ -108,6 +108,10 @@ The summary, country-monitors, CSV export and impact endpoints share a cached co
 
 `generatedAt` in a response shows when the response was built, not when the cached data was computed.
 
+:::note If your backend caches these responses
+The behaviour above describes the API itself. If your own backend or proxy caches these responses, clear those cached responses after a successful registry or city population write. Otherwise your users can keep seeing the old data until your cache expires.
+:::
+
 ---
 
 ## Next steps
