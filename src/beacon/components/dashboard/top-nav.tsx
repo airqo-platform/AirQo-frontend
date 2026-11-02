@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Bell, LogOut, Loader2, RefreshCw } from "lucide-react"
-import { AqAirQo, AqHelpCircle, AqMenu01 } from "@airqo/icons-react"
+import { LogOut, Loader2 } from "lucide-react"
+import { AqAirQo, AqHelpCircle, AqMenu01, AqRefreshCw01 } from "@airqo/icons-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import GroupSelector from "@/components/dashboard/group-selector"
@@ -176,23 +176,6 @@ export default function TopNav({
             <div className="flex items-center gap-x-2 sm:gap-x-3 shrink-0">
               <GroupSelector />
 
-              {isAirqoGroup && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleSyncGroups}
-                  disabled={isSyncingGroups}
-                  className="hidden md:inline-flex items-center rounded-lg"
-                >
-                  {isSyncingGroups ? (
-                    <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-                  ) : (
-                    <RefreshCw className="h-4 w-4 mr-1" />
-                  )}
-                  <span>{isSyncingGroups ? "Syncing..." : "Sync Groups"}</span>
-                </Button>
-              )}
-
               {/* Help & Feedback */}
               <Button
                 variant="ghost"
@@ -208,14 +191,20 @@ export default function TopNav({
               {/* Apps Dropdown */}
               <AppDropdown />
 
-              {/* Notifications */}
-              <button
-                type="button"
-                className="p-2 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-colors focus:outline-none"
-                aria-label="Notifications"
-              >
-                <Bell className="h-5 w-5 text-muted-foreground hover:text-foreground" />
-              </button>
+              {/* Sync Groups, where the unused notifications bell was */}
+              {isAirqoGroup && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleSyncGroups}
+                  disabled={isSyncingGroups}
+                  className="text-muted-foreground hover:text-foreground rounded-full h-9 w-9 hover:bg-muted transition-colors"
+                  title={isSyncingGroups ? "Syncing groups…" : "Sync Groups"}
+                  aria-label={isSyncingGroups ? "Syncing groups" : "Sync Groups"}
+                >
+                  <AqRefreshCw01 className={`w-5 h-5 ${isSyncingGroups ? "animate-spin" : ""}`} />
+                </Button>
+              )}
 
               {/* User profile dropdown */}
               <DropdownMenu>

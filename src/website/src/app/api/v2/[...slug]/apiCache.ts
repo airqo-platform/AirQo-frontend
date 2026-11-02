@@ -123,3 +123,20 @@ export function setApiCache(
     apiCache.delete(oldest);
   }
 }
+
+/**
+ * Remove cached GETs that may have been changed by a mutation on the same
+ * resource family. Query parameters are part of the cache key, so a prefix
+ * invalidation is required for summary, country, and detail variants.
+ */
+export function invalidateApiCacheByPathPrefix(pathPrefix: string): void {
+  for (const key of apiCache.keys()) {
+    if (
+      key === pathPrefix ||
+      key.startsWith(`${pathPrefix}?`) ||
+      key.startsWith(`${pathPrefix}/`)
+    ) {
+      apiCache.delete(key);
+    }
+  }
+}

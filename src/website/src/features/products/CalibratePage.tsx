@@ -267,9 +267,7 @@ const CalibratePage = () => {
 
             <CustomButton
               onClick={() =>
-                window.open(
-                  'https://wiki.airqo.net/#/calibration/ml_based_approach',
-                )
+                window.open('https://docs.airqo.net/airqo-docs/airqalibrate')
               }
               className=" text-white"
             >

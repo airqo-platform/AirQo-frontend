@@ -123,10 +123,11 @@ export default function DashboardLayout({
 
         {/* Main Row Container (Sidebar + Content) with gap */}
         <div className="flex flex-1 gap-2 overflow-hidden">
-          {/* Sidebar */}
+          {/* Sidebar: icons only on the map, which needs the room; other pages keep the
+              user's choice */}
           <Sidebar
-            sidebarOpen={sidebarOpen}
-            onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
+            sidebarOpen={!isMapRoute && sidebarOpen}
+            onToggleSidebar={isMapRoute ? undefined : () => setSidebarOpen(!sidebarOpen)}
             activeModule={activeModule}
           />
 

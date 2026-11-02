@@ -23,8 +23,10 @@ import 'package:airqo/src/app/exposure/widgets/my_trips_view.dart';
 import 'package:airqo/src/app/exposure/widgets/place_card_tour.dart';
 import 'package:airqo/src/app/map/bloc/map_bloc.dart';
 import 'package:airqo/src/app/map/utils/map_measurement_filter.dart';
+import 'package:airqo/src/app/shared/services/analytics_service.dart';
 import 'package:airqo/src/app/shared/widgets/empty_state_view.dart';
 import 'package:airqo/src/app/shared/widgets/system_glyph.dart';
+import 'package:airqo/src/app/shared/utils/monitor_place_label.dart';
 import 'package:airqo/src/app/shared/utils/saved_places_content_status.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 
@@ -83,13 +85,14 @@ List<ExposureFavoriteItem> exposureFavoritesForDashboard(
       ExposureFavoriteItem(
         site: site,
         declaredPlace: declaredBySiteId[site.id]?.copyWith(
-          // Dashboard Favorite cards use searchName as their visible title.
-          // Keep Exposure identical while retaining the canonical monitor
-          // name separately for hourly API response matching.
-          locationName:
-              site.searchName.trim().isEmpty ? site.name : site.searchName,
+          // The large title matches the dashboard card. The canonical monitor
+          // name stays on monitorName for hourly API response matching.
+          locationName: selectedSiteSpokenTitle(
+            site,
+            site.searchName.trim().isEmpty ? site.name : site.searchName,
+          ),
           monitorName: site.name,
-          city: site.geographicCity,
+          city: selectedSiteSpokenQuietLine(site, site.geographicCity),
         ),
       ),
   ];
@@ -126,12 +129,19 @@ List<TripNetworkSite> tripNetworkSitesFromMapState(
     sites[id] = TripNetworkSite(
       site: SelectedSite(
         id: id,
+        // name stays search_name so the flag-off picker title is unchanged.
         name: details.searchName ?? details.name ?? 'AirQo location',
         searchName: details.locationName ??
             details.formattedName ??
             details.city ??
             country,
+        catalogName: details.name,
+        catalogSearchName: details.searchName,
+        generatedName: details.generatedName,
         city: details.city,
+        town: details.town,
+        region: details.region,
+        county: details.county,
         latitude: latitude,
         longitude: longitude,
       ),
@@ -175,10 +185,10 @@ class _ExposureBodyState extends State<_ExposureBody> {
   final ScrollController _tripsScrollController = ScrollController();
 
   // ── Tour ──────────────────────────────────────────────────────────────────
-  static const String _tourSeenKey = 'exposure_favorite_card_tour_seen_v4';
+  static const String _tourSeenKey = 'exposure_favorite_card_tour_seen_v5';
   static const String _introDismissedKey =
       'exposure_favorites_intro_dismissed_v1';
-  final GlobalKey _firstCardKey = GlobalKey();
+  final PlaceCardTourKeys _tourKeys = PlaceCardTourKeys();
   bool _showTour = false;
   bool _showIntro = false;
   OverlayEntry? _tourOverlay;
@@ -224,6 +234,9 @@ class _ExposureBodyState extends State<_ExposureBody> {
   void _selectSection(bool favorites) {
     if (_favoritesSelected == favorites) return;
     setState(() => _favoritesSelected = favorites);
+    AnalyticsService().trackExposureSectionChanged(
+      section: favorites ? 'favorites' : 'trips',
+    );
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted && _scrollController.hasClients) {
         _scrollController.jumpTo(0);
@@ -244,6 +257,7 @@ class _ExposureBodyState extends State<_ExposureBody> {
 
   Future<void> _dismissIntro() async {
     setState(() => _showIntro = false);
+    AnalyticsService().trackExposureFavoritesIntroDismissed();
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_introDismissedKey, true);
   }
@@ -262,6 +276,7 @@ class _ExposureBodyState extends State<_ExposureBody> {
     _tourOverlay?.remove();
     _tourOverlay = null;
     setState(() => _showTour = false);
+    AnalyticsService().trackExposurePlaceCardTourDismissed();
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_tourSeenKey, true);
   }
@@ -277,12 +292,13 @@ class _ExposureBodyState extends State<_ExposureBody> {
           _tourOverlay = OverlayEntry(
             builder: (_) => Positioned.fill(
               child: PlaceCardTour(
-                cardKey: _firstCardKey,
+                tourKeys: _tourKeys,
                 onDismiss: _dismissTour,
               ),
             ),
           );
           Overlay.of(context, rootOverlay: true).insert(_tourOverlay!);
+          AnalyticsService().trackExposurePlaceCardTourShown();
         });
       }
     });
@@ -381,6 +397,10 @@ class _ExposureBodyState extends State<_ExposureBody> {
                       context.read<MapBloc>().add(LoadMap(forceRefresh: true));
                     },
                     onAddPlaces: () async {
+                      AnalyticsService().trackExposureEmptyCtaTapped(
+                        cta: 'add_places',
+                        section: 'trips',
+                      );
                       await Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -439,7 +459,10 @@ class _ExposureBodyState extends State<_ExposureBody> {
                           );
                           return DeclaredPlaceCard(
                             key: p.siteId == firstDeclaredSiteId
-                                ? _firstCardKey
+                                ? _tourKeys.cardKey
+                                : null,
+                            hourlyDetailKey: p.siteId == firstDeclaredSiteId
+                                ? _tourKeys.chevronKey
                                 : null,
                             place: p,
                             exposureLevel: avg != null
@@ -459,7 +482,9 @@ class _ExposureBodyState extends State<_ExposureBody> {
                             dayOfView: dayOfView,
                           );
                           return DeclaredPlaceCard(
-                            key: entry.key == 0 ? _firstCardKey : null,
+                            key: entry.key == 0 ? _tourKeys.cardKey : null,
+                            hourlyDetailKey:
+                                entry.key == 0 ? _tourKeys.chevronKey : null,
                             place: p,
                             exposureLevel: avg != null
                                 ? ExposureLevelExtension.fromPm25(avg)
@@ -713,6 +738,10 @@ class _EmptyState extends StatelessWidget {
   final bool isGuest;
 
   Future<void> _goLogIn(BuildContext context) async {
+    AnalyticsService().trackExposureEmptyCtaTapped(
+      cta: 'login',
+      section: 'favorites',
+    );
     await Navigator.push(
       context,
       MaterialPageRoute(
@@ -723,6 +752,10 @@ class _EmptyState extends StatelessWidget {
   }
 
   Future<void> _goAddFavourites(BuildContext context) async {
+    AnalyticsService().trackExposureEmptyCtaTapped(
+      cta: 'add_favourites',
+      section: 'favorites',
+    );
     await Navigator.push(
       context,
       MaterialPageRoute(
@@ -852,7 +885,7 @@ class _EmptyState extends StatelessWidget {
                   elevation: 0,
                 ),
                 child: Text(
-                  isGuest ? 'Log in' : 'Add a place',
+                  isGuest ? 'Login to track exposure' : 'Add a place',
                   style: const TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w600,

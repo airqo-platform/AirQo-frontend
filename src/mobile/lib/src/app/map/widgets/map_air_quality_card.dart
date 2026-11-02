@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
+import 'package:airqo/src/app/shared/utils/monitor_place_label.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:airqo/src/meta/utils/forecast_utils.dart';
 import 'package:airqo/src/meta/utils/utils.dart';
@@ -27,11 +28,12 @@ String _locationDescription(Measurement measurement) {
     parts.add(siteDetails.country!);
   }
 
-  return parts.isNotEmpty
+  final description = parts.isNotEmpty
       ? parts.join(', ')
       : siteDetails.locationName ??
           siteDetails.formattedName ??
           '';
+  return measurementSpokenQuietLine(measurement, description);
 }
 
 class MapAirQualityCard extends StatelessWidget {
@@ -68,9 +70,12 @@ class MapAirQualityCard extends StatelessWidget {
           : 'assets/images/shared/airquality_indicators/unavailable.svg';
     }
     final locationText = _locationDescription(measurement);
-    final locationName = measurement.siteDetails?.searchName ??
-        measurement.siteDetails?.name ??
-        '—';
+    final locationName = measurementSpokenTitle(
+      measurement,
+      measurement.siteDetails?.searchName ??
+          measurement.siteDetails?.name ??
+          '—',
+    );
 
     return Container(
       decoration: AppSurfaceColors.elevatedCardDecoration(context),

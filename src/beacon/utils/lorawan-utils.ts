@@ -579,9 +579,18 @@ export function generateMapGeoJSON(
 ): object {
   const features: any[] = [];
 
-  // 1. Devices
+  // 1. Devices, or sites in the map's sites view (site items carry the site under `site`)
   devices.forEach((d) => {
     if (d.latitude == null || d.longitude == null) return;
+    const identity = d.site
+      ? {
+          layer: "AirQo Maintenance Sites",
+          site_id: d.site.site_id,
+          site_name: d.site.site_name,
+          generated_name: d.site.generated_name,
+          number_of_devices: d.site.number_of_devices,
+        }
+      : { layer: "AirQo Maintenance Devices", device_id: d.device_id, device_name: d.device_name };
     features.push({
       type: "Feature",
       id: d.device_id,
@@ -590,9 +599,7 @@ export function generateMapGeoJSON(
         coordinates: [d.longitude, d.latitude],
       },
       properties: {
-        layer: "AirQo Maintenance Devices",
-        device_id: d.device_id,
-        device_name: d.device_name,
+        ...identity,
         uptime_percentage: d.uptime,
         error_margin: d.error_margin,
         last_active: d.last_active,

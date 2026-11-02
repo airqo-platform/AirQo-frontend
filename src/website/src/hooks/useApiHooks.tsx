@@ -29,6 +29,7 @@ export {
   useGridsSummaryV2,
   useHighlights,
   useImpactNumbers,
+  useLivePublications,
   useNetworkCoverageCities,
   useNetworkCoverageCountryMonitors,
   useNetworkCoverageImpact,

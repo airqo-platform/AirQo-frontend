@@ -10,26 +10,24 @@ import { deviceApiService } from "@/services/device-api.service"
 import { useGroup } from "@/lib/group-context"
 import { ROUTES } from "@/lib/navigation"
 
-const ANALYTICS_FILTER_TYPES: AnalyticsFilterType[] = ["airqlouds", "grids", "sites", "devices"]
+// Clustered Analysis covers cohorts, which it calls clusters, and devices
+const ANALYTICS_FILTER_TYPES: AnalyticsFilterType[] = ["airqlouds", "devices"]
+const FILTER_TYPE_LABELS: Partial<Record<AnalyticsFilterType, string>> = { airqlouds: "Clusters" }
+const DEVICES_PAGE_SIZE = 10
 
 // The "Filter By" choice drives the table below it and is kept in
 // `?analysis=<entity>` so it survives reloads and back navigation.
 const FILTER_TO_ENTITY: Record<AnalyticsFilterType, PerformanceEntityType> = {
   airqlouds: "cohorts",
   grids: "grids",
-  sites: "sites",
   devices: "devices",
 }
 
 const getFilterTypeFromParam = (value: string | null | undefined): AnalyticsFilterType =>
   ANALYTICS_FILTER_TYPES.find((type) => FILTER_TO_ENTITY[type] === value) ?? "airqlouds"
 
-const getFilterLabel = (filterType: FilterState["filterType"]) => {
-  if (filterType === "airqlouds") return "Cohort"
-  if (filterType === "grids") return "Grid"
-  if (filterType === "sites") return "Site"
-  return "Device"
-}
+const getFilterLabel = (filterType: FilterState["filterType"]) =>
+  filterType === "airqlouds" ? "Cluster" : "Device"
 
 const getDateWindow = (filterState: FilterState) => {
   const startDate = new Date(filterState.dateRange.from as Date)
@@ -51,25 +49,6 @@ const getDateWindow = (filterState: FilterState) => {
 const fetchAnalysisData = async (filterState: FilterState, start: string, end: string, group: string) => {
   if (filterState.filterType === "airqlouds") {
     return airQloudService.getAirQloudPerformance({
-      start,
-      end,
-      ids: filterState.selectedItems,
-      group,
-    })
-  }
-
-  if (filterState.filterType === "grids") {
-    return airQloudService.getGridPerformance({
-      start,
-      end,
-      ids: filterState.selectedItems,
-      admin_level: "city",
-      group,
-    })
-  }
-
-  if (filterState.filterType === "sites") {
-    return airQloudService.getSitePerformance({
       start,
       end,
       ids: filterState.selectedItems,
@@ -162,17 +141,25 @@ export default function AnalyticsPageClient() {
     }
   }
 
+  const entityType = FILTER_TO_ENTITY[filters.filterType]
+
   return (
     <div className="space-y-6 p-6">
       <AnalyticsFilters
         initialFilterType={initialFilterType}
         filterTypes={ANALYTICS_FILTER_TYPES}
+        filterTypeLabels={FILTER_TYPE_LABELS}
+        title="Clustered Analysis"
         onFilterChange={handleFilterChange}
         onAnalyse={handleAnalyse}
         isAnalysing={isAnalysing}
       />
 
-      <AirQloudsTable entityType={FILTER_TO_ENTITY[filters.filterType]} />
+      <AirQloudsTable
+        entityType={entityType}
+        entityLabel={entityType === "cohorts" ? FILTER_TYPE_LABELS.airqlouds : undefined}
+        pageSize={entityType === "devices" ? DEVICES_PAGE_SIZE : undefined}
+      />
     </div>
   )
 }

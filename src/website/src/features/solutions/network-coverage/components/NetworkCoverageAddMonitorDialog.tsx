@@ -5,13 +5,15 @@ import { FiX, FiMinus, FiPlus } from 'react-icons/fi';
 
 import { networkCoverageService } from '@/services/website';
 
+import { shouldInitializeNetworkCoverageMap } from '../networkCoverageMapLifecycle';
+
 interface Props {
   isOpen: boolean;
   onClose: () => void;
   initialCountryId?: string;
   initialCountryName?: string;
   initialCountryIso2?: string;
-  onSaved?: (response: any) => void;
+  onSaved?: (response: any) => void | Promise<void>;
 }
 
 const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
@@ -138,7 +140,18 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
   // handled in a separate effect so the map is not recreated for every
   // coordinate change.
   useEffect(() => {
-    if (!mapVisible) return undefined;
+    // The dialog clears its country props while closing. Without checking
+    // isOpen and the committed container here, that prop update can run this
+    // effect after the dialog DOM has been removed and call Map with null.
+    if (
+      !shouldInitializeNetworkCoverageMap({
+        isOpen,
+        isVisible: mapVisible,
+        container: mapElRef.current,
+      })
+    ) {
+      return undefined;
+    }
     if (typeof window === 'undefined' || !(window as any).mapboxgl) {
       // Mapbox not available - keep picker closed and show nothing
       return undefined;
@@ -148,21 +161,30 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
     if (mapInstanceRef.current) return undefined;
 
     const mapboxgl = (window as any).mapboxgl;
+    const container = mapElRef.current;
     const { latitude: currentLatitude, longitude: currentLongitude } =
       coordinatesRef.current;
-    const map = new mapboxgl.Map({
-      container: mapElRef.current as HTMLElement,
-      style: 'mapbox://styles/mapbox/streets-v12',
-      center:
-        currentLatitude &&
-        currentLongitude &&
-        Number.isFinite(Number(currentLatitude)) &&
-        Number.isFinite(Number(currentLongitude))
-          ? [Number(currentLongitude), Number(currentLatitude)]
-          : [15.751726790157534, 1.5627232057281049],
-      zoom: currentLatitude && currentLongitude ? 8 : 2.9,
-      preserveDrawingBuffer: true,
-    });
+    let map: any;
+    try {
+      map = new mapboxgl.Map({
+        container,
+        style: 'mapbox://styles/mapbox/streets-v12',
+        center:
+          currentLatitude &&
+          currentLongitude &&
+          Number.isFinite(Number(currentLatitude)) &&
+          Number.isFinite(Number(currentLongitude))
+            ? [Number(currentLongitude), Number(currentLatitude)]
+            : [15.751726790157534, 1.5627232057281049],
+        zoom: currentLatitude && currentLongitude ? 8 : 2.9,
+        preserveDrawingBuffer: true,
+      });
+    } catch {
+      setError(
+        'The map picker could not be loaded. Enter coordinates manually.',
+      );
+      return undefined;
+    }
 
     mapInstanceRef.current = map;
 
@@ -197,6 +219,7 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
     if (initialCountryIso2) {
       try {
         map.on('load', () => {
+          if (mapInstanceRef.current !== map) return;
           try {
             // Add vector source for country boundaries
             if (!map.getSource('add-dialog-country-boundaries')) {
@@ -232,6 +255,7 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
 
             // Wait until tiles & layer rendered then compute bounds
             map.once('idle', () => {
+              if (mapInstanceRef.current !== map) return;
               try {
                 const features = map.queryRenderedFeatures({
                   layers: ['add-dialog-country-fill'],
@@ -316,10 +340,12 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
       } catch {
         // ignore
       }
-      mapInstanceRef.current = null;
-      mapMarkerRef.current = null;
+      if (mapInstanceRef.current === map) {
+        mapInstanceRef.current = null;
+        mapMarkerRef.current = null;
+      }
     };
-  }, [mapVisible, initialCountryIso2]);
+  }, [initialCountryIso2, isOpen, mapVisible]);
 
   // Keep marker in sync when lat/lon inputs change while map is visible
   useEffect(() => {
@@ -479,8 +505,11 @@ const NetworkCoverageAddMonitorDialog: React.FC<Props> = ({
       const response =
         await networkCoverageService.upsertNetworkCoverageRegistry(payload);
 
+      // Let the parent select the country and schedule its background refresh
+      // before closing. The parent deliberately does not wait for the network
+      // refresh here, so the dialog does not remain stuck on "Saving...".
+      await onSaved?.(response);
       setSuccess('Monitor saved');
-      if (onSaved) onSaved(response);
       // small delay to show success then close
       if (closeTimeoutRef.current) {
         clearTimeout(closeTimeoutRef.current);

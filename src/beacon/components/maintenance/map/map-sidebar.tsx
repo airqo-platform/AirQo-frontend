@@ -6,9 +6,11 @@ import { GatewayCoverageStats } from "@/types/lorawan.types"
 import { MapHeader } from "./map-header"
 import { DeviceLocationCard } from "./device-location-card"
 import { DeviceDetailsPanel } from "./device-details-panel"
+import { SiteDetailsPanel } from "./site-details-panel"
 import { PolygonAreaPanel } from "./polygon-area-panel"
+import { MAP_ITEM_NOUNS, countLabel, type MaintenanceMapView, type MapItemNoun } from "@/lib/maintenance-map"
 import { Card } from "@/components/ui/card"
-import { Pentagon, Layers, Radio, CheckCircle2, AlertTriangle, AlertCircle, CircleOff } from "lucide-react"
+import { Pentagon, Layers, Radio, CheckCircle2, AlertTriangle, AlertCircle, CircleOff, Route } from "lucide-react"
 
 interface MapSidebarProps {
   devices: MaintenanceMapItem[]
@@ -23,9 +25,15 @@ interface MapSidebarProps {
   onExportPolygonCSV?: () => void
   selectedDeviceIds?: string[]
   onToggleRouteDevice?: (device: MaintenanceMapItem) => void
+  /** Empties the route selection */
+  onClearRouteSelection?: () => void
   onFocusMapDevice?: (device: MaintenanceMapItem) => void
   onCollapse?: () => void
   className?: string
+  /** Devices or sites; the switch shows when onViewChange is given */
+  view?: MaintenanceMapView
+  onViewChange?: (view: MaintenanceMapView) => void
+  itemNoun?: MapItemNoun
 }
 
 type QuickStatusFilter = "all" | "offline" | "critical" | "moderate" | "good"
@@ -43,13 +51,18 @@ export const MapSidebar: React.FC<MapSidebarProps> = ({
   onExportPolygonCSV,
   selectedDeviceIds = [],
   onToggleRouteDevice,
+  onClearRouteSelection,
   onFocusMapDevice,
   onCollapse,
   className = "",
+  view = "devices",
+  onViewChange,
+  itemNoun = MAP_ITEM_NOUNS.devices,
 }) => {
   const [searchQuery, setSearchQuery] = useState("")
   const [quickStatus, setQuickStatus] = useState<QuickStatusFilter>("all")
   const [showPolygonView, setShowPolygonView] = useState(false)
+  const selectedId = selectedDevice?.device_id
 
   // Filter devices based on search query and quick status
   const filteredDevices = useMemo(() => {
@@ -86,13 +99,22 @@ export const MapSidebar: React.FC<MapSidebarProps> = ({
         const num = String(device.device_number ?? (device as any).deviceNumber ?? "").toLowerCase()
         const cohorts = (device.cohorts || []).join(" ").toLowerCase()
         const grids = (device.grids || []).join(" ").toLowerCase()
+        // A site also matches its site_… id, its location and the names of its devices
+        const site = device.site
+        const siteText = site
+          ? [site.generated_name, site.district, site.city, site.region, site.country, ...site.devices.map((d) => d.device_name)]
+              .filter(Boolean)
+              .join(" ")
+              .toLowerCase()
+          : ""
 
         return (
           name.includes(q) ||
           id.includes(q) ||
           num.includes(q) ||
           cohorts.includes(q) ||
-          grids.includes(q)
+          grids.includes(q) ||
+          siteText.includes(q)
         )
       })
     }
@@ -128,8 +150,19 @@ export const MapSidebar: React.FC<MapSidebarProps> = ({
         } as React.CSSProperties
       }
     >
-      {/* View 1: Device Details View */}
-      {selectedDevice ? (
+      {/* View 1: Device or Site Details View */}
+      {selectedDevice?.site ? (
+        <SiteDetailsPanel
+          item={selectedDevice}
+          site={selectedDevice.site}
+          onBack={() => onSelectDevice(null)}
+          coverageInfo={coverageStats?.deviceCoverageMap[selectedDevice.device_id]}
+          showLoRaWAN={showLoRaWAN}
+          isInRoute={selectedDeviceIds.includes(selectedDevice.device_id)}
+          onToggleRoute={onToggleRouteDevice}
+          onFocusMap={onFocusMapDevice}
+        />
+      ) : selectedDevice ? (
         <DeviceDetailsPanel
           device={selectedDevice}
           onBack={() => onSelectDevice(null)}
@@ -155,6 +188,7 @@ export const MapSidebar: React.FC<MapSidebarProps> = ({
             onFocusMapDevice?.(dev)
           }}
           selectedDeviceIds={selectedDeviceIds}
+          itemNoun={itemNoun}
         />
       ) : (
         /* View 3: Device List & Search View */
@@ -167,6 +201,9 @@ export const MapSidebar: React.FC<MapSidebarProps> = ({
             totalCount={devices.length}
             filteredCount={filteredDevices.length}
             onCollapse={onCollapse}
+            view={view}
+            onViewChange={onViewChange}
+            itemNoun={itemNoun}
           />
 
           {/* Quick Filter Status Pills */}
@@ -248,10 +285,29 @@ export const MapSidebar: React.FC<MapSidebarProps> = ({
                 <div className="flex items-center gap-2">
                   <Pentagon className="w-3.5 h-3.5 text-blue-600" />
                   <span className="font-bold">Area Selected:</span>
-                  <span>{polygonDevices.length} devices</span>
+                  <span>{countLabel(polygonDevices.length, itemNoun)}</span>
                 </div>
                 <span className="text-[10px] underline font-semibold">View Area</span>
               </button>
+            </div>
+          )}
+
+          {/* Route selection: Optimize routes through these instead of everything shown */}
+          {selectedDeviceIds.length > 0 && (
+            <div className="px-3 pt-2.5 pb-1 flex-none">
+              <div className="w-full p-2 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 rounded-lg flex items-center justify-between gap-2 text-xs text-blue-800 dark:text-blue-200">
+                <div className="flex items-center gap-2 min-w-0">
+                  <Route className="w-3.5 h-3.5 text-blue-600 flex-shrink-0" />
+                  <span>
+                    <span className="font-bold">{countLabel(selectedDeviceIds.length, itemNoun)}</span> picked for the route
+                  </span>
+                </div>
+                {onClearRouteSelection && (
+                  <button onClick={onClearRouteSelection} className="text-[10px] underline font-semibold flex-shrink-0">
+                    Clear
+                  </button>
+                )}
+              </div>
             </div>
           )}
 
@@ -272,7 +328,7 @@ export const MapSidebar: React.FC<MapSidebarProps> = ({
                   <Layers className="w-5 h-5" />
                 </div>
                 <h4 className="text-xs font-bold text-gray-700 dark:text-gray-300">
-                  No devices found
+                  No {itemNoun.plural} found
                 </h4>
                 <p className="text-[11px] text-gray-400 mt-0.5">
                   Try clearing your search or adjusting filters.
@@ -294,13 +350,15 @@ export const MapSidebar: React.FC<MapSidebarProps> = ({
                 <DeviceLocationCard
                   key={device.device_id}
                   device={device}
-                  isSelected={selectedDevice?.device_id === device.device_id}
+                  isSelected={selectedId === device.device_id}
                   onClick={() => {
                     onSelectDevice(device)
                     onFocusMapDevice?.(device)
                   }}
                   coverageInfo={coverageStats?.deviceCoverageMap[device.device_id]}
                   showLoRaWAN={showLoRaWAN}
+                  isInRoute={selectedDeviceIds.includes(device.device_id)}
+                  onToggleRoute={onToggleRouteDevice ? () => onToggleRouteDevice(device) : undefined}
                 />
               ))
             )}

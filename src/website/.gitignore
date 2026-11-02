@@ -15,6 +15,7 @@ mochawesome-report/
 
 # next.js
 /.next/
+/.next-manual/
 /out/
 
 # production

@@ -2,51 +2,146 @@
 
 import { useRouter, useSearchParams } from 'next/navigation';
 import React, { useMemo, useState } from 'react';
-import { FiDownload } from 'react-icons/fi';
+import { FiDownload, FiExternalLink } from 'react-icons/fi';
 
-import { CustomButton, NoData, Pagination } from '@/components/ui';
+import { NoData, Pagination } from '@/components/ui';
 import mainConfig from '@/config/site.config';
-import { usePublications } from '@/hooks/useApiHooks';
+import { useLivePublications, usePublications } from '@/hooks/useApiHooks';
+import { getExternalLinkProps } from '@/lib/security/safeExternalLink';
+import type {
+  CuratedPublication,
+  PublicationFeedItem,
+} from '@/lib/utils/publications';
+import { mergePublicationLists } from '@/lib/utils/publications';
+import type { LivePublication } from '@/types/publications-feed';
+
+type ResourceItem = {
+  title?: string;
+  resource_title?: string;
+  authors?: string | string[];
+  resource_authors?: string | string[];
+  description?: string;
+  link?: string;
+  link_title?: string;
+  resource_file_url?: string;
+};
+
+const formatPublicationDate = (date?: string, year?: number) => {
+  if (!date) return year ? String(year) : undefined;
+
+  const parsedDate = new Date(date);
+  if (Number.isNaN(parsedDate.getTime()))
+    return year ? String(year) : undefined;
+
+  return new Intl.DateTimeFormat('en', {
+    month: 'short',
+    year: 'numeric',
+    timeZone: 'UTC',
+  }).format(parsedDate);
+};
+
+const getHttpsUrl = (value?: string): string | undefined => {
+  if (!value?.trim()) return undefined;
+
+  try {
+    const url = new URL(value.trim());
+    return url.protocol === 'https:' && url.hostname ? value.trim() : undefined;
+  } catch {
+    return undefined;
+  }
+};
+
+const ResearchPublicationCard: React.FC<{
+  publication: PublicationFeedItem;
+}> = ({ publication }) => {
+  const publicationDate = formatPublicationDate(
+    publication.publishedDate,
+    publication.year,
+  );
+  const publicationUrl = getHttpsUrl(publication.url);
+  const openAccessUrl = getHttpsUrl(publication.openAccessUrl);
+
+  return (
+    <article className="rounded-lg bg-card-custom-gradient p-6 shadow-sm transition-all duration-300 hover:shadow-md lg:p-12">
+      <div className="mb-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-gray-600">
+        {publicationDate && <span>{publicationDate}</span>}
+        {publication.journal && <span>{publication.journal}</span>}
+      </div>
+
+      <h2 className="mb-3 line-clamp-3 text-xl font-semibold">
+        {publication.title}
+      </h2>
+
+      {publication.authors.length > 0 && (
+        <p className="mb-4 line-clamp-2 text-gray-600">
+          {publication.authors.join(', ')}
+        </p>
+      )}
+
+      {(publication.abstract || publication.description) && (
+        <p className="mb-6 line-clamp-4 leading-relaxed text-gray-700">
+          {publication.abstract || publication.description}
+        </p>
+      )}
+
+      <div className="flex flex-wrap items-center gap-4">
+        {publicationUrl && (
+          <a
+            className="flex items-center border border-black bg-transparent px-4 py-2 text-black transition-colors hover:bg-black hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+            href={publicationUrl}
+            {...getExternalLinkProps(publicationUrl)}
+          >
+            View publication <FiExternalLink className="ml-2" />
+          </a>
+        )}
+
+        {openAccessUrl && openAccessUrl !== publicationUrl && (
+          <a
+            className="flex items-center border border-black bg-transparent px-4 py-2 text-black transition-colors hover:bg-black hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+            href={openAccessUrl}
+            {...getExternalLinkProps(openAccessUrl)}
+          >
+            <FiDownload className="mr-2" /> Open access copy
+          </a>
+        )}
+      </div>
+    </article>
+  );
+};
 
 const ResourcePage: React.FC = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // Tabs mapped to categories from the Publication model
   const tabs = useMemo(
     () => [
       { name: 'Policy Documents', value: 'policy' },
       { name: 'Technical Reports', value: 'technical' },
       { name: 'Research Publications', value: 'research' },
-      { name: 'Guides and Manuals', value: ['guide', 'manual'] }, // Guides and Manuals combined
+      { name: 'Guides and Manuals', value: ['guide', 'manual'] },
     ],
     [],
   );
 
-  // State management
-  const initialTabParam = (searchParams?.get('tab') as string) || 'policy';
+  const initialTabParam = searchParams?.get('tab') || 'policy';
   const initialSelected = initialTabParam.includes(',')
     ? initialTabParam
         .split(',')
-        .map((t) => t.trim())
+        .map((tab) => tab.trim())
         .filter(Boolean)
     : initialTabParam;
   const [selectedTab, setSelectedTab] = useState<string | string[]>(
     initialSelected,
   );
   const [currentPage, setCurrentPage] = useState<number>(1);
-
-  // Pagination logic
   const itemsPerPage = 4;
 
-  // Check if this is a combined category (guide + manual)
   const isCombinedCategory =
     Array.isArray(selectedTab) &&
     selectedTab.includes('guide') &&
     selectedTab.includes('manual');
+  const isResearchCategory = selectedTab === 'research';
 
-  // For combined categories, fetch guide and manual separately with page_size: 4
-  // We need to fetch all pages for client-side pagination
   const guidePage1 = usePublications(
     isCombinedCategory
       ? { category: 'guide', page_size: 4, page: 1 }
@@ -62,7 +157,6 @@ const ResourcePage: React.FC = () => {
       ? { category: 'guide', page_size: 4, page: 3 }
       : undefined,
   );
-
   const manualPage1 = usePublications(
     isCombinedCategory
       ? { category: 'manual', page_size: 4, page: 1 }
@@ -78,8 +172,6 @@ const ResourcePage: React.FC = () => {
       ? { category: 'manual', page_size: 4, page: 3 }
       : undefined,
   );
-
-  // For single categories, use traditional pagination with page_size: 4
   const singleCategoryData = usePublications(
     !isCombinedCategory
       ? {
@@ -89,11 +181,43 @@ const ResourcePage: React.FC = () => {
         }
       : undefined,
   );
+  const livePublicationsData = useLivePublications(
+    isResearchCategory
+      ? { page: currentPage, page_size: itemsPerPage }
+      : undefined,
+    { enabled: isResearchCategory },
+  );
 
-  // Process data based on category type
   const { results, totalPages, error, isLoading } = useMemo(() => {
+    if (isResearchCategory) {
+      const curatedResults = (singleCategoryData.data?.results ||
+        []) as CuratedPublication[];
+      const liveResults = (livePublicationsData.data?.results ||
+        []) as LivePublication[];
+      const researchResults = mergePublicationLists(
+        curatedResults,
+        liveResults,
+      );
+      const liveRequestIsLoading =
+        livePublicationsData.isLoading ||
+        (livePublicationsData.isFetching && !livePublicationsData.data);
+      const fallbackTotalPages = singleCategoryData.data?.total_pages || 1;
+      const liveTotalPages = livePublicationsData.data?.totalPages || 0;
+
+      return {
+        results: researchResults,
+        totalPages: Math.max(fallbackTotalPages, liveTotalPages),
+        error:
+          researchResults.length > 0
+            ? null
+            : singleCategoryData.error || livePublicationsData.error,
+        isLoading:
+          researchResults.length === 0 &&
+          (singleCategoryData.isLoading || liveRequestIsLoading),
+      };
+    }
+
     if (isCombinedCategory) {
-      // Combine guide and manual data from all pages
       const guideResults = [
         ...(guidePage1.data?.results || []),
         ...(guidePage2.data?.results || []),
@@ -105,18 +229,11 @@ const ResourcePage: React.FC = () => {
         ...(manualPage3.data?.results || []),
       ];
       const combinedResults = [...guideResults, ...manualResults];
-
-      // Client-side pagination for combined results
       const startIndex = (currentPage - 1) * itemsPerPage;
-      const endIndex = startIndex + itemsPerPage;
-      const paginatedResults = combinedResults.slice(startIndex, endIndex);
-      const calculatedTotalPages = Math.ceil(
-        combinedResults.length / itemsPerPage,
-      );
 
       return {
-        results: paginatedResults,
-        totalPages: calculatedTotalPages,
+        results: combinedResults.slice(startIndex, startIndex + itemsPerPage),
+        totalPages: Math.ceil(combinedResults.length / itemsPerPage),
         error:
           guidePage1.error ||
           guidePage2.error ||
@@ -132,17 +249,16 @@ const ResourcePage: React.FC = () => {
           manualPage2.isLoading ||
           manualPage3.isLoading,
       };
-    } else {
-      // Single category with server-side pagination
-      return {
-        results: singleCategoryData.data?.results || [],
-        totalPages: singleCategoryData.data?.total_pages || 1,
-        error: singleCategoryData.error,
-        isLoading: singleCategoryData.isLoading,
-      };
     }
+
+    return {
+      results: singleCategoryData.data?.results || [],
+      totalPages: singleCategoryData.data?.total_pages || 1,
+      error: singleCategoryData.error,
+      isLoading: singleCategoryData.isLoading,
+    };
   }, [
-    isCombinedCategory,
+    currentPage,
     guidePage1.data,
     guidePage1.error,
     guidePage1.isLoading,
@@ -152,6 +268,13 @@ const ResourcePage: React.FC = () => {
     guidePage3.data,
     guidePage3.error,
     guidePage3.isLoading,
+    isCombinedCategory,
+    isResearchCategory,
+    itemsPerPage,
+    livePublicationsData.data,
+    livePublicationsData.error,
+    livePublicationsData.isFetching,
+    livePublicationsData.isLoading,
     manualPage1.data,
     manualPage1.error,
     manualPage1.isLoading,
@@ -164,147 +287,174 @@ const ResourcePage: React.FC = () => {
     singleCategoryData.data,
     singleCategoryData.error,
     singleCategoryData.isLoading,
-    currentPage,
-    itemsPerPage,
   ]);
 
-  // Handle tab click
   const handleTabClick = (tabValue: string | string[]) => {
     setSelectedTab(tabValue);
     setCurrentPage(1);
-    const url = `/resources?tab=${Array.isArray(tabValue) ? tabValue.join(',') : tabValue}`;
-    router.push(url);
-  };
-
-  // Handle pagination
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
+    router.push(
+      `/resources?tab=${Array.isArray(tabValue) ? tabValue.join(',') : tabValue}`,
+    );
   };
 
   return (
-    <div className="flex flex-col w-full space-y-16 overflow-hidden">
-      {/* Header Section */}
+    <div className="flex w-full flex-col space-y-16 overflow-hidden">
       <section className="bg-[#F2F1F6] pt-16">
         <div className={`${mainConfig.containerClass} px-4`}>
-          <h1 className="text-4xl font-bold mb-4">Resources</h1>
-          <p className="text-xl mb-8">
+          <h1 className="mb-4 text-4xl font-bold">Resources</h1>
+          <p className="mb-8 text-xl">
             Discover our latest collection of resources
           </p>
 
-          {/* Tabs Section */}
-          <div className="flex space-x-8 border-b overflow-x-auto border-gray-300">
-            {tabs.map((tab) => (
-              <button
-                key={typeof tab.value === 'string' ? tab.value : tab.name}
-                onClick={() => handleTabClick(tab.value)}
-                className={`pb-2 text-lg ${
-                  (() => {
-                    // Normalize selectedTab to array for comparison
-                    const selectedTabArray = Array.isArray(selectedTab)
-                      ? selectedTab
-                      : typeof selectedTab === 'string'
-                        ? selectedTab.split(',').map((t) => t.trim())
-                        : [];
+          <div className="flex space-x-8 overflow-x-auto border-b border-gray-300">
+            {tabs.map((tab) => {
+              const selectedTabArray = Array.isArray(selectedTab)
+                ? selectedTab
+                : selectedTab.split(',').map((value) => value.trim());
+              const isSelected = Array.isArray(tab.value)
+                ? tab.value.every((value) => selectedTabArray.includes(value))
+                : selectedTabArray.includes(tab.value);
 
-                    if (Array.isArray(tab.value)) {
-                      // For combined tabs like ['guide', 'manual']
-                      return tab.value.every((v) =>
-                        selectedTabArray.includes(v),
-                      );
-                    } else {
-                      // For single value tabs
-                      return (
-                        selectedTab === tab.value ||
-                        selectedTabArray.includes(tab.value)
-                      );
-                    }
-                  })()
-                    ? 'text-black border-b-2 border-black font-semibold'
-                    : 'text-gray-500'
-                } transition-colors duration-300`}
-              >
-                {tab.name}
-              </button>
-            ))}
+              return (
+                <button
+                  key={typeof tab.value === 'string' ? tab.value : tab.name}
+                  type="button"
+                  onClick={() => handleTabClick(tab.value)}
+                  aria-pressed={isSelected}
+                  className={`pb-2 text-lg transition-colors duration-300 ${
+                    isSelected
+                      ? 'border-b-2 border-black font-semibold text-black'
+                      : 'text-gray-500 hover:text-gray-900'
+                  } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-4`}
+                >
+                  {tab.name}
+                </button>
+              );
+            })}
           </div>
         </div>
       </section>
 
-      {/* Resources List Section */}
       <section className={`${mainConfig.containerClass} w-full px-4`}>
+        {isResearchCategory &&
+          livePublicationsData.data?.degraded &&
+          results.length > 0 && (
+            <p
+              className="mb-6 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900"
+              role="status"
+            >
+              Live research updates are temporarily unavailable. Existing AirQo
+              publications are still available below.
+            </p>
+          )}
         {isLoading ? (
-          // Skeleton Loader
-          <div className="space-y-6">
-            {[...Array(itemsPerPage)].map((_, idx) => (
+          <div
+            className="space-y-6"
+            role="status"
+            aria-live="polite"
+            aria-label={
+              isResearchCategory
+                ? 'Loading research publications'
+                : 'Loading resources'
+            }
+          >
+            {[...Array(itemsPerPage)].map((_, index) => (
               <div
-                key={idx}
-                className="bg-gray-100 p-6 lg:p-16 rounded-lg animate-pulse"
+                key={index}
+                className="animate-pulse rounded-lg bg-gray-100 p-6 lg:p-16"
               >
-                <div className="h-6 bg-gray-300 rounded w-3/4 mb-4"></div>
-                <div className="h-4 bg-gray-300 rounded w-1/2 mb-4"></div>
-                <div className="h-16 bg-gray-200 rounded w-full mb-6"></div>
+                <div className="mb-4 h-6 w-3/4 rounded bg-gray-300" />
+                <div className="mb-4 h-4 w-1/2 rounded bg-gray-300" />
+                <div className="mb-6 h-16 w-full rounded bg-gray-200" />
                 <div className="flex flex-wrap gap-4">
-                  <div className="h-10 bg-gray-300 rounded w-32"></div>
-                  <div className="h-10 bg-gray-300 rounded w-32"></div>
+                  <div className="h-10 w-32 rounded bg-gray-300" />
+                  <div className="h-10 w-32 rounded bg-gray-300" />
                 </div>
               </div>
             ))}
           </div>
         ) : error ? (
           <NoData message="Failed to load resources. Please try again later." />
+        ) : isResearchCategory ? (
+          results.length === 0 ? (
+            <NoData
+              message={
+                livePublicationsData.data?.degraded
+                  ? 'Live updates are temporarily unavailable, and no curated AirQo publications are currently available.'
+                  : 'No publications were found. Please try again later.'
+              }
+            />
+          ) : (
+            <div className="space-y-6">
+              {(results as PublicationFeedItem[]).map((publication) => (
+                <ResearchPublicationCard
+                  key={publication.id}
+                  publication={publication}
+                />
+              ))}
+            </div>
+          )
         ) : results.length === 0 ? (
           <NoData message="No resources available for this category." />
         ) : (
           <div className="space-y-6">
-            {results.map((resource: any, idx: any) => (
-              <div
-                key={idx}
-                className="bg-card-custom-gradient p-6 lg:p-16 rounded-lg shadow-sm transition-all duration-300 hover:shadow-md"
-              >
-                <h2 className="text-xl font-semibold mb-2">
-                  {resource.title || resource.resource_title}
-                </h2>
-                <p className="text-gray-600 mb-4">
-                  {resource.authors || resource.resource_authors}
-                </p>
-                {resource.description && (
-                  <div className="text-gray-700 mb-6 leading-relaxed">
-                    <p>{resource.description}</p>
-                  </div>
-                )}
-                <div className="flex items-center flex-wrap gap-4">
-                  {resource.link && (
-                    <CustomButton
-                      className="flex items-center text-black border border-black bg-transparent px-4 py-2 hover:bg-black hover:text-white transition-colors"
-                      onClick={() => window.open(resource.link, '_blank')}
-                    >
-                      {resource.link_title || 'Read More'} →
-                    </CustomButton>
-                  )}
+            {results.map((resource: ResourceItem, index: number) => {
+              const resourceAuthors =
+                resource.authors || resource.resource_authors;
+              const resourceLink = getHttpsUrl(resource.link);
+              const resourceFileUrl = getHttpsUrl(resource.resource_file_url);
 
-                  {resource.resource_file_url && (
-                    <CustomButton
-                      className="flex items-center text-black border border-black bg-transparent px-4 py-2 hover:bg-black hover:text-white transition-colors"
-                      onClick={() =>
-                        window.open(resource.resource_file_url, '_blank')
-                      }
-                    >
-                      <FiDownload className="mr-2" /> Download
-                    </CustomButton>
+              return (
+                <article
+                  key={index}
+                  className="rounded-lg bg-card-custom-gradient p-6 shadow-sm transition-all duration-300 hover:shadow-md lg:p-16"
+                >
+                  <h2 className="mb-2 text-xl font-semibold">
+                    {resource.title || resource.resource_title}
+                  </h2>
+                  <p className="mb-4 text-gray-600">
+                    {Array.isArray(resourceAuthors)
+                      ? resourceAuthors.join(', ')
+                      : resourceAuthors}
+                  </p>
+                  {resource.description && (
+                    <p className="mb-6 leading-relaxed text-gray-700">
+                      {resource.description}
+                    </p>
                   )}
-                </div>
-              </div>
-            ))}
+                  <div className="flex flex-wrap items-center gap-4">
+                    {resourceLink && (
+                      <a
+                        className="flex items-center border border-black bg-transparent px-4 py-2 text-black transition-colors hover:bg-black hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+                        href={resourceLink}
+                        {...getExternalLinkProps(resourceLink)}
+                      >
+                        {resource.link_title || 'Read More'}{' '}
+                        <FiExternalLink className="ml-2" />
+                      </a>
+                    )}
+                    {resourceFileUrl && (
+                      <a
+                        className="flex items-center border border-black bg-transparent px-4 py-2 text-black transition-colors hover:bg-black hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+                        href={resourceFileUrl}
+                        {...getExternalLinkProps(resourceFileUrl)}
+                      >
+                        <FiDownload className="mr-2" /> Download
+                      </a>
+                    )}
+                  </div>
+                </article>
+              );
+            })}
           </div>
         )}
       </section>
 
-      {/* Pagination Section */}
       {results.length > 0 && (
         <Pagination
           totalPages={totalPages}
           currentPage={currentPage}
-          onPageChange={handlePageChange}
+          onPageChange={setCurrentPage}
           scrollToTop={true}
         />
       )}

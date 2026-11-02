@@ -71,8 +71,7 @@ void main() {
     );
   });
 
-  test('Exposure uses the same visible location title as dashboard Favorites',
-      () {
+  test('Exposure uses the place a person would say', () {
     const favorite = SelectedSite(
       id: 'kisumu-site',
       name: "Ang'awa Avenue",
@@ -92,7 +91,7 @@ void main() {
       const [declared],
     ).single;
 
-    expect(item.declaredPlace?.locationName, 'Kisumu 256');
+    expect(item.declaredPlace?.locationName, "Ang'awa Avenue");
     expect(item.declaredPlace?.monitorName, "Ang'awa Avenue");
     expect(item.declaredPlace?.city, 'Kisumu');
   });

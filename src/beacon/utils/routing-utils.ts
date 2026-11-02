@@ -84,11 +84,156 @@ export const calculateNearestNeighborRoute = <T extends RoutePoint>(
 };
 
 // ---------------------------------------------------------------------------
+// Straight-line route optimisation, used while road routing is switched off.
+// Visiting every stop once and returning is the Travelling Salesman Problem;
+// it is solved here with nearest-neighbour ordering improved by 2-opt.
+// ---------------------------------------------------------------------------
+
+export interface StraightLineRoute<T extends RoutePoint = RoutePoint> {
+    /** Stops in visiting order (start/end point excluded). */
+    order: T[];
+    /** Total straight-line distance in kilometres, back to the start included. */
+    distanceKm: number;
+    /** Straight-line distance of each leg, index i = leg leaving stop i (or the start for i = 0). */
+    legs: { distanceKm: number }[];
+}
+
+const straightKm = (a: Coordinates, b: Coordinates): number =>
+    haversineDistance(a.latitude, a.longitude, b.latitude, b.longitude);
+
+/**
+ * A short round trip from `startPoint` through every stop. Nearest-neighbour gives a first tour;
+ * 2-opt then reverses any stretch of it whose reversal shortens the trip, until none does (or
+ * `maxPasses` runs out), which removes the crossings and backtracks nearest-neighbour leaves.
+ */
+export const optimizeRoundTrip = <T extends RoutePoint>(
+    startPoint: Coordinates,
+    points: T[],
+    maxPasses = 50
+): StraightLineRoute<T> => {
+    if (points.length === 0) return { order: [], distanceKm: 0, legs: [] };
+
+    // Node 0 is the start; the tour is 0 → stops → 0
+    const nodes: Coordinates[] = [startPoint, ...calculateNearestNeighborRoute(startPoint, points)];
+    const n = nodes.length;
+    const dist = new Float64Array(n * n);
+    for (let i = 0; i < n; i++) {
+        for (let j = i + 1; j < n; j++) {
+            const d = straightKm(nodes[i], nodes[j]);
+            dist[i * n + j] = d;
+            dist[j * n + i] = d;
+        }
+    }
+    const tour = [...Array.from({ length: n }, (_, i) => i), 0];
+    const d = (a: number, b: number) => dist[a * n + b];
+
+    for (let pass = 0, improved = true; improved && pass < maxPasses; pass++) {
+        improved = false;
+        for (let i = 1; i < tour.length - 2; i++) {
+            for (let k = i + 1; k < tour.length - 1; k++) {
+                const delta =
+                    d(tour[i - 1], tour[k]) + d(tour[i], tour[k + 1]) - d(tour[i - 1], tour[i]) - d(tour[k], tour[k + 1]);
+                if (delta < -1e-9) {
+                    for (let lo = i, hi = k; lo < hi; lo++, hi--) [tour[lo], tour[hi]] = [tour[hi], tour[lo]];
+                    improved = true;
+                }
+            }
+        }
+    }
+
+    const legs = tour.slice(1).map((node, idx) => ({ distanceKm: d(tour[idx], node) }));
+    return {
+        order: tour.slice(1, -1).map((node) => nodes[node] as T),
+        distanceKm: legs.reduce((sum, leg) => sum + leg.distanceKm, 0),
+        legs,
+    };
+};
+
+/**
+ * The extra distance of also visiting `candidate`: the cheapest leg a → b of the round trip
+ * (start, stops…, start) to slot it into, costing d(a, c) + d(c, b) − d(a, b).
+ */
+export const cheapestInsertionKm = (
+    startPoint: Coordinates,
+    stops: Coordinates[],
+    candidate: Coordinates
+): number => {
+    const tour = [startPoint, ...stops, startPoint];
+    let best = Infinity;
+    for (let i = 0; i < tour.length - 1; i++) {
+        const extra = straightKm(tour[i], candidate) + straightKm(candidate, tour[i + 1]) - straightKm(tour[i], tour[i + 1]);
+        if (extra < best) best = extra;
+    }
+    return Math.max(0, best);
+};
+
+/**
+ * Google Maps takes at most nine waypoints between a link's origin and destination, and three in
+ * a phone's web browser, see https://developers.google.com/maps/documentation/urls/get-started.
+ */
+export const GOOGLE_MAPS_MAX_WAYPOINTS = 9;
+export const GOOGLE_MAPS_PHONE_MAX_WAYPOINTS = 3;
+
+/**
+ * Whether this is a phone or tablet browser, whose Google Maps links take fewer waypoints. An
+ * iPad asking for desktop sites sends a Mac user agent, so it is told from a Mac by its touch
+ * points: a Mac reports none.
+ */
+export const isPhoneBrowser = (
+    userAgent: string = typeof navigator !== "undefined" ? navigator.userAgent : "",
+    maxTouchPoints: number = typeof navigator !== "undefined" ? navigator.maxTouchPoints ?? 0 : 0
+): boolean =>
+    /Android|iPhone|iPad|iPod|Mobile/i.test(userAgent) || (/Macintosh/i.test(userAgent) && maxTouchPoints > 1);
+
+export interface GoogleMapsLink {
+    url: string;
+    /** 1-based positions in `points` this link covers, first and last included */
+    from: number;
+    to: number;
+}
+
+const latLng = (p: Coordinates) => `${p.latitude.toFixed(6)},${p.longitude.toFixed(6)}`;
+
+/**
+ * Driving directions through `points` in order, as Google Maps links. A trip with more stops than
+ * one link takes is split into consecutive links, each starting where the previous one ended.
+ */
+export const buildGoogleMapsDirectionsLinks = (
+    points: Coordinates[],
+    maxWaypoints: number = GOOGLE_MAPS_MAX_WAYPOINTS
+): GoogleMapsLink[] => {
+    if (points.length < 2) return [];
+    const perLink = maxWaypoints + 1; // legs per link: origin, waypoints, destination
+    const links: GoogleMapsLink[] = [];
+    for (let i = 0; i < points.length - 1; i += perLink) {
+        const slice = points.slice(i, i + perLink + 1);
+        const params = new URLSearchParams({
+            api: "1",
+            origin: latLng(slice[0]),
+            destination: latLng(slice[slice.length - 1]),
+            travelmode: "driving",
+        });
+        const waypoints = slice.slice(1, -1);
+        if (waypoints.length > 0) params.set("waypoints", waypoints.map(latLng).join("|"));
+        links.push({ url: `https://www.google.com/maps/dir/?${params.toString()}`, from: i + 1, to: i + slice.length });
+    }
+    return links;
+};
+
+// ---------------------------------------------------------------------------
 // Road-network routing (OSRM public demo server, free, no API key required).
 // See https://project-osrm.org/docs/v5.24.0/api/ for the HTTP API.
 // The demo server is rate-limited and intended for light use; a self-hosted
 // OSRM instance can be pointed to via NEXT_PUBLIC_OSRM_BASE_URL.
 // ---------------------------------------------------------------------------
+
+/**
+ * Road routing (OSRM) is off until NEXT_PUBLIC_ENABLE_ROAD_ROUTING=true; meanwhile routes are
+ * optimised on straight-line distances and no stop coordinates go to OSRM. Google Maps links
+ * carry the stop coordinates either way, when they are opened, copied or shared.
+ */
+export const ROAD_ROUTING_ENABLED =
+    typeof process !== "undefined" && process.env.NEXT_PUBLIC_ENABLE_ROAD_ROUTING === "true";
 
 export const OSRM_BASE_URL =
     (typeof process !== "undefined" && process.env.NEXT_PUBLIC_OSRM_BASE_URL) ||
@@ -108,6 +253,8 @@ export interface RoadRoute<T extends RoutePoint = RoutePoint> {
     durationMin: number;
     /** Distance and time of each leg, index i = leg leaving stop i (or the start for i = 0). */
     legs: { distanceKm: number; durationMin: number }[];
+    /** How the stops were put in order: OSRM's trip service, or nearest-neighbour past its limit */
+    planner: "osrm-trip" | "nearest-neighbour";
 }
 
 const toCoordString = (points: Coordinates[]): string =>
@@ -136,7 +283,7 @@ export const calculateRoadRoute = async <T extends RoutePoint>(
     signal?: AbortSignal
 ): Promise<RoadRoute<T>> => {
     if (points.length === 0) {
-        return { order: [], geometry: [], distanceKm: 0, durationMin: 0, legs: [] };
+        return { order: [], geometry: [], distanceKm: 0, durationMin: 0, legs: [], planner: "osrm-trip" };
     }
 
     if (points.length + 1 <= OSRM_MAX_TRIP_POINTS) {
@@ -165,13 +312,14 @@ export const calculateRoadRoute = async <T extends RoutePoint>(
                 distanceKm: l.distance / 1000,
                 durationMin: l.duration / 60,
             })),
+            planner: "osrm-trip",
         };
     }
 
     // Too many stops for the trip service: order locally, then fetch road geometry in chunks.
     const order = calculateNearestNeighborRoute(startPoint, points);
     const road = await fetchRoadGeometry([startPoint, ...order, startPoint], signal);
-    return { order, ...road };
+    return { order, ...road, planner: "nearest-neighbour" };
 };
 
 /**
@@ -181,7 +329,7 @@ export const calculateRoadRoute = async <T extends RoutePoint>(
 export const fetchRoadGeometry = async (
     waypoints: Coordinates[],
     signal?: AbortSignal
-): Promise<Omit<RoadRoute, "order">> => {
+): Promise<Omit<RoadRoute, "order" | "planner">> => {
     const CHUNK = 50;
     const geometry: [number, number][] = [];
     const legs: { distanceKm: number; durationMin: number }[] = [];

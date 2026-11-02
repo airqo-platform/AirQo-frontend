@@ -2,6 +2,7 @@ import {
   buildApiCacheKey,
   getApiCache,
   getApiCachePolicy,
+  invalidateApiCacheByPathPrefix,
   setApiCache,
 } from '../apiCache';
 
@@ -96,5 +97,38 @@ describe('API cache store', () => {
       ttlMs: 1000,
     });
     expect(getApiCache('api-cache-store-test-miss')).toBeUndefined();
+  });
+
+  it('invalidates every query variant below a resource path', () => {
+    setApiCache(
+      'api/v2/devices/network-coverage',
+      { scope: 'summary' },
+      200,
+      1000,
+    );
+    setApiCache(
+      'api/v2/devices/network-coverage?tenant=airqo',
+      { scope: 'summary' },
+      200,
+      1000,
+    );
+    setApiCache(
+      'api/v2/devices/network-coverage/countries/kenya/monitors',
+      { scope: 'country' },
+      200,
+      1000,
+    );
+    setApiCache('api/v2/devices/other-resource', { keep: true }, 200, 1000);
+
+    invalidateApiCacheByPathPrefix('api/v2/devices/network-coverage');
+
+    expect(getApiCache('api/v2/devices/network-coverage')).toBeUndefined();
+    expect(
+      getApiCache('api/v2/devices/network-coverage?tenant=airqo'),
+    ).toBeUndefined();
+    expect(
+      getApiCache('api/v2/devices/network-coverage/countries/kenya/monitors'),
+    ).toBeUndefined();
+    expect(getApiCache('api/v2/devices/other-resource')).toBeDefined();
   });
 });

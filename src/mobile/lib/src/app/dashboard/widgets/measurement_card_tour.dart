@@ -10,6 +10,21 @@ class MeasurementCardTourKeys {
   final GlobalKey shareIconKey = GlobalKey(debugLabel: 'measurement_share');
   final GlobalKey forecastIconKey =
       GlobalKey(debugLabel: 'measurement_forecast');
+
+  /// Composited anchors. The spotlight follows these, so it stays on the
+  /// painted control instead of a one-shot layout measurement.
+  final LayerLink cardLink = LayerLink();
+  final LayerLink shareLink = LayerLink();
+  final LayerLink forecastLink = LayerLink();
+}
+
+/// Wraps [child] in a tour anchor when [link] is set.
+Widget measurementCardTourAnchor({
+  required LayerLink? link,
+  required Widget child,
+}) {
+  if (link == null) return child;
+  return CompositedTransformTarget(link: link, child: child);
 }
 
 const String measurementCardGesturesTourSeenKey =
@@ -52,62 +67,94 @@ void scheduleMeasurementCardTourReady({
   });
 }
 
-/// Spotlight rect derived from the card bounds and known icon layout constants.
+Rect? _boxRect(GlobalKey key, RenderBox? relativeTo) {
+  final box = key.currentContext?.findRenderObject() as RenderBox?;
+  if (box == null || !box.hasSize) return null;
+  final globalTopLeft = box.localToGlobal(Offset.zero);
+  final topLeft = relativeTo?.globalToLocal(globalTopLeft) ?? globalTopLeft;
+  return topLeft & box.size;
+}
+
+/// The keyed card box includes the container margin. Icon slots sit inside
+/// the painted card, so geometry has to drop that margin first.
+Rect _cardContentRect(Rect cardBox) {
+  return Rect.fromLTRB(
+    cardBox.left + 16,
+    cardBox.top + 8,
+    cardBox.right - 16,
+    cardBox.bottom - 8,
+  );
+}
+
+Rect _shareIconRect(Rect content) {
+  return Rect.fromLTWH(
+    content.right -
+        kMeasurementCardHorizontalPadding -
+        kMeasurementCardActionTapTarget,
+    content.top + kMeasurementCardTopPadding,
+    kMeasurementCardActionTapTarget,
+    kMeasurementCardActionTapTarget,
+  );
+}
+
+Rect _forecastIconRect(Rect content) {
+  return Rect.fromLTWH(
+    content.right -
+        kMeasurementCardHorizontalPadding -
+        kMeasurementCardActionTapTarget,
+    content.bottom -
+        kMeasurementCardBottomPadding -
+        kMeasurementCardActionTapTarget,
+    kMeasurementCardActionTapTarget,
+    kMeasurementCardActionTapTarget,
+  );
+}
+
+/// Spotlight rect for one tour step.
+///
+/// The forecast step must land on the bottom chevron. A measured box that
+/// overlaps the top share icon is rejected, so the hole cannot stick to the
+/// share control.
 Rect measurementCardTourTargetRect(
   MeasurementCardTourKeys keys,
   MeasurementCardTourTargetKind kind, {
   RenderBox? relativeTo,
 }) {
-  final exactTargetKey = switch (kind) {
-    MeasurementCardTourTargetKind.shareIcon => keys.shareIconKey,
-    MeasurementCardTourTargetKind.forecastIcon => keys.forecastIconKey,
-    MeasurementCardTourTargetKind.tapZone => null,
-  };
-  final exactTargetContext = exactTargetKey?.currentContext;
-  final exactTargetBox = exactTargetContext?.findRenderObject() as RenderBox?;
-  if (exactTargetBox != null && exactTargetBox.hasSize) {
-    final globalTopLeft = exactTargetBox.localToGlobal(Offset.zero);
-    final topLeft = relativeTo?.globalToLocal(globalTopLeft) ?? globalTopLeft;
-    return topLeft & exactTargetBox.size;
-  }
-
-  final ctx = keys.cardKey.currentContext;
-  if (ctx == null) return Rect.zero;
-  final box = ctx.findRenderObject() as RenderBox?;
-  if (box == null || !box.hasSize) return Rect.zero;
-
-  final globalTopLeft = box.localToGlobal(Offset.zero);
-  final cardTopLeft = relativeTo?.globalToLocal(globalTopLeft) ?? globalTopLeft;
-  final card = cardTopLeft & box.size;
-  const footerHeight =
-      kMeasurementCardBottomPadding + kMeasurementCardActionTapTarget;
+  final card = _boxRect(keys.cardKey, relativeTo);
+  if (card == null) return Rect.zero;
+  final content = _cardContentRect(card);
 
   switch (kind) {
     case MeasurementCardTourTargetKind.tapZone:
       return Rect.fromLTRB(
-        card.left,
-        card.top,
-        card.right,
-        card.bottom - footerHeight,
+        content.left,
+        content.top,
+        content.right -
+            kMeasurementCardHorizontalPadding -
+            kMeasurementCardActionTapTarget,
+        content.bottom -
+            kMeasurementCardBottomPadding -
+            kMeasurementCardActionTapTarget,
       );
     case MeasurementCardTourTargetKind.shareIcon:
-      return Rect.fromLTWH(
-        card.right -
-            kMeasurementCardHorizontalPadding -
-            kMeasurementCardActionTapTarget,
-        card.top + kMeasurementCardTopPadding,
-        kMeasurementCardActionTapTarget,
-        kMeasurementCardActionTapTarget,
-      );
+      final expected = _shareIconRect(content);
+      final measured = _boxRect(keys.shareIconKey, relativeTo);
+      if (measured != null && measured.overlaps(expected.inflate(12))) {
+        return measured;
+      }
+      return expected;
     case MeasurementCardTourTargetKind.forecastIcon:
-      return Rect.fromLTWH(
-        card.right -
-            kMeasurementCardHorizontalPadding -
-            kMeasurementCardActionTapTarget,
-        card.bottom - footerHeight,
-        kMeasurementCardActionTapTarget,
-        kMeasurementCardActionTapTarget,
-      );
+      final expected = _forecastIconRect(content);
+      final measured = _boxRect(keys.forecastIconKey, relativeTo);
+      final share = _shareIconRect(content);
+      final measuredIsShareIcon =
+          measured != null && measured.overlaps(share.inflate(12));
+      if (measured != null &&
+          !measuredIsShareIcon &&
+          measured.overlaps(expected.inflate(12))) {
+        return measured;
+      }
+      return expected;
   }
 }
 
@@ -196,13 +243,33 @@ class _MeasurementCardGesturesTourState
     extends State<MeasurementCardGesturesTour>
     with SingleTickerProviderStateMixin {
   final GlobalKey _overlayKey = GlobalKey();
+  final GlobalKey _markerKey = GlobalKey();
   int _stepIndex = 0;
   Rect? _targetRect;
+  bool _tracking = false;
+  int _syncAttempts = 0;
   late AnimationController _fade;
   late Animation<double> _opacity;
 
   MeasurementCardTourStep get _step => widget.steps[_stepIndex];
   bool get _isLastStep => _stepIndex >= widget.steps.length - 1;
+
+  GlobalKey get _targetKey => switch (_step.targetKind) {
+        MeasurementCardTourTargetKind.shareIcon => widget.tourKeys.shareIconKey,
+        MeasurementCardTourTargetKind.forecastIcon =>
+          widget.tourKeys.forecastIconKey,
+        MeasurementCardTourTargetKind.tapZone => widget.tourKeys.cardKey,
+      };
+
+  LayerLink get _stepLink => switch (_step.targetKind) {
+        MeasurementCardTourTargetKind.shareIcon => widget.tourKeys.shareLink,
+        MeasurementCardTourTargetKind.forecastIcon =>
+          widget.tourKeys.forecastLink,
+        MeasurementCardTourTargetKind.tapZone => widget.tourKeys.cardLink,
+      };
+
+  bool get _preferAbove =>
+      _step.targetKind == MeasurementCardTourTargetKind.forecastIcon;
 
   @override
   void initState() {
@@ -214,49 +281,114 @@ class _MeasurementCardGesturesTourState
     _opacity = CurvedAnimation(parent: _fade, curve: Curves.easeOut);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _remeasureTargetAfterLayout();
+      _scrollTargetIntoView();
+      _startTracking();
       _fade.forward();
     });
   }
 
   @override
   void dispose() {
+    _tracking = false;
     _fade.dispose();
     super.dispose();
   }
 
-  void _applyTargetRect() {
-    final overlayBox =
-        _overlayKey.currentContext?.findRenderObject() as RenderBox?;
-    final rect = measurementCardTourTargetRect(
-      widget.tourKeys,
-      _step.targetKind,
-      relativeTo: overlayBox,
+  void _scrollTargetIntoView() {
+    final ctx =
+        _targetKey.currentContext ?? widget.tourKeys.cardKey.currentContext;
+    if (ctx == null) return;
+    Scrollable.ensureVisible(
+      ctx,
+      alignment: 0.58,
+      duration: const Duration(milliseconds: 280),
+      curve: Curves.easeInOut,
     );
-    if (rect == Rect.zero || !mounted) return;
-    setState(() => _targetRect = rect);
   }
 
-  void _remeasureTargetAfterLayout() {
-    final ctx = widget.tourKeys.cardKey.currentContext;
-    if (ctx != null) {
-      Scrollable.ensureVisible(
-        ctx,
-        alignment: 0.05,
-        duration: const Duration(milliseconds: 280),
-        curve: Curves.easeInOut,
-      );
-    }
+  void _startTracking() {
+    if (_tracking) return;
+    _tracking = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) => _syncHole());
+  }
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      _applyTargetRect();
-      if (_targetRect == null) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) _applyTargetRect();
-        });
+  /// Reads the composited position of the anchored control. Layout-box
+  /// coordinates were landing on the next card; the follower transform matches
+  /// where the chevron is actually painted.
+  void _syncHole() {
+    if (!mounted || !_tracking) return;
+    final marker = _markerKey.currentContext?.findRenderObject() as RenderBox?;
+    final overlay =
+        _overlayKey.currentContext?.findRenderObject() as RenderBox?;
+    if (marker != null &&
+        overlay != null &&
+        marker.attached &&
+        overlay.attached &&
+        marker.hasSize) {
+      final topLeft = marker.localToGlobal(Offset.zero, ancestor: overlay);
+      final rect = topLeft & marker.size;
+      final previous = _targetRect;
+      final plausible = rect.width > 1 && rect.height > 1 && rect.top > 40;
+      final moved = previous == null ||
+          (previous.center - rect.center).distance > 0.5 ||
+          (previous.width - rect.width).abs() > 0.5;
+      if (plausible && moved) {
+        setState(() => _targetRect = rect);
       }
-    });
+      if (!plausible && _syncAttempts < 40) {
+        _syncAttempts++;
+        WidgetsBinding.instance.scheduleFrame();
+      }
+    } else if (_syncAttempts < 40) {
+      _syncAttempts++;
+      WidgetsBinding.instance.scheduleFrame();
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) => _syncHole());
+  }
+
+  Size _markerSize() {
+    final box = _targetKey.currentContext?.findRenderObject() as RenderBox?;
+    if (box != null && box.hasSize && box.size.shortestSide > 0) {
+      return box.size;
+    }
+    return const Size(
+      kMeasurementCardActionTapTarget,
+      kMeasurementCardActionTapTarget,
+    );
+  }
+
+  /// Trailing share and forecast slots share the same horizontal inset.
+  double _anchorCenterX(double screenWidth) {
+    switch (_step.targetKind) {
+      case MeasurementCardTourTargetKind.shareIcon:
+      case MeasurementCardTourTargetKind.forecastIcon:
+        return screenWidth -
+            16 -
+            kMeasurementCardHorizontalPadding -
+            kMeasurementCardActionTapTarget / 2;
+      case MeasurementCardTourTargetKind.tapZone:
+        return screenWidth / 2;
+    }
+  }
+
+  Rect? _spotlightRect() {
+    final raw = _targetRect;
+    if (raw == null) return null;
+    if (_step.targetKind == MeasurementCardTourTargetKind.tapZone) {
+      final deflated = Rect.fromLTRB(
+        raw.left + 16,
+        raw.top + 8,
+        raw.right - 16,
+        raw.bottom - 8,
+      );
+      if (deflated.width < 8 || deflated.height < 8) return raw;
+      return deflated;
+    }
+    // Icon slots are 40px. The follower box can report a much larger size,
+    // which was opening a hole over the next card. Pin the hole to the
+    // anchored corner.
+    const slot = kMeasurementCardActionTapTarget;
+    return Rect.fromLTWH(raw.left, raw.top, slot, slot).inflate(6);
   }
 
   void _advance() {
@@ -272,9 +404,10 @@ class _MeasurementCardGesturesTourState
       setState(() {
         _stepIndex++;
         _targetRect = null;
+        _syncAttempts = 0;
       });
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        _remeasureTargetAfterLayout();
+        _scrollTargetIntoView();
         _fade.forward();
       });
     });
@@ -283,97 +416,102 @@ class _MeasurementCardGesturesTourState
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final targetRect = _targetRect;
-    final compact = targetRect != null && _isCompactTarget(targetRect);
+    final spotlight = _spotlightRect();
+    final preferAbove = _preferAbove;
 
     return FadeTransition(
       opacity: _opacity,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: _advance,
-        child: Stack(
-          key: _overlayKey,
-          children: [
-            if (targetRect != null)
-              CustomPaint(
-                size: MediaQuery.of(context).size,
-                painter: _CardSpotlightPainter(
-                  spotlight: targetRect,
-                  compact: compact,
-                ),
-              )
-            else
-              Container(color: Colors.black54),
-            if (targetRect != null)
-              _CardTourTooltipBubble(
-                targetRect: targetRect,
+      child: SizedBox.expand(
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: _advance,
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final overlaySize =
+                  Size(constraints.maxWidth, constraints.maxHeight);
+              final bubbleWidth = overlaySize.width - 32;
+              final markerSize = _markerSize();
+              final hole = spotlight;
+              final placeBelow = hole != null &&
+                  (!preferAbove || hole.top < 180);
+              final anchorX = hole?.center.dx ?? _anchorCenterX(overlaySize.width);
+              final arrowLeft =
+                  (anchorX - 16 - 10).clamp(0.0, bubbleWidth - 20);
+              final bubble = _CardTourTooltipBubble(
                 isDark: isDark,
                 step: _step,
                 stepIndex: _stepIndex,
                 stepCount: widget.steps.length,
                 isLastStep: _isLastStep,
-                compact: compact,
-                preferAbove: _step.targetKind ==
-                    MeasurementCardTourTargetKind.forecastIcon,
-              ),
-          ],
+                placeBelow: placeBelow,
+                arrowLeft: arrowLeft,
+              );
+
+              return Stack(
+                key: _overlayKey,
+                children: [
+                  Positioned.fill(
+                    child: CustomPaint(
+                      painter: _CardSpotlightPainter(spotlight: spotlight),
+                    ),
+                  ),
+                  CompositedTransformFollower(
+                    link: _stepLink,
+                    showWhenUnlinked: false,
+                    targetAnchor: Alignment.topLeft,
+                    followerAnchor: Alignment.topLeft,
+                    child: SizedBox(
+                      key: _markerKey,
+                      width: markerSize.width,
+                      height: markerSize.height,
+                    ),
+                  ),
+                  if (hole != null)
+                    Positioned(
+                      left: 16,
+                      right: 16,
+                      top: placeBelow ? hole.bottom + 8 : null,
+                      bottom: placeBelow
+                          ? null
+                          : overlaySize.height - hole.top + 8,
+                      child: bubble,
+                    ),
+                ],
+              );
+            },
+          ),
         ),
       ),
     );
   }
-
-  static bool _isCompactTarget(Rect rect) =>
-      rect.width <= 80 && rect.height <= 80;
 }
 
 class _CardSpotlightPainter extends CustomPainter {
-  final Rect spotlight;
-  final bool compact;
+  final Rect? spotlight;
 
-  static const double _pad = 8;
   static const double _radius = 12;
 
-  const _CardSpotlightPainter({
-    required this.spotlight,
-    required this.compact,
-  });
-
-  Rect get _expanded {
-    if (compact) {
-      return Rect.fromLTRB(
-        spotlight.left - _pad,
-        spotlight.top - _pad,
-        spotlight.right + _pad,
-        spotlight.bottom + _pad,
-      );
-    }
-    return Rect.fromLTRB(
-      spotlight.left - _pad,
-      spotlight.top - _pad,
-      spotlight.right + _pad,
-      spotlight.bottom - _pad,
-    );
-  }
+  const _CardSpotlightPainter({required this.spotlight});
 
   @override
   void paint(Canvas canvas, Size size) {
-    final expanded = _expanded;
+    final hole = spotlight;
+    final scrim = Paint()..color = Colors.black.withValues(alpha: 0.68);
+    if (hole == null || hole.width < 1 || hole.height < 1) {
+      canvas.drawRect(Offset.zero & size, scrim);
+      return;
+    }
+
     canvas.saveLayer(Offset.zero & size, Paint());
-
-    canvas.drawRect(
-      Offset.zero & size,
-      Paint()..color = Colors.black.withValues(alpha: 0.68),
-    );
-
+    canvas.drawRect(Offset.zero & size, scrim);
     canvas.drawRRect(
-      RRect.fromRectAndRadius(expanded, const Radius.circular(_radius)),
+      RRect.fromRectAndRadius(hole, const Radius.circular(_radius)),
       Paint()..blendMode = BlendMode.clear,
     );
-
     canvas.restore();
 
     canvas.drawRRect(
-      RRect.fromRectAndRadius(expanded, const Radius.circular(_radius)),
+      RRect.fromRectAndRadius(hole, const Radius.circular(_radius)),
       Paint()
         ..color = Colors.white.withValues(alpha: 0.25)
         ..style = PaintingStyle.stroke
@@ -382,100 +520,51 @@ class _CardSpotlightPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_CardSpotlightPainter old) =>
-      old.spotlight != spotlight || old.compact != compact;
+  bool shouldRepaint(_CardSpotlightPainter old) => old.spotlight != spotlight;
 }
 
 class _CardTourTooltipBubble extends StatelessWidget {
-  final Rect targetRect;
   final bool isDark;
   final MeasurementCardTourStep step;
   final int stepIndex;
   final int stepCount;
   final bool isLastStep;
-  final bool compact;
-  final bool preferAbove;
+  final bool placeBelow;
+  final double arrowLeft;
 
   static const double _arrowH = 10.0;
-  static const double _hPad = 16.0;
-  static const double _gap = 8.0;
-  static const double _estimatedBubbleHeight = 150.0;
 
   const _CardTourTooltipBubble({
-    required this.targetRect,
     required this.isDark,
     required this.step,
     required this.stepIndex,
     required this.stepCount,
     required this.isLastStep,
-    required this.compact,
-    required this.preferAbove,
+    required this.placeBelow,
+    required this.arrowLeft,
   });
 
   @override
   Widget build(BuildContext context) {
-    final padding = MediaQuery.paddingOf(context);
-    final screen = MediaQuery.sizeOf(context);
     final bubbleBg = isDark ? AppColors.darkHighlight : Colors.white;
     final textColor = isDark ? Colors.white : const Color(0xFF1A1D23);
     final subColor =
         isDark ? AppColors.boldHeadlineColor2 : AppColors.boldHeadlineColor3;
-
-    final spotlightBottom =
-        compact ? targetRect.bottom + _gap : targetRect.bottom - 8 + _gap;
-    final spotlightTop = compact ? targetRect.top - _gap : targetRect.top - 8;
-
-    final placeBelow = !preferAbove &&
-        spotlightBottom + _arrowH + _estimatedBubbleHeight <=
-            screen.height - padding.bottom - _hPad;
-    final arrowCx =
-        targetRect.center.dx.clamp(_hPad + 20, screen.width - _hPad - 20);
-
-    if (placeBelow) {
-      return Positioned(
-        top: spotlightBottom + _arrowH,
-        left: _hPad + padding.left,
-        right: _hPad + padding.right,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: EdgeInsets.only(
-                left: (arrowCx - _hPad - padding.left - 10).clamp(
-                    0.0, screen.width - (_hPad + padding.horizontal) - 20),
-              ),
-              child: CustomPaint(
-                size: const Size(20, _arrowH),
-                painter: _UpArrowPainter(color: bubbleBg),
-              ),
-            ),
-            _bubbleBody(bubbleBg, textColor, subColor),
-          ],
-        ),
-      );
-    }
-
-    final bubbleBottom = spotlightTop - _arrowH;
-    return Positioned(
-      bottom: screen.height - bubbleBottom,
-      left: _hPad + padding.left,
-      right: _hPad + padding.right,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _bubbleBody(bubbleBg, textColor, subColor),
-          Padding(
-            padding: EdgeInsets.only(
-              left: (arrowCx - _hPad - padding.left - 10)
-                  .clamp(0.0, screen.width - (_hPad + padding.horizontal) - 20),
-            ),
-            child: CustomPaint(
-              size: const Size(20, _arrowH),
-              painter: _DownArrowPainter(color: bubbleBg),
-            ),
-          ),
-        ],
+    final arrow = Padding(
+      padding: EdgeInsets.only(left: arrowLeft),
+      child: CustomPaint(
+        size: const Size(20, _arrowH),
+        painter: placeBelow
+            ? _UpArrowPainter(color: bubbleBg)
+            : _DownArrowPainter(color: bubbleBg),
       ),
+    );
+    final body = _bubbleBody(bubbleBg, textColor, subColor);
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: placeBelow ? [arrow, body] : [body, arrow],
     );
   }
 
@@ -516,6 +605,7 @@ class _CardTourTooltipBubble extends StatelessWidget {
                     Text(
                       step.title,
                       style: TextStyle(
+                        fontFamily: 'Inter',
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
                         color: textColor,
@@ -527,6 +617,7 @@ class _CardTourTooltipBubble extends StatelessWidget {
                     Text(
                       step.subtitle,
                       style: TextStyle(
+                        fontFamily: 'Inter',
                         fontSize: 13,
                         fontWeight: FontWeight.w400,
                         color: subColor,
@@ -541,11 +632,14 @@ class _CardTourTooltipBubble extends StatelessWidget {
           ),
           const SizedBox(height: 14),
           Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Text(
                 '${stepIndex + 1} of $stepCount',
                 style: TextStyle(
+                  fontFamily: 'Inter',
                   fontSize: 11,
+                  height: 1,
                   color: subColor,
                   fontWeight: FontWeight.w600,
                   decoration: TextDecoration.none,
@@ -557,20 +651,22 @@ class _CardTourTooltipBubble extends StatelessWidget {
                     ? 'Tap anywhere to dismiss'
                     : 'Tap anywhere to continue',
                 style: TextStyle(
+                  fontFamily: 'Inter',
                   fontSize: 11,
+                  height: 1,
                   color: subColor,
                   fontWeight: FontWeight.w500,
                   decoration: TextDecoration.none,
                 ),
               ),
-              const SizedBox(width: 4),
+              const SizedBox(width: 2),
               isLastStep
                   ? AqChevronDown(
-                      size: 14,
+                      size: 16,
                       color: subColor,
                     )
                   : AqChevronRight(
-                      size: 14,
+                      size: 16,
                       color: subColor,
                     ),
             ],

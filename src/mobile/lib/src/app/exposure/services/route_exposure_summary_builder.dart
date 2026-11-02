@@ -1,4 +1,5 @@
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
+import 'package:airqo/src/app/shared/utils/monitor_place_label.dart';
 import 'package:airqo/src/app/dashboard/models/user_preferences_model.dart';
 import 'package:airqo/src/app/exposure/models/declared_place.dart';
 import 'package:airqo/src/app/exposure/models/route_exposure_summary.dart';
@@ -73,12 +74,19 @@ class RouteExposureSummaryBuilder {
       headline: _headlineFor(exposureLevel),
       guidance: _guidanceFor(
         exposureLevel,
-        origin.visibleName,
-        destination.visibleName,
+        selectedSiteSpokenTitle(origin, origin.visibleName),
+        selectedSiteSpokenTitle(destination, destination.visibleName),
       ),
-      highestSiteName:
-          highestMeasurement?.siteDetails?.name ?? highestMeasurement?.siteId,
+      highestSiteName: _highestSiteName(highestMeasurement),
     );
+  }
+
+  String? _highestSiteName(Measurement? measurement) {
+    if (measurement == null) return null;
+    final legacy = measurement.siteDetails?.name ?? measurement.siteId;
+    if (legacy == null || legacy.isEmpty) return null;
+    final title = measurementSpokenTitle(measurement, legacy);
+    return title.isEmpty ? null : title;
   }
 
   String _headlineFor(ExposureLevel level) {

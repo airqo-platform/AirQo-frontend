@@ -113,6 +113,18 @@ describe('API_ROUTES', () => {
       expect(API_ROUTES.WEBSITE.PUBLICATIONS).toMatch(/^\/.*/);
     });
 
+    it('LIVE_PUBLICATION_OVERRIDES starts with /', () => {
+      expect(API_ROUTES.WEBSITE.LIVE_PUBLICATION_OVERRIDES).toBe(
+        '/website/api/v2/live-publication-overrides/',
+      );
+    });
+
+    it('LIVE_PUBLICATION_FEED_SETTINGS starts with /', () => {
+      expect(API_ROUTES.WEBSITE.LIVE_PUBLICATION_FEED_SETTINGS).toBe(
+        '/website/api/v2/live-publication-feed-settings/',
+      );
+    });
+
     it('TEAM starts with /', () => {
       expect(API_ROUTES.WEBSITE.TEAM).toMatch(/^\/.*/);
     });

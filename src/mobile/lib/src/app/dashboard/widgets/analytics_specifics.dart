@@ -1,6 +1,7 @@
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
 import 'package:airqo/src/app/dashboard/pages/forecast_overview_page.dart';
 import 'package:airqo/src/app/dashboard/utils/measurement_location_utils.dart';
+import 'package:airqo/src/app/shared/utils/monitor_place_label.dart';
 import 'package:airqo/src/app/dashboard/widgets/air_quality_share_sheet.dart';
 import 'package:airqo/src/app/dashboard/widgets/expanded_analytics_card.dart';
 import 'package:airqo/src/app/dashboard/widgets/analytics_forecast_widget.dart';
@@ -63,11 +64,12 @@ class _AnalyticsSpecificsState extends State<AnalyticsSpecifics> {
       locationParts.add(siteDetails.country!);
     }
 
-    return locationParts.isNotEmpty
+    final description = locationParts.isNotEmpty
         ? locationParts.join(", ")
         : siteDetails.locationName ??
             siteDetails.formattedName ??
             "Unknown location";
+    return measurementSpokenQuietLine(measurement, description);
   }
 
   Future<void> _shareAirQuality() async {
@@ -109,10 +111,13 @@ class _AnalyticsSpecificsState extends State<AnalyticsSpecifics> {
                   children: [
                     Expanded(
                       child: Text(
-                        widget.measurement.siteDetails?.searchName ??
-                            widget.measurement.siteDetails?.name ??
-                            widget.fallbackLocationName ??
-                            "---",
+                        measurementSpokenTitle(
+                          widget.measurement,
+                          widget.measurement.siteDetails?.searchName ??
+                              widget.measurement.siteDetails?.name ??
+                              widget.fallbackLocationName ??
+                              "---",
+                        ),
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 24,

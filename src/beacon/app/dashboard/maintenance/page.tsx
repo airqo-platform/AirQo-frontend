@@ -1,18 +1,45 @@
 "use client"
 
-import React, { useEffect, useState, useMemo, useCallback, useRef } from "react"
+import React, { Suspense, useEffect, useState, useMemo, useCallback, useRef } from "react"
 import dynamic from "next/dynamic"
-import { getMaintenanceMapData, getSyncedGrids } from "@/services/device-api.service"
+import { useRouter, useSearchParams } from "next/navigation"
+import { getMaintenanceMapData, getMaintenanceSiteMapData, getSyncedGrids } from "@/services/device-api.service"
+import {
+  MAP_ITEM_NOUNS,
+  countLabel,
+  getDefaultMaintenanceMapView,
+  hasMapCoordinates,
+  isMaintenanceMapView,
+  siteToMapItem,
+  suggestRouteAdditions,
+  type MaintenanceMapView,
+  type RouteSuggestion,
+} from "@/lib/maintenance-map"
+import { ROUTES } from "@/lib/navigation"
 import { GridAdminLevel, MaintenanceMapItem, SyncedGrid } from "@/types/api.types"
 import { airQloudService, type AirQloudBasic } from "@/services/airqloud.service"
+import { AqCopy01, AqLinkExternal01, AqMap01, AqShare01 } from "@airqo/icons-react"
 import {
-  calculateNearestNeighborRoute,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import {
+  GOOGLE_MAPS_MAX_WAYPOINTS,
+  GOOGLE_MAPS_PHONE_MAX_WAYPOINTS,
+  ROAD_ROUTING_ENABLED,
+  buildGoogleMapsDirectionsLinks,
+  isPhoneBrowser,
   calculateRoadRoute,
+  type GoogleMapsLink,
+  optimizeRoundTrip,
   getCurrentPosition,
   formatDistanceKm,
   formatDurationMin,
   Coordinates,
-  RoadRoute,
 } from "@/utils/routing-utils"
 import { useToast } from "@/hooks/use-toast"
 import { useGroup } from "@/lib/group-context"
@@ -43,12 +70,43 @@ const MaintenanceMap = dynamic(() => import("@/components/maintenance/maintenanc
 
 const DEFAULT_HOME_LOCATION = { latitude: 0.332078, longitude: 32.570473, name: "Head Office (Kampala)" }
 
-/** Arrow between itinerary stops, labelled with the leg's road distance when known. */
-function RouteLegArrow({ leg }: { leg?: { distanceKm: number; durationMin: number } }) {
+/** "Start → stop 9" for a Google Maps link over [start, stops…, start]. */
+function describeGoogleMapsLink(link: GoogleMapsLink, stopCount: number): string {
+  const label = (position: number) =>
+    position === 1 ? "Start" : position === stopCount + 2 ? "back to start" : `stop ${position - 1}`
+  return `${label(link.from)} → ${label(link.to)}`
+}
+
+interface RouteLeg {
+  distanceKm: number
+  /** Driving time, known for road routes only */
+  durationMin?: number
+}
+
+interface RouteSummary {
+  distanceKm: number
+  durationMin?: number
+  legs: RouteLeg[]
+  /** Road distances from OSRM, or straight lines while road routing is off */
+  byRoad: boolean
+  /** How the stops were put in order, as the PDF report names it */
+  mode: string
+}
+
+const ROUTE_MODE_LABELS = {
+  straightLine: "Nearest neighbour + 2-opt (straight lines)",
+  "osrm-trip": "OSRM trip (roads)",
+  "nearest-neighbour": "Nearest neighbour (roads)",
+} as const
+
+/** Arrow between itinerary stops, labelled with the leg's distance. */
+function RouteLegArrow({ leg }: { leg?: RouteLeg }) {
   return (
     <div
       className="flex flex-col items-center flex-shrink-0 min-w-[28px]"
-      title={leg ? `${formatDistanceKm(leg.distanceKm)} · ${formatDurationMin(leg.durationMin)}` : undefined}
+      title={
+        leg ? `${formatDistanceKm(leg.distanceKm)}${leg.durationMin != null ? ` · ${formatDurationMin(leg.durationMin)}` : ""}` : undefined
+      }
     >
       <ArrowRight className="w-3 h-3 text-gray-300" />
       {leg && (
@@ -61,8 +119,29 @@ function RouteLegArrow({ leg }: { leg?: { distanceKm: number; durationMin: numbe
 }
 
 export default function MaintenancePage() {
+  return (
+    <Suspense fallback={null}>
+      <MaintenancePageClient />
+    </Suspense>
+  )
+}
+
+function MaintenancePageClient() {
   const { toast } = useToast()
   const { activeGroup, loading: groupLoading } = useGroup()
+  const router = useRouter()
+  const searchParams = useSearchParams()
+
+  // Devices or sites, kept in `?view=` so it survives reloads; without it AirQo opens on
+  // devices and other organisations on sites
+  const viewParam = searchParams?.get("view")
+  const mapView: MaintenanceMapView = isMaintenanceMapView(viewParam)
+    ? viewParam
+    : getDefaultMaintenanceMapView(activeGroup)
+  const itemNoun = MAP_ITEM_NOUNS[mapView]
+  const handleMapViewChange = (view: MaintenanceMapView) => {
+    if (view !== mapView) router.replace(`${ROUTES.MAINTENANCE}?view=${view}`, { scroll: false })
+  }
 
   // --- FILTER STATE ---
   const [selectedDays, setSelectedDays] = useState(14)
@@ -96,8 +175,13 @@ export default function MaintenancePage() {
   const [routeStartMode, setRouteStartMode] = useState<"office" | "current">("office")
   const [currentLocation, setCurrentLocation] = useState<Coordinates | null>(null)
   const [routeGeometry, setRouteGeometry] = useState<[number, number][] | null>(null)
-  const [routeSummary, setRouteSummary] = useState<Pick<RoadRoute, "distanceKm" | "durationMin" | "legs"> | null>(null)
+  const [routeSummary, setRouteSummary] = useState<RouteSummary | null>(null)
   const routeAbortRef = useRef<AbortController | null>(null)
+  // The route as it is now, for a step that carries on after an await
+  const routePathRef = useRef(routePath)
+  useEffect(() => {
+    routePathRef.current = routePath
+  }, [routePath])
 
   // The route starts (and ends) at the head office unless the user opted to start from their own position.
   const homeLocation = useMemo<Coordinates & { name?: string }>(
@@ -218,21 +302,41 @@ export default function MaintenancePage() {
     }
   }, [gridSearch, gridAdminLevelFilter, activeGroup, groupLoading])
 
-  // Fetch Maintenance Map Data
+  // Fetch Maintenance Map Data. Only the latest request's result counts: a refresh still
+  // pending when the view or a filter changes resolves to null rather than the old view's items.
+  const mapRequestRef = useRef(0)
+  // Tags only filter devices, so in the sites view a tag change neither refetches nor drops the route
+  const deviceTagsParam = mapView === "devices" && selectedTags.length > 0 ? selectedTags.join(",") : undefined
   const fetchMapData = useCallback(async () => {
     if (groupLoading || !activeGroup) return null
+    const requestId = ++mapRequestRef.current
     setLoadingMap(true)
     try {
-      const tagsParam = selectedTags.length > 0 ? selectedTags.join(",") : undefined
-      const response = await getMaintenanceMapData(selectedDays, tagsParam, activeGroup)
-      return response
+      let items: MaintenanceMapItem[]
+      if (mapView === "sites") {
+        const sites = await getMaintenanceSiteMapData(selectedDays, activeGroup)
+        items = sites.map(siteToMapItem)
+      } else {
+        items = await getMaintenanceMapData(selectedDays, deviceTagsParam, activeGroup)
+      }
+      return requestId === mapRequestRef.current ? items : null
     } catch (error) {
       console.error("Failed to fetch Map data", error)
       return null
     } finally {
-      setLoadingMap(false)
+      if (requestId === mapRequestRef.current) setLoadingMap(false)
     }
-  }, [selectedDays, selectedTags, activeGroup, groupLoading])
+  }, [mapView, selectedDays, deviceTagsParam, activeGroup, groupLoading])
+
+  // A selection, area or route from one view means nothing in the other
+  useEffect(() => {
+    setMapData(null)
+    setSelectedDevice(null)
+    setSelectedDeviceIds([])
+    setPolygonSelectedDevices([])
+    setRouteGeometry(null)
+    setRouteSummary(null)
+  }, [mapView])
 
   // Filtered Map Data (computes active items based on active filters)
   const filteredMapData = useMemo(() => {
@@ -344,7 +448,8 @@ export default function MaintenancePage() {
 
   // Route calculation: orders stops and draws the path along real roads (OSRM),
   // falling back to straight-line nearest neighbour when the road service is unavailable.
-  const calculateRoute = async (devices?: MaintenanceMapItem[]) => {
+  /** `startAt` overrides the start mode, for re-planning right after it changes. */
+  const calculateRoute = async (devices?: MaintenanceMapItem[], startAt?: Coordinates & { name?: string }) => {
     const source = devices || (selectedDeviceIds.length > 0
       ? filteredMapData.filter((d) => selectedDeviceIds.includes(d.device_id))
       : filteredMapData)
@@ -352,20 +457,18 @@ export default function MaintenancePage() {
     if (!source || source.length === 0) {
       toast({
         title: "Routing Error",
-        description: "No devices available to plan a route.",
+        description: `No ${itemNoun.plural} available to plan a route.`,
         variant: "destructive",
       })
       return
     }
 
-    const validDevices = source.filter(
-      (item) => Number.isFinite(Number(item.latitude)) && Number.isFinite(Number(item.longitude))
-    )
+    const validDevices = source.filter(hasMapCoordinates)
 
     if (validDevices.length === 0) {
       toast({
         title: "Routing Error",
-        description: "No devices with valid coordinates found in this view.",
+        description: `No ${itemNoun.plural} with valid coordinates found in this view.`,
         variant: "destructive",
       })
       return
@@ -377,8 +480,8 @@ export default function MaintenancePage() {
     setIsRouting(true)
 
     // Resolve the start point
-    let start: Coordinates & { name?: string } = DEFAULT_HOME_LOCATION
-    if (routeStartMode === "current") {
+    let start: Coordinates & { name?: string } = startAt ?? DEFAULT_HOME_LOCATION
+    if (!startAt && routeStartMode === "current") {
       try {
         const pos = await getCurrentPosition()
         setCurrentLocation(pos)
@@ -400,12 +503,37 @@ export default function MaintenancePage() {
       longitude: Number(d.longitude),
     }))
 
+    // Straight-line round trip: the route itself while road routing is off, the fallback otherwise
+    const routeInStraightLines = (reason?: string) => {
+      const trip = optimizeRoundTrip(start, routePoints)
+      setRoutePath(trip.order as unknown as MaintenanceMapItem[])
+      setRouteGeometry(null)
+      setRouteSummary({ distanceKm: trip.distanceKm, legs: trip.legs, byRoad: false, mode: ROUTE_MODE_LABELS.straightLine })
+      toast({
+        title: "Route Optimized",
+        description: `${reason ? `${reason} ` : ""}${trip.order.length} stops, ordered to keep the trip short. Open it in Google Maps for directions.`,
+      })
+    }
+
+    // Cancelled while the location was being read
+    if (controller.signal.aborted) return
+
     try {
+      if (!ROAD_ROUTING_ENABLED) {
+        routeInStraightLines()
+        return
+      }
       const road = await calculateRoadRoute(start, routePoints, controller.signal)
       if (controller.signal.aborted) return
       setRoutePath(road.order as unknown as MaintenanceMapItem[])
       setRouteGeometry(road.geometry)
-      setRouteSummary({ distanceKm: road.distanceKm, durationMin: road.durationMin, legs: road.legs })
+      setRouteSummary({
+        distanceKm: road.distanceKm,
+        durationMin: road.durationMin,
+        legs: road.legs,
+        byRoad: true,
+        mode: ROUTE_MODE_LABELS[road.planner],
+      })
       toast({
         title: "Route Optimized",
         description: `${road.order.length} stops · ${formatDistanceKm(road.distanceKm)} · about ${formatDurationMin(road.durationMin)} driving.`,
@@ -413,14 +541,7 @@ export default function MaintenancePage() {
     } catch (err) {
       if (controller.signal.aborted) return
       console.warn("Road routing unavailable, using straight-line route:", err)
-      const optimized = calculateNearestNeighborRoute(start, routePoints)
-      setRoutePath(optimized as unknown as MaintenanceMapItem[])
-      setRouteGeometry(null)
-      setRouteSummary(null)
-      toast({
-        title: "Route Optimized (straight lines)",
-        description: `Road routing service unreachable. Generated a ${optimized.length}-stop itinerary using direct distances.`,
-      })
+      routeInStraightLines("Road routing service unreachable.")
     } finally {
       if (!controller.signal.aborted) setIsRouting(false)
     }
@@ -434,8 +555,97 @@ export default function MaintenancePage() {
     setRouteSummary(null)
   }
 
-  const toggleRouteStartMode = () => {
-    setRouteStartMode((prev) => (prev === "office" ? "current" : "office"))
+  // Items close to the route that need a visit, from everything in this view whatever the filters
+  const routeSuggestions = useMemo<RouteSuggestion[]>(
+    () => (routePath.length > 0 ? suggestRouteAdditions(homeLocation, routePath, mapData ?? []) : []),
+    [routePath, mapData, homeLocation]
+  )
+
+  // Leg distances are shown for road routes only
+  const roadLegs = routeSummary?.byRoad ? routeSummary.legs : undefined
+
+  // The route as Google Maps driving directions: start, the stops in order, back to the start.
+  // Links opened here take as many stops as Google Maps allows on this device. Copied or shared
+  // links are mostly opened on a phone, whose browser takes 3, so they keep to that.
+  const onPhone = useMemo(() => isPhoneBrowser(), [])
+  const googleMapsWaypoints = onPhone ? GOOGLE_MAPS_PHONE_MAX_WAYPOINTS : GOOGLE_MAPS_MAX_WAYPOINTS
+  const routeTripPoints = useMemo(
+    () => [
+      homeLocation,
+      ...routePath.map((stop) => ({ latitude: Number(stop.latitude), longitude: Number(stop.longitude) })),
+      homeLocation,
+    ],
+    [homeLocation, routePath]
+  )
+  const googleMapsLinks = useMemo(
+    () => buildGoogleMapsDirectionsLinks(routeTripPoints, googleMapsWaypoints),
+    [routeTripPoints, googleMapsWaypoints]
+  )
+  const sharedGoogleMapsLinks = useMemo(
+    () => buildGoogleMapsDirectionsLinks(routeTripPoints, GOOGLE_MAPS_PHONE_MAX_WAYPOINTS),
+    [routeTripPoints]
+  )
+  const canShare = typeof navigator !== "undefined" && typeof navigator.share === "function"
+
+  const routeShareText = () =>
+    [
+      `Maintenance route: ${countLabel(routePath.length, itemNoun)} from ${homeLocation.name ?? "the start"}`,
+      ...routePath.map((stop, i) => `${i + 1}. ${stop.device_name || stop.device_id}`),
+      "",
+      ...sharedGoogleMapsLinks.map((link, i) =>
+        sharedGoogleMapsLinks.length > 1
+          ? `Google Maps part ${i + 1} (${describeGoogleMapsLink(link, routePath.length)}): ${link.url}`
+          : `Google Maps: ${link.url}`
+      ),
+    ].join("\n")
+
+  const handleCopyRoute = async () => {
+    try {
+      await navigator.clipboard.writeText(routeShareText())
+      toast({ title: "Route copied", description: "The stops and Google Maps links are on your clipboard." })
+    } catch {
+      toast({ title: "Couldn't copy the route", variant: "destructive" })
+    }
+  }
+
+  const handleShareRoute = async () => {
+    try {
+      await navigator.share({ title: "Maintenance route", text: routeShareText() })
+    } catch (err) {
+      // Closing the share sheet rejects with AbortError; that's not a failure
+      if (!(err instanceof DOMException && err.name === "AbortError")) handleCopyRoute()
+    }
+  }
+
+  const handleAddSuggestion = (item: MaintenanceMapItem) => {
+    const stops = [...routePath, item]
+    setSelectedDeviceIds(stops.map((stop) => stop.device_id))
+    calculateRoute(stops)
+  }
+
+  // Switching to My Location asks for it straight away, so a refusal shows now rather than at
+  // the next Optimize; a route on the map is re-planned from the new start
+  const toggleRouteStartMode = async () => {
+    if (routeStartMode === "current") {
+      setRouteStartMode("office")
+      if (routePath.length > 0) calculateRoute(routePath, DEFAULT_HOME_LOCATION)
+      return
+    }
+    try {
+      const pos = await getCurrentPosition()
+      setCurrentLocation(pos)
+      setRouteStartMode("current")
+      // Replan the route as it is now: a view switch or filter change while the location was
+      // looked up dropped the one this click saw
+      const route = routePathRef.current
+      if (route.length > 0) calculateRoute(route, { ...pos, name: "My Location" })
+    } catch (err) {
+      toast({
+        title: "Location unavailable",
+        description: `${err instanceof Error ? err.message : "Could not get your location"}. Routes still start from ${DEFAULT_HOME_LOCATION.name}.`,
+        variant: "destructive",
+      })
+    }
   }
 
   const handleToggleRouteDevice = (device: MaintenanceMapItem) => {
@@ -447,12 +657,10 @@ export default function MaintenancePage() {
   }
 
   const handleFocusMapDevice = (device: MaintenanceMapItem) => {
-    const lat = Number(device.latitude)
-    const lng = Number(device.longitude)
-    if (Number.isFinite(lat) && Number.isFinite(lng)) {
+    if (hasMapCoordinates(device)) {
       setFlyToLocation({
-        latitude: lat,
-        longitude: lng,
+        latitude: Number(device.latitude),
+        longitude: Number(device.longitude),
         zoom: 14,
       })
     }
@@ -462,8 +670,8 @@ export default function MaintenancePage() {
     const ids = polygonSelectedDevices.map((d) => d.device_id)
     setSelectedDeviceIds((prev) => Array.from(new Set([...prev, ...ids])))
     toast({
-      title: "Devices Selected",
-      description: `${ids.length} area devices added to route selection.`,
+      title: `${itemNoun.plural[0].toUpperCase()}${itemNoun.plural.slice(1)} selected`,
+      description: `${countLabel(ids.length, itemNoun)} in the area added to the route selection.`,
     })
   }
 
@@ -480,7 +688,7 @@ export default function MaintenancePage() {
     if (!targetDevices || targetDevices.length === 0) {
       toast({
         title: "Export Error",
-        description: "No devices available to export.",
+        description: `No ${itemNoun.plural} available to export.`,
         variant: "destructive",
       })
       return
@@ -497,9 +705,7 @@ export default function MaintenancePage() {
     }
 
     const headers = [
-      "Device Name",
-      "Device Number",
-      "Device ID",
+      ...(mapView === "sites" ? ["Site Name", "Site ID", "Devices"] : ["Device Name", "Device Number", "Device ID"]),
       "Latitude",
       "Longitude",
       "Uptime (%)",
@@ -522,10 +728,12 @@ export default function MaintenancePage() {
       const errorMarginStr = Number.isFinite(em) ? em.toFixed(2) : "N/A"
       const cov = coverageStats.deviceCoverageMap[device.device_id]
 
+      const identity = device.site
+        ? [device.site.site_name, device.site.generated_name ?? "", device.site.number_of_devices]
+        : [device.device_name || device.device_id || "", device.device_number ?? (device as any).deviceNumber ?? "", device.device_id || ""]
+
       return [
-        escapeCSV(device.device_name || device.device_id || ""),
-        escapeCSV(device.device_number ?? (device as any).deviceNumber ?? ""),
-        escapeCSV(device.device_id || ""),
+        ...identity.map(escapeCSV),
         escapeCSV(device.latitude ?? ""),
         escapeCSV(device.longitude ?? ""),
         escapeCSV(uptimePct.toFixed(1)),
@@ -543,7 +751,7 @@ export default function MaintenancePage() {
     const url = window.URL.createObjectURL(blob)
     const a = document.createElement("a")
     a.href = url
-    a.download = `maintenance-devices-${new Date().toISOString().split("T")[0]}.csv`
+    a.download = `maintenance-${itemNoun.plural}-${new Date().toISOString().split("T")[0]}.csv`
     a.style.display = "none"
     document.body.appendChild(a)
     a.click()
@@ -554,13 +762,15 @@ export default function MaintenancePage() {
 
     toast({
       title: "CSV Exported",
-      description: `Exported ${targetDevices.length} devices to CSV.`,
+      description: `Exported ${countLabel(targetDevices.length, itemNoun)} to CSV.`,
     })
   }
 
-  // Fetch map data on filter update
+  // Fetch map data on filter update, or a switch between devices and sites. A route planned
+  // for the previous items is dropped, along with any road request still planning one.
   useEffect(() => {
     let cancelled = false
+    routeAbortRef.current?.abort()
     setIsRouting(false)
     setRoutePath([])
     fetchMapData().then((res) => {
@@ -603,6 +813,9 @@ export default function MaintenancePage() {
         >
           <MapSidebar
             devices={filteredMapData}
+            view={mapView}
+            onViewChange={handleMapViewChange}
+            itemNoun={itemNoun}
             loading={loadingMap}
             selectedDevice={selectedDevice}
             onSelectDevice={setSelectedDevice}
@@ -614,6 +827,7 @@ export default function MaintenancePage() {
             onExportPolygonCSV={() => handleExportCSV(polygonSelectedDevices)}
             selectedDeviceIds={selectedDeviceIds}
             onToggleRouteDevice={handleToggleRouteDevice}
+            onClearRouteSelection={() => setSelectedDeviceIds([])}
             onFocusMapDevice={handleFocusMapDevice}
             onCollapse={() => setIsSidebarCollapsed(true)}
           />
@@ -653,6 +867,7 @@ export default function MaintenancePage() {
             onRefreshData={handleRefreshData}
             isRefreshing={loadingMap}
             flyToLocation={flyToLocation}
+            resetKey={mapView}
             topFilters={
               <>
                 {/* Floating Expand Sidebar Button (when sidebar is collapsed) */}
@@ -660,10 +875,10 @@ export default function MaintenancePage() {
                   <button
                     onClick={() => setIsSidebarCollapsed(false)}
                     className="flex items-center gap-1.5 px-3 py-1.5 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md rounded-full shadow-md border border-gray-200/80 dark:border-gray-800 text-xs font-bold text-gray-800 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-950/40 hover:text-blue-600 transition-all flex-shrink-0"
-                    title="Show Device List & Search Sidebar"
+                    title={`Show the ${itemNoun.singular} list`}
                   >
                     <PanelLeftOpen className="w-3.5 h-3.5 text-blue-600" />
-                    <span>Devices</span>
+                    <span className="capitalize">{itemNoun.plural}</span>
                     <span className="px-1.5 py-0.2 bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300 rounded-full text-[10px] font-bold">
                       {filteredMapData.length}
                     </span>
@@ -716,6 +931,7 @@ export default function MaintenancePage() {
                   hasGateways={gateways.length > 0}
                   showLoRaWAN={showGateways}
                   coveragePercentage={coverageStats.coveragePercentage}
+                  itemNoun={itemNoun}
                 />
               </>
             }
@@ -730,16 +946,51 @@ export default function MaintenancePage() {
                   <span className="text-xs font-bold text-gray-900 dark:text-gray-100 uppercase tracking-wider">
                     Route Itinerary ({routePath.length} stops)
                   </span>
-                  {routeSummary ? (
+                  {/* Road distance and time only; straight-line figures don't match how people travel */}
+                  {routeSummary?.byRoad && routeSummary.durationMin != null && (
                     <span className="hidden sm:inline text-[10px] font-semibold text-gray-500 dark:text-gray-400">
                       {formatDistanceKm(routeSummary.distanceKm)} · ~{formatDurationMin(routeSummary.durationMin)} by road
                     </span>
-                  ) : (
-                    <span className="hidden sm:inline text-[10px] font-semibold text-amber-600 dark:text-amber-400">
-                      straight-line estimate
-                    </span>
                   )}
                 </div>
+                <div className="flex items-center gap-1">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button
+                      className="flex items-center gap-1 px-2 py-1 rounded-full border border-gray-200 dark:border-gray-700 text-[10px] font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800"
+                      title="Open or share this route in Google Maps"
+                    >
+                      <AqMap01 className="w-3.5 h-3.5 text-blue-600" />
+                      Google Maps
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-64 z-[1100]">
+                    {googleMapsLinks.length > 1 && (
+                      <DropdownMenuLabel className="text-[10px] font-normal text-muted-foreground">
+                        Google Maps takes up to {googleMapsWaypoints} stops per link{onPhone ? " in a phone's browser" : ""}, so this route is in {googleMapsLinks.length} parts
+                      </DropdownMenuLabel>
+                    )}
+                    {googleMapsLinks.map((link, i) => (
+                      <DropdownMenuItem key={link.url} onSelect={() => window.open(link.url, "_blank", "noopener,noreferrer")}>
+                        <AqLinkExternal01 className="w-3.5 h-3.5 mr-2" />
+                        {googleMapsLinks.length > 1
+                          ? `Part ${i + 1}: ${describeGoogleMapsLink(link, routePath.length)}`
+                          : "Open in Google Maps"}
+                      </DropdownMenuItem>
+                    ))}
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onSelect={handleCopyRoute}>
+                      <AqCopy01 className="w-3.5 h-3.5 mr-2" />
+                      Copy stops and links
+                    </DropdownMenuItem>
+                    {canShare && (
+                      <DropdownMenuItem onSelect={handleShareRoute}>
+                        <AqShare01 className="w-3.5 h-3.5 mr-2" />
+                        Share…
+                      </DropdownMenuItem>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
                 <button
                   onClick={clearRoute}
                   className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full text-gray-400 hover:text-gray-600"
@@ -747,6 +998,7 @@ export default function MaintenancePage() {
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
+                </div>
               </div>
 
               <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
@@ -757,7 +1009,7 @@ export default function MaintenancePage() {
                   </div>
                 </div>
 
-                <RouteLegArrow leg={routeSummary?.legs[0]} />
+                <RouteLegArrow leg={roadLegs?.[0]} />
 
                 {routePath.map((stop, idx) => (
                   <React.Fragment key={stop.device_id}>
@@ -778,12 +1030,12 @@ export default function MaintenancePage() {
                       </div>
                     </div>
                     {idx < routePath.length - 1 && (
-                      <RouteLegArrow leg={routeSummary?.legs[idx + 1]} />
+                      <RouteLegArrow leg={roadLegs?.[idx + 1]} />
                     )}
                   </React.Fragment>
                 ))}
 
-                <RouteLegArrow leg={routeSummary?.legs[routePath.length]} />
+                <RouteLegArrow leg={roadLegs?.[routePath.length]} />
                 <div className="flex flex-col items-center min-w-[55px] flex-shrink-0" title={homeLocation.name}>
                   <span className="text-[9px] font-bold text-gray-400 mb-0.5">END</span>
                   <div className="w-6 h-6 rounded-full bg-slate-900 text-white flex items-center justify-center text-[10px] font-bold">
@@ -791,6 +1043,48 @@ export default function MaintenancePage() {
                   </div>
                 </div>
               </div>
+
+              {/* Worth adding: close to the route and needing a visit */}
+              {routeSuggestions.length > 0 && (
+                <div className="mt-2 pt-2 border-t border-gray-100 dark:border-gray-800">
+                  <div className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1.5">
+                    Close to this route and needing a visit
+                  </div>
+                  <div className="flex items-stretch gap-2 overflow-x-auto pb-1 scrollbar-none">
+                    {routeSuggestions.map(({ item, nearStopName, reasons, severity }) => (
+                      <div
+                        key={item.device_id}
+                        className={`flex items-center gap-2 flex-shrink-0 max-w-[240px] rounded-md border px-2 py-1 ${
+                          severity >= 3
+                            ? "border-gray-300 bg-gray-50 dark:bg-gray-800 dark:border-gray-700"
+                            : "border-red-200 bg-red-50/60 dark:bg-red-950/30 dark:border-red-900"
+                        }`}
+                      >
+                        <button
+                          onClick={() => handleFocusMapDevice(item)}
+                          className="min-w-0 text-left"
+                          title={`Show ${item.device_name} on the map`}
+                        >
+                          <div className="text-[10px] font-bold text-gray-800 dark:text-gray-200 truncate">
+                            {item.device_name || item.device_id}
+                          </div>
+                          <div className="text-[9px] text-gray-500 dark:text-gray-400 truncate">
+                            {reasons.join(" · ")} · near {nearStopName}
+                          </div>
+                        </button>
+                        <button
+                          onClick={() => handleAddSuggestion(item)}
+                          disabled={isRouting}
+                          className="flex-shrink-0 px-2 py-0.5 rounded-full bg-blue-600 text-white text-[10px] font-semibold hover:bg-blue-700 disabled:opacity-50"
+                          title={`Add ${item.device_name} to the route`}
+                        >
+                          Add
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -839,6 +1133,7 @@ export default function MaintenancePage() {
             onRefreshData={handleRefreshData}
             isRefreshing={loadingMap}
             flyToLocation={flyToLocation}
+            resetKey={mapView}
           />
         </div>
 
@@ -846,7 +1141,7 @@ export default function MaintenancePage() {
         <div className="flex-none bg-white dark:bg-gray-900 border-y border-gray-200 dark:border-gray-800 px-3 py-1.5 flex items-center justify-between z-10 shadow-xs">
           <div className="flex items-center gap-1.5 text-xs font-bold text-gray-800 dark:text-gray-200">
             <span className="w-2 h-2 rounded-full bg-blue-500" />
-            <span>{filteredMapData.length} Devices</span>
+            <span className="capitalize">{countLabel(filteredMapData.length, itemNoun)}</span>
           </div>
 
           <div className="flex items-center gap-0.5 bg-gray-100 dark:bg-gray-800 p-0.5 rounded-full text-[11px] font-semibold">
@@ -907,6 +1202,9 @@ export default function MaintenancePage() {
         >
           <MapSidebar
             devices={filteredMapData}
+            view={mapView}
+            onViewChange={handleMapViewChange}
+            itemNoun={itemNoun}
             loading={loadingMap}
             selectedDevice={selectedDevice}
             onSelectDevice={setSelectedDevice}
@@ -918,6 +1216,7 @@ export default function MaintenancePage() {
             onExportPolygonCSV={() => handleExportCSV(polygonSelectedDevices)}
             selectedDeviceIds={selectedDeviceIds}
             onToggleRouteDevice={handleToggleRouteDevice}
+            onClearRouteSelection={() => setSelectedDeviceIds([])}
             onFocusMapDevice={handleFocusMapDevice}
             className="rounded-none border-x-0 border-b-0"
           />
@@ -938,8 +1237,10 @@ export default function MaintenancePage() {
         onOpenChange={setExportDialogOpen}
         mapElementId="maintenance-map-container"
         devices={filteredMapData || []}
+        itemNoun={itemNoun}
         gateways={gateways}
         routePath={routePath}
+        routeMode={routeSummary?.mode}
         selectedCohort={selectedAirQloud === "all" ? "All Cohorts" : selectedAirQloud}
         selectedGrid={selectedGridLabel}
         periodDays={selectedDays}

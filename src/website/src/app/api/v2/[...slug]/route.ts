@@ -4,6 +4,7 @@ import {
   buildApiCacheKey,
   getApiCache,
   getApiCachePolicy,
+  invalidateApiCacheByPathPrefix,
   setApiCache,
 } from './apiCache';
 
@@ -47,6 +48,11 @@ function removeTokenFromUrl(url: string): string {
 const API_CACHE_RESPONSE_HEADERS: Record<string, string> = {
   'Cache-Control': 'private, max-age=60, stale-while-revalidate=600',
 };
+
+const getCacheResponseHeaders = (cachePolicy?: { name: string }) =>
+  cachePolicy?.name === 'networkCoverage'
+    ? { 'Cache-Control': 'no-store' }
+    : API_CACHE_RESPONSE_HEADERS;
 
 // Add dynamic force for better production debugging
 export const dynamic = 'force-dynamic';
@@ -166,7 +172,7 @@ async function handleRequest(
           headers: {
             'Content-Type': 'application/json',
             'X-Cache': 'HIT',
-            ...API_CACHE_RESPONSE_HEADERS,
+            ...getCacheResponseHeaders(cachePolicy),
           },
         });
       }
@@ -196,6 +202,13 @@ async function handleRequest(
     // Get response data
     const responseData = await response.json().catch(() => null);
 
+    // Registry writes change the summary, country, and monitor GETs. Clear
+    // every cached variant before the browser refetches after a successful
+    // mutation so the UI cannot select data from a stale five-minute cache.
+    if (method !== 'GET' && response.ok) {
+      invalidateApiCacheByPathPrefix('api/v2/devices/network-coverage');
+    }
+
     // Sanitize response data to remove token from pagination URLs
     const sanitizedData = sanitizeResponseData(responseData);
 
@@ -211,7 +224,10 @@ async function handleRequest(
       headers: {
         'Content-Type': 'application/json',
         ...(cachePolicy
-          ? { 'X-Cache': 'MISS', ...API_CACHE_RESPONSE_HEADERS }
+          ? {
+              'X-Cache': 'MISS',
+              ...getCacheResponseHeaders(cachePolicy),
+            }
           : {}),
       },
     });

@@ -331,7 +331,7 @@ export const METADATA_CONFIGS = {
     },
   },
   solutionsNetworkCoverage: {
-    title: 'Air Quality Monitoring Landscape in Africa',
+    title: 'Africa Network Map | Air Quality Monitoring Landscape',
     description:
       "This platform provides a unified view of Africa's air quality monitoring landscape. It integrates metadata on monitoring initiatives across the continent, combining both low-cost sensors and high-precision reference monitors. Users can explore geographic distribution, active coverage, instrumentation, and institutional stewardship for monitoring locations across the continent.",
     keywords:

@@ -3,14 +3,23 @@
 import { useEffect, useState } from "react"
 import { deviceApiService } from "@/services/device-api.service"
 import { useGroup } from "@/lib/group-context"
+import { resolveDeviceDataSource } from "@/lib/manufacturers"
 import type { DeviceDiagnostics } from "@/types/diagnostics"
+import type { DeviceDataSource } from "@/types/network.types"
 
 export interface SyncedDeviceRecord {
   id: string
   name: string | null
+  /** Sensor manufacturer / network (airqo, airgradient, ...) */
+  network: string | null
   /** Picks the device's profile; a device without one counts as lowcost */
   category: string
-  /** ThingSpeak channel the raw readings are stored under */
+  /** Where beacon reads the device from; `none` means no readings are stored */
+  dataSource: DeviceDataSource
+  /**
+   * Source key the local raw readings are stored under: the ThingSpeak channel for AirQo devices,
+   * the device id for other manufacturers read through their API. Null when there is no data path.
+   */
   channelId: string | number | null
   /** Latest raw reading, keyed field1..field20 */
   latest: { timestamp: string | null; values: Record<string, unknown> } | null
@@ -18,14 +27,27 @@ export interface SyncedDeviceRecord {
   diagnostics: DeviceDiagnostics | null
 }
 
-const toRecord = (raw: any): SyncedDeviceRecord => ({
-  id: raw._id ?? raw.device_id,
-  name: raw.name ?? raw.device_name ?? null,
-  category: raw.category || "lowcost",
-  channelId: raw.device_number ?? raw.last_reading?.channel_id ?? null,
-  latest: raw.last_reading ? { timestamp: raw.last_reading.timestamp ?? null, values: raw.last_reading.values || {} } : null,
-  diagnostics: raw.diagnostics ?? null,
-})
+const sourceKey = (raw: any, dataSource: DeviceDataSource, id: string): string | number | null => {
+  if (raw.last_reading?.channel_id != null) return raw.last_reading.channel_id
+  if (dataSource === "thingspeak") return raw.device_number ?? raw.beacon_data?.device_number ?? null
+  if (dataSource === "external_api") return id ?? null
+  return null
+}
+
+const toRecord = (raw: any): SyncedDeviceRecord => {
+  const id = raw._id ?? raw.device_id
+  const dataSource = resolveDeviceDataSource(raw)
+  return {
+    id,
+    name: raw.name ?? raw.device_name ?? null,
+    network: raw.network ?? raw.beacon_data?.network_id ?? null,
+    category: raw.category || "lowcost",
+    dataSource,
+    channelId: sourceKey(raw, dataSource, id),
+    latest: raw.last_reading ? { timestamp: raw.last_reading.timestamp ?? null, values: raw.last_reading.values || {} } : null,
+    diagnostics: raw.diagnostics ?? null,
+  }
+}
 
 /**
  * One device's record from beacon-api's local sync table (`/devices/synced`), scoped to the

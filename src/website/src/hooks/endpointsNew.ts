@@ -1,5 +1,6 @@
 import {
   keepPreviousData,
+  type QueryFunctionContext,
   type QueryKey,
   useQuery,
   type UseQueryOptions,
@@ -22,6 +23,7 @@ import {
   gridsService,
   highlightsService,
   impactNumbersService,
+  livePublicationsService,
   networkCoverageService,
   partnersService,
   predictService,
@@ -29,6 +31,7 @@ import {
   publicationsService,
   teamService,
 } from '@/services/website';
+import type { LivePublicationsResponse } from '@/types/publications-feed';
 
 type ServiceQueryOptions<T> = Omit<
   UseQueryOptions<T, Error, T, QueryKey>,
@@ -47,7 +50,7 @@ type ServiceQueryResult<T> = {
 
 function useServiceQuery<T>(
   queryKey: QueryKey,
-  queryFn: () => Promise<T>,
+  queryFn: (context: QueryFunctionContext<QueryKey>) => Promise<T>,
   queryOptions?: ServiceQueryOptions<T>,
 ): ServiceQueryResult<T> {
   const query = useQuery<T, Error, T, QueryKey>({
@@ -258,6 +261,20 @@ export const usePublications = (params?: {
     },
   );
 };
+
+// External scholarly metadata feed. Credentials remain server-side in the route.
+export const useLivePublications = (
+  params?: { page?: number; page_size?: number },
+  queryOptions?: ServiceQueryOptions<LivePublicationsResponse>,
+) =>
+  useServiceQuery(
+    apiQueryKeys.livePublications(params),
+    () => livePublicationsService.getLivePublications(params || {}),
+    {
+      staleTime: 60 * 1000,
+      ...queryOptions,
+    },
+  );
 
 // Board Members
 export const useBoardMembers = (params?: {
@@ -505,7 +522,11 @@ export const useNetworkCoverageSummary = (
 ) =>
   useServiceQuery(
     apiQueryKeys.networkCoverageSummary(params),
-    () => networkCoverageService.getNetworkCoverageSummary(params || {}),
+    ({ signal }) =>
+      networkCoverageService.getNetworkCoverageSummary(
+        params || {},
+        signal ? { signal } : undefined,
+      ),
     {
       staleTime: 15 * 60 * 1000,
       placeholderData: keepPreviousData,

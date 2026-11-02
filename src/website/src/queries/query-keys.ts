@@ -81,6 +81,8 @@ export const apiQueryKeys = {
     page_size?: number;
     category?: string | string[];
   }) => ['publications', normalizePublicationParams(params)] as const,
+  livePublications: (params?: { page?: number; page_size?: number }) =>
+    ['livePublications', compactParams(params)] as const,
   boardMembers: (params?: { page?: number; page_size?: number }) =>
     ['boardMembers', compactParams(params)] as const,
   teamMembers: (params?: { page?: number; page_size?: number }) =>

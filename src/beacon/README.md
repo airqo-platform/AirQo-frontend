@@ -27,6 +27,12 @@ npm install --legacy-peer-deps
 npm run dev
 ```
 
+### Unit tests
+```bash
+npm test
+```
+Runs the `node:test` suites in `tests/unit/manufacturers` (Node 20 or later) through a small loader (`tests/unit/register.mjs`) that transpiles TypeScript, resolves `@/` imports and stubs Next.js runtime modules. No extra test framework is needed.
+
 ## 📋 Architecture Integration
 
 This frontend microservice is part of AirQo's three-layer architecture:

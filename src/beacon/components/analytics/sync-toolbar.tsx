@@ -1,24 +1,20 @@
 "use client"
 
 import { useState } from "react"
-import { RefreshCw } from "lucide-react"
-import { Button } from "@/components/ui/button"
 import { useToast } from "@/components/ui/use-toast"
-import { syncCohorts, syncGrids, syncThingSpeak } from "@/services/device-api.service"
+import { SyncMenu } from "@/components/dashboard/sync-menu"
+import { syncCohorts, syncThingSpeak } from "@/services/device-api.service"
 import { useGroup } from "@/lib/group-context"
 
 interface SyncState {
   isSyncingCohorts: boolean
-  isSyncingGrids: boolean
   isSyncingData: boolean
   handleSyncCohorts: () => Promise<void>
-  handleSyncGrids: () => Promise<void>
   handleSyncData: () => Promise<void>
 }
 
 export function useSyncActions(): SyncState {
   const [isSyncingCohorts, setIsSyncingCohorts] = useState(false)
-  const [isSyncingGrids, setIsSyncingGrids] = useState(false)
   const [isSyncingData, setIsSyncingData] = useState(false)
   const { toast } = useToast()
 
@@ -52,20 +48,13 @@ export function useSyncActions(): SyncState {
     }
   }
 
+  // Clustered Analysis calls cohorts clusters
   const handleSyncCohorts = () =>
     runSync({
       setLoading: setIsSyncingCohorts,
       action: syncCohorts,
-      successDescription: "Cohorts synced successfully.",
-      errorContext: "cohorts",
-    })
-
-  const handleSyncGrids = () =>
-    runSync({
-      setLoading: setIsSyncingGrids,
-      action: syncGrids,
-      successDescription: "Grids synced successfully.",
-      errorContext: "grids",
+      successDescription: "Clusters synced successfully.",
+      errorContext: "clusters",
     })
 
   const handleSyncData = () =>
@@ -78,20 +67,17 @@ export function useSyncActions(): SyncState {
 
   return {
     isSyncingCohorts,
-    isSyncingGrids,
     isSyncingData,
     handleSyncCohorts,
-    handleSyncGrids,
     handleSyncData,
   }
 }
 
+/** Clustered Analysis sync actions for the AirQo group, behind one icon. */
 export function SyncToolbar({
   isSyncingCohorts,
-  isSyncingGrids,
   isSyncingData,
   handleSyncCohorts,
-  handleSyncGrids,
   handleSyncData,
 }: SyncState) {
   const { activeGroup } = useGroup()
@@ -101,34 +87,23 @@ export function SyncToolbar({
     return null
   }
   return (
-    <>
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={handleSyncCohorts}
-        disabled={isSyncingCohorts}
-      >
-        <RefreshCw className={`mr-2 h-4 w-4 ${isSyncingCohorts ? 'animate-spin' : ''}`} />
-        {isSyncingCohorts ? 'Syncing...' : 'Sync Cohorts'}
-      </Button>
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={handleSyncGrids}
-        disabled={isSyncingGrids}
-      >
-        <RefreshCw className={`mr-2 h-4 w-4 ${isSyncingGrids ? 'animate-spin' : ''}`} />
-        {isSyncingGrids ? 'Syncing...' : 'Sync Grids'}
-      </Button>
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={handleSyncData}
-        disabled={isSyncingData}
-      >
-        <RefreshCw className={`mr-2 h-4 w-4 ${isSyncingData ? 'animate-spin' : ''}`} />
-        {isSyncingData ? 'Syncing...' : 'Sync Data'}
-      </Button>
-    </>
+    <SyncMenu
+      items={[
+        {
+          id: "clusters",
+          label: "Sync Clusters",
+          description: "From the AirQo platform",
+          onSelect: handleSyncCohorts,
+          busy: isSyncingCohorts,
+        },
+        {
+          id: "data",
+          label: "Sync Data",
+          description: "ThingSpeak readings for the last 14 days",
+          onSelect: handleSyncData,
+          busy: isSyncingData,
+        },
+      ]}
+    />
   )
 }

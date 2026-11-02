@@ -89,7 +89,8 @@ const nextConfig = {
           },
           {
             key: 'Permissions-Policy',
-            value: process.env.HEADER_PERMISSIONS_POLICY || 'camera=(), microphone=(), geolocation=()'
+            // Location is allowed for Beacon itself: the maintenance map can start a route from where you are
+            value: process.env.HEADER_PERMISSIONS_POLICY || 'camera=(), microphone=(), geolocation=(self)'
           },
         ],
       },

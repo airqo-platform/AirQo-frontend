@@ -1,4 +1,5 @@
 import 'package:airqo/src/app/dashboard/pages/location_selection/location_selection_screen.dart';
+import 'package:airqo/src/app/exposure/widgets/exposure_launch_announcement.dart';
 import 'package:airqo/src/app/dashboard/widgets/measurement_card_tour.dart';
 import 'package:airqo/src/app/shared/utils/location_label.dart';
 import 'package:airqo/src/app/shared/widgets/empty_state_view.dart';
@@ -25,7 +26,9 @@ import 'package:airqo/src/app/shared/services/notification_helper.dart';
 import 'package:loggy/loggy.dart';
 
 class DashboardPage extends StatefulWidget {
-  const DashboardPage({super.key});
+  final bool isActive;
+
+  const DashboardPage({super.key, this.isActive = true});
 
   @override
   State<DashboardPage> createState() => _DashboardPageState();
@@ -38,6 +41,9 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
   Timer? _backgroundRefreshTimer;
   final MeasurementCardTourKeys _cardTourKeys = MeasurementCardTourKeys();
   bool _showCardGesturesTour = false;
+  bool _tourStartPending = false;
+  OverlayEntry? _tourOverlay;
+  bool _viewTooltipsEnabled = !kMeasurementCardGesturesTourEnabled;
 
   @override
   void initState() {
@@ -46,6 +52,7 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
     context.read<DashboardBloc>().add(LoadDashboard());
 
     _getUserCountry();
+    unawaited(_holdViewTooltipsUntilTourResolves());
 
     _backgroundRefreshTimer = Timer.periodic(Duration(minutes: 30), (_) {
       _silentBackgroundRefresh();
@@ -53,7 +60,19 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
   }
 
   @override
+  void didUpdateWidget(covariant DashboardPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.isActive && !widget.isActive) {
+      _hideCardGesturesTour();
+    } else if (!oldWidget.isActive && widget.isActive) {
+      _scheduleCardGesturesTourCheck();
+    }
+  }
+
+  @override
   void dispose() {
+    _tourOverlay?.remove();
+    _tourOverlay = null;
     _backgroundRefreshTimer?.cancel();
     super.dispose();
   }
@@ -91,18 +110,109 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
     });
   }
 
-  Future<void> _dismissCardGesturesTour() async {
+  void _enableViewTooltips() {
+    if (!mounted || _viewTooltipsEnabled) return;
+    setState(() => _viewTooltipsEnabled = true);
+  }
+
+  /// Keeps the Near You hint off the screen until the card tour is done.
+  /// If the tour was already seen, the hint can show immediately. If the tour
+  /// never appears, the hint is released after a short wait.
+  Future<void> _holdViewTooltipsUntilTourResolves() async {
+    if (!kMeasurementCardGesturesTourEnabled) {
+      _enableViewTooltips();
+      return;
+    }
+    await ExposureLaunchAnnouncement.homeTourGate;
+    if (!mounted) return;
+    final prefs = await SharedPreferences.getInstance();
+    if (!mounted) return;
+    final seen = prefs.getBool(measurementCardGesturesTourSeenKey) ?? false;
+    if (seen) {
+      _enableViewTooltips();
+      return;
+    }
+    await Future<void>.delayed(const Duration(seconds: 8));
+    if (!mounted || _showCardGesturesTour || _tourOverlay != null) return;
+    _enableViewTooltips();
+  }
+
+  void _hideCardGesturesTour() {
+    _tourOverlay?.remove();
+    _tourOverlay = null;
+    if (!mounted || !_showCardGesturesTour) return;
     setState(() => _showCardGesturesTour = false);
+  }
+
+  Future<void> _dismissCardGesturesTour() async {
+    _tourOverlay?.remove();
+    _tourOverlay = null;
+    setState(() {
+      _showCardGesturesTour = false;
+      _viewTooltipsEnabled = true;
+    });
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(measurementCardGesturesTourSeenKey, true);
   }
 
   void _maybeShowCardGesturesTour() {
-    if (!kMeasurementCardGesturesTourEnabled || _showCardGesturesTour) return;
-    SharedPreferences.getInstance().then((prefs) {
+    if (!kMeasurementCardGesturesTourEnabled ||
+        _showCardGesturesTour ||
+        _tourOverlay != null ||
+        _tourStartPending) {
+      return;
+    }
+    _tourStartPending = true;
+    unawaited(_showCardGesturesTourAfterAnnouncement());
+  }
+
+  Future<void> _showCardGesturesTourAfterAnnouncement() async {
+    try {
+      await ExposureLaunchAnnouncement.homeTourGate;
+      if (!kMeasurementCardGesturesTourEnabled ||
+          !mounted ||
+          !widget.isActive ||
+          _showCardGesturesTour ||
+          _tourOverlay != null) {
+        return;
+      }
+      final prefs = await SharedPreferences.getInstance();
       final seen = prefs.getBool(measurementCardGesturesTourSeenKey) ?? false;
-      if (!seen && mounted) setState(() => _showCardGesturesTour = true);
-    });
+      if (seen ||
+          !mounted ||
+          !widget.isActive ||
+          _showCardGesturesTour ||
+          _tourOverlay != null ||
+          !measurementCardTourTargetsReady(_cardTourKeys)) {
+        return;
+      }
+      setState(() {
+        _showCardGesturesTour = true;
+        _viewTooltipsEnabled = false;
+      });
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted ||
+            !widget.isActive ||
+            !_showCardGesturesTour ||
+            _tourOverlay != null) {
+          return;
+        }
+        _tourOverlay = OverlayEntry(
+          builder: (_) => Positioned.fill(
+            child: MeasurementCardGesturesTour(
+              tourKeys: _cardTourKeys,
+              steps: buildMeasurementCardGesturesTourSteps(
+                view: _activeTourView,
+              ),
+              onDismiss: _dismissCardGesturesTour,
+            ),
+          ),
+        );
+        Overlay.of(context, rootOverlay: true).insert(_tourOverlay!);
+      });
+    } finally {
+      _tourStartPending = false;
+    }
   }
 
   void _scheduleCardGesturesTourCheck() {
@@ -110,7 +220,7 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
     scheduleMeasurementCardTourReady(
       keys: _cardTourKeys,
       onReady: _maybeShowCardGesturesTour,
-      isActive: () => mounted && !_showCardGesturesTour,
+      isActive: () => mounted && widget.isActive && !_showCardGesturesTour,
     );
   }
 
@@ -189,6 +299,7 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
                           isGuestUser: isGuest,
                           userCountry: userCountry,
                           activeCountries: activeCountries,
+                          tooltipsEnabled: _viewTooltipsEnabled,
                         );
                       },
                     ),
@@ -219,14 +330,6 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
                   backgroundColor: AppColors.primaryColor,
                   child: const Icon(Icons.add, color: Colors.white),
                 ),
-              ),
-            if (kMeasurementCardGesturesTourEnabled && _showCardGesturesTour)
-              MeasurementCardGesturesTour(
-                tourKeys: _cardTourKeys,
-                steps: buildMeasurementCardGesturesTourSteps(
-                  view: _activeTourView,
-                ),
-                onDismiss: _dismissCardGesturesTour,
               ),
           ],
         ),

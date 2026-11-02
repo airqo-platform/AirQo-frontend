@@ -57,36 +57,61 @@ const SITES = [
   { name: 'Dar es Salaam', city: 'Dar es Salaam', country: 'Tanzania', lat: -6.7924, lng: 39.2083 },
 ]
 
-const NETWORKS = ['airqo', 'kcca', 'usembassy', 'unep']
+// Sensor manufacturers (the platform's `network`), weighted towards AirQo like the real fleet
+const NETWORKS = ['airqo', 'airqo', 'airqo', 'airqo', 'airgradient', 'iqair', 'metone', 'kcca', 'airbeam']
 const CATEGORIES = ['lowcost', 'bam']
+
+/** Which manufacturers' devices beacon can read through a manufacturer API adapter. */
+const EXTERNAL_API_NETWORKS = ['airgradient', 'iqair', 'metone']
+
+function mockDataSource(network: string, hasChannel: boolean): 'thingspeak' | 'external_api' | 'none' {
+  if (network === 'airqo') return hasChannel ? 'thingspeak' : 'none'
+  return EXTERNAL_API_NETWORKS.includes(network) ? 'external_api' : 'none'
+}
 
 export function getMockDevices(): any[] {
   return DEVICE_NAMES.map((name, i) => {
     const site = SITES[i % SITES.length]
     const isOnline = Math.random() > 0.25
-    const category = i % 5 === 0 ? 'bam' : 'lowcost'
+    const network = NETWORKS[i % NETWORKS.length]
+    const isAirqo = network === 'airqo'
+    const category = network === 'metone' || i % 5 === 0 ? 'bam' : 'lowcost'
+    const dataSource = mockDataSource(network, isAirqo)
     return {
       _id: uuid(),
-      name: name,
-      long_name: `AirQo ${name.toUpperCase()}`,
+      name: isAirqo ? name : `${network}_${1000 + i}`,
+      long_name: isAirqo ? `AirQo ${name.toUpperCase()}` : `${network} ${1000 + i}`,
       alias: name,
       isActive: true,
       isOnline,
       isPrimaryInLocation: i % 3 === 0,
       status: isOnline ? 'deployed' : (Math.random() > 0.5 ? 'deployed' : 'not deployed'),
       visibility: true,
-      authRequired: false,
-      device_number: 2084530 + i,
-      serial_number: `SN-${1000 + i}`,
+      authRequired: !isAirqo && i % 2 === 0,
+      // Only AirQo hardware has a ThingSpeak channel and keys; other manufacturers are known by serial number + API URL
+      device_number: isAirqo ? 2084530 + i : null,
+      serial_number: isAirqo ? `SN-${1000 + i}` : `${network.toUpperCase()}-${7000 + i}`,
+      api_code: dataSource === 'external_api' ? `https://api.${network}.example/v1/devices/${7000 + i}` : null,
+      data_source: dataSource,
       device_codes: [name],
-      network: NETWORKS[i % NETWORKS.length],
+      network,
       category,
       mobility: false,
       height: randomBetween(2, 5),
       mountType: 'pole',
       powerType: 'solar',
-      writeKey: 'mock-write-key',
-      readKey: 'mock-read-key',
+      writeKey: isAirqo ? 'mock-write-key' : null,
+      readKey: isAirqo ? 'mock-read-key' : null,
+      beacon_data: {
+        network_id: network,
+        device_number: isAirqo ? 2084530 + i : null,
+        serial_number: isAirqo ? `SN-${1000 + i}` : `${network.toUpperCase()}-${7000 + i}`,
+        api_code: dataSource === 'external_api' ? `https://api.${network}.example/v1/devices/${7000 + i}` : null,
+        auth_required: !isAirqo && i % 2 === 0,
+        data_source: dataSource,
+        current_firmware: isAirqo ? 'v2.4.1' : null,
+        firmware_download_state: null,
+      },
       createdAt: daysAgo(365 - i * 10),
       lastActive: isOnline ? hoursAgo(Math.floor(Math.random() * 3)) : daysAgo(Math.floor(Math.random() * 30) + 1),
       lastRawData: isOnline ? hoursAgo(1) : daysAgo(Math.floor(Math.random() * 14)),
@@ -633,4 +658,82 @@ export function getMockDeviceConfig() {
 
 export function getMockAirQloudsBasic() {
   return getMockCohorts()
+}
+
+// ─── Sensor Manufacturers (networks) ──────────────────────────────────────────
+
+export function getMockNetworks() {
+  const devices = getMockDevices()
+  const byNetwork = new Map<string, any[]>()
+  for (const device of devices) {
+    const list = byNetwork.get(device.network) ?? []
+    list.push(device)
+    byNetwork.set(device.network, list)
+  }
+  const details: Record<string, { website: string; description: string }> = {
+    airqo: { website: 'https://airqo.net', description: 'AirQo low-cost monitors and reference monitors' },
+    airgradient: { website: 'https://www.airgradient.com', description: 'AirGradient indoor and outdoor monitors' },
+    iqair: { website: 'https://www.iqair.com', description: 'IQAir AirVisual monitors' },
+    metone: { website: 'https://metone.com', description: 'Met One BAM reference monitors' },
+    kcca: { website: 'https://www.kcca.go.ug', description: 'Kampala Capital City Authority monitors (Clarity)' },
+    airbeam: { website: 'https://www.habitatmap.org/airbeam', description: 'HabitatMap AirBeam monitors' },
+    airly: { website: 'https://airly.org', description: 'Airly monitors (no adapter yet)' },
+  }
+  return Array.from(new Set([...byNetwork.keys(), 'airly'])).sort().map((name) => {
+    const list = byNetwork.get(name) ?? []
+    return {
+      network_id: name === 'airly' ? null : uuid(),
+      name,
+      acronym: name.toUpperCase(),
+      status: 'active',
+      category: null,
+      data_source: name === 'airqo' ? 'thingspeak' : 'api',
+      website: details[name]?.website ?? null,
+      email: null,
+      description: details[name]?.description ?? null,
+      profile_picture: null,
+      platform_updated_at: daysAgo(3),
+      enabled: true,
+      total_devices: list.length,
+      deployed_devices: list.filter((d) => d.status === 'deployed').length,
+      online_devices: list.filter((d) => d.isOnline && d.data_source !== 'none').length,
+      thingspeak_devices: list.filter((d) => d.data_source === 'thingspeak').length,
+      external_api_devices: list.filter((d) => d.data_source === 'external_api').length,
+    }
+  })
+}
+
+export function getMockNetworkProfiles() {
+  return [
+    {
+      name: 'airgradient_lowcost', network: 'airgradient', category: 'lowcost', profile_id: uuid(), diagnosable: true,
+      components: ['pm_sensor', 'gas_sensor', 'environment_sensor', 'wifi_modem', 'controller', 'mains_power'],
+      transmission_components: ['wifi_modem'], errors: [], warnings: [],
+    },
+    {
+      name: 'iqair_lowcost', network: 'iqair', category: 'lowcost', profile_id: uuid(), diagnosable: true,
+      components: ['pm_sensor', 'gas_sensor', 'environment_sensor', 'data_link', 'mains_power'],
+      transmission_components: ['data_link'], errors: [], warnings: ['gas_sensor.co2 has no telemetry mapping, so its checks are skipped'],
+    },
+    {
+      name: 'metone_bam', network: 'metone', category: 'bam', profile_id: uuid(), diagnosable: true,
+      components: ['bam_sensor', 'bam_diagnostics', 'environment_sensor', 'data_link', 'mains_power'],
+      transmission_components: ['data_link'], errors: [], warnings: [],
+    },
+    {
+      name: 'clarity_lowcost', network: 'clarity', category: 'lowcost', profile_id: uuid(), diagnosable: false,
+      components: ['pm_sensor', 'environment_sensor', 'data_link', 'mains_power'],
+      transmission_components: ['data_link'], errors: ['No component metric is mapped to a telemetry field'], warnings: [],
+    },
+    {
+      name: 'kcca_lowcost', network: 'kcca', category: 'lowcost', profile_id: uuid(), diagnosable: true,
+      components: ['pm_sensor', 'environment_sensor', 'data_link', 'mains_power'],
+      transmission_components: ['data_link'], errors: [], warnings: [],
+    },
+    {
+      name: 'airbeam_lowcost', network: 'airbeam', category: 'lowcost', profile_id: uuid(), diagnosable: true,
+      components: ['pm_sensor', 'environment_sensor', 'data_link', 'mains_power'],
+      transmission_components: ['data_link'], errors: [], warnings: ['No ingestion path yet: readings will appear once the pipeline carries this network'],
+    },
+  ]
 }

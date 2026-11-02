@@ -54,18 +54,20 @@ Future<void> openMeasurementShareSheet(
 class MeasurementCardHeaderShare extends StatelessWidget {
   final VoidCallback onShare;
   final GlobalKey? shareButtonKey;
+  final LayerLink? link;
 
   const MeasurementCardHeaderShare({
     super.key,
     required this.onShare,
     this.shareButtonKey,
+    this.link,
   });
 
   @override
   Widget build(BuildContext context) {
     final iconColor = AppTextColors.modalCloseIcon(context);
 
-    return MeasurementCardTrailingIconSlot(
+    final slot = MeasurementCardTrailingIconSlot(
       key: shareButtonKey,
       icon: _CompactIconAction(
         tooltip: 'Share',
@@ -82,6 +84,9 @@ class MeasurementCardHeaderShare extends StatelessWidget {
         ),
       ),
     );
+    final anchor = link;
+    if (anchor == null) return slot;
+    return CompositedTransformTarget(link: anchor, child: slot);
   }
 }
 
@@ -90,17 +95,39 @@ class MeasurementCardFooterForecast extends StatelessWidget {
   final VoidCallback onForecast;
   final bool enabled;
   final GlobalKey? forecastButtonKey;
+  final LayerLink? link;
 
   const MeasurementCardFooterForecast({
     super.key,
     required this.onForecast,
     this.enabled = true,
     this.forecastButtonKey,
+    this.link,
   });
 
   @override
   Widget build(BuildContext context) {
     final iconColor = AppTextColors.modalCloseIcon(context);
+    final slot = MeasurementCardTrailingIconSlot(
+      key: forecastButtonKey,
+      icon: _CompactIconAction(
+        tooltip: 'Forecast',
+        semanticsLabel: 'View forecast',
+        onPressed: enabled
+            ? () {
+                AnalyticsService().trackCardActionTapped(action: 'forecast');
+                onForecast();
+              }
+            : null,
+        icon: SvgPicture.asset(
+          'assets/icons/chevron-right.svg',
+          width: kMeasurementCardActionIconSize,
+          height: kMeasurementCardActionIconSize,
+          colorFilter: ColorFilter.mode(iconColor, BlendMode.srcIn),
+        ),
+      ),
+    );
+    final anchor = link;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(
@@ -111,26 +138,9 @@ class MeasurementCardFooterForecast extends StatelessWidget {
       ),
       child: Align(
         alignment: Alignment.centerRight,
-        child: MeasurementCardTrailingIconSlot(
-          key: forecastButtonKey,
-          icon: _CompactIconAction(
-            tooltip: 'Forecast',
-            semanticsLabel: 'View forecast',
-            onPressed: enabled
-                ? () {
-                    AnalyticsService()
-                        .trackCardActionTapped(action: 'forecast');
-                    onForecast();
-                  }
-                : null,
-            icon: SvgPicture.asset(
-              'assets/icons/chevron-right.svg',
-              width: kMeasurementCardActionIconSize,
-              height: kMeasurementCardActionIconSize,
-              colorFilter: ColorFilter.mode(iconColor, BlendMode.srcIn),
-            ),
-          ),
-        ),
+        child: anchor == null
+            ? slot
+            : CompositedTransformTarget(link: anchor, child: slot),
       ),
     );
   }

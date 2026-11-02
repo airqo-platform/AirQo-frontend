@@ -23,6 +23,9 @@ export const API_ROUTES = {
     PARTNERS: '/website/api/v2/partners/',
     PRESS: '/website/api/v2/press/',
     PUBLICATIONS: '/website/api/v2/publications/',
+    LIVE_PUBLICATION_FEED_SETTINGS:
+      '/website/api/v2/live-publication-feed-settings/',
+    LIVE_PUBLICATION_OVERRIDES: '/website/api/v2/live-publication-overrides/',
     TEAM: '/website/api/v2/team-members/',
     EXTERNAL_TEAM: '/website/api/v2/external-team-members/',
     TEAM_BIOGRAPHIES: '/website/api/v2/team-biographies/',

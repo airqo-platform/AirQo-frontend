@@ -9,6 +9,7 @@ import 'package:airqo/src/app/auth/services/auth_helper.dart';
 import 'package:airqo/src/app/dashboard/bloc/dashboard/dashboard_bloc.dart';
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
 import 'package:airqo/src/app/dashboard/models/user_preferences_model.dart';
+import 'package:airqo/src/app/shared/utils/monitor_place_label.dart';
 import 'package:airqo/src/app/dashboard/pages/location_selection/location_selection_screen.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:airqo/src/app/shared/services/notification_manager.dart';
@@ -22,8 +23,6 @@ import 'package:airqo/src/app/shared/widgets/system_glyph.dart';
 import 'package:airqo/src/app/shared/utils/saved_places_content_status.dart';
 import 'package:airqo/src/app/exposure/models/declared_place.dart';
 import 'package:airqo/src/app/exposure/repository/declared_places_repository_impl.dart';
-import 'package:airqo/src/app/shared/services/feature_flag_service.dart';
-
 class MyPlacesView extends StatefulWidget {
   final UserPreferencesModel? userPreferences;
   final bool prefsLoadFailed;
@@ -73,10 +72,6 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
   }
 
   Future<void> _loadDeclaredPlaces() async {
-    if (!FeatureFlagService.instance
-        .isEnabled(AppFeatureFlag.exposureTracking)) {
-      return;
-    }
     final generation = ++_declaredPlacesGeneration;
     try {
       final places = await DeclaredPlacesRepositoryImpl().getDeclaredPlaces();
@@ -276,15 +271,20 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
 
     for (var m in selectedMeasurements) {
       if (m.siteId == id) {
-        locationName =
-            m.siteDetails?.searchName ?? m.siteDetails?.name ?? "---";
+        locationName = measurementSpokenTitle(
+          m,
+          m.siteDetails?.searchName ?? m.siteDetails?.name ?? "---",
+        );
         break;
       }
     }
 
     for (var s in unmatchedSites) {
       if (s.id == id) {
-        locationName = s.name;
+        locationName = selectedSiteSpokenTitle(
+          s,
+          s.visibleSearchName.isNotEmpty ? s.visibleSearchName : s.name,
+        );
         break;
       }
     }

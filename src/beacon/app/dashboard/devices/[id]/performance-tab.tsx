@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Checkbox } from "@/components/ui/checkbox"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { cn, formatCompactNumber } from "@/lib/utils"
 import { format, subDays } from "date-fns"
 import { getDevicePerformanceData } from "@/services/device-api.service"
@@ -64,6 +65,11 @@ interface RawDataPoint {
   device_name?: string
   frequency?: string
   battery_voltage?: number | null
+  /**
+   * Every numeric reading in the point, keyed by the label the API returned. Labels come from the
+   * device's profile and differ per manufacturer ("pm2.5 sensor1" for AirQo, "PM2.5" or "CO2" for others).
+   */
+  readings: Record<string, number>
 }
 
 interface PerformanceData {
@@ -72,6 +78,65 @@ interface PerformanceData {
   data_completeness: number
   sensor_error_margin: number | null
   raw_data: RawDataPoint[]
+  /** Reading labels present in the data, in the order the API reports them */
+  labels: string[]
+  /** Period averages per label, as returned by the API */
+  averages: Record<string, number | null>
+}
+
+// Keys of a data point that describe the point rather than a reading
+const POINT_META_KEYS = new Set([
+  "datetime", "timestamp", "created_at", "device_name", "device_id", "channel_id", "entry_id",
+  "frequency", "network", "site_name", "latitude", "longitude", "record_count", "category",
+])
+
+const toNum = (v: any): number | null => {
+  if (v == null || v === "") return null
+  const n = typeof v === "number" ? v : Number(v)
+  return Number.isFinite(n) ? n : null
+}
+
+/** Numeric readings of a point keyed by label, whatever labels the device's profile uses. */
+const collectReadings = (point: Record<string, any>): Record<string, number> => {
+  const readings: Record<string, number> = {}
+  for (const [key, value] of Object.entries(point)) {
+    if (POINT_META_KEYS.has(key)) continue
+    const n = toNum(value)
+    if (n != null) readings[key] = n
+  }
+  return readings
+}
+
+/** First value whose label matches the pattern, e.g. PM2.5 under "pm2_5", "PM2.5" or "pm2.5". */
+const findByLabel = (point: Record<string, any>, pattern: RegExp): any => {
+  const key = Object.keys(point).find((k) => pattern.test(k))
+  return key === undefined ? undefined : point[key]
+}
+
+const PM25_LABEL = /^pm\s*2[._]?5$/i
+const PM10_LABEL = /^pm\s*10$/i
+const TEMPERATURE_LABEL = /temperature/i
+const HUMIDITY_LABEL = /humidity/i
+
+/** Hourly averages of one labelled reading, for the generic readings chart. */
+const hourlySeries = (points: RawDataPoint[], label: string) => {
+  const buckets: Record<string, number[]> = {}
+  for (const point of points) {
+    const value = point.readings[label]
+    if (value == null) continue
+    const hour = new Date(point.datetime)
+    if (Number.isNaN(hour.getTime())) continue
+    hour.setMinutes(0, 0, 0)
+    const key = hour.toISOString()
+    ;(buckets[key] ??= []).push(value)
+  }
+  return Object.entries(buckets)
+    .sort(([a], [b]) => new Date(a).getTime() - new Date(b).getTime())
+    .map(([timestamp, values]) => ({
+      timestamp,
+      formattedTime: format(new Date(timestamp), "MMM dd HH:mm"),
+      value: values.reduce((a, b) => a + b, 0) / values.length,
+    }))
 }
 
 interface DeviceSummary {
@@ -143,7 +208,11 @@ export default function PerformanceTab({ deviceId, deviceName }: Readonly<Perfor
             humidity: 50 + Math.random() * 30,
             battery_voltage: 3.8 + Math.random() * 0.4,
             device_name: deviceName,
+            readings: {},
           })
+        }
+        for (const point of mockRawData) {
+          point.readings = collectReadings(point)
         }
 
         const mockPerformance: PerformanceData = {
@@ -152,6 +221,8 @@ export default function PerformanceTab({ deviceId, deviceName }: Readonly<Perfor
           data_completeness: 98.2,
           sensor_error_margin: 2.4,
           raw_data: mockRawData,
+          labels: Object.keys(mockRawData[0]?.readings ?? {}),
+          averages: {},
         }
 
         // Simulate network delay
@@ -193,14 +264,10 @@ export default function PerformanceTab({ deviceId, deviceName }: Readonly<Perfor
 
       // response is already unwrapped to the data array by the service
       const data = Array.isArray(response) ? response : []
-      // Normalize: API returns data points under `data` with keys like
-      // "pm2.5 sensor1" / "pm2.5 sensor2" / "battery". Map them to the shape
-      // the component already consumes via `raw_data`.
-      const toNum = (v: any): number | null => {
-        if (v == null) return null
-        const n = typeof v === "number" ? v : Number(v)
-        return Number.isFinite(n) ? n : null
-      }
+      // Normalize: the API returns data points under `data` keyed by the labels of the device's
+      // profile: "pm2.5 sensor1" / "pm2.5 sensor2" / "battery" for AirQo hardware, "PM2.5" / "CO2" /
+      // "WiFi Signal" for other manufacturers. The well-known metrics are matched tolerantly and
+      // every numeric label is kept in `readings` so charts can show whatever the device reports.
       const normalized: PerformanceData[] = data.map((device: any) => {
         const sourcePoints: any[] = Array.isArray(device.raw_data) && device.raw_data.length > 0
           ? device.raw_data
@@ -210,20 +277,30 @@ export default function PerformanceTab({ deviceId, deviceName }: Readonly<Perfor
           datetime: p.datetime,
           device_name: p.device_name ?? device.device_name,
           frequency: p.frequency,
-          humidity: toNum(p.humidity),
-          temperature: toNum(p.temperature),
-          pm2_5: toNum(p.pm2_5 ?? p["pm2.5"]),
-          pm10: toNum(p.pm10),
+          humidity: toNum(p.humidity ?? findByLabel(p, HUMIDITY_LABEL)),
+          temperature: toNum(p.temperature ?? findByLabel(p, TEMPERATURE_LABEL)),
+          pm2_5: toNum(p.pm2_5 ?? p["pm2.5"] ?? findByLabel(p, PM25_LABEL)),
+          pm10: toNum(p.pm10 ?? findByLabel(p, PM10_LABEL)),
           s1_pm2_5: toNum(p.s1_pm2_5 ?? p["pm2.5 sensor1"]),
           s2_pm2_5: toNum(p.s2_pm2_5 ?? p["pm2.5 sensor2"]),
           s1_pm10: toNum(p.s1_pm10 ?? p["pm10 sensor1"]),
           s2_pm10: toNum(p.s2_pm10 ?? p["pm10 sensor2"]),
-          battery_voltage: toNum(p.battery_voltage ?? p.battery),
+          battery_voltage: toNum(p.battery_voltage ?? p.battery ?? findByLabel(p, /battery/i)),
           longitude: p.longitude,
           latitude: p.latitude,
           network: p.network,
           site_name: p.site_name,
+          readings: collectReadings(p),
         }))
+
+        const averages: Record<string, number | null> = {}
+        for (const [label, value] of Object.entries(device.averages ?? {})) {
+          averages[label] = toNum(value)
+        }
+        const labels: string[] = []
+        for (const label of [...Object.keys(averages), ...raw_data.flatMap((p) => Object.keys(p.readings))]) {
+          if (!labels.includes(label) && raw_data.some((p) => p.readings[label] != null)) labels.push(label)
+        }
 
         return {
           device_name: device.device_name,
@@ -231,6 +308,8 @@ export default function PerformanceTab({ deviceId, deviceName }: Readonly<Perfor
           data_completeness: device.data_completeness ?? 0,
           sensor_error_margin: device.sensor_error_margin ?? null,
           raw_data,
+          labels,
+          averages,
         } as PerformanceData
       })
 
@@ -365,9 +444,35 @@ export default function PerformanceTab({ deviceId, deviceName }: Readonly<Perfor
         deviceName: device.device_name,
         chartData,
         correlationData,
+        // Only AirQo low-cost hardware carries two PM sensors; other manufacturers report one, so
+        // the inter-sensor charts have nothing to show for them.
+        hasSensorPair: correlationData.length > 0,
+        hasBattery: chartData.some((bucket) => bucket.battery_voltage != null),
       }
     })
   }, [performanceData])
+
+  // Generic readings chart: one labelled series at a time, whatever labels the device reports
+  const [selectedReadingLabel, setSelectedReadingLabel] = useState<string | null>(null)
+  const readingLabels = useMemo(() => {
+    const labels: string[] = []
+    for (const device of performanceData) {
+      for (const label of device.labels) if (!labels.includes(label)) labels.push(label)
+    }
+    return labels
+  }, [performanceData])
+  const activeReadingLabel = selectedReadingLabel && readingLabels.includes(selectedReadingLabel)
+    ? selectedReadingLabel
+    : readingLabels.find((label) => PM25_LABEL.test(label)) ?? readingLabels[0] ?? null
+  const readingSeries = useMemo(() => {
+    if (!activeReadingLabel) return []
+    return performanceData.map((device) => ({
+      deviceId: device.device_name,
+      deviceName: device.device_name,
+      average: device.averages[activeReadingLabel] ?? null,
+      data: hourlySeries(device.raw_data, activeReadingLabel),
+    }))
+  }, [performanceData, activeReadingLabel])
 
   // Calculate daily uptime for each device
   const devicesUptimeData = useMemo(() => {
@@ -767,6 +872,9 @@ export default function PerformanceTab({ deviceId, deviceName }: Readonly<Perfor
                     <div>
                       <p className="text-sm font-medium text-gray-500">Avg Error Margin</p>
                       <p className="text-lg font-bold text-orange-600">{summary.avgErrorMargin != null ? formatCompactNumber(summary.avgErrorMargin, 2) : "N/A"}</p>
+                      {summary.avgErrorMargin == null && !devicesChartData.find((d) => d.deviceId === summary.deviceId)?.hasSensorPair && (
+                        <p className="text-[11px] text-gray-400">Single PM sensor</p>
+                      )}
                     </div>
                   </div>
 
@@ -782,17 +890,21 @@ export default function PerformanceTab({ deviceId, deviceName }: Readonly<Perfor
                     </div>
                   </div>
 
-                  <div className="h-8 w-px bg-gray-200 hidden sm:block" />
+                  {devicesChartData.find((d) => d.deviceId === summary.deviceId)?.hasBattery && (
+                    <>
+                      <div className="h-8 w-px bg-gray-200 hidden sm:block" />
 
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-white rounded-lg border shadow-sm">
-                      <Battery className="h-5 w-5 text-teal-600" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-500">Avg Battery</p>
-                      <p className="text-lg font-bold text-teal-600">{summary.avgBatteryVoltage.toFixed(2)}V</p>
-                    </div>
-                  </div>
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-white rounded-lg border shadow-sm">
+                          <Battery className="h-5 w-5 text-teal-600" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-500">Avg Battery</p>
+                          <p className="text-lg font-bold text-teal-600">{summary.avgBatteryVoltage.toFixed(2)}V</p>
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </div>
               ))}
 
@@ -894,8 +1006,74 @@ export default function PerformanceTab({ deviceId, deviceName }: Readonly<Perfor
                   </Card>
                 ))}
 
-                {/* 3. Sensor Health Chart (toggle: error margin / sensors / correlation) */}
-                {devicesChartData.map((deviceData) => (
+                {/* 3. Readings: any labelled series the device reports (labels come from its profile) */}
+                {readingLabels.length > 0 && readingSeries.map((series) => (
+                  <Card key={`readings-${series.deviceId}`} className="overflow-hidden border-0 shadow-sm ring-1 ring-gray-200">
+                    <CardHeader className="border-b bg-gray-50/50 py-3">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <Activity className="h-4 w-4 text-indigo-600 shrink-0" />
+                          <CardTitle className="text-sm font-medium text-gray-700 truncate">Readings</CardTitle>
+                          {series.average != null && (
+                            <span className="text-xs text-gray-500 whitespace-nowrap">avg {formatCompactNumber(series.average, 2)}</span>
+                          )}
+                        </div>
+                        <Select value={activeReadingLabel ?? undefined} onValueChange={setSelectedReadingLabel}>
+                          <SelectTrigger className="h-7 w-[180px] text-xs bg-white" aria-label="Reading to chart">
+                            <SelectValue placeholder="Reading" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {readingLabels.map((label) => (
+                              <SelectItem key={label} value={label} className="text-xs">
+                                {label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="p-4 min-w-0">
+                      {series.data.length === 0 ? (
+                        <div className="h-[250px] flex items-center justify-center text-sm text-gray-400">
+                          No {activeReadingLabel} readings in this period.
+                        </div>
+                      ) : (
+                        <ResponsiveContainer width="100%" height={250} minWidth={0} minHeight={0}>
+                          <LineChart data={series.data}>
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+                            <XAxis
+                              dataKey="formattedTime"
+                              tick={{ fontSize: 10, fill: "#6b7280" }}
+                              axisLine={false}
+                              tickLine={false}
+                              dy={10}
+                              interval="preserveStartEnd"
+                              minTickGap={30}
+                            />
+                            <YAxis domain={['auto', 'auto']} tick={{ fontSize: 10, fill: "#6b7280" }} axisLine={false} tickLine={false} />
+                            <Tooltip
+                              contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                              formatter={(value: any) => [formatCompactNumber(Number(value), 2), activeReadingLabel ?? "Value"]}
+                            />
+                            <Line
+                              type="monotone"
+                              dataKey="value"
+                              stroke="#4f46e5"
+                              name={activeReadingLabel ?? "Value"}
+                              strokeWidth={2}
+                              connectNulls
+                              dot={false}
+                              activeDot={{ r: 4, strokeWidth: 0 }}
+                            />
+                          </LineChart>
+                        </ResponsiveContainer>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))}
+
+                {/* 4. Sensor Health Chart (toggle: error margin / sensors / correlation); two-PM-sensor hardware only */}
+                {devicesChartData.filter((deviceData) => deviceData.hasSensorPair).map((deviceData) => (
                   <Card key={`sensor-health-${deviceData.deviceId}`} className="overflow-hidden border-0 shadow-sm ring-1 ring-gray-200">
                     <CardHeader className="border-b bg-gray-50/50 py-3">
                       <div className="flex items-center justify-between gap-2">
@@ -1044,8 +1222,8 @@ export default function PerformanceTab({ deviceId, deviceName }: Readonly<Perfor
                   </Card>
                 ))}
 
-                {/* 4. Battery Voltage Chart (New) */}
-                {devicesChartData.map((deviceData) => (
+                {/* 5. Battery Voltage Chart; mains-powered devices report none */}
+                {devicesChartData.filter((deviceData) => deviceData.hasBattery).map((deviceData) => (
                   <Card key={`battery-${deviceData.deviceId}`} className="overflow-hidden border-0 shadow-sm ring-1 ring-gray-200">
                     <CardHeader className="border-b bg-gray-50/50 py-3">
                       <div className="flex items-center gap-2">
@@ -1102,7 +1280,7 @@ export default function PerformanceTab({ deviceId, deviceName }: Readonly<Perfor
                     <CardTitle className="text-sm font-medium text-gray-700">Sensor Health Heatmap</CardTitle>
                   </div>
                   <CardDescription className="text-xs">
-                    Hourly view across the selected period. Toggle between data presence (Uptime) and average sensor error margin (|s1 − s2|).
+                    Hourly view across the selected period. Toggle between data presence (Uptime) and average sensor error margin (|s1 − s2|, two-sensor hardware only).
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="p-4">

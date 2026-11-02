@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:airqo/src/app/exposure/bloc/declared_places_cubit.dart';
 import 'package:airqo/src/app/exposure/models/declared_place.dart';
 import 'package:airqo/src/app/exposure/widgets/time_picker_drum.dart';
+import 'package:airqo/src/app/shared/services/analytics_service.dart';
 import 'package:airqo/src/app/shared/widgets/custom_switch.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 
@@ -227,6 +228,12 @@ class _TimeWindowSheetState extends State<TimeWindowSheet> {
       weekendWindow: TimeWindow(arrive: _weArrive, leave: _weLeave),
       absentOnWeekdays: _absentWeekdays,
       absentOnWeekends: _absentWeekends,
+    );
+    AnalyticsService().trackExposurePlaceSaved(
+      placeType: updated.type.name,
+      source: 'setup',
+      absentWeekdays: updated.absentOnWeekdays,
+      absentWeekends: updated.absentOnWeekends,
     );
     context.read<DeclaredPlacesCubit>().addPlace(updated);
     Navigator.of(context).pop();

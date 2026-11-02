@@ -15,10 +15,12 @@ import {
   SlidersHorizontal,
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
+import { MAP_ITEM_NOUNS, type MapItemNoun } from "@/lib/maintenance-map"
 
 const DAYS_OPTIONS = [7, 14, 30, 60]
 const OFFLINE_DAYS_OPTIONS = [
-  { label: "All Devices", value: null },
+  // "All" is labelled with the map's items, see allItemsLabel
+  { label: "All", value: null },
   { label: "Offline ≥ 1d", value: 1 },
   { label: "Offline ≥ 3d", value: 3 },
   { label: "Offline ≥ 7d", value: 7 },
@@ -90,6 +92,7 @@ interface MapTopFiltersProps {
   showLoRaWAN?: boolean
   coveragePercentage?: number
   className?: string
+  itemNoun?: MapItemNoun
 }
 
 export const MapTopFilters: React.FC<MapTopFiltersProps> = ({
@@ -126,7 +129,9 @@ export const MapTopFilters: React.FC<MapTopFiltersProps> = ({
   showLoRaWAN = false,
   coveragePercentage = 0,
   className = "",
+  itemNoun = MAP_ITEM_NOUNS.devices,
 }) => {
+  const allItemsLabel = `All ${itemNoun.plural[0].toUpperCase()}${itemNoun.plural.slice(1)}`
   const [cohortOpen, setCohortOpen] = useState(false)
   const [gridOpen, setGridOpen] = useState(false)
   const [filtersDrawerOpen, setFiltersDrawerOpen] = useState(false)
@@ -196,7 +201,7 @@ export const MapTopFilters: React.FC<MapTopFiltersProps> = ({
               value={opt.value === null ? "" : String(opt.value)}
               className="bg-white text-gray-800"
             >
-              {opt.label}
+              {opt.value === null ? allItemsLabel : opt.label}
             </option>
           ))}
         </select>
@@ -468,7 +473,7 @@ export const MapTopFilters: React.FC<MapTopFiltersProps> = ({
 
             {/* Uptime Filter */}
             <div>
-              <span className="text-[11px] font-medium text-gray-500 block mb-1">Device Uptime:</span>
+              <span className="text-[11px] font-medium text-gray-500 block mb-1"><span className="capitalize">{itemNoun.singular}</span> Uptime:</span>
               <select
                 value={uptimeFilter}
                 onChange={(e) => onUptimeChange(e.target.value as typeof uptimeFilter)}

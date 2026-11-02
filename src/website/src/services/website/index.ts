@@ -11,6 +11,7 @@ export { default as forumEventsService } from './forum-events.service';
 export { default as gridsService } from './grids';
 export { default as highlightsService } from './highlights';
 export { default as impactNumbersService } from './impact.service';
+export { default as livePublicationsService } from './live-publications.service';
 export { default as networkCoverageService } from './network-coverage.service';
 export { default as partnersService } from './partners.service';
 export { default as paymentsService } from './payments';
