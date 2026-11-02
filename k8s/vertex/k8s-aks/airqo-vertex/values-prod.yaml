@@ -1,7 +1,7 @@
 replicaCount: 2
 image:
   repository: airqoacr.azurecr.io/airqo-vertex
-  tag: prod-341dfc72-1791356906
+  tag: prod-3da88660-1793620331
   pullPolicy: IfNotPresent
 imagePullSecrets: []
 nameOverride: ''
@@ -16,7 +16,7 @@ ingress:
   enabled: false
 resources:
   requests:
-    cpu:  50m
+    cpu: 50m
     memory: 128Mi
   limits:
     cpu: 200m
