@@ -2,6 +2,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import React from 'react';
 
+import { Button } from '@/components/ui/button';
 import { optimizeCloudinaryUrl } from '@/services/external/cloudinary.service';
 
 const IMAGE_WIDTH = 800;
@@ -95,6 +96,19 @@ const ProductsShowcase = () => {
               </div>
             </div>
           ))}
+        </div>
+
+        <div className="flex justify-center">
+          <Button
+            asChild
+            size="lg"
+            className="h-auto min-h-11 gap-2 whitespace-normal bg-blue-600 px-5 py-3 text-center text-white hover:bg-blue-700"
+          >
+            <Link href="/explore-data">
+              Discover more AirQo tools
+              <span aria-hidden="true">→</span>
+            </Link>
+          </Button>
         </div>
       </div>
     </section>

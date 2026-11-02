@@ -5,10 +5,18 @@
 import GlossaryPage from '@/features/clean-air-forum/glossary/GlossaryPage';
 import {
   generateMetadata as createMetadata,
-  METADATA_CONFIGS,
+  getForumPageMetadata,
 } from '@/lib/metadata';
 
-export const metadata = createMetadata(METADATA_CONFIGS.cleanAirForumGlossary);
+export function generateMetadata({
+  params,
+}: {
+  params: { uniqueTitle: string };
+}) {
+  return createMetadata(
+    getForumPageMetadata(params.uniqueTitle, 'Glossary', 'glossary'),
+  );
+}
 
 const Page = () => {
   return <GlossaryPage />;

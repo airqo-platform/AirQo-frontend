@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { FiDownload, FiExternalLink } from 'react-icons/fi';
 
 import { NoData, Pagination } from '@/components/ui';
@@ -123,18 +123,19 @@ const ResourcePage: React.FC = () => {
     [],
   );
 
-  const initialTabParam = searchParams?.get('tab') || 'policy';
-  const initialSelected = initialTabParam.includes(',')
-    ? initialTabParam
+  const tabParam = searchParams?.get('tab') || 'policy';
+  const selectedTab: string | string[] = tabParam.includes(',')
+    ? tabParam
         .split(',')
         .map((tab) => tab.trim())
         .filter(Boolean)
-    : initialTabParam;
-  const [selectedTab, setSelectedTab] = useState<string | string[]>(
-    initialSelected,
-  );
+    : tabParam;
   const [currentPage, setCurrentPage] = useState<number>(1);
   const itemsPerPage = 4;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [tabParam]);
 
   const isCombinedCategory =
     Array.isArray(selectedTab) &&
@@ -290,7 +291,6 @@ const ResourcePage: React.FC = () => {
   ]);
 
   const handleTabClick = (tabValue: string | string[]) => {
-    setSelectedTab(tabValue);
     setCurrentPage(1);
     router.push(
       `/resources?tab=${Array.isArray(tabValue) ? tabValue.join(',') : tabValue}`,

@@ -59,7 +59,7 @@ describe('structuredData', () => {
       );
     });
 
-    it('offers the product for free in USD and in stock', () => {
+    it('does not invent product pricing or stock availability', () => {
       const schema = generateProductSchema(
         {
           title: 'AirQo API | Open Data Access',
@@ -69,12 +69,7 @@ describe('structuredData', () => {
         siteUrl,
       );
 
-      expect(schema.offers).toEqual({
-        '@type': 'Offer',
-        price: '0',
-        priceCurrency: 'USD',
-        availability: 'https://schema.org/InStock',
-      });
+      expect(schema).not.toHaveProperty('offers');
     });
 
     it('brands every product as AirQo', () => {
@@ -119,8 +114,9 @@ describe('structuredData', () => {
         siteUrl,
       );
 
-      expect(schema.image).toBeTruthy();
-      expect(typeof schema.image).toBe('string');
+      expect(schema.image).toBe(
+        'https://airqo.net/assets/images/seo/airqo-social-fallback.jpg',
+      );
     });
   });
 
@@ -130,7 +126,10 @@ describe('structuredData', () => {
     it('produces a BreadcrumbList with sequential positions starting at 1', () => {
       const schema = generateBreadcrumbSchema(
         [
-          { name: 'Our Products', url: 'https://airqo.net/products' },
+          {
+            name: 'Explore AirQo products',
+            url: 'https://airqo.net/explore-data',
+          },
           { name: 'AirQo Monitor', url: 'https://airqo.net/products/monitor' },
         ],
         siteUrl,
@@ -146,7 +145,10 @@ describe('structuredData', () => {
     it('preserves item names and urls', () => {
       const schema = generateBreadcrumbSchema(
         [
-          { name: 'Our Products', url: 'https://airqo.net/products' },
+          {
+            name: 'Explore AirQo products',
+            url: 'https://airqo.net/explore-data',
+          },
           { name: 'AirQo Monitor', url: 'https://airqo.net/products/monitor' },
         ],
         siteUrl,
@@ -156,8 +158,8 @@ describe('structuredData', () => {
         {
           '@type': 'ListItem',
           position: 1,
-          name: 'Our Products',
-          item: 'https://airqo.net/products',
+          name: 'Explore AirQo products',
+          item: 'https://airqo.net/explore-data',
         },
         {
           '@type': 'ListItem',
@@ -171,25 +173,27 @@ describe('structuredData', () => {
     it('absolutizes relative item urls against the site URL', () => {
       const schema = generateBreadcrumbSchema(
         [
-          { name: 'Our Products', url: '/products' },
+          { name: 'Explore AirQo products', url: '/explore-data' },
           { name: 'AirQo Nexus', url: '/products/nexus' },
         ],
         siteUrl,
       );
 
       expect(schema.itemListElement.map((element) => element.item)).toEqual([
-        'https://airqo.net/products',
+        'https://airqo.net/explore-data',
         'https://airqo.net/products/nexus',
       ]);
     });
 
     it('strips trailing slashes from the site URL base', () => {
       const schema = generateBreadcrumbSchema(
-        [{ name: 'Our Products', url: '/products' }],
+        [{ name: 'Explore AirQo products', url: '/explore-data' }],
         'https://airqo.net///',
       );
 
-      expect(schema.itemListElement[0].item).toBe('https://airqo.net/products');
+      expect(schema.itemListElement[0].item).toBe(
+        'https://airqo.net/explore-data',
+      );
     });
 
     it('returns an empty element list for no items', () => {

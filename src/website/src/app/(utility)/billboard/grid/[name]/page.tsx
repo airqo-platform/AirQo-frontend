@@ -1,8 +1,15 @@
 import type { Metadata } from 'next';
+import { headers } from 'next/headers';
 import { Suspense } from 'react';
 
 import AirQualityBillboard from '@/components/sections/AirQualityBillboard';
 import BillboardSkeleton from '@/components/sections/AirQualityBillboard/skeletons/BillboardSkeleton';
+import {
+  cleanMetadataText,
+  DEFAULT_METADATA,
+  resolveMetadataImage,
+} from '@/lib/metadata';
+import { buildSiteUrl, getPrimarySiteUrl } from '@/lib/siteUrl';
 
 interface GridBillboardPageProps {
   params: {
@@ -13,11 +20,31 @@ interface GridBillboardPageProps {
 export async function generateMetadata({
   params,
 }: GridBillboardPageProps): Promise<Metadata> {
-  const gridName = params.name;
+  const gridName = cleanMetadataText(params.name, 'Air quality', 80);
+  const requestHeaders = await headers();
+  const requestHost =
+    requestHeaders.get('x-forwarded-host') ?? requestHeaders.get('host');
+  const requestProtocol =
+    requestHeaders.get('x-forwarded-proto') ??
+    (process.env.NODE_ENV === 'development' ? 'http' : 'https');
+  const siteUrl = getPrimarySiteUrl(requestHost, requestProtocol);
+  const canonicalUrl = buildSiteUrl(
+    `/billboard/grid/${encodeURIComponent(params.name)}`,
+    undefined,
+    requestHost,
+    requestProtocol,
+  );
+  const imageUrl = resolveMetadataImage(null, siteUrl);
+  const title = `${gridName} air quality billboard | AirQo`;
+  const description = cleanMetadataText(
+    `View the AirQo air quality billboard for ${gridName}.`,
+    DEFAULT_METADATA.defaultDescription,
+  );
 
   return {
-    title: `${gridName} Air Quality Billboard | Live PM2.5 Display - AirQo`,
-    description: `Real-time air quality billboard for ${gridName}. Watch live PM2.5 data, pollution levels, and health recommendations update automatically. Interactive display for African cities air quality monitoring.`,
+    title: { absolute: title },
+    description,
+    alternates: { canonical: canonicalUrl },
     keywords: [
       `${gridName} air quality`,
       `${gridName} pollution display`,
@@ -26,14 +53,31 @@ export async function generateMetadata({
       'real-time PM2.5',
       'Africa air quality',
     ],
-    robots: {
-      index: true,
-      follow: true,
-    },
     openGraph: {
-      title: `${gridName} Live Air Quality Billboard`,
-      description: `Watch real-time air quality data for ${gridName}`,
+      title,
+      description,
       type: 'website',
+      url: canonicalUrl,
+      siteName: 'AirQo',
+      images: [
+        {
+          url: imageUrl,
+          width: 1200,
+          height: 630,
+          alt: DEFAULT_METADATA.defaultImage.alt,
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      site: '@AirQoProject',
+      title,
+      description,
+      images: [{ url: imageUrl, alt: DEFAULT_METADATA.defaultImage.alt }],
+    },
+    robots: {
+      index: false,
+      follow: true,
     },
   };
 }

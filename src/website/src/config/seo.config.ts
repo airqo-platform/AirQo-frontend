@@ -11,13 +11,13 @@ export type SeoConfig = {
 
 const seoConfig: SeoConfig = {
   titleTemplate: '%s | AirQo',
-  defaultTitle: 'AirQo - Air Quality Monitoring and Analytics',
+  defaultTitle: 'AirQo | Air quality data and research across Africa',
   defaultDescription:
-    'AirQo provides air quality monitoring, analytics, and solutions for cleaner air across African cities.',
+    'AirQo works with African communities to measure air quality and share data for research, public awareness, and action.',
   siteName: 'AirQo',
   locale: 'en_US',
   type: 'website',
-  twitterHandle: '@AirQoorg',
+  twitterHandle: '@AirQoProject',
   ogType: 'website',
 };
 

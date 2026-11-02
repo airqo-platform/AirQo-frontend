@@ -7,13 +7,23 @@ import { FaFacebookF, FaLinkedinIn, FaYoutube } from 'react-icons/fa';
 import { FaXTwitter } from 'react-icons/fa6';
 
 import mainConfig from '@/config/site.config';
+import { AFRICA_CLEAN_AIR_FORUM_URL } from '@/lib/navItems';
 import { CLOUDINARY_IMAGES } from '@/services/external/cloudinary.service';
 
 import CountrySelectorDialog from '../sections/footer/CountrySelectorDialog';
 import MonitorDisplay from '../sections/footer/MonitorDisplay';
 import ScrollToTopButton from './ScrollToTopButton';
 
-const footerLinks = {
+type FooterLink = {
+  label: string;
+  href: string;
+  external?: boolean;
+};
+
+const footerLinks: Record<
+  'products' | 'solutions' | 'about' | 'developers',
+  FooterLink[]
+> = {
   products: [
     { label: 'Binos Monitor', href: '/products/monitor' },
     { label: 'AirQo Nexus', href: '/products/nexus' },
@@ -31,7 +41,6 @@ const footerLinks = {
     {
       label: 'Network Coverage',
       href: '/solutions/network-coverage',
-      external: true,
     },
   ],
   about: [
@@ -39,16 +48,10 @@ const footerLinks = {
     { label: 'Resources', href: '/resources' },
     { label: 'Events', href: '/events' },
     { label: 'FAQs', href: '/faqs' },
-    { label: 'Africa Clean Air Forum', href: '/africa-clean-air-forum' },
     {
-      label: 'Faces of Clean Air',
-      href: '/africa-clean-air-forum-2026/faces-of-clean-air',
-    },
-    { label: 'Clean Air Faces', href: '/africa-clean-air-forum-2026/selfies' },
-    { label: 'Air Quality Quiz', href: '/africa-clean-air-forum-2026/quiz' },
-    {
-      label: 'Quiz Leaderboard',
-      href: '/africa-clean-air-forum-2026/leaderboard',
+      label: 'Africa Clean Air Forum',
+      href: AFRICA_CLEAN_AIR_FORUM_URL,
+      external: true,
     },
     { label: 'Press', href: '/press' },
     { label: 'Careers', href: '/careers' },
@@ -96,6 +99,7 @@ const socialLinks = [
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
+  const [makerereImageFailed, setMakerereImageFailed] = React.useState(false);
 
   return (
     <footer
@@ -312,12 +316,19 @@ const Footer = () => {
           <span className="text-[11px] uppercase tracking-wider text-gray-400">
             A project by
           </span>
-          <Image
-            src={CLOUDINARY_IMAGES.makerereName}
-            alt="Makerere University"
-            width={160}
-            height={26}
-          />
+          {makerereImageFailed ? (
+            <span className="text-sm font-medium text-gray-600">
+              Makerere University
+            </span>
+          ) : (
+            <Image
+              src={CLOUDINARY_IMAGES.makerereName}
+              alt="Makerere University"
+              width={160}
+              height={26}
+              onError={() => setMakerereImageFailed(true)}
+            />
+          )}
         </div>
       </div>
     </footer>

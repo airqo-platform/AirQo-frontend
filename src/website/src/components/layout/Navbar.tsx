@@ -1,249 +1,394 @@
 'use client';
+
 import Image from 'next/image';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { FiExternalLink } from 'react-icons/fi';
 import { RiCloseFill } from 'react-icons/ri';
 import { TbChevronDown, TbMenu } from 'react-icons/tb';
 
 import { trackEvent } from '@/components/GoogleAnalytics';
-import { CustomButton } from '@/components/ui';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import mainConfig from '@/config/site.config';
 import { useDispatch } from '@/hooks';
 import useLockBodyScroll from '@/hooks/useLockBodyScroll';
-import { NAV_ITEMS } from '@/lib/navItems';
+import { NAV_ITEMS, type NavMenuItem } from '@/lib/navItems';
+import { getExternalLinkProps } from '@/lib/security/safeExternalLink';
 import { CLOUDINARY_IMAGES } from '@/services/external/cloudinary.service';
 import { openModal } from '@/store/slices/modalSlice';
 
 import TopBanner from './TopBanner';
-// import NotificationBanner from './NotificationBanner';
 
-// Type definitions
-type MenuItem = {
-  title: string;
-  description?: string;
-  href: string;
-  newTab?: boolean;
+const NAV_MENU_CLOSE_DELAY_MS = 180;
+
+const getMenuId = (title: string) =>
+  `site-nav-${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
+
+const isExternalItem = (item: NavMenuItem) =>
+  item.newTab || item.href.startsWith('http');
+
+const AirQoFallbackMark = ({ mobile = false }: { mobile?: boolean }) => (
+  <span
+    aria-hidden="true"
+    className={`relative inline-flex items-end justify-center overflow-hidden rounded-[20px_20px_15px_15px] bg-[#1264f3] ${mobile ? 'h-8 w-[46px] pb-1' : 'h-11 w-[62px] pb-1.5'}`}
+  >
+    <span
+      className={`absolute left-1/2 -translate-x-1/2 rotate-45 rounded-[7px] bg-[#1264f3] ${mobile ? '-top-2 h-6 w-6' : '-top-3 h-8 w-8'}`}
+    />
+    <span
+      className={`relative font-bold tracking-[-0.08em] text-white ${mobile ? 'text-[11px]' : 'text-[15px]'}`}
+    >
+      airqo
+    </span>
+  </span>
+);
+
+const AirQoBrand = ({ mobile = false }: { mobile?: boolean }) => {
+  const [logoFailed, setLogoFailed] = useState(false);
+
+  return (
+    <span className="inline-flex items-center" aria-label="AirQo">
+      {logoFailed ? (
+        <AirQoFallbackMark mobile={mobile} />
+      ) : (
+        <Image
+          src={CLOUDINARY_IMAGES.logo}
+          alt="AirQo"
+          width={mobile ? 64 : 71}
+          height={mobile ? 44 : 48}
+          className={mobile ? 'h-8 w-auto' : 'h-10 w-auto'}
+          priority={!mobile}
+          onError={() => setLogoFailed(true)}
+        />
+      )}
+    </span>
+  );
 };
 
-// MenuItems type is no longer needed (nav comes from shared NAV_ITEMS)
+const MenuLink: React.FC<{
+  item: NavMenuItem;
+  onClick?: () => void;
+  className?: string;
+}> = ({ item, onClick, className = '' }) => {
+  const external = isExternalItem(item);
+  const content = (
+    <span className="flex items-start gap-2">
+      <span className="min-w-0 flex-1">
+        <span className="block font-medium text-gray-900">{item.title}</span>
+        {item.description && (
+          <span className="mt-0.5 block text-xs leading-5 text-gray-500">
+            {item.description}
+          </span>
+        )}
+      </span>
+      {external && (
+        <FiExternalLink
+          aria-hidden="true"
+          className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-gray-400"
+        />
+      )}
+    </span>
+  );
 
-// Nav items are sourced from a shared utility to avoid duplication
-// See: src/lib/navItems.ts
+  const sharedClassName = `group block rounded-md px-3 py-2.5 transition-colors hover:bg-blue-50 focus-visible:bg-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${className}`;
 
-// Helper component for rendering dropdown items with translation support
+  if (external) {
+    return (
+      <a
+        href={item.href}
+        {...getExternalLinkProps(item.href)}
+        onClick={onClick}
+        className={sharedClassName}
+      >
+        {content}
+      </a>
+    );
+  }
+
+  return (
+    <Link href={item.href} onClick={onClick} className={sharedClassName}>
+      {content}
+    </Link>
+  );
+};
+
 const DropdownMenuContent: React.FC<{
   title: string;
-  items: MenuItem[];
-  className?: string;
-}> = ({ title, items, className = '' }) => (
+  items: NavMenuItem[];
+  menuId: string;
+  isOpen: boolean;
+  onPointerEnter: () => void;
+  onNavigate: () => void;
+  align?: 'left' | 'right';
+}> = ({
+  title,
+  items,
+  menuId,
+  isOpen,
+  onPointerEnter,
+  onNavigate,
+  align = 'left',
+}) => (
   <div
-    className={`bg-white shadow-lg md:w-[400px] lg:w-[600px] text-sm rounded-md p-4 translate-element ${className}`}
+    id={menuId}
+    role="region"
+    aria-label={`${title} menu`}
+    aria-hidden={!isOpen}
+    hidden={!isOpen}
+    onPointerEnter={onPointerEnter}
+    className={`absolute top-full z-[10001] w-[min(640px,calc(100vw-2rem))] pt-3 ${
+      align === 'right' ? 'right-0' : 'left-0'
+    }`}
   >
-    <div className="text-gray-400 mb-4 translate-element">{title}</div>
-    <div className="flex gap-8">
-      {items
-        .reduce<MenuItem[][]>((acc, item, idx) => {
-          const colIdx = Math.floor(idx / Math.ceil(items.length / 2));
-          if (!acc[colIdx]) acc[colIdx] = [];
-          acc[colIdx].push(item);
-          return acc;
-        }, [])
-        .map((colItems, index) => (
-          <ul key={index} className="flex-1 space-y-3">
-            {colItems.map((item) => {
-              const isExternal = item.href.startsWith('http');
-              const shouldOpenInNewTab = isExternal || item.newTab;
-              return (
-                <li key={item.href}>
-                  {shouldOpenInNewTab ? (
-                    <a
-                      href={item.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="block p-2 rounded-xl hover:bg-blue-50 hover:text-blue-500 transition translate-element"
-                    >
-                      <div className="font-medium translate-element">
-                        {item.title}
-                      </div>
-                      {item.description && (
-                        <div className="text-gray-500 translate-element">
-                          {item.description}
-                        </div>
-                      )}
-                    </a>
-                  ) : (
-                    <Link
-                      href={item.href}
-                      target={item.newTab ? '_blank' : undefined}
-                      rel={item.newTab ? 'noopener noreferrer' : undefined}
-                      className="block p-2 rounded-xl hover:bg-blue-50 hover:text-blue-500 transition translate-element"
-                    >
-                      <div className="font-medium translate-element">
-                        {item.title}
-                      </div>
-                      {item.description && (
-                        <div className="text-gray-500 translate-element">
-                          {item.description}
-                        </div>
-                      )}
-                    </Link>
-                  )}
-                </li>
-              );
-            })}
-          </ul>
+    <div className="max-h-[min(560px,calc(100vh-7rem))] overflow-y-auto rounded-md border border-gray-200 bg-white p-3 shadow-lg">
+      <div className="mb-2 border-b border-gray-100 px-3 pb-2.5">
+        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-gray-600">
+          {title}
+        </p>
+      </div>
+      <ul
+        className={`grid gap-0.5 ${items.length > 5 ? 'sm:grid-cols-2' : 'grid-cols-1'}`}
+      >
+        {items.map((item) => (
+          <li key={`${item.href}-${item.title}`}>
+            <MenuLink item={item} onClick={onNavigate} />
+          </li>
         ))}
+      </ul>
     </div>
   </div>
 );
 
 const Navbar: React.FC = () => {
   const dispatch = useDispatch();
-  const router = useRouter();
+  const navRef = useRef<HTMLElement>(null);
+  const mobileNavigationRef = useRef<HTMLDivElement>(null);
+  const lastScrollYRef = useRef(0);
+  const hoverCloseTimeoutRef = useRef<number | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [expandedMenu, setExpandedMenu] = useState<string | null>(null);
   const [isHidden, setIsHidden] = useState(false);
-  const [lastScrollY, setLastScrollY] = useState(0);
 
   const toggleMenu = useCallback(() => setMenuOpen((prev) => !prev), []);
+
   const toggleExpandedMenu = useCallback(
     (menuName: string) =>
       setExpandedMenu((prev) => (prev === menuName ? null : menuName)),
     [],
   );
 
-  const handleLinkClick = useCallback(() => {
-    setMenuOpen(false);
-    setExpandedMenu(null);
+  const clearHoverCloseTimeout = useCallback(() => {
+    if (hoverCloseTimeoutRef.current !== null) {
+      window.clearTimeout(hoverCloseTimeoutRef.current);
+      hoverCloseTimeoutRef.current = null;
+    }
   }, []);
 
-  // Use shared scroll-lock so multiple overlays don't clobber each other.
+  const openDesktopMenu = useCallback(
+    (menuName: string) => {
+      clearHoverCloseTimeout();
+      setExpandedMenu(menuName);
+    },
+    [clearHoverCloseTimeout],
+  );
+
+  const scheduleDesktopMenuClose = useCallback(
+    (menuName: string) => {
+      clearHoverCloseTimeout();
+      hoverCloseTimeoutRef.current = window.setTimeout(() => {
+        setExpandedMenu((current) => (current === menuName ? null : current));
+        hoverCloseTimeoutRef.current = null;
+      }, NAV_MENU_CLOSE_DELAY_MS);
+    },
+    [clearHoverCloseTimeout],
+  );
+
+  useEffect(() => () => clearHoverCloseTimeout(), [clearHoverCloseTimeout]);
+
+  const handleLinkClick = useCallback(() => {
+    clearHoverCloseTimeout();
+    setMenuOpen(false);
+    setExpandedMenu(null);
+  }, [clearHoverCloseTimeout]);
+
+  const openEngagementDialog = () => {
+    trackEvent({
+      action: 'button_click',
+      category: 'engagement',
+      label: 'get_involved',
+    });
+    dispatch(openModal());
+    handleLinkClick();
+  };
+
   useLockBodyScroll(menuOpen);
 
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
+      const lastScrollY = lastScrollYRef.current;
+
       if (currentScrollY > lastScrollY && currentScrollY > 100) {
         setIsHidden(true);
       } else if (currentScrollY < lastScrollY) {
         setIsHidden(false);
       }
-      setLastScrollY(currentScrollY);
+
+      lastScrollYRef.current = currentScrollY;
     };
 
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [lastScrollY]);
+  }, []);
+
+  useEffect(() => {
+    const handleOutsidePointer = (event: PointerEvent) => {
+      const target = event.target as Node;
+
+      if (
+        expandedMenu &&
+        !navRef.current?.contains(target) &&
+        !mobileNavigationRef.current?.contains(target)
+      ) {
+        clearHoverCloseTimeout();
+        setExpandedMenu(null);
+      }
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && expandedMenu) {
+        clearHoverCloseTimeout();
+        navRef.current
+          ?.querySelector<HTMLButtonElement>(
+            `button[aria-controls="${getMenuId(expandedMenu)}"]`,
+          )
+          ?.focus();
+        setExpandedMenu(null);
+      }
+    };
+
+    document.addEventListener('pointerdown', handleOutsidePointer);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('pointerdown', handleOutsidePointer);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [clearHoverCloseTimeout, expandedMenu]);
 
   return (
     <div
-      className={`w-full fixed top-0 z-[10000] shadow-sm transition-transform duration-300 ${
+      className={`fixed top-0 z-[10000] w-full border-b border-gray-200 bg-white transition-transform duration-300 ${
         isHidden ? '-translate-y-full' : 'translate-y-0'
       }`}
     >
-      {/* Top Banner */}
       <TopBanner />
-      <nav className="w-full bg-white p-4">
+
+      <nav ref={navRef} aria-label="Primary navigation" className="w-full">
         <div
-          className={`flex items-center justify-between ${mainConfig.containerClass}`}
+          className={`flex min-h-[72px] items-center justify-between gap-4 px-4 ${mainConfig.containerClass}`}
         >
-          {/* Logo Section */}
           <Link
-            href={`${mainConfig.homePageUrl}`}
-            passHref
-            className="flex items-center"
+            href={mainConfig.homePageUrl}
+            aria-label="AirQo home"
+            className="flex flex-shrink-0 items-center rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
           >
-            <Image
-              src={CLOUDINARY_IMAGES.logo}
-              alt="AirQo"
-              width={71}
-              height={48}
-              className="h-10 w-auto cursor-pointer"
-              priority={true}
-            />
+            <AirQoBrand />
           </Link>
 
-          {/* Mobile Menu Hamburger */}
-          {/* Accessibility: `focus:outline-none` on the toggle removes the
-              visible keyboard focus indicator. Consider removing
-              `focus:outline-none` or adding a visible focus style such as
-              `focus-visible:ring` and `focus-visible:ring-offset` so keyboard
-              users can see when the control has focus. */}
           <button
+            type="button"
             onClick={toggleMenu}
-            className="grid h-9 w-9 place-items-center rounded-lg text-gray-800 transition-colors hover:bg-gray-100 focus-visible:ring focus-visible:ring-offset-2 focus-visible:ring-blue-400 md:hidden"
+            className="grid h-10 w-10 place-items-center rounded-md text-gray-800 transition-colors hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 lg:hidden"
             aria-label={
               menuOpen ? 'Close navigation menu' : 'Open navigation menu'
             }
             aria-expanded={menuOpen}
+            aria-controls="mobile-site-navigation"
           >
-            <TbMenu size={26} />
+            <TbMenu size={26} aria-hidden="true" />
           </button>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex space-x-6 items-center">
-            {Object.entries(NAV_ITEMS).map(([title, items]) => (
-              <div key={title} className="relative group">
-                <button className="text-gray-800 font-medium hover:text-blue-600 text-sm transition-colors translate-element flex items-center">
-                  {title}
-                  <TbChevronDown className="ml-1 h-4 w-4" />
-                </button>
-                <DropdownMenuContent
-                  title={title}
-                  items={items}
-                  className="absolute top-full left-0 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-opacity z-[9999]"
-                />
-              </div>
-            ))}
-            <a
-              href="https://blog.airqo.net/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-gray-800 font-medium hover:text-blue-600 text-sm transition-colors translate-element"
-            >
-              Blogs
-            </a>
-            <a
-              href="https://ai.airqo.net/map"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-gray-800 font-medium hover:text-blue-600 text-sm transition-colors translate-element"
-            >
-              Map
-            </a>
-            <CustomButton
-              onClick={() => {
-                trackEvent({
-                  action: 'button_click',
-                  category: 'engagement',
-                  label: 'get_involved',
-                });
-                dispatch(openModal());
-              }}
-              className="text-blue-600 bg-blue-50 transition rounded-none"
-            >
-              Get involved
-            </CustomButton>
-            <CustomButton
-              onClick={() => {
-                trackEvent({
-                  action: 'button_click',
-                  category: 'navigation',
-                  label: 'explore_data',
-                });
-                router.push('/explore-data');
-              }}
-              className="rounded-none"
+          <div className="hidden min-w-0 flex-1 items-center justify-end gap-0.5 lg:flex xl:gap-1">
+            {Object.entries(NAV_ITEMS).map(([title, items]) => {
+              const menuId = getMenuId(title);
+              const isExpanded = expandedMenu === title;
+
+              return (
+                <div
+                  key={title}
+                  className="relative flex-shrink-0"
+                  onPointerEnter={(event) => {
+                    if (event.pointerType !== 'touch') openDesktopMenu(title);
+                  }}
+                  onPointerLeave={(event) => {
+                    if (event.pointerType !== 'touch') {
+                      scheduleDesktopMenuClose(title);
+                    }
+                  }}
+                  onFocusCapture={() => openDesktopMenu(title)}
+                  onBlur={(event) => {
+                    if (
+                      !event.currentTarget.contains(
+                        event.relatedTarget as Node | null,
+                      )
+                    ) {
+                      clearHoverCloseTimeout();
+                      setExpandedMenu((current) =>
+                        current === title ? null : current,
+                      );
+                    }
+                  }}
+                >
+                  <button
+                    type="button"
+                    onClick={() => openDesktopMenu(title)}
+                    className="flex items-center whitespace-nowrap rounded-md px-2.5 py-3 text-[15px] font-medium text-gray-800 transition-colors hover:bg-gray-100 focus-visible:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 xl:px-3"
+                    aria-expanded={isExpanded}
+                    aria-controls={menuId}
+                  >
+                    {title}
+                    <TbChevronDown
+                      aria-hidden="true"
+                      className={`ml-1 h-4 w-4 text-gray-500 transition-transform ${
+                        isExpanded ? 'rotate-180' : ''
+                      }`}
+                    />
+                  </button>
+                  <DropdownMenuContent
+                    title={title}
+                    items={items}
+                    menuId={menuId}
+                    isOpen={isExpanded}
+                    onPointerEnter={clearHoverCloseTimeout}
+                    onNavigate={handleLinkClick}
+                    align={
+                      ['Developers', 'Resources', 'About AirQo'].includes(title)
+                        ? 'right'
+                        : 'left'
+                    }
+                  />
+                </div>
+              );
+            })}
+
+            <Link
+              href="/explore-data"
+              onClick={handleLinkClick}
+              className="ml-1 inline-flex flex-shrink-0 items-center whitespace-nowrap rounded-none bg-blue-600 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 xl:ml-2 xl:px-5"
             >
               Explore data
-            </CustomButton>
+            </Link>
+            <button
+              type="button"
+              onClick={openEngagementDialog}
+              className="hidden flex-shrink-0 items-center whitespace-nowrap rounded-none bg-gray-100 px-4 py-3 text-sm font-medium text-gray-800 transition-colors hover:bg-gray-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 xl:inline-flex xl:px-5"
+            >
+              Get involved
+            </button>
           </div>
         </div>
       </nav>
 
-      {/* ── Mobile Navigation Drawer (Dialog primitive) ── */}
       <Dialog
         open={menuOpen}
         onOpenChange={(open) => {
@@ -253,176 +398,90 @@ const Navbar: React.FC = () => {
       >
         <DialogContent
           hideClose
+          ref={mobileNavigationRef}
+          id="mobile-site-navigation"
           aria-label="Site navigation"
-          className={`!fixed !inset-y-0 !left-0 !top-0 !z-[100001] !flex !h-[100svh] !max-h-[100svh] !translate-x-0 !translate-y-0 w-[300px] max-w-[88vw] flex-col bg-white shadow-2xl md:hidden transition-transform duration-300 ease-in-out`}
+          className="!fixed !inset-y-0 !left-0 !top-0 !z-[100001] !flex !h-[100svh] !max-h-[100svh] !translate-x-0 !translate-y-0 w-[min(360px,88vw)] flex-col bg-white shadow-2xl lg:hidden"
         >
-          {/* Accessible dialog title (visually hidden) — required by Radix Dialog */}
-          <DialogTitle className="sr-only">Menu</DialogTitle>
+          <DialogTitle className="sr-only">Main navigation</DialogTitle>
 
-          {/* Drawer Header */}
           <div className="flex flex-shrink-0 items-center justify-between border-b border-gray-100 px-4 py-3.5">
-            <Link href={mainConfig.homePageUrl} onClick={handleLinkClick}>
-              <Image
-                src={CLOUDINARY_IMAGES.logo}
-                alt="AirQo"
-                width={64}
-                height={44}
-                className="h-8 w-auto"
-              />
+            <Link
+              href={mainConfig.homePageUrl}
+              onClick={handleLinkClick}
+              className="rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+            >
+              <AirQoBrand mobile />
             </Link>
             <button
               type="button"
               onClick={handleLinkClick}
-              className="grid h-8 w-8 place-items-center rounded-lg text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700"
+              className="grid h-9 w-9 place-items-center rounded-md text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
               aria-label="Close navigation menu"
             >
-              <RiCloseFill size={20} />
+              <RiCloseFill size={22} aria-hidden="true" />
             </button>
           </div>
 
-          {/* Scrollable Nav Content */}
-          <div className="flex-1 overflow-y-auto">
-            {Object.entries(NAV_ITEMS).map(([title, items]) => (
-              <div
-                key={title}
-                className="border-b border-gray-100 last:border-0"
-              >
-                <button
-                  onClick={() => toggleExpandedMenu(title)}
-                  className="flex w-full items-center justify-between px-5 py-3.5 text-left transition-colors hover:bg-gray-50"
-                  aria-expanded={expandedMenu === title}
-                >
-                  <span className="text-sm font-semibold text-gray-800 translate-element">
-                    {title}
-                  </span>
-                  <TbChevronDown
-                    className={`h-4 w-4 flex-shrink-0 text-gray-400 transition-transform duration-200 ${
-                      expandedMenu === title ? 'rotate-180' : 'rotate-0'
-                    }`}
-                  />
-                </button>
-                <div
-                  className={`overflow-hidden transition-all duration-300 ease-in-out ${
-                    expandedMenu === title
-                      ? 'max-h-[500px] opacity-100'
-                      : 'max-h-0 opacity-0 pointer-events-none'
-                  }`}
-                  aria-hidden={expandedMenu !== title}
-                >
-                  {expandedMenu === title && (
+          <nav
+            className="flex-1 overflow-y-auto"
+            aria-label="Mobile site navigation"
+          >
+            {Object.entries(NAV_ITEMS).map(([title, items]) => {
+              const isExpanded = expandedMenu === title;
+              const menuId = `mobile-${getMenuId(title)}`;
+
+              return (
+                <section key={title} className="border-b border-gray-100">
+                  <button
+                    type="button"
+                    onClick={() => toggleExpandedMenu(title)}
+                    className="flex w-full items-center justify-between px-5 py-4 text-left transition-colors hover:bg-gray-50 focus-visible:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500"
+                    aria-expanded={isExpanded}
+                    aria-controls={menuId}
+                  >
+                    <span className="text-sm font-semibold text-gray-900">
+                      {title}
+                    </span>
+                    <TbChevronDown
+                      aria-hidden="true"
+                      className={`h-4 w-4 text-gray-400 transition-transform ${
+                        isExpanded ? 'rotate-180' : ''
+                      }`}
+                    />
+                  </button>
+                  <div id={menuId} hidden={!isExpanded}>
                     <ul className="space-y-0.5 px-3 pb-3">
-                      {items.map((item) => {
-                        const isExternal = item.href.startsWith('http');
-                        const shouldOpenInNewTab = isExternal || item.newTab;
-                        return (
-                          <li key={item.href}>
-                            {shouldOpenInNewTab ? (
-                              <a
-                                href={item.href}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                onClick={handleLinkClick}
-                                className="flex flex-col rounded-lg px-3 py-2 transition-colors hover:bg-blue-50"
-                              >
-                                <span className="text-sm font-medium text-gray-800 hover:text-blue-700 translate-element">
-                                  {item.title}
-                                </span>
-                                {item.description && (
-                                  <span className="mt-0.5 text-xs leading-snug text-gray-500 translate-element">
-                                    {item.description}
-                                  </span>
-                                )}
-                              </a>
-                            ) : (
-                              <Link
-                                href={item.href}
-                                target={
-                                  shouldOpenInNewTab ? '_blank' : undefined
-                                }
-                                rel={
-                                  shouldOpenInNewTab
-                                    ? 'noopener noreferrer'
-                                    : undefined
-                                }
-                                onClick={handleLinkClick}
-                                className="flex flex-col rounded-lg px-3 py-2 transition-colors hover:bg-blue-50 translate-element"
-                              >
-                                <span className="text-sm font-medium text-gray-800 hover:text-blue-700 translate-element">
-                                  {item.title}
-                                </span>
-                                {item.description && (
-                                  <span className="mt-0.5 text-xs leading-snug text-gray-500 translate-element">
-                                    {item.description}
-                                  </span>
-                                )}
-                              </Link>
-                            )}
-                          </li>
-                        );
-                      })}
+                      {items.map((item) => (
+                        <li key={`${item.href}-${item.title}`}>
+                          <MenuLink
+                            item={item}
+                            onClick={handleLinkClick}
+                            className="px-3 py-3"
+                          />
+                        </li>
+                      ))}
                     </ul>
-                  )}
-                </div>
-              </div>
-            ))}
-            <a
-              href="https://blog.airqo.net/"
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={handleLinkClick}
-              className="flex items-center justify-between px-5 py-3.5 text-left transition-colors hover:bg-gray-50"
-            >
-              <span className="text-sm font-semibold text-gray-800 translate-element">
-                Blogs
-              </span>
-              <span className="text-xs font-medium uppercase tracking-[0.18em] text-blue-600">
-                Latest
-              </span>
-            </a>
-            <a
-              href="https://ai.airqo.net/map"
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={handleLinkClick}
-              className="flex items-center justify-between px-5 py-3.5 text-left transition-colors hover:bg-gray-50"
-            >
-              <span className="text-sm font-semibold text-gray-800 translate-element">
-                Map
-              </span>
-            </a>
-          </div>
+                  </div>
+                </section>
+              );
+            })}
+          </nav>
 
-          {/* Drawer Footer CTAs */}
           <div className="flex flex-shrink-0 flex-col gap-2 border-t border-gray-200 bg-gray-50 px-4 py-4">
-            <button
-              type="button"
-              onClick={() => {
-                trackEvent({
-                  action: 'button_click',
-                  category: 'engagement',
-                  label: 'get_involved',
-                });
-                dispatch(openModal());
-                handleLinkClick();
-              }}
-              className="w-full rounded-lg border border-blue-200 bg-blue-50 px-4 py-2.5 text-sm font-semibold text-blue-700 transition-colors hover:bg-blue-100"
-            >
-              Get involved
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                trackEvent({
-                  action: 'button_click',
-                  category: 'navigation',
-                  label: 'explore_data',
-                });
-                router.push('/explore-data');
-                handleLinkClick();
-              }}
-              className="w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
+            <Link
+              href="/explore-data"
+              onClick={handleLinkClick}
+              className="w-full rounded-none bg-blue-600 px-4 py-3 text-center text-sm font-medium text-white transition-colors hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
             >
               Explore data
+            </Link>
+            <button
+              type="button"
+              onClick={openEngagementDialog}
+              className="w-full rounded-none bg-gray-100 px-4 py-3 text-sm font-medium text-gray-800 transition-colors hover:bg-gray-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+            >
+              Get involved
             </button>
           </div>
         </DialogContent>

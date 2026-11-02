@@ -9,12 +9,30 @@ export type NavMenuItem = {
 
 export type NavMenuSection = Record<string, NavMenuItem[]>;
 
+export const AFRICA_CLEAN_AIR_FORUM_URL =
+  'https://cleanairafrica.org/about-the-annual-forum/';
+
 export const NAV_ITEMS: NavMenuSection = {
   Products: [
     {
       title: 'Binos Monitor',
-      description: 'Built in Africa for African cities',
+      description: 'Locally built air quality monitoring hardware',
       href: '/products/monitor',
+    },
+    {
+      title: 'AirQo Beacon',
+      description: 'Monitor device health and network performance',
+      href: '/products/beacon',
+    },
+    {
+      title: 'AirQalibrate',
+      description: 'Calibrate low-cost sensor data',
+      href: '/products/calibrate',
+    },
+    {
+      title: 'AirQo Nexus',
+      description: 'Real-time air quality data for African cities',
+      href: '/products/nexus',
     },
     {
       title: 'AirQo Vertex',
@@ -22,19 +40,9 @@ export const NAV_ITEMS: NavMenuSection = {
       href: '/products/vertex',
     },
     {
-      title: 'AirQo Beacon',
-      description: 'Monitor device health and collocation performance',
-      href: '/products/beacon',
-    },
-    {
       title: 'AirQo AI Platform',
       description: 'Forecast, locate, categorize, and automate reporting',
       href: '/products/ai-platform',
-    },
-    {
-      title: 'AirQo Nexus',
-      description: 'Real-time air quality data for African cities',
-      href: '/products/nexus',
     },
     {
       title: 'AirQo Mobile App',
@@ -46,16 +54,11 @@ export const NAV_ITEMS: NavMenuSection = {
       description: 'Access raw and calibrated data',
       href: '/products/api',
     },
-    {
-      title: 'AirQalibrate',
-      description: 'Calibrate your low-cost sensor data',
-      href: '/products/calibrate',
-    },
   ],
   Solutions: [
     {
       title: 'For African Cities',
-      description: 'Advancing air quality management in African Cities',
+      description: 'Advancing air quality management in African cities',
       href: '/solutions/african-cities',
     },
     {
@@ -69,54 +72,96 @@ export const NAV_ITEMS: NavMenuSection = {
       href: '/solutions/research',
     },
     {
-      title: 'Kampala Air Quality Study',
-      description: 'Join our real-time air pollution research study',
-      href: '/solutions/kampala-study',
-    },
-    {
       title: 'Network Coverage',
       description:
         'Explore air quality monitoring infrastructure across Africa',
       href: '/solutions/network-coverage',
     },
   ],
-  About: [
-    { title: 'About Us', href: '/about-us' },
-    { title: 'Resources', href: '/resources' },
-    { title: 'Careers', href: '/careers' },
-    { title: 'Contact Us', href: '/contact' },
-    { title: 'Events', href: '/events' },
-    { title: 'Press', href: '/press' },
-    { title: 'FAQs', href: '/faqs' },
-    { title: 'Africa Clean Air Forum', href: '/africa-clean-air-forum' },
-  ],
   Developers: [
     {
-      title: 'Packages',
-      description: 'Open source libraries and developer tools',
-      href: '/packages',
-    },
-    {
-      title: 'AirQo DevCon 2026',
-      description: 'Free hands-on student developer conference',
-      href: '/developers/airqo-devcon',
-    },
-    {
-      title: 'Documentation',
-      description: 'API guides and technical resources',
+      title: 'API documentation',
+      description: 'Build with AirQo air quality data',
       href: 'https://platform.airqo.net/docs/api/intro/',
       newTab: true,
     },
     {
       title: 'API Console',
-      description: 'Manage API clients, tokens, usage, and plans',
+      description: 'Manage clients, tokens, usage, and plans',
       href: API_CONSOLE_URL,
       newTab: true,
     },
     {
+      title: 'Packages & SDKs',
+      description: 'Open-source libraries and developer tools',
+      href: '/packages',
+    },
+    {
       title: 'GitHub',
-      description: 'Explore our open source projects',
+      description: 'Explore AirQo open-source projects',
       href: 'https://github.com/airqo-platform',
+      newTab: true,
+    },
+    {
+      title: 'Developer events',
+      description: 'Join AirQo DevCon and technical events',
+      href: '/developers/airqo-devcon',
+    },
+  ],
+  Resources: [
+    {
+      title: 'Technical documentation',
+      description: 'Specifications and implementation material',
+      href: '/resources?tab=technical',
+    },
+    {
+      title: 'Research & publications',
+      description: 'Evidence and findings from AirQo',
+      href: '/resources?tab=research',
+    },
+    {
+      title: 'Guides & manuals',
+      description: 'Practical guidance for AirQo tools and hardware',
+      href: '/resources?tab=guide,manual',
+    },
+    {
+      title: 'Policy documents',
+      description: 'Policy briefs and air quality management resources',
+      href: '/resources?tab=policy',
+    },
+    {
+      title: 'Data access & usage',
+      description: 'Guidance for researchers and data users',
+      href: 'https://platform.airqo.net/docs/data-access/researchers-guide/',
+      newTab: true,
+    },
+    {
+      title: 'Blog & insights',
+      description: 'News, perspectives, and stories from AirQo',
+      href: 'https://blog.airqo.net/',
+      newTab: true,
+    },
+    {
+      title: 'Events & programmes',
+      description: 'Studies, forums, and clean-air initiatives',
+      href: '/events',
+    },
+    {
+      title: 'Help & FAQs',
+      description: 'Answers to common questions about AirQo',
+      href: '/faqs',
+    },
+  ],
+  'About AirQo': [
+    { title: 'About AirQo', href: '/about-us' },
+    { title: 'Partners', href: '/partners' },
+    { title: 'Press & media', href: '/press' },
+    { title: 'Careers', href: '/careers' },
+    { title: 'Contact Us', href: '/contact' },
+    {
+      title: 'Africa Clean Air Forum',
+      description: 'Learn about the Africa Clean Air Network annual forum',
+      href: AFRICA_CLEAN_AIR_FORUM_URL,
       newTab: true,
     },
   ],
