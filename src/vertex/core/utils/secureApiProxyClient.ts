@@ -55,7 +55,7 @@ const NETWORK_DEGRADED_EVENT = 'vertex-network-degraded';
 const NETWORK_RECOVERED_EVENT = 'vertex-network-recovered';
 const REQUEST_TIMEOUT_MS = process.env.NODE_ENV === 'development' ? 10000 : 25000;
 
-async function getJwtToken(): Promise<string | null> {
+async function getJwtToken(url?: string): Promise<string | null> {
   const cachedToken = tokenCache.get();
   if (cachedToken) {
     return cachedToken;
@@ -71,7 +71,7 @@ async function getJwtToken(): Promise<string | null> {
       return token;
     }
     
-    logger.warn('No JWT token found in NextAuth session.');
+    logger.warn('No JWT token found in NextAuth session.', { url });
     return null;
   } catch (error: unknown) {
     logger.error('Failed to get JWT token from session:', { 
@@ -104,7 +104,7 @@ const createSecureApiClient = (): AxiosInstance => {
         }
       } else {
         // Handle JWT authentication
-        const jwtToken = await getJwtToken();
+        const jwtToken = await getJwtToken(config.url);
         if (jwtToken) {
           if (!config.headers) config.headers = new AxiosHeaders();
           // Add JWT token directly without Bearer prefix as requested
@@ -165,16 +165,24 @@ const createSecureApiClient = (): AxiosInstance => {
         };
       }
 
-      logger.error('API request failed:', {
-        url,
-        status,
-        message: error.message,
-        responseData: status && status >= 500 ? error.response?.data : undefined,
-        authType,
-      });
+      const isJwtAuthFailure = (status === 401 || status === 403) && authType === 'jwt';
+
+      if (isJwtAuthFailure) {
+        // Expected once a session ends; AuthWrapper handles it via auth-token-expired,
+        // so it is kept out of the error channel.
+        logger.debug('API request rejected by auth:', { url, status });
+      } else {
+        logger.error('API request failed:', {
+          url,
+          status,
+          message: error.message,
+          responseData: status && status >= 500 ? error.response?.data : undefined,
+          authType,
+        });
+      }
 
      // For JWT-protected endpoints, signal token issues without nuking local storage.
-     if ((status === 401 || status === 403) && authType === 'jwt' && typeof window !== 'undefined') {
+     if (isJwtAuthFailure && typeof window !== 'undefined') {
        tokenCache.clear();
        window.dispatchEvent(new CustomEvent('auth-token-expired', {
          detail: { url, status, authType }
