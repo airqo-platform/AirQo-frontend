@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useMemo, useRef } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -17,6 +17,7 @@ import { airQloudService, type AirQloudBasic } from "@/services/airqloud.service
 import { deviceApiService } from "@/services/device-api.service"
 import type { Device } from "@/types/api.types"
 import { useGroup } from "@/lib/group-context"
+import { DEFAULT_COHORT_TAG, cohortTagsFor } from "@/lib/cohort-tags"
 import { useSyncActions, SyncToolbar } from "@/components/analytics/sync-toolbar"
 
 export type AnalyticsFilterType = "airqlouds" | "grids" | "devices"
@@ -61,10 +62,6 @@ interface SelectedItem {
   name: string
 }
 
-function getDefaultCohortTag(activeGroup: string | null): string {
-  return activeGroup?.toLowerCase() === "airqo" ? "hardware" : "organizational"
-}
-
 export default function AnalyticsFilters({ 
   initialFilterType = "airqlouds",
   filterTypes = DEFAULT_FILTER_TYPES,
@@ -91,9 +88,9 @@ export default function AnalyticsFilters({
   const [isLoadingDevices, setIsLoadingDevices] = useState(false)
 
   // Cohort Tags State
-  const [cohortTags, setCohortTags] = useState<string[]>([getDefaultCohortTag(activeGroup)])
-  const availableTags = ["hardware", "duplicate", "organizational", "inlab", "misc"] // Hardcoded for now, could be fetched
-  const lastSuccessfulCohortTagRef = useRef<string>(getDefaultCohortTag(activeGroup))
+  const [cohortTags, setCohortTags] = useState<string[]>([DEFAULT_COHORT_TAG])
+  const availableTags = useMemo(() => cohortTagsFor(activeGroup), [activeGroup])
+  const lastSuccessfulCohortTagRef = useRef<string>(DEFAULT_COHORT_TAG)
 
   const [dateRange, setDateRange] = useState<{
     from: Date | undefined
@@ -123,7 +120,8 @@ export default function AnalyticsFilters({
 
   useEffect(() => {
     if (groupLoading) return
-    setCohortTags([getDefaultCohortTag(activeGroup)])
+    setCohortTags([DEFAULT_COHORT_TAG])
+    lastSuccessfulCohortTagRef.current = DEFAULT_COHORT_TAG
   }, [activeGroup, groupLoading])
 
   useEffect(() => {
@@ -194,14 +192,10 @@ export default function AnalyticsFilters({
 
           const canFallback = resolvedAirqlouds.length === 0 && !searchTerm.trim()
           if (canFallback) {
-            const fallbackTags = [
-              lastSuccessfulCohortTagRef.current,
-              "hardware",
-              "organizational",
-              "duplicate",
-              "inlab",
-              "misc",
-            ].filter((tag, index, arr) => Boolean(tag) && arr.indexOf(tag) === index && !effectiveTags.includes(tag))
+            // Only tags this organisation may see, so the fallback never surfaces hardware cohorts outside AirQo
+            const fallbackTags = [lastSuccessfulCohortTagRef.current, ...availableTags].filter(
+              (tag, index, arr) => availableTags.includes(tag) && arr.indexOf(tag) === index && !effectiveTags.includes(tag)
+            )
 
             for (const fallbackTag of fallbackTags) {
               const fallbackResponse = await fetchByTags([fallbackTag])
@@ -228,7 +222,7 @@ export default function AnalyticsFilters({
     }, 300)
 
     return () => clearTimeout(timer)
-  }, [filterType, searchTerm, cohortTags, activeGroup, groupLoading])
+  }, [filterType, searchTerm, cohortTags, availableTags, activeGroup, groupLoading])
 
   // Fetch Grids from API
   useEffect(() => {
