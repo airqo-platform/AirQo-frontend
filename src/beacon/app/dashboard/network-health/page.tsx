@@ -1,29 +1,26 @@
 "use client";
 
-import React from "react";
+import React, { Suspense } from "react";
+import { FleetPageSkeleton } from "@/components/diagnostics/AirqoFleetGate";
 import { FleetHealthView } from "@/components/diagnostics/FleetHealthView";
-import { Skeleton } from "@/components/ui/skeleton";
 import { useGroup } from "@/lib/group-context";
+import { ROUTES } from "@/lib/navigation";
 
-/** The organisation's own fleet health, read-only. AirQo staff use Fleet Diagnostics in the admin panel. */
+/** The organisation's own fleet health, read-only. AirQo staff use Fleet Health in the admin panel. */
 export default function NetworkHealthPage() {
   const { activeGroup, loading: groupLoading } = useGroup();
 
-  if (groupLoading || !activeGroup) {
-    return (
-      <div className="p-6">
-        <Skeleton className="h-10 w-72 mb-6" />
-        <Skeleton className="h-40 w-full" />
-      </div>
-    );
-  }
+  if (groupLoading || !activeGroup) return <FleetPageSkeleton />;
 
   return (
-    <FleetHealthView
-      group={activeGroup}
-      canManage={false}
-      title="Network Health"
-      description="Daily health of your organisation's devices: lifecycle states, most common issues, persistent faults and the devices that need attention"
-    />
+    <Suspense fallback={<FleetPageSkeleton />}>
+      <FleetHealthView
+        group={activeGroup}
+        canManage={false}
+        basePath={ROUTES.NETWORK_HEALTH}
+        title="Network Health"
+        description="What the nightly diagnosis found on your organisation's devices, grouped by the part of the device to fix."
+      />
+    </Suspense>
   );
 }
