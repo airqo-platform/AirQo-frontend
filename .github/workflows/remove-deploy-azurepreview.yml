@@ -14,7 +14,7 @@ jobs:
 
   branch-name:
     name: Format branch name string
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       sanitized: ${{ steps.sanitize.outputs.sanitized }}
     steps:
@@ -42,7 +42,7 @@ jobs:
   remove-previews:
     name: remove all previews for branch
     needs: [branch-name]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Azure Login
         uses: azure/login@v2
