@@ -76,8 +76,8 @@ export function FleetHealthView({ group, canManage, title, description, basePath
   const searchParams = useSearchParams();
   const selectedDate = searchParams?.get("date") || "";
   const [runDialogOpen, setRunDialogOpen] = useState(false);
-  // undefined: the first (most urgent) group is open
-  const [openGroup, setOpenGroup] = useState<string | null | undefined>(undefined);
+  // Every group starts closed; at most one is open at a time
+  const [openGroup, setOpenGroup] = useState<string | null>(null);
   const [search, setSearch] = useState("");
 
   const summaryQuery = useFleetDailySummary(group, selectedDate || null);
@@ -89,10 +89,8 @@ export function FleetHealthView({ group, canManage, title, description, basePath
 
   const groups = useMemo(() => groupFleetIssues(issues || [], summary?.worst_devices), [issues, summary?.worst_devices]);
   const ages = useMemo(() => issueAgeBuckets(issues || []), [issues]);
-  const activeGroup = openGroup === undefined ? groups[0]?.subsystem ?? null : openGroup;
-
   const setDate = (date: string) => {
-    setOpenGroup(undefined);
+    setOpenGroup(null);
     router.replace(date ? `${basePath}?date=${date}` : basePath, { scroll: false });
   };
 
@@ -235,8 +233,8 @@ export function FleetHealthView({ group, canManage, title, description, basePath
                   <FleetGroupCard
                     key={issueGroup.subsystem}
                     group={issueGroup}
-                    open={activeGroup === issueGroup.subsystem}
-                    onToggle={() => setOpenGroup(activeGroup === issueGroup.subsystem ? null : issueGroup.subsystem)}
+                    open={openGroup === issueGroup.subsystem}
+                    onToggle={() => setOpenGroup(openGroup === issueGroup.subsystem ? null : issueGroup.subsystem)}
                     lowestScoringTotal={summary.worst_devices.length}
                     listHref={issuesHref({ subsystem: issueGroup.subsystem || "other" })}
                   />
@@ -278,6 +276,21 @@ export function FleetHealthView({ group, canManage, title, description, basePath
             </section>
 
             <aside className="w-full xl:w-80 shrink-0 space-y-5">
+              {issues && issues.length > 0 && (
+                <SidePanel title="How long issues have lasted" note="Days in a row each issue has been found">
+                  <DistributionList
+                    max={Math.max(...ages.map((age) => age.count))}
+                    rows={ages.map((age, index) => ({
+                      key: age.label,
+                      label: age.label,
+                      count: age.count,
+                      plain: true,
+                      barClassName: index === 0 ? "bg-primary" : "bg-slate-400 dark:bg-slate-500",
+                    }))}
+                  />
+                </SidePanel>
+              )}
+
               <SidePanel title="Device state" note="From each device's health score">
                 <DistributionList
                   max={summary.devices_diagnosed}
@@ -301,21 +314,6 @@ export function FleetHealthView({ group, canManage, title, description, basePath
                   }))}
                 />
               </SidePanel>
-
-              {issues && issues.length > 0 && (
-                <SidePanel title="How long issues have lasted" note="Days in a row each issue has been found">
-                  <DistributionList
-                    max={Math.max(...ages.map((age) => age.count))}
-                    rows={ages.map((age, index) => ({
-                      key: age.label,
-                      label: age.label,
-                      count: age.count,
-                      plain: true,
-                      barClassName: index === 0 ? "bg-primary" : "bg-slate-400 dark:bg-slate-500",
-                    }))}
-                  />
-                </SidePanel>
-              )}
 
               {canManage && (
                 <Card className="px-5 py-4">
