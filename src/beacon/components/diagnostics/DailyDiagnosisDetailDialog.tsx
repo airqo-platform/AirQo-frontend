@@ -43,12 +43,10 @@ const formatStat = (value?: number) => (value === undefined || value === null ? 
 
 const SEVERITY_ORDER: Record<string, number> = { CRITICAL: 4, HIGH: 3, MEDIUM: 2, LOW: 1 };
 
-const firstGroup = <T,>(indicators: DeviceIndicators | null | undefined, group: string): { component: string; values: T } | null => {
-  for (const [component, groups] of Object.entries(indicators || {})) {
-    if (groups[group]) return { component, values: groups[group] as T };
-  }
-  return null;
-};
+const groupsNamed = <T,>(indicators: DeviceIndicators | null | undefined, group: string): Array<{ component: string; values: T }> =>
+  Object.entries(indicators || {})
+    .filter(([, groups]) => groups[group])
+    .map(([component, groups]) => ({ component, values: groups[group] as T }));
 
 /** One day's diagnosis: the likely cause, the day hour by hour, its issues, scores and readings. */
 export const DailyDiagnosisDetailDialog: React.FC<DailyDiagnosisDetailDialogProps> = ({
@@ -112,7 +110,8 @@ export const DailyDiagnosisDetailDialog: React.FC<DailyDiagnosisDetailDialogProp
             </p>
           )}
 
-          {detail && !isLoading && <DayDiagnosis detail={detail} deviceId={deviceId} />}
+          {/* Keyed by day so each day opens with its own disclosures closed */}
+          {detail && !isLoading && <DayDiagnosis key={detail.diagnosis_date} detail={detail} deviceId={deviceId} />}
         </div>
 
         <div className="flex justify-end border-t border-border px-6 py-3.5">
@@ -358,8 +357,13 @@ function outageNote(outage: OutageWindow, charge: ChargeCycleIndicator | null, d
 
 function DayTimeline({ detail }: { detail: DeviceDailyDiagnostic }) {
   const day = detail.diagnosis_date;
-  const coverage = firstGroup<CoverageIndicator>(detail.indicators, "coverage")?.values ?? null;
-  const charge = firstGroup<ChargeCycleIndicator>(detail.indicators, "charge_cycle")?.values ?? null;
+  const coverage = groupsNamed<CoverageIndicator>(detail.indicators, "coverage")[0]?.values ?? null;
+  // The charge cycle the outages were attributed with, so a note never cites another component's minimum
+  const charges = groupsNamed<ChargeCycleIndicator>(detail.indicators, "charge_cycle");
+  const charge =
+    charges.find((group) => coverage?.charge_metric && group.values.metric === coverage.charge_metric)?.values ??
+    charges[0]?.values ??
+    null;
   const outages = coverage?.outages || [];
   const segments = daySegments(day, detail.first_record_at, detail.last_record_at, outages);
   if (segments.length === 0 && !charge?.min_at) return null;

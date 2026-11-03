@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { AqAlertTriangle, AqArrowRight, AqChevronRight, AqRefreshCw01, AqSearchSm } from "@airqo/icons-react";
@@ -14,6 +14,7 @@ import {
   SeverityPill,
   StackedBar,
   SubsystemIcon,
+  TruncatedNotice,
   deviceDiagnosticsHref,
   likelyCauseText,
   plural,
@@ -30,6 +31,8 @@ import {
   countLikelyCauses,
   countSeverities,
   filterDevices,
+  longestStreak as streakOf,
+  matchingIssues,
   scoresFromWorstDevices,
   sortDevices,
   subsystemLabel,
@@ -42,8 +45,6 @@ import { IssueSeverity, SEVERITY_ORDER } from "@/types/diagnostics";
 
 const PAGE_SIZE = 25;
 const ISSUES_SHOWN = 3;
-// The fix queue links issues without a subsystem here as "other".
-const OTHER_SUBSYSTEM = "other";
 
 interface FleetIssuesViewProps {
   group: string;
@@ -54,22 +55,29 @@ interface FleetIssuesViewProps {
 }
 
 /**
- * One day's issues as one row per device, optionally limited to a subsystem (`?subsystem=battery`).
- * `?date=` picks the day (the latest diagnosed day without it) and `?q=` starts a search.
+ * One day's issues as one row per device, optionally limited to a subsystem (`?subsystem=battery`;
+ * `?subsystem=` with no value is the issues without one). `?date=` picks the day (the latest
+ * diagnosed day without it) and `?q=` is the search.
  */
 export function FleetIssuesView({ group, parentTitle, basePath }: FleetIssuesViewProps) {
   const searchParams = useSearchParams();
   const selectedDate = searchParams?.get("date") || "";
-  const subsystemParam = searchParams?.get("subsystem")?.trim().toLowerCase() || "";
-  const subsystem = subsystemParam === OTHER_SUBSYSTEM ? "" : subsystemParam;
-  const scoped = Boolean(subsystemParam);
+  const subsystemParam = searchParams?.get("subsystem") ?? null;
+  const scoped = subsystemParam !== null;
+  const subsystem = subsystemParam?.trim().toLowerCase() || "";
 
-  const [query, setQuery] = useState(searchParams?.get("q") || "");
+  const queryParam = searchParams?.get("q") || "";
+  const [query, setQuery] = useState(queryParam);
   const [checkType, setCheckType] = useState<string | null>(null);
   const [severity, setSeverity] = useState<IssueSeverity | null>(null);
   const [newOnly, setNewOnly] = useState(false);
   const [sort, setSort] = useState<DeviceSortOrder>("severity");
   const [page, setPage] = useState(0);
+  // The URL can change under this view (back/forward, a link to another search); follow it
+  useEffect(() => {
+    setQuery(queryParam);
+    setPage(0);
+  }, [queryParam]);
 
   const summaryQuery = useFleetDailySummary(group, selectedDate || null);
   const summary = summaryQuery.data;
@@ -78,20 +86,18 @@ export function FleetIssuesView({ group, parentTitle, basePath }: FleetIssuesVie
 
   const issues = useMemo(
     () =>
-      (issuesQuery.data || []).filter(
+      (issuesQuery.data?.issues || []).filter(
         (issue) => !scoped || (issue.subsystem?.trim().toLowerCase() || "") === subsystem
       ),
-    [issuesQuery.data, scoped, subsystem]
+    [issuesQuery.data?.issues, scoped, subsystem]
   );
   const devices = useMemo(
     () => summariseDevices(issues, scoresFromWorstDevices(summary?.worst_devices)),
     [issues, summary?.worst_devices]
   );
   const checks = useMemo(() => checkTypeCounts(devices), [devices]);
-  const filtered = useMemo(
-    () => sortDevices(filterDevices(devices, { checkType, severity, newOnly, query }), sort),
-    [devices, checkType, severity, newOnly, query, sort]
-  );
+  const filters = useMemo(() => ({ checkType, severity, newOnly, query }), [checkType, severity, newOnly, query]);
+  const filtered = useMemo(() => sortDevices(filterDevices(devices, filters), sort), [devices, filters, sort]);
 
   const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const currentPage = Math.min(page, pageCount - 1);
@@ -101,6 +107,7 @@ export function FleetIssuesView({ group, parentTitle, basePath }: FleetIssuesVie
   const likelyCauses = countLikelyCauses(devices, summary?.worst_devices);
   const longestStreak = devices.reduce((max, device) => Math.max(max, device.longestStreakDays), 0);
   const label = scoped ? subsystemLabel(subsystem) : null;
+  const truncated = Boolean(issuesQuery.data?.truncated);
   const filtersSet = Boolean(checkType || severity || newOnly || query.trim());
 
   // Any filter change starts again from the first page.
@@ -123,7 +130,7 @@ export function FleetIssuesView({ group, parentTitle, basePath }: FleetIssuesVie
   return (
     <div className="p-4 md:p-6 space-y-5 max-w-7xl mx-auto pb-16">
       <div className="flex flex-wrap items-center gap-3">
-        <BackButton fallbackHref={backHref} />
+        <BackButton href={backHref} />
         <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-sm text-muted-foreground">
           <Link href={backHref} className="font-medium text-primary hover:underline">
             {parentTitle}
@@ -138,8 +145,12 @@ export function FleetIssuesView({ group, parentTitle, basePath }: FleetIssuesVie
         <div className="min-w-0 flex-1 space-y-0.5">
           <h1 className="text-2xl font-bold tracking-tight text-foreground">{label ? `${label} issues` : "All issues"}</h1>
           <p className="text-sm text-muted-foreground">
-            {loading || !diagnosisDate
+            {loading
               ? "Loading the day's diagnosis…"
+              : error
+              ? "The day's diagnosis could not be loaded."
+              : !diagnosisDate
+              ? "No day has been diagnosed yet."
               : `${plural(devices.length, "device")} · ${plural(issues.length, "issue")} on ${formatDiagnosisDate(diagnosisDate, "EEE d MMM yyyy")}`}
           </p>
         </div>
@@ -158,7 +169,8 @@ export function FleetIssuesView({ group, parentTitle, basePath }: FleetIssuesVie
           <Button
             onClick={() => {
               void summaryQuery.refetch();
-              void issuesQuery.refetch();
+              // Without a diagnosis day the issues query has nothing to ask for; it runs once the summary arrives
+              if (diagnosisDate) void issuesQuery.refetch();
             }}
             className="mt-4 gap-2"
           >
@@ -168,6 +180,7 @@ export function FleetIssuesView({ group, parentTitle, basePath }: FleetIssuesVie
         </Card>
       ) : (
         <>
+          {truncated && <TruncatedNotice count={issuesQuery.data?.issues.length ?? 0} />}
           {issues.length > 0 && (
             <Card className="grid gap-x-8 gap-y-5 p-5 sm:px-6 md:grid-cols-[minmax(0,1fr)_auto]">
               <div className="space-y-2.5">
@@ -305,7 +318,10 @@ export function FleetIssuesView({ group, parentTitle, basePath }: FleetIssuesVie
                   <tbody>
                     {shown.map((device) => {
                       const href = deviceDiagnosticsHref(device.deviceId, device.deviceName);
-                      const more = device.issues.length - ISSUES_SHOWN;
+                      // With filters on, the row shows the issues that matched them, and Ongoing describes those
+                      const visible = filtersSet ? matchingIssues(device, filters) : device.issues;
+                      const more = visible.length - ISSUES_SHOWN;
+                      const streak = streakOf(visible);
                       return (
                         <tr key={device.deviceId} className="border-b border-border/60 align-top last:border-0 hover:bg-muted/40">
                           <td className="whitespace-nowrap py-3.5 pl-6 pr-3">
@@ -313,13 +329,15 @@ export function FleetIssuesView({ group, parentTitle, basePath }: FleetIssuesVie
                               {device.deviceName}
                             </Link>
                             <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
-                              {plural(device.issues.length, "issue")}
+                              {filtersSet
+                                ? `${visible.length} of ${plural(device.issues.length, "issue")} match`
+                                : plural(device.issues.length, "issue")}
                               {device.healthScore !== null && <ScorePill score={device.healthScore} />}
                             </div>
                           </td>
                           <td className="w-3/5 px-3 py-3">
                             <ul className="space-y-2">
-                              {device.issues.slice(0, ISSUES_SHOWN).map((issue) => (
+                              {visible.slice(0, ISSUES_SHOWN).map((issue) => (
                                 <li key={issue.issue_code} className="flex items-start gap-2.5">
                                   <SeverityPill severity={issue.severity} className="mt-px w-16 justify-center" />
                                   <span className="min-w-0">
@@ -334,12 +352,12 @@ export function FleetIssuesView({ group, parentTitle, basePath }: FleetIssuesVie
                             </ul>
                             {more > 0 && (
                               <Link href={href} className="mt-2 inline-block text-xs font-medium text-primary hover:underline">
-                                {plural(more, "more issue")}
+                                {plural(more, filtersSet ? "more matching issue" : "more issue")}
                               </Link>
                             )}
                           </td>
                           <td className="whitespace-nowrap px-3 py-3.5">
-                            <OngoingCell device={device} />
+                            <OngoingCell days={streak.days} since={streak.since} />
                           </td>
                           <td className="py-3 pl-3 pr-6 text-right">
                             <Button asChild variant="outline" size="sm" className="h-8 gap-1.5 text-primary">

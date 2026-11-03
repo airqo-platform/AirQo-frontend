@@ -32,6 +32,7 @@ import {
   likelyCauseText,
   plural,
   severitySegments,
+  TruncatedNotice,
 } from "@/components/diagnostics/FleetHealthParts";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -85,7 +86,7 @@ export function FleetHealthView({ group, canManage, title, description, basePath
   const diagnosisDate = summary?.diagnosis_date || null;
   const hasDiagnoses = Boolean(summary && summary.devices_diagnosed > 0);
   const issuesQuery = useFleetDayIssues(group, hasDiagnoses ? diagnosisDate : null);
-  const issues = issuesQuery.data;
+  const issues = issuesQuery.data?.issues;
 
   const groups = useMemo(() => groupFleetIssues(issues || [], summary?.worst_devices), [issues, summary?.worst_devices]);
   const ages = useMemo(() => issueAgeBuckets(issues || []), [issues]);
@@ -94,11 +95,12 @@ export function FleetHealthView({ group, canManage, title, description, basePath
     router.replace(date ? `${basePath}?date=${date}` : basePath, { scroll: false });
   };
 
-  // Lists carry the day only when the viewer chose one, so "latest" stays latest.
+  // Lists carry the day only when the viewer chose one, so "latest" stays latest. An empty value is
+  // kept: `subsystem=` is the group of issues without a subsystem.
   const issuesHref = (params: Record<string, string | undefined> = {}) => {
     const query = new URLSearchParams();
     if (selectedDate) query.set("date", selectedDate);
-    for (const [key, value] of Object.entries(params)) if (value) query.set(key, value);
+    for (const [key, value] of Object.entries(params)) if (value !== undefined) query.set(key, value);
     const qs = query.toString();
     return `${basePath}/issues${qs ? `?${qs}` : ""}`;
   };
@@ -211,6 +213,7 @@ export function FleetHealthView({ group, canManage, title, description, basePath
                   </span>
                 )}
               </div>
+              {issuesQuery.data?.truncated && <TruncatedNotice count={issues?.length ?? 0} />}
 
               {issuesQuery.isLoading ? (
                 Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-20 rounded-lg" />)
@@ -236,7 +239,7 @@ export function FleetHealthView({ group, canManage, title, description, basePath
                     open={openGroup === issueGroup.subsystem}
                     onToggle={() => setOpenGroup(openGroup === issueGroup.subsystem ? null : issueGroup.subsystem)}
                     lowestScoringTotal={summary.worst_devices.length}
-                    listHref={issuesHref({ subsystem: issueGroup.subsystem || "other" })}
+                    listHref={issuesHref({ subsystem: issueGroup.subsystem })}
                   />
                 ))
               )}

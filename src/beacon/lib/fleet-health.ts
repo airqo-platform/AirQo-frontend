@@ -248,21 +248,39 @@ export interface DeviceFilters {
   query?: string
 }
 
+/**
+ * The device's issues that match every filter that is set. A query that matches the device's name or
+ * id matches all of its issues; otherwise it has to match the issue's code, title or component.
+ */
+export function matchingIssues(device: FleetGroupDevice, filters: DeviceFilters): FleetIssue[] {
+  const query = filters.query?.trim().toLowerCase() || ""
+  const deviceMatches =
+    !query || device.deviceName.toLowerCase().includes(query) || device.deviceId.toLowerCase().includes(query)
+  return device.issues.filter(
+    (issue) =>
+      (!filters.checkType || issue.check_type === filters.checkType) &&
+      (!filters.severity || issue.severity === filters.severity) &&
+      (!filters.newOnly || issue.is_new) &&
+      (deviceMatches ||
+        [issue.issue_code, issue.title, issue.component_name].some((value) => value?.toLowerCase().includes(query)))
+  )
+}
+
 /** Devices with at least one issue matching every filter that is set. */
 export function filterDevices(devices: FleetGroupDevice[], filters: DeviceFilters): FleetGroupDevice[] {
-  const query = filters.query?.trim().toLowerCase() || ""
-  const issueMatches = (issue: FleetIssue) =>
-    (!filters.checkType || issue.check_type === filters.checkType) &&
-    (!filters.severity || issue.severity === filters.severity) &&
-    (!filters.newOnly || issue.is_new)
-  const textMatches = (device: FleetGroupDevice) =>
-    !query ||
-    device.deviceName.toLowerCase().includes(query) ||
-    device.deviceId.toLowerCase().includes(query) ||
-    device.issues.some((issue) =>
-      [issue.issue_code, issue.title, issue.component_name].some((value) => value?.toLowerCase().includes(query))
-    )
-  return devices.filter((device) => textMatches(device) && device.issues.some(issueMatches))
+  return devices.filter((device) => matchingIssues(device, filters).length > 0)
+}
+
+/** The longest run of consecutive days among `issues`, with the day it began. */
+export function longestStreak(issues: Pick<FleetIssue, "streak_days" | "streak_start_date">[]): {
+  days: number
+  since: string | null
+} {
+  const longest = issues.reduce<(typeof issues)[number] | null>(
+    (best, issue) => (!best || issue.streak_days > best.streak_days ? issue : best),
+    null
+  )
+  return { days: longest?.streak_days ?? 0, since: longest?.streak_start_date || null }
 }
 
 /** Moves a `YYYY-MM-DD` diagnosis day by whole days, in UTC like the diagnosis days themselves. */

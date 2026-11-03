@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import type { ComponentType } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   AqBatteryLow,
@@ -16,7 +17,6 @@ import { getLifecycleConfig } from "@/components/diagnostics/HealthScoreGauge";
 import { formatDiagnosisDate } from "@/components/diagnostics/DiagnosticBadges";
 import { Button } from "@/components/ui/button";
 import { shiftDiagnosisDate } from "@/lib/fleet-health";
-import type { FleetGroupDevice } from "@/lib/fleet-health";
 import { cn } from "@/lib/utils";
 import { SEVERITY_ORDER } from "@/types/diagnostics";
 import type { IssueSeverity, LifecycleState } from "@/types/diagnostics";
@@ -27,18 +27,45 @@ export const deviceDiagnosticsHref = (deviceId: string, deviceName?: string | nu
 
 export const yesterdayUtc = () => new Date(Date.now() - 86_400_000).toISOString().slice(0, 10);
 
-/** Goes back to the previous page, or to `fallbackHref` when the page was opened directly. */
-export const BackButton: React.FC<{ fallbackHref: string; label?: string }> = ({ fallbackHref, label = "Back" }) => {
+/** Shown when the day had more issues than the page fetches, so counts and lists are incomplete. */
+export const TruncatedNotice: React.FC<{ count: number }> = ({ count }) => (
+  <p className="rounded-lg bg-amber-50 p-3 text-sm text-amber-900 dark:bg-amber-500/10 dark:text-amber-200">
+    <strong className="font-semibold">Showing the first {count.toLocaleString()} issues of this day.</strong> The day has
+    more, so counts and lists here are incomplete.
+  </p>
+);
+
+/**
+ * With `href`, goes to that parent page. Otherwise goes back in the tab's history, or to
+ * `fallbackHref` when the tab has none (a page opened in a new tab).
+ */
+export const BackButton: React.FC<{ href?: string; fallbackHref?: string; label?: string }> = ({
+  href,
+  fallbackHref,
+  label = "Back",
+}) => {
   const router = useRouter();
+  const content = (
+    <>
+      <AqChevronLeft className="h-4 w-4" />
+      {label}
+    </>
+  );
+  if (href) {
+    return (
+      <Button asChild variant="outline" size="sm" className="h-8 gap-1 pl-2 text-foreground">
+        <Link href={href}>{content}</Link>
+      </Button>
+    );
+  }
   return (
     <Button
       variant="outline"
       size="sm"
-      onClick={() => (window.history.length > 1 ? router.back() : router.push(fallbackHref))}
+      onClick={() => (window.history.length > 1 || !fallbackHref ? router.back() : router.push(fallbackHref))}
       className="h-8 gap-1 pl-2 text-foreground"
     >
-      <AqChevronLeft className="h-4 w-4" />
-      {label}
+      {content}
     </Button>
   );
 };
@@ -253,16 +280,14 @@ export const SubsystemIcon: React.FC<{ subsystem: string; urgent?: boolean; clas
   );
 };
 
-/** "New today", or how many days in a row the device's longest-running issue has been found. */
-export const OngoingCell: React.FC<{ device: FleetGroupDevice }> = ({ device }) =>
-  device.longestStreakDays <= 1 ? (
+/** "New today", or how many days in a row the longest-running of the shown issues has been found. */
+export const OngoingCell: React.FC<{ days: number; since: string | null }> = ({ days, since }) =>
+  days <= 1 ? (
     <span className="font-medium text-foreground">New today</span>
   ) : (
     <>
-      <span className="block font-medium text-foreground">{device.longestStreakDays} days</span>
-      {device.streakStartDate && (
-        <span className="block text-xs text-muted-foreground">since {formatDiagnosisDate(device.streakStartDate, "d MMM")}</span>
-      )}
+      <span className="block font-medium text-foreground">{days} days</span>
+      {since && <span className="block text-xs text-muted-foreground">since {formatDiagnosisDate(since, "d MMM")}</span>}
     </>
   );
 
@@ -277,17 +302,19 @@ interface DiagnosisDayPickerProps {
 /** Steps through diagnosis days; the middle opens the browser's date picker. */
 export const DiagnosisDayPicker: React.FC<DiagnosisDayPickerProps> = ({ shownDate, selectedDate, onChange }) => {
   const inputRef = useRef<HTMLInputElement>(null);
+  // Browsers that can't open the picker from a button get the date field itself instead
+  const [showField, setShowField] = useState(false);
   const maxDate = yesterdayUtc();
   const isLatest = !selectedDate;
   const nextDate = shownDate ? shiftDiagnosisDate(shownDate, 1) : null;
 
   const openPicker = () => {
     const input = inputRef.current;
-    if (!input) return;
     try {
+      if (!input || typeof input.showPicker !== "function") throw new Error("showPicker unavailable");
       input.showPicker();
     } catch {
-      input.focus();
+      setShowField(true);
     }
   };
 
@@ -303,16 +330,31 @@ export const DiagnosisDayPicker: React.FC<DiagnosisDayPickerProps> = ({ shownDat
         >
           <AqChevronLeft className="h-4 w-4" />
         </button>
-        <button
-          type="button"
-          onClick={openPicker}
-          title="Diagnosis day (UTC)"
-          className="relative flex h-full items-center gap-2 px-3 text-sm font-medium text-foreground hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        >
-          <AqCalendar className="h-4 w-4" />
-          {shownDate ? formatDiagnosisDate(shownDate, "EEE d MMM yyyy") : "Latest day"}
-          {isLatest && (
-            <span className="rounded-full bg-primary/10 px-2 py-px text-xs font-semibold text-primary">Latest</span>
+        <div className="relative flex h-full">
+          {showField ? (
+            <input
+              type="date"
+              aria-label="Diagnosis day (UTC)"
+              value={shownDate || ""}
+              max={maxDate}
+              autoFocus
+              onChange={(e) => e.target.value && onChange(e.target.value)}
+              onBlur={() => setShowField(false)}
+              className="h-full bg-transparent px-3 text-sm font-medium text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            />
+          ) : (
+            <button
+              type="button"
+              onClick={openPicker}
+              title="Diagnosis day (UTC)"
+              className="flex h-full items-center gap-2 px-3 text-sm font-medium text-foreground hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <AqCalendar className="h-4 w-4" />
+              {shownDate ? formatDiagnosisDate(shownDate, "EEE d MMM yyyy") : "Latest day"}
+              {isLatest && (
+                <span className="rounded-full bg-primary/10 px-2 py-px text-xs font-semibold text-primary">Latest</span>
+              )}
+            </button>
           )}
           <input
             ref={inputRef}
@@ -324,7 +366,7 @@ export const DiagnosisDayPicker: React.FC<DiagnosisDayPickerProps> = ({ shownDat
             aria-hidden="true"
             className="pointer-events-none absolute bottom-0 left-0 h-px w-px opacity-0"
           />
-        </button>
+        </div>
         <button
           type="button"
           aria-label="Next day"

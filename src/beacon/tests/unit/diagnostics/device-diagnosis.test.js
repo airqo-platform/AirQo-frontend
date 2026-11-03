@@ -130,3 +130,26 @@ test("daySegments splits the day between data and outages from first to last rea
   assert.equal(segments[1].outage.after_low_charge, true)
   assert.deepEqual(daySegments("2026-10-29", null, null, outages), [])
 })
+
+test("daySegments keeps outages inside the readings and stops them overlapping", () => {
+  const outages = [
+    { start: "2026-10-28T22:00:00Z", end: "2026-10-29T02:00:00Z", hours: 4, after_low_charge: true },
+    { start: "2026-10-29T05:00:00Z", end: "2026-10-29T08:00:00Z", hours: 3, after_low_charge: true },
+    { start: "2026-10-29T07:00:00Z", end: "2026-10-29T09:00:00Z", hours: 2, after_low_charge: false },
+    { start: "2026-10-29T23:00:00Z", end: "2026-10-30T01:00:00Z", hours: 2, after_low_charge: false },
+  ]
+  const segments = daySegments("2026-10-29", "2026-10-29T01:00:00Z", "2026-10-29T23:30:00Z", outages)
+  assert.deepEqual(
+    segments.map((s) => [s.kind, +(s.start * 24).toFixed(2), +(s.end * 24).toFixed(2)]),
+    [["outage", 1, 2], ["data", 2, 5], ["outage", 5, 8], ["outage", 8, 9], ["data", 9, 23], ["outage", 23, 23.5]]
+  )
+})
+
+test("the merged always-100 row shows no latest score when one of its components was not scored that day", () => {
+  const rows = componentRows([
+    day("2026-10-28", { subsystem_scores: { a: 50, pm1: 100, pm2: 100 } }),
+    day("2026-10-29", { subsystem_scores: { a: 60, pm1: 100 } }),
+  ])
+  const merged = rows.find((r) => r.key === "__perfect__")
+  assert.equal(merged.latest, null)
+})

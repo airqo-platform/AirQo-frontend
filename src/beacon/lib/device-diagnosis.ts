@@ -108,12 +108,14 @@ export function componentRows(daily: DeviceDailyDiagnosticSummary[]): ComponentR
     perfect.sort()
     const scores: Record<string, number> = {}
     for (const day of daily) if (perfect.some((name) => name in (day.subsystem_scores || {}))) scores[day.diagnosis_date] = 100
+    const latestScores = latestDay?.subsystem_scores || {}
     rows.push({
       key: "__perfect__",
       label: perfect.length === 1 ? humanizeComponent(perfect[0]) : `${perfect.length} components at 100`,
       components: perfect,
       scores,
-      latest: 100,
+      // 100 only when every component in the row was scored on the latest day
+      latest: perfect.every((name) => name in latestScores) ? 100 : null,
     })
   }
   return rows
@@ -200,8 +202,11 @@ export function daySegments(
   let cursor = first
   for (const window of sorted) {
     if (window.start > cursor) segments.push({ kind: "data", start: cursor, end: Math.min(window.start, last) })
-    segments.push({ kind: "outage", start: window.start, end: window.end, outage: window.outage })
-    cursor = Math.max(cursor, window.end)
+    // Outages are kept inside the readings (outside them is unknown) and after earlier segments, so none overlap
+    const start = Math.max(window.start, cursor)
+    const end = Math.min(window.end, last)
+    if (end > start) segments.push({ kind: "outage", start, end, outage: window.outage })
+    cursor = Math.max(cursor, end)
   }
   if (last > cursor) segments.push({ kind: "data", start: cursor, end: last })
   return segments.filter((segment) => segment.end > segment.start)

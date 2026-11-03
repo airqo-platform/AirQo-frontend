@@ -421,14 +421,24 @@ export function ChargeCycleCard({ component, days, points }: ChargeCycleCardProp
 
   const latest = [...valid].sort((a, b) => b.diagnosis_date.localeCompare(a.diagnosis_date))[0];
   const unit = latest.unit ? ` ${latest.unit}` : "";
-  const threshold = valid.find((point) => typeof point.low_charge_threshold === "number")?.low_charge_threshold ?? null;
+  // Each day is judged against its own low-charge line; the axis label shows the latest one
+  const ownThreshold = (point: IndicatorSeriesPoint<ChargeCycleIndicator>) =>
+    typeof point.low_charge_threshold === "number" ? point.low_charge_threshold : null;
+  const thresholds = valid.map(ownThreshold).filter((value): value is number => value !== null);
+  const threshold =
+    [...valid].sort((a, b) => b.diagnosis_date.localeCompare(a.diagnosis_date)).map(ownThreshold).find((value) => value !== null) ?? null;
+  const dayThreshold = (point: IndicatorSeriesPoint<ChargeCycleIndicator> | undefined) => (point && ownThreshold(point)) ?? threshold;
+  const sameLine = new Set(thresholds).size <= 1;
   const lows = valid.map((point) => point.min as number);
   const highs = valid.map((point) => point.max as number);
-  const lo = Math.floor((Math.min(...lows, threshold ?? Infinity) - 0.1) * 10) / 10;
-  const hi = Math.ceil((Math.max(...highs) + 0.1) * 10) / 10;
+  const lo = Math.floor((Math.min(...lows, ...thresholds) - 0.1) * 10) / 10;
+  const hi = Math.ceil((Math.max(...highs, ...thresholds) + 0.1) * 10) / 10;
   const toPct = (value: number) => ((value - lo) / (hi - lo)) * 100;
 
-  const below = threshold === null ? [] : valid.filter((point) => (point.min as number) < threshold);
+  const below = valid.filter((point) => {
+    const line = dayThreshold(point);
+    return line !== null && (point.min as number) < line;
+  });
   const belowClocks = below.map((point) => utcClock(point.min_at)).filter((clock) => clock !== "—").sort();
   const sameStretch = belowClocks.length > 1 && belowClocks[0] < "12:00" && belowClocks[belowClocks.length - 1] < "12:00";
   const metric = (latest.metric || "charge").replace(/_/g, " ");
@@ -443,8 +453,8 @@ export function ChargeCycleCard({ component, days, points }: ChargeCycleCardProp
             {threshold === null
               ? `Daily range of ${metric}.`
               : below.length === 0
-              ? `The ${metric} stayed above the ${threshold}${unit} low-charge line on every diagnosed day.`
-              : `On ${below.length} of ${valid.length} days the ${metric} fell below the ${threshold}${unit} low-charge line${
+              ? `The ${metric} stayed above the ${sameLine ? `${threshold}${unit} ` : ""}low-charge line on every diagnosed day.`
+              : `On ${below.length} of ${valid.length} days the ${metric} fell below the ${sameLine ? `${threshold}${unit} ` : ""}low-charge line${
                   sameStretch ? `, each time between ${belowClocks[0]} and ${belowClocks[belowClocks.length - 1]} UTC` : ""
                 }.`}
           </p>
@@ -471,21 +481,22 @@ export function ChargeCycleCard({ component, days, points }: ChargeCycleCardProp
           {days.map((date) => {
             const point = byDate.get(date);
             const has = point && typeof point.min === "number" && typeof point.max === "number";
+            const line = dayThreshold(point);
             return (
               <div
                 key={date}
                 className="relative h-40 border-b border-border"
                 title={has ? `${formatDiagnosisDate(date)}: ${point!.min}–${point!.max}${unit}, average ${point!.mean}${unit}` : `${formatDiagnosisDate(date)}: no reading`}
               >
-                {threshold !== null && (
-                  <span className="absolute inset-x-0 h-px bg-red-300 dark:bg-red-500/60" style={{ bottom: `${toPct(threshold)}%` }} />
+                {line !== null && (
+                  <span className="absolute inset-x-0 h-px bg-red-300 dark:bg-red-500/60" style={{ bottom: `${toPct(line)}%` }} />
                 )}
                 {has && (
                   <>
                     <span
                       className={cn(
                         "absolute inset-x-[28%] rounded-full",
-                        threshold !== null && (point!.min as number) < threshold ? "bg-orange-500" : "bg-slate-400 dark:bg-slate-500"
+                        line !== null && (point!.min as number) < line ? "bg-orange-500" : "bg-slate-400 dark:bg-slate-500"
                       )}
                       style={{ bottom: `${toPct(point!.min as number)}%`, height: `${toPct(point!.max as number) - toPct(point!.min as number)}%` }}
                     />
@@ -502,7 +513,7 @@ export function ChargeCycleCard({ component, days, points }: ChargeCycleCardProp
       <ul className="flex flex-wrap gap-4 text-xs text-muted-foreground">
         <li className="flex items-center gap-1.5"><span className="h-3.5 w-2.5 rounded-full bg-slate-400 dark:bg-slate-500" aria-hidden="true" />Daily range, lowest to highest</li>
         {threshold !== null && (
-          <li className="flex items-center gap-1.5"><span className="h-3.5 w-2.5 rounded-full bg-orange-500" aria-hidden="true" />Range that dips below {threshold}{unit}</li>
+          <li className="flex items-center gap-1.5"><span className="h-3.5 w-2.5 rounded-full bg-orange-500" aria-hidden="true" />Range that dips below {sameLine ? `${threshold}${unit}` : "the day's low-charge line"}</li>
         )}
         <li className="flex items-center gap-1.5"><span className="h-0.5 w-3.5 bg-foreground" aria-hidden="true" />Daily average</li>
       </ul>
@@ -533,6 +544,14 @@ export function CoverageCard({ component, points }: { component: string; points:
   const healthy = sum("outages_with_healthy_charge");
   const unattributed = sum("outages_unattributed");
   const maxHours = Math.max(1, ...days.map((day) => Number(day.offline_hours) || 0));
+  const withMissingRate = days.filter((day) => typeof day.missing_rate === "number");
+  const interval = days[days.length - 1].expected_interval_seconds;
+  const expectedEvery =
+    typeof interval === "number" && interval > 0
+      ? interval % 60 === 0
+        ? `${interval / 60} min`
+        : `${interval} s`
+      : null;
   const parts = [
     { key: "low", label: "After low charge", count: afterLow, className: "bg-orange-500" },
     { key: "healthy", label: "With healthy charge", count: healthy, className: "bg-slate-400 dark:bg-slate-500" },
@@ -567,31 +586,75 @@ export function CoverageCard({ component, points }: { component: string; points:
           </ul>
         </>
       )}
-      <div className="space-y-1.5">
-        <span className="text-xs font-medium text-muted-foreground">Hours offline per diagnosed day · orange when an outage followed low charge</span>
-        <div className="grid h-28 items-end gap-2 border-b border-border" style={{ gridTemplateColumns: `repeat(${days.length}, minmax(0, 1fr))` }}>
-          {days.map((day) => {
-            const hours = Number(day.offline_hours) || 0;
-            return (
-              <div key={day.diagnosis_date} className="flex h-full flex-col items-center justify-end gap-1" title={`${formatDiagnosisDate(day.diagnosis_date)}: ${hours} h offline`}>
-                <span className="text-[11px] font-semibold tabular-nums text-foreground">{hours.toFixed(1)}</span>
-                <span
-                  className={cn("w-full max-w-7 rounded-t", (day.outages_after_low_charge || 0) > 0 ? "bg-orange-500" : "bg-slate-400 dark:bg-slate-500")}
-                  style={{ height: `${(hours / maxHours) * 80}%` }}
-                />
-              </div>
-            );
-          })}
-        </div>
-        <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${days.length}, minmax(0, 1fr))` }}>
-          {days.map((day, index) => (
-            <span key={day.diagnosis_date} className="text-center text-[11px] text-muted-foreground">
-              {index === 0 || index === days.length - 1 ? formatDiagnosisDate(day.diagnosis_date, "d MMM") : Number(day.diagnosis_date.slice(8))}
-            </span>
-          ))}
-        </div>
-      </div>
+      <DayBars
+        title="Hours offline per diagnosed day · orange when an outage followed low charge"
+        days={days}
+        value={(day) => Number(day.offline_hours) || 0}
+        max={maxHours}
+        format={(hours) => hours.toFixed(1)}
+        describe={(day, hours) => `${formatDiagnosisDate(day.diagnosis_date)}: ${hours} h offline`}
+        fill={(day) => ((day.outages_after_low_charge || 0) > 0 ? "bg-orange-500" : "bg-slate-400 dark:bg-slate-500")}
+      />
+      {withMissingRate.length > 0 && (
+        <DayBars
+          title={`Readings missing per diagnosed day${expectedEvery ? ` · expected one every ${expectedEvery}` : ""}`}
+          days={withMissingRate}
+          value={(day) => (day.missing_rate as number) * 100}
+          max={100}
+          format={(pct) => `${Math.round(pct)}%`}
+          describe={(day, pct) =>
+            `${formatDiagnosisDate(day.diagnosis_date)}: ${Math.round(pct)}% missing (${day.records ?? "?"} of ${day.expected_records ?? "?"} readings)`
+          }
+          fill={() => "bg-slate-400 dark:bg-slate-500"}
+        />
+      )}
     </Card>
+  );
+}
+
+type CoveragePoint = IndicatorSeriesPoint<CoverageIndicator>;
+
+/** One bar per diagnosed day, labelled with its value, with the first and last day named underneath. */
+function DayBars({
+  title,
+  days,
+  value,
+  max,
+  format,
+  describe,
+  fill,
+}: {
+  title: string;
+  days: CoveragePoint[];
+  value: (day: CoveragePoint) => number;
+  max: number;
+  format: (value: number) => string;
+  describe: (day: CoveragePoint, value: number) => string;
+  fill: (day: CoveragePoint) => string;
+}) {
+  const columns = { gridTemplateColumns: `repeat(${days.length}, minmax(0, 1fr))` };
+  return (
+    <div className="space-y-1.5">
+      <span className="text-xs font-medium text-muted-foreground">{title}</span>
+      <div className="grid h-28 items-end gap-2 border-b border-border" style={columns}>
+        {days.map((day) => {
+          const amount = value(day);
+          return (
+            <div key={day.diagnosis_date} className="flex h-full flex-col items-center justify-end gap-1" title={describe(day, amount)}>
+              <span className="text-[11px] font-semibold tabular-nums text-foreground">{format(amount)}</span>
+              <span className={cn("w-full max-w-7 rounded-t", fill(day))} style={{ height: `${(amount / Math.max(max, 1e-9)) * 80}%` }} />
+            </div>
+          );
+        })}
+      </div>
+      <div className="grid gap-2" style={columns}>
+        {days.map((day, index) => (
+          <span key={day.diagnosis_date} className="text-center text-[11px] text-muted-foreground">
+            {index === 0 || index === days.length - 1 ? formatDiagnosisDate(day.diagnosis_date, "d MMM") : Number(day.diagnosis_date.slice(8))}
+          </span>
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -605,17 +668,16 @@ export interface SensorPair {
 
 const num = (value: unknown, digits = 2) => (typeof value === "number" && Number.isFinite(value) ? value.toFixed(digits) : "—");
 
-/** How closely each pair of sensors that measure the same thing agreed on the latest day. */
+/** How closely each pair of sensors that measure the same thing agreed on its latest diagnosed day. */
 export function SensorPairsCard({ pairs, trendNote }: { pairs: SensorPair[]; trendNote?: string | null }) {
   if (pairs.length === 0) return null;
   const withoutTolerance = pairs.filter((pair) => pair.latest.within_tolerance_rate === null || pair.latest.within_tolerance_rate === undefined);
-  const latestDate = pairs[0].latest.diagnosis_date;
 
   return (
     <Card className="space-y-3.5 p-5 sm:px-6">
       <div className="space-y-0.5">
         <h2 className="text-base font-semibold text-foreground">Sensor pairs</h2>
-        <p className="text-sm text-muted-foreground">How closely paired sensors agreed on {formatDiagnosisDate(latestDate, "d MMM")}.</p>
+        <p className="text-sm text-muted-foreground">How closely paired sensors agreed, each on its latest diagnosed day.</p>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full min-w-[28rem] border-collapse text-sm tabular-nums">
@@ -634,6 +696,7 @@ export function SensorPairsCard({ pairs, trendNote }: { pairs: SensorPair[]; tre
                   {pair.latest.metric ? humanizeMetric(pair.latest.metric) : humanizeComponent(pair.component)}{" "}
                   <span className="text-muted-foreground">vs</span>{" "}
                   {pair.latest.other_metric ? humanizeMetric(pair.latest.other_metric) : humanizeComponent(pair.other)}
+                  <span className="block text-xs font-normal text-muted-foreground">{formatDiagnosisDate(pair.latest.diagnosis_date, "d MMM")}</span>
                 </td>
                 <td className="px-2 py-2.5 text-right">{num(pair.latest.correlation)}</td>
                 <td className="px-2 py-2.5 text-right">

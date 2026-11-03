@@ -25,11 +25,17 @@ export function useFleetDailySummary(group: string, date: string | null) {
   })
 }
 
+export interface FleetDayIssues {
+  issues: FleetIssue[]
+  /** True when the safety stop was reached, so `issues` misses the rest of the day. */
+  truncated: boolean
+}
+
 /** Every issue diagnosed on `date` for the group's devices, fetched page by page. */
 export function useFleetDayIssues(group: string, date: string | null | undefined) {
   return useQuery({
     queryKey: fleetDayIssuesQueryKey(group, date || ""),
-    queryFn: async () => {
+    queryFn: async (): Promise<FleetDayIssues> => {
       const issues: FleetIssue[] = []
       for (let page = 0; page < MAX_ISSUE_PAGES; page++) {
         const batch = await diagnosticsService.getFleetIssues({
@@ -39,9 +45,9 @@ export function useFleetDayIssues(group: string, date: string | null | undefined
           limit: ISSUE_PAGE_SIZE,
         })
         issues.push(...batch)
-        if (batch.length < ISSUE_PAGE_SIZE) break
+        if (batch.length < ISSUE_PAGE_SIZE) return { issues, truncated: false }
       }
-      return issues
+      return { issues, truncated: true }
     },
     enabled: Boolean(group && date),
   })

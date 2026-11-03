@@ -7,6 +7,8 @@ import {
   filterDevices,
   groupFleetIssues,
   issueAgeBuckets,
+  longestStreak,
+  matchingIssues,
   shiftDiagnosisDate,
   sortDevices,
   subsystemLabel,
@@ -160,4 +162,25 @@ test("shiftDiagnosisDate moves across month and year ends in UTC", () => {
   assert.equal(shiftDiagnosisDate("2026-10-29", -1), "2026-10-28")
   assert.equal(shiftDiagnosisDate("2026-11-01", -1), "2026-10-31")
   assert.equal(shiftDiagnosisDate("2026-12-31", 1), "2027-01-01")
+})
+
+test("matchingIssues keeps only the issues that match every filter", () => {
+  const [d1] = summariseDevices(ISSUES.filter((i) => i.device_id === "d1"))
+  assert.deepEqual(matchingIssues(d1, { newOnly: true }).map((i) => i.title), ["Battery discharging fast"])
+  assert.deepEqual(matchingIssues(d1, { query: "outages" }).map((i) => i.severity), ["CRITICAL"])
+  // A query matching the device itself keeps all of its issues
+  assert.equal(matchingIssues(d1, { query: "airqo_d1" }).length, 3)
+  // Text and attributes must hold on the same issue: the CRITICAL issue is not the data gap
+  assert.deepEqual(matchingIssues(d1, { query: "data gaps", severity: "CRITICAL" }), [])
+})
+
+test("longestStreak finds the longest run and when it began", () => {
+  assert.deepEqual(
+    longestStreak([
+      { streak_days: 2, streak_start_date: "2026-10-28" },
+      { streak_days: 4, streak_start_date: "2026-10-26" },
+    ]),
+    { days: 4, since: "2026-10-26" }
+  )
+  assert.deepEqual(longestStreak([]), { days: 0, since: null })
 })

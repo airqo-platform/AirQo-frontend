@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   AqAlertTriangle,
   AqCheckCircle,
@@ -61,7 +62,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/components/ui/use-toast";
-import { useDeviceDayDiagnosis } from "@/hooks/use-device-diagnosis";
+import { DEVICE_DAY_QUERY_PREFIX, useDeviceDayDiagnosis } from "@/hooks/use-device-diagnosis";
 import {
   componentRows,
   dayRange,
@@ -126,6 +127,7 @@ export function DeviceDiagnosticsPanel({ deviceId, deviceName, readOnly = false 
   // another device or day range in the meantime.
   const dailyRequestRef = useRef<number>(0);
   const snapshotRequestRef = useRef<number>(0);
+  const queryClient = useQueryClient();
 
   const fetchDaily = useCallback(async () => {
     const token = ++dailyRequestRef.current;
@@ -144,6 +146,8 @@ export function DeviceDiagnosticsPanel({ deviceId, deviceName, readOnly = false 
         diagnosticsService.getDeviceTrends(deviceId).catch(() => null),
       ]);
       if (!isCurrent()) return;
+      // A daily run may have replaced days that are cached in full; refetch those alongside the summaries
+      void queryClient.invalidateQueries({ queryKey: [...DEVICE_DAY_QUERY_PREFIX, { deviceId }] });
       setIssueSummary(summary);
       setDailyDiagnoses(list);
       setIndicatorSeries(indicators);
@@ -159,7 +163,7 @@ export function DeviceDiagnosticsPanel({ deviceId, deviceName, readOnly = false 
     } finally {
       if (isCurrent()) setDailyLoading(false);
     }
-  }, [deviceId, days]);
+  }, [deviceId, days, queryClient]);
 
   const fetchSnapshot = useCallback(async () => {
     const token = ++snapshotRequestRef.current;
