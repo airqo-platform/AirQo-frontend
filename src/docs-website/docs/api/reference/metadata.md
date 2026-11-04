@@ -81,10 +81,26 @@ Unlike most endpoints on this page, grid summary is publicly accessible without 
 |-----------|------|-------------|
 | `admin_level` | string | Filter by level: `country`, `province`, `city`, `district`, `subcounty`, `county`, `division`, `parish`, and other administrative levels defined for your region |
 | `id` | string | Filter by a specific Grid ID |
+| `limit` | integer | Max results per page. Default 30, max 80 |
+| `skip` | integer | Records to skip. Default 0 |
 
 :::note
 `admin_level` isn't a fixed list — it reflects whatever administrative levels exist for the regions AirQo covers, so you may encounter values beyond the ones listed above.
 :::
+
+:::caution A default call doesn't return every grid
+A default call returns up to 30 grids, so a grid missing from the first page may be on a later one. Use `limit` and `skip` to page through until you have fetched `meta.total` grids.
+:::
+
+**Example — page through grids in blocks of 80**
+
+```bash
+# Page 1
+curl "https://api.airqo.net/api/v2/devices/grids/summary?limit=80&skip=0"
+
+# Page 2
+curl "https://api.airqo.net/api/v2/devices/grids/summary?limit=80&skip=80"
+```
 
 **Example — filter to city-level grids**
 
@@ -121,7 +137,14 @@ curl "https://api.airqo.net/api/v2/devices/grids/summary?admin_level=city"
         }
       ]
     }
-  ]
+  ],
+  "meta": {
+    "total": 43,
+    "limit": 30,
+    "skip": 0,
+    "page": 1,
+    "totalPages": 2
+  }
 }
 ```
 
@@ -132,10 +155,22 @@ curl "https://api.airqo.net/api/v2/devices/grids/summary?admin_level=city"
 **Example — extract coordinates for mapping (JavaScript)**
 
 ```js
-const response = await fetch('https://api.airqo.net/api/v2/devices/grids/summary');
-const data = await response.json();
+const limit = 80;
+const grids = [];
+let total = 0;
+let page = [];
 
-const stationCoordinates = data.grids
+do {
+  const response = await fetch(
+    `https://api.airqo.net/api/v2/devices/grids/summary?limit=${limit}&skip=${grids.length}`
+  );
+  const data = await response.json();
+  page = data.grids;
+  total = data.meta.total;
+  grids.push(...page);
+} while (page.length > 0 && grids.length < total);
+
+const stationCoordinates = grids
   .flatMap((grid) => grid.sites || [])
   .map((site) => ({
     id: site._id,
@@ -151,10 +186,17 @@ const stationCoordinates = data.grids
 import requests
 import geopy.distance  # pip install geopy
 
-response = requests.get('https://api.airqo.net/api/v2/devices/grids/summary')
-data = response.json()
+grids = []
+while True:
+    data = requests.get(
+        'https://api.airqo.net/api/v2/devices/grids/summary',
+        params={'limit': 80, 'skip': len(grids)},
+    ).json()
+    grids.extend(data['grids'])
+    if not data['grids'] or len(grids) >= data['meta']['total']:
+        break
 
-all_sites = [site for grid in data['grids'] for site in grid.get('sites', [])]
+all_sites = [site for grid in grids for site in grid.get('sites', [])]
 
 poi = (0.33500, 32.57140)  # latitude, longitude
 
@@ -506,7 +548,7 @@ curl "https://api.airqo.net/api/v2/devices/locations?admin_level=country&token=Y
 
 ## Pagination
 
-All list endpoints support `limit` and `skip` parameters for pagination. The `meta` object in every response includes `total`, `page`, and `pages` to help you navigate large result sets.
+All list endpoints support `limit` and `skip` parameters for pagination. The `meta` object in every response includes `total`, `page`, and the number of pages to help you navigate large result sets. The number of pages is `pages` on most endpoints and `totalPages` on [grid summary](#grid-summary-with-site-details).
 
 **Example — page through all sites in blocks of 100**
 
@@ -525,7 +567,7 @@ curl "https://api.airqo.net/api/v2/devices/metadata/sites?limit=100&skip=100&tok
 ### Find a Grid ID for a city
 
 1. Call the grid summary endpoint with `admin_level=city`
-2. Locate your city by `long_name`
+2. Locate your city by `long_name`, [paging through the results](#grid-summary-with-site-details) if it isn't on the first page
 3. Copy the `_id` value — that is your Grid ID
 
 ### Find all Site IDs in your Grid

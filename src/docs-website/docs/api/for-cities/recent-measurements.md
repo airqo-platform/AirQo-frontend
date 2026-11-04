@@ -109,19 +109,32 @@ for m in data['measurements']:
       "pm10": {
         "value": 31.82
       },
+      "no2": {
+        "value": null
+      },
+      "aqi_category": "Moderate",
+      "aqi_color": "ffff00",
+      "aqi_index": 75,
       "frequency": "hourly",
-      "deviceDetails": {
-        "name": "airqo_bx2847",
-        "isOnline": true,
-        "status": "deployed",
-        "latitude": -1.2921,
-        "longitude": 36.8219,
-        "lastActive": "2025-09-25T14:00:00.000Z"
+      "siteDetails": {
+        "name": "Civic Centre, Nairobi",
+        "city": "Nairobi",
+        "country": "Kenya",
+        "approximate_latitude": -1.2921,
+        "approximate_longitude": 36.8219
       }
     }
   ]
 }
 ```
+
+This example is abbreviated to the most commonly used fields, so real rows contain more.
+
+:::note Reading the rows
+Pollutant fields are objects, so read `pm2_5.value` rather than `pm2_5`.
+
+Each row is the latest reading from one device, so `time` can differ between rows. To summarise a Grid, aggregate across rows or filter by `site_id`. Don't use only the first row, and don't chart the rows as a time series.
+:::
 
 ---
 
@@ -159,12 +172,12 @@ for m in data['measurements']:
 | `time` | Reading timestamp (ISO 8601) |
 | `pm2_5.value` | PM2.5 concentration in μg/m³ |
 | `pm10.value` | PM10 concentration in μg/m³ |
+| `no2.value` | NO₂ reading. May be `null`. |
+| `aqi_category` | AQI category name for the reading |
+| `aqi_color` | Display colour for the AQI category |
+| `aqi_index` | AQI value for the reading |
 | `frequency` | Always `"hourly"` for this endpoint |
-| `deviceDetails.latitude` | Device latitude |
-| `deviceDetails.longitude` | Device longitude |
-| `deviceDetails.isOnline` | Whether device is currently active |
-| `deviceDetails.lastActive` | Last calibrated reading timestamp (ISO 8601) |
-| `deviceDetails.lastRawData` | Last raw reading timestamp (ISO 8601). Optional: may be absent. |
+| `siteDetails` | Details of the device's site. Useful fields include `name`, `city`, `country`, `approximate_latitude`, and `approximate_longitude`. |
 
 ---
 
