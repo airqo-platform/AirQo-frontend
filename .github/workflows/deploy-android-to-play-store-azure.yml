@@ -18,7 +18,7 @@ jobs:
         working-directory: src/mobile
     steps:
       - name: Checkout
-        uses: actions/checkout@v6.1.0
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
 
       - name: Set up JDK
         uses: actions/setup-java@v4
@@ -33,7 +33,7 @@ jobs:
           flutter-version: "3.47.4"
 
       - name: Login to Azure
-        uses: azure/login@v3.1.0
+        uses: azure/login@a641126d1b8aa4d1fa005f4f92df94a3a4c4c906 # v3.1.0
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
