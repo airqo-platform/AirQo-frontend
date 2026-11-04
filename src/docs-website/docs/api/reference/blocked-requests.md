@@ -32,12 +32,15 @@ When a request is rejected, the response body may include an `errors.code` that 
   "success": false,
   "message": "Unauthorized",
   "errors": {
-    "message": "Requests from IP address 203.0.113.25 are blocked for this token. Add your server's public IP address to this API client's IP addresses, then retry.",
     "code": "IP_BLOCKED",
+    "message": "This API token request was rejected (IP_BLOCKED). Follow the docs link to fix it.",
+    "ip": "203.0.113.25",
     "docs": "https://platform.airqo.net/docs/api/reference/blocked-requests/"
   }
 }
 ```
+
+Rely on `errors.code` rather than the message text, which can change.
 
 | `errors.code` | What it means | What to do |
 |---|---|---|
@@ -66,6 +69,8 @@ curl https://checkip.amazonaws.com
 import requests
 print(requests.get("https://ifconfig.me", timeout=10).text)
 ```
+
+When `errors.ip` is present in a blocked response, it shows the address AirQo saw. This helps on shared hosting and WordPress, where there may be no shell to run `curl`. Confirm that address with your hosting provider.
 
 :::tip Compare with the alert email
 The IP addresses in the security alert email are the addresses we actually saw. If they don't match what you added to your client, you have allowlisted the wrong address. Most often that's because the IP changes between runs ([see below](#if-your-ip-address-keeps-changing)).
@@ -138,6 +143,7 @@ The fix is to give your outbound traffic **one stable IP address**, then add tha
 | **Azure Functions / App Service** | Use **VNet integration** with an **Azure NAT Gateway** that has a static public IP. |
 | **Vercel, Netlify, other hosted platforms** | Use the platform's static-IP option if available, or send AirQo API calls through a small proxy server that has a static IP. |
 | **GitHub Actions / hosted CI runners** | Use a self-hosted runner with a static IP, or call the API through a proxy that has one. |
+| **Shared web hosting, WordPress** | Ask your hosting provider whether your site's outbound IP address is stable. If it isn't, ask about a static outbound IP, or call the API through a proxy server that has one. |
 | **Home or office network** | Your internet provider may change your IP. Ask for a static IP, or run the job from a server that has one. |
 
 If none of these are possible for you, contact [support@airqo.net](mailto:support@airqo.net). Include your API client name and the platform you run on.

@@ -31,9 +31,13 @@ Every recent-measurements record shows how current it is. See [Response Structur
 | Field | What it tells you |
 |-------|-------------------|
 | `time` | The hour this calibrated value represents |
-| `deviceDetails.lastActive` | The device's most recent calibrated reading |
-| `deviceDetails.lastRawData` | The last time the device sent a raw reading (optional: may be absent) |
+| `deviceDetails.lastActive` | The device's most recent calibrated reading, where `deviceDetails` is returned |
+| `deviceDetails.lastRawData` | The last time the device sent a raw reading, where `deviceDetails` is returned (optional: may be absent) |
 | `isCache` | Whether the response came from cache |
+
+:::note Grid ID responses
+[Grid ID measurements](../for-cities/recent-measurements.md#measurement-object) don't include `deviceDetails`. Use `time` on each row, which can differ between devices.
+:::
 
 Compare these timestamps with the current time (they are in UTC). If `lastRawData` is recent but `lastActive` is older, the device is still reporting and its next hourly value has not been published yet. If both are old, the device may be offline.
 
@@ -43,4 +47,4 @@ Compare these timestamps with the current time (they are in UTC). If `lastRawDat
 
 - **Poll at most every 15 to 30 minutes.** Calibrated values change once an hour, so polling more often returns the same data and counts against your [rate limit](../getting-started/pricing-tiers.md#rate-limits).
 - **Show the timestamp to your users.** Label displayed values with their hour, for example "PM2.5 at 14:00", rather than calling them "live" or "now". Convert the time from UTC to the viewer's local time.
-- **Don't treat a missing latest hour as an outage.** Check `lastRawData` first: the device is usually still reporting, and the hourly value just hasn't been published yet.
+- **Don't treat a missing latest hour as an outage.** Check `lastRawData` first, where it is returned: the device is usually still reporting, and the hourly value just hasn't been published yet.
