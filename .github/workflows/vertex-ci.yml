@@ -20,13 +20,13 @@ permissions:
 jobs:
   check-vertex:
     name: check-vertex
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: src/vertex
     steps:
       - name: Checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        uses: actions/checkout@v6.1.0
         with:
           persist-credentials: false
 
@@ -65,7 +65,7 @@ jobs:
   # so unit/lint feedback isn't delayed.
   e2e-vertex:
     name: e2e-vertex (informational)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     continue-on-error: true
     defaults:
       run:
@@ -75,7 +75,7 @@ jobs:
       E2E_USER_PASSWORD: ${{ secrets.VERTEX_E2E_USER_PASSWORD }}
     steps:
       - name: Checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        uses: actions/checkout@v6.1.0
         with:
           persist-credentials: false
 
