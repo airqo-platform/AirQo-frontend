@@ -1,16 +1,16 @@
 "use client";
 
-import React, { useState } from "react";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+import React from "react";
+import Link from "next/link";
+import { useParams, useSearchParams } from "next/navigation";
+import { AqChevronRight } from "@airqo/icons-react";
 import { DeviceDiagnosticsPanel } from "@/components/diagnostics/DeviceDiagnosticsPanel";
-import { Button } from "@/components/ui/button";
+import { BackButton } from "@/components/diagnostics/FleetHealthParts";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ChevronLeft, Sliders, Stethoscope } from "lucide-react";
 import { useGroup } from "@/lib/group-context";
 
 export default function DeviceDiagnosticInspectorPage() {
   const params = useParams();
-  const router = useRouter();
   const { activeGroup, loading: groupLoading } = useGroup();
   // Partner organisations get the stored diagnoses only; evaluations and the simulator are AirQo tools.
   const readOnly = activeGroup?.toLowerCase() !== "airqo";
@@ -19,8 +19,6 @@ export default function DeviceDiagnosticInspectorPage() {
   const deviceId = Array.isArray(rawId) ? rawId[0] : rawId;
 
   const deviceName = useSearchParams()?.get("name") || deviceId;
-
-  const [windowHours, setWindowHours] = useState<number>(24);
 
   if (groupLoading) {
     return (
@@ -32,63 +30,26 @@ export default function DeviceDiagnosticInspectorPage() {
   }
 
   return (
-    <div className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto pb-16">
-      {/* Header Navigation */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => router.push(`/dashboard/devices/${deviceId}`)}
-            className="h-8 text-xs bg-white gap-1.5"
-          >
-            <ChevronLeft className="w-4 h-4" />
-            Device Details
-          </Button>
-          <div className="h-4 w-px bg-gray-300 hidden sm:block" />
-          <div>
-            <h1 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-              <Stethoscope className="w-5 h-5 text-blue-600" />
-              Device Diagnostic Inspector
-            </h1>
-            <p className="text-xs text-gray-500 font-mono">
-              Target Device: <strong className="text-gray-900" title={deviceId}>{deviceName}</strong>
-            </p>
-          </div>
-        </div>
-
-        {/* Evaluation Controls */}
-        {!readOnly && (
-          <div className="flex items-center gap-2">
-            <select
-              value={windowHours}
-              onChange={(e) => setWindowHours(Number(e.target.value))}
-              className="h-8 text-xs px-2.5 rounded-lg border border-gray-300 bg-white text-gray-700 font-medium focus:ring-2 focus:ring-blue-500"
-              title="Telemetry window for on-demand evaluations"
-            >
-              <option value={12}>12 Hours Horizon</option>
-              <option value={24}>24 Hours Horizon</option>
-              <option value={48}>48 Hours Horizon</option>
-              <option value={168}>7 Days Horizon</option>
-            </select>
-
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => router.push(`/dashboard/diagnostics/simulator?device_id=${encodeURIComponent(deviceId)}`)}
-              className="h-8 text-xs bg-white text-blue-700 border-blue-200 hover:bg-blue-50 gap-1.5"
-            >
-              <Sliders className="w-3.5 h-3.5" />
-              Bench Simulator
-            </Button>
-          </div>
-        )}
+    <div className="p-4 md:p-6 space-y-4 max-w-7xl mx-auto pb-16">
+      <div className="flex flex-wrap items-center gap-3">
+        <BackButton fallbackHref={`/dashboard/devices/${deviceId}`} />
+        <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-sm text-muted-foreground">
+          <Link href="/dashboard/devices" className="font-medium text-primary hover:underline">
+            Devices
+          </Link>
+          <AqChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
+          <Link href={`/dashboard/devices/${deviceId}`} className="font-medium text-primary hover:underline">
+            {deviceName}
+          </Link>
+          <AqChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
+          <span aria-current="page">Diagnostics</span>
+        </nav>
       </div>
 
       {deviceId ? (
-        <DeviceDiagnosticsPanel deviceId={deviceId} deviceName={deviceName} windowHours={windowHours} readOnly={readOnly} />
+        <DeviceDiagnosticsPanel deviceId={deviceId} deviceName={deviceName} readOnly={readOnly} />
       ) : (
-        <p className="text-sm text-gray-500">No device selected.</p>
+        <p className="text-sm text-muted-foreground">No device selected.</p>
       )}
     </div>
   );

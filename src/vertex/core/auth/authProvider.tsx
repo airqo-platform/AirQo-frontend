@@ -41,6 +41,7 @@ import {
   shouldSkipBackendOAuthBootstrap,
   clearBackendOAuthSignedOutFlag,
 } from './oauth-session';
+import { ACCESS_TOKEN_REFRESH_ERROR } from './accessTokenRefresh';
 import { waitForSession } from './waitForSession';
 
 // --- Helper Functions ---
@@ -273,11 +274,15 @@ function UserDataFetcher({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!isError || !error) return;
 
-    logger.error('[UserDataFetcher] Error fetching user details', {
-      error: getApiErrorMessage(error),
-      isOnline,
-      fetchStatus,
-    });
+    // 401/403 mean the session ended, which AuthWrapper handles, so they are not reported as errors.
+    const status = (error as { response?: { status?: number } }).response?.status;
+    if (status !== 401 && status !== 403) {
+      logger.error('[UserDataFetcher] Error fetching user details', {
+        error: getApiErrorMessage(error),
+        isOnline,
+        fetchStatus,
+      });
+    }
 
     // Only show error if online and not just a network issue
     if (isOnline && fetchStatus === 'idle') {
@@ -579,6 +584,15 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
       // Try to refresh session
       await update();
       const freshSession = await getSession();
+
+      // The API refused to renew the token, so this session cannot recover.
+      if (freshSession?.error === ACCESS_TOKEN_REFRESH_ERROR) {
+        logger.info('[AuthWrapper] Access token could not be refreshed, logging out');
+        setHasHandledUnauthorized(true);
+        showBanner({ severity: 'error', message: 'Your session has expired. Please log in again.', scoped: false });
+        logout();
+        return;
+      }
 
       if (freshSession && freshSession.user) {
         // Session is valid - track 401s to detect account issues

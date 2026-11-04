@@ -19,6 +19,7 @@ declare module 'next-auth' {
       expiresAt?: string;
       exp?: number;
     } & DefaultSession['user']) | null;
+    error?: 'RefreshAccessTokenError';
   }
 
   interface User extends DefaultUser {
@@ -52,5 +53,6 @@ declare module 'next-auth/jwt' {
     image?: string;
     expiresAt?: string;
     exp?: number;
+    error?: 'RefreshAccessTokenError';
   }
 }

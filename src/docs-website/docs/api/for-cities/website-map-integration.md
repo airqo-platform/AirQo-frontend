@@ -29,6 +29,7 @@ The map shows public monitoring sites connected to your **AirQo Grid ID**.
 |--------|----------|---------------|
 | [**Quick embed**](#quick-embed) | Adding a map to an existing page or CMS | Your Grid ID and a place to paste HTML |
 | [**Developer: HTML or PHP**](#developer-integration) | Customising the map code and hosting it yourself | Your Grid ID, an API token, and a Node.js backend |
+| [**WordPress**](#wordpress) | Adding a map or a custom dashboard to a WordPress site | Your Grid ID. A custom dashboard also needs an API token and server-side PHP. |
 
 ## Quick embed — Copy. Paste. You're live. {#quick-embed}
 
@@ -60,6 +61,19 @@ Save or publish the page, then open it in your browser. Check that your city's s
 :::tip Using a CMS?
 Paste the iframe into a **custom HTML block** or your CMS's code editor so it renders as a map. Once the map loads, your quick integration is complete.
 :::
+
+---
+
+## WordPress {#wordpress}
+
+**Map only:** paste the [iframe](#quick-embed) into a **Custom HTML** block. No token is needed.
+
+**Custom dashboard:** call the API from PHP on the server, through a WordPress AJAX or REST handler. Never call it from browser JavaScript.
+
+- Keep the token outside the page source, for example in `wp-config.php`.
+- Add your server's public IP address to the API client. See [Troubleshooting blocked requests](../reference/blocked-requests.md).
+- Cache API responses on the server.
+- Clear any page or minification cache after changing page scripts.
 
 ---
 
@@ -124,6 +138,7 @@ Folder: [`php/`](https://github.com/airqo-platform/code-samples/tree/staging/php
 | **Node.js** | **18 or newer** when credentials are set as environment variables. The PHP variant's `.env` file support needs **20.12 or newer**. Run it on a server that can keep a persistent process. The map page alone cannot work because it needs the proxy. |
 | **PHP** (PHP variant only) | Your existing PHP hosting. For local testing, the `php` command-line executable with `allow_url_fopen` enabled (the default). |
 | **An AirQo API access token** | See [Step 1](#step-1--get-your-access-token). Forecasts require a **Premium** tier token. See [Pricing & Access Tiers](../getting-started/pricing-tiers.md). |
+| **Your server's public IP on the API client** | Server-side calls can be blocked automatically, even with a valid token. Add the IP address before going live. See [Troubleshooting blocked requests](../reference/blocked-requests.md). The [quick embed](#quick-embed) doesn't need this, because no token is used on your server. |
 | **Your city's Grid ID** | See [Finding your Grid ID](./intro.md#finding-your-grid-id), or ask AirQo support |
 | **An HTTPS website** | Plus a way to route selected paths to the Node service on the **same domain** (e.g. Nginx, Apache, IIS, or an equivalent platform rewrite) |
 | **Network access** | Server → `https://api.airqo.net` (outbound). Browser → `unpkg.com` (Leaflet), `code.jquery.com`, and OpenStreetMap tiles. If your site sets a Content Security Policy, allow these. |
@@ -143,7 +158,8 @@ Create an API client and generate a token in Nexus as described in [Authenticati
 This token will be used **only on the server**. Configure the client to match:
 
 - **Do not enable origin restriction** on this client. Requests come from your Node server, which sends no `Origin` header. See [Best Practices → Origin restriction](../reference/best-practices.md#origin-restriction-browser-integrations).
-- **Consider scoping the token to your Grid** and **whitelisting your server's egress IP**. See [Security Enhancements](../getting-started/security.md).
+- **Add your server's public IP address to the API client before going live.** Server-side calls can be blocked automatically, even with a valid token. See [Troubleshooting blocked requests](../reference/blocked-requests.md).
+- **Consider scoping the token to your Grid.** See [Security Enhancements](../getting-started/security.md).
 
 **If the token is suspended or needs replacing**, you do not need a new client:
 
@@ -502,7 +518,13 @@ curl -i https://example.org/healthz                     # {"status":"ok"} (if ex
 </TabItem>
 </Tabs>
 
-`/healthz` only confirms that the Node process responds. It does not test your token or data availability, so always check a real data request too.
+`/healthz` only confirms that the Node process responds. It does not test your token or data availability, so always check a real data request too. It should succeed and should not return `IP_BLOCKED`:
+
+```bash
+curl -i https://example.org/airqo-api/api/v2/devices/measurements/grids/YOUR_GRID_ID
+```
+
+If the response contains `IP_BLOCKED`, follow [Troubleshooting blocked requests](../reference/blocked-requests.md).
 
 Then, in a browser:
 
@@ -522,9 +544,11 @@ These issues are specific to this integration. For API status codes in general, 
 
 | Symptom | What to check |
 |---------|---------------|
+| Embed shows "Choose an AirQo grid" | `grid_id` is missing or invalid in the iframe `src`. Check that it is present and contains only your Grid ID. An ID that is well formed but wrong does not show this message, so also check the value against [Find your Grid ID](./intro.md#finding-your-grid-id). |
 | Blank page, or `/airqo-config` fails | Is `/airqo-config` routed to the Node service, and is the service running? |
 | Node exits at startup | Both `AIRQO_API_TOKEN` and `AIRQO_GRID_ID` must be set in production. Check that `PORT` is free and valid. For `.env` loading, Node must be 20.12 or newer. |
-| `401` / `403` on `/airqo-api/` calls | The **server-side** token: is it the real token rather than a template placeholder, not suspended, and on a tier that includes the endpoint (forecasts need Premium)? A stale shell variable can also override `.env`. See [401](../reference/error-codes.md#401-unauthorized) and [403](../reference/error-codes.md#403-forbidden--tier-restriction). |
+| `IP_BLOCKED` on `/airqo-api/` calls | The server's public IP address is not on the API client, even if the token is valid. Add it by following [Troubleshooting blocked requests](../reference/blocked-requests.md). |
+| Other `401` / `403` on `/airqo-api/` calls | The **server-side** token: is it the real token rather than a template placeholder, not suspended, and on a tier that includes the endpoint (forecasts need Premium)? A stale shell variable can also override `.env`. See [401](../reference/error-codes.md#401-unauthorized) and [403](../reference/error-codes.md#403-forbidden--tier-restriction). |
 | `404` with `"AirQo API route not allowed."` | The request is not one of the three allowlisted paths for the configured Grid. Check the Grid ID and your path rewrite. |
 | `404` from AirQo | Check the Grid ID. See [404 Not Found](../reference/error-codes.md#404-not-found). |
 | `502` `"Could not reach the AirQo API."` | Outbound connectivity from the server to `api.airqo.net`, and the service logs. Upstream requests time out after **30 seconds**. |

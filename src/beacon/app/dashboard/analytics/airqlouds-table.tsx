@@ -38,6 +38,7 @@ import { ManufacturerFilter } from "@/components/devices/manufacturer-filter"
 import { useNetworks } from "@/hooks/use-networks"
 import { buildNetworkFilterOptions, pruneNetworkSelection, serializeNetworkFilter } from "@/lib/manufacturers"
 import { formatSiteLocation } from "@/lib/maintenance-map"
+import { DEFAULT_COHORT_TAG, cohortTagsFor } from "@/lib/cohort-tags"
 import { formatCompactNumber } from "@/lib/utils"
 
 type GridAdminLevelFilter = GridAdminLevel | "all"
@@ -114,10 +115,6 @@ interface AirQloudsTableProps {
   pageSize?: number
   /** Plural name for the rows, e.g. "Clusters" for cohorts; defaults to ENTITY_LABELS. */
   entityLabel?: string
-}
-
-function getDefaultCohortTag(activeGroup: string | null): string {
-  return activeGroup?.toLowerCase() === "airqo" ? "hardware" : "organizational"
 }
 
 // The data pipeline treats PM2.5 outside 0-1000 µg/m³ as invalid; a corrupt reading
@@ -418,10 +415,10 @@ export default function AirQloudsTable({
 
   // Cohort Tags State
   const [cohortTags, setCohortTags] = useState<string[]>(
-    isTagsLocked && lockedTags ? lockedTags : [getDefaultCohortTag(activeGroup)]
+    isTagsLocked && lockedTags ? lockedTags : [DEFAULT_COHORT_TAG]
   )
-  const availableTags = ["hardware", "duplicate", "organizational", "inlab", "misc"] // Hardcoded for now, could be fetched
-  const lastSuccessfulCohortTagRef = useRef<string>(getDefaultCohortTag(activeGroup))
+  const availableTags = cohortTagsFor(activeGroup)
+  const lastSuccessfulCohortTagRef = useRef<string>(DEFAULT_COHORT_TAG)
 
   // Pagination state
   const [page, setPage] = useState(1)
@@ -506,14 +503,10 @@ export default function AirQloudsTable({
 
         const canFallback = (response.airqlouds?.length ?? 0) === 0 && !searchTerm.trim()
         if (canFallback) {
-          const fallbackTags = [
-            lastSuccessfulCohortTagRef.current,
-            "hardware",
-            "organizational",
-            "duplicate",
-            "inlab",
-            "misc",
-          ].filter((tag, index, arr) => Boolean(tag) && arr.indexOf(tag) === index && !cohortTags.includes(tag))
+          // Only tags this organisation may see, so the fallback never surfaces hardware cohorts outside AirQo
+          const fallbackTags = [lastSuccessfulCohortTagRef.current, ...availableTags].filter(
+            (tag, index, arr) => availableTags.includes(tag) && arr.indexOf(tag) === index && !cohortTags.includes(tag)
+          )
 
           for (const fallbackTag of fallbackTags) {
             const fallbackResponse = await fetchEntities(skip, pageSize, [fallbackTag])
@@ -553,7 +546,8 @@ export default function AirQloudsTable({
 
   useEffect(() => {
     if (groupLoading || isTagsLocked) return
-    setCohortTags([getDefaultCohortTag(activeGroup)])
+    setCohortTags([DEFAULT_COHORT_TAG])
+    lastSuccessfulCohortTagRef.current = DEFAULT_COHORT_TAG
     setPage(1)
   }, [activeGroup, groupLoading, isTagsLocked])
 

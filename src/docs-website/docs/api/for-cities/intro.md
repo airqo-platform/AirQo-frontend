@@ -51,6 +51,7 @@ If a device belongs to an organisation's private Cohort, it will **not** appear 
 - **Browse the [Metadata API](../reference/metadata.md#grid-summary-with-site-details):** call `GET /api/v2/devices/grids/summary?admin_level=city` to list all city-level grids with their site details
 - **Filter by location** using the `admin_level` query parameter (`country`, `province`, `city`, `district`)
 - **Example:** The Grid ID for Nairobi is `64b7ac8fd7249f0029feca80`
+- **Can't see your grid?** Results are paged, so it may be on a later page. See [Grid summary paging](../reference/metadata.md#grid-summary-with-site-details).
 
 ---
 

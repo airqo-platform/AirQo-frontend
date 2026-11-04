@@ -123,12 +123,15 @@ If the token is correct but still rejected, check the response for an `errors.co
   "success": false,
   "message": "Unauthorized",
   "errors": {
-    "message": "Requests from IP address 203.0.113.25 are blocked for this token. ...",
     "code": "IP_BLOCKED",
+    "message": "This API token request was rejected (IP_BLOCKED). Follow the docs link to fix it.",
+    "ip": "203.0.113.25",
     "docs": "https://platform.airqo.net/docs/api/reference/blocked-requests/"
   }
 }
 ```
+
+Rely on `errors.code` rather than the message text, which can change.
 
 | `errors.code` | Meaning |
 |---|---|

@@ -13,13 +13,9 @@ import logger from '@/lib/logger';
 import { isHCaptchaEnabled } from '@/lib/envConstants';
 import { buildServerApiUrl } from '@/lib/api-routing';
 import { normalizeOAuthAccessToken } from '@/core/auth/oauth-session';
+import { refreshAccessTokenIfNeeded } from '@/core/auth/accessTokenRefresh';
 
 const isProduction = process.env.NODE_ENV === 'production';
-
-const isTokenExpired = (exp?: number): boolean => {
-  if (!exp) return false;
-  return Date.now() / 1000 > exp;
-};
 
 const getValidUrl = (value?: string) => {
   const url = value?.trim();
@@ -331,12 +327,14 @@ export const options: NextAuthOptions = {
         token.image = user.image ?? undefined;
         token.exp = user.exp;
       }
-      return token;
+      // token.exp is NextAuth's own cookie expiry once encoded, so the API
+      // token's lifetime is read from the token itself.
+      return refreshAccessTokenIfNeeded(token);
     },
 
     async session({ session, token }) {
-      if (isTokenExpired(token.exp as number | undefined)) {
-        return { ...session, user: null };
+      if (token?.error) {
+        session.error = token.error;
       }
 
       if (token) {

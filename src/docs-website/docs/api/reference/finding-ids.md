@@ -33,7 +33,7 @@ A Grid ID represents a geographical area (typically a city or district). Grids a
 
 1. Call the [grid summary endpoint](./metadata.md#grid-summary-with-site-details): `GET /api/v2/devices/grids/summary`
 2. Use the `admin_level=city` query parameter to filter to city-level grids
-3. Locate your city by `long_name` and copy its `_id` value
+3. Locate your city by `long_name` and copy its `_id` value. Results are paged, so if your city isn't listed, [check later pages](./metadata.md#grid-summary-with-site-details).
 
 **Known Grid IDs (examples):**
 
