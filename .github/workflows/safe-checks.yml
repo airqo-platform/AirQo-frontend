@@ -19,7 +19,7 @@ jobs:
       calibrate: ${{ steps.check.outputs.calibrate }}
       docs: ${{ steps.check.outputs.docs }}
     steps:
-      - uses: actions/checkout@v6.1.0
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           fetch-depth: 0
           persist-credentials: false
@@ -63,7 +63,7 @@ jobs:
     if: needs.detect-changes.outputs.website == 'true'
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v6.1.0
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           persist-credentials: false
       - uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af
@@ -81,7 +81,7 @@ jobs:
     if: needs.detect-changes.outputs.platform == 'true'
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v6.1.0
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           persist-credentials: false
       - uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af
@@ -99,7 +99,7 @@ jobs:
     if: needs.detect-changes.outputs.beacon == 'true'
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v6.1.0
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           persist-credentials: false
       - uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af
@@ -119,7 +119,7 @@ jobs:
     if: needs.detect-changes.outputs.calibrate == 'true'
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v6.1.0
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           persist-credentials: false
       - uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af
@@ -139,7 +139,7 @@ jobs:
     if: needs.detect-changes.outputs.docs == 'true'
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v6.1.0
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           persist-credentials: false
       - uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af
