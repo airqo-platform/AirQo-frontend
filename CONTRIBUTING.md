@@ -12,7 +12,7 @@ To get an overview of each product, read the respective product READMEs:
 - [Vertex](/vertex/README.md)
 - [Packages](/packages/README.md)
 - [Calibrate](/calibrate/README.md)
-- [Mobile App](/mobile-v3/README.md)
+- [Mobile App](/src/mobile/README.md)
 - [Website](/website2/README.md)
 
 Here are some resources to help you get started with open source contributions:
