@@ -1,3 +1,4 @@
+{{- $rollingUpdate := default dict .Values.rollingUpdate }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -14,7 +15,7 @@ spec:
     type: RollingUpdate
     rollingUpdate:
       maxSurge: 1
-      maxUnavailable: 1
+      maxUnavailable: {{ default 1 $rollingUpdate.maxUnavailable }}
   minReadySeconds: 5
   template:
     metadata:

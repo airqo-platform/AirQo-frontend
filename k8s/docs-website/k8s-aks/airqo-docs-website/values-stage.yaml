@@ -1,4 +1,6 @@
-replicaCount: 2
+replicaCount: 1
+rollingUpdate:
+  maxUnavailable: "0%"
 image:
   repository: airqoacr.azurecr.io/airqo-stage-docs
   tag: stage-638dab8b-1793787125
