@@ -10,6 +10,9 @@ const isAbortError = (error: unknown): boolean =>
     'name' in error &&
     error.name === 'AbortError');
 
+const isNetworkCoverageUrl = (url: string): boolean =>
+  /\/api\/v2\/devices\/network-coverage(?:\/|[?#]|$)/.test(url);
+
 interface ApiClientConfig {
   baseURL: string;
   timeout?: number;
@@ -72,10 +75,8 @@ class ApiClient {
           headers: requestHeaders,
           body: data ? JSON.stringify(data) : undefined,
           signal: controller.signal,
-          // Network Coverage data must be read fresh after a registry write;
-          // the proxy already owns the bounded server-side cache and invalidates
-          // it after mutations.
-          ...(fullUrl.includes('/api/v2/devices/network-coverage')
+          // Bypass browser caching so registry writes are visible on the next read.
+          ...(isNetworkCoverageUrl(fullUrl)
             ? { cache: 'no-store' as RequestCache }
             : {}),
         });

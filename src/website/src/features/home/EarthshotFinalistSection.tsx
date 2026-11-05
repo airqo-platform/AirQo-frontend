@@ -1,5 +1,7 @@
 import Image from 'next/image';
 
+import { Button } from '@/components/ui/button';
+
 const EARTHSHOT_BADGE_SRC = '/assets/images/earthshot_badge.webp';
 
 export default function EarthshotFinalistSection() {
@@ -35,15 +37,20 @@ export default function EarthshotFinalistSection() {
             data gaps and help cities turn hyperlocal air quality information
             into action for cleaner air.
           </p>
-          <a
-            href="https://earthshotprize.org/winners-finalists/airqo/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 rounded-xl bg-[#2E3A59] px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#1C2540] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#C8A84E]"
+          <Button
+            asChild
+            size="lg"
+            className="h-auto min-h-11 gap-2 whitespace-normal bg-[#202124] px-4 py-3 text-center text-white hover:bg-[#111827] sm:px-6"
           >
-            Discover our Earthshot journey
-            <span aria-hidden="true">&rarr;</span>
-          </a>
+            <a
+              href="https://earthshotprize.org/winners-finalists/airqo/"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Discover our Earthshot story
+              <span aria-hidden="true">&rarr;</span>
+            </a>
+          </Button>
         </div>
       </div>
     </section>

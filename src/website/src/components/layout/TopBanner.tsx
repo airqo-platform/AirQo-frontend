@@ -205,52 +205,50 @@ const TopBanner = () => {
 
   return (
     <>
-      <div className="w-full bg-blue-50 border-b border-blue-100 notranslate">
+      <div className="w-full border-b border-blue-100 bg-blue-50 notranslate">
         <div className="container mx-auto flex max-w-5xl items-center gap-2 px-2 py-1">
-          <div className="flex flex-none items-center space-x-4">
+          <div className="flex flex-none items-center space-x-1">
             <a
               href="mailto:info@airqo.net"
-              className="hidden md:block text-blue-600 font-medium text-sm hover:text-blue-800 transition-colors"
+              className="hidden px-2 text-sm font-medium text-blue-600 transition-colors hover:text-blue-800 md:block"
               aria-label="Contact us via email"
             >
               (info@airqo.net)
             </a>
-            <a
-              href="https://www.facebook.com/AirQo"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-600 bg-blue-50 rounded-full p-2 hover:bg-blue-200 transition-all"
-              aria-label="Follow us on Facebook"
-            >
-              <FaFacebookF size={14} />
-            </a>
-            <a
-              href="https://x.com/AirQoProject"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-600 bg-blue-50 rounded-full p-2 hover:bg-blue-200 transition-all"
-              aria-label="Follow us on Twitter"
-            >
-              <FaXTwitter size={14} />
-            </a>
-            <a
-              href="https://www.linkedin.com/company/airqo/mycompany/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-600 bg-blue-50 rounded-full p-2 hover:bg-blue-200 transition-all"
-              aria-label="Follow us on LinkedIn"
-            >
-              <FaLinkedinIn size={14} />
-            </a>
-            <a
-              href="https://www.youtube.com/channel/UCx7YtV55TcqKGeKsDdT5_XQ"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-600 bg-blue-50 rounded-full p-2 hover:bg-blue-200 transition-all"
-              aria-label="Subscribe to our YouTube channel"
-            >
-              <FaYoutube size={14} />
-            </a>
+
+            {[
+              {
+                href: 'https://www.facebook.com/AirQo',
+                label: 'Follow us on Facebook',
+                icon: FaFacebookF,
+              },
+              {
+                href: 'https://x.com/AirQoProject',
+                label: 'Follow us on X',
+                icon: FaXTwitter,
+              },
+              {
+                href: 'https://www.linkedin.com/company/airqo/mycompany/',
+                label: 'Follow us on LinkedIn',
+                icon: FaLinkedinIn,
+              },
+              {
+                href: 'https://www.youtube.com/channel/UCx7YtV55TcqKGeKsDdT5_XQ',
+                label: 'Subscribe to our YouTube channel',
+                icon: FaYoutube,
+              },
+            ].map(({ href, label, icon: Icon }) => (
+              <a
+                key={label}
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-full p-2 text-blue-600 transition-colors hover:bg-blue-100 hover:text-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
+                aria-label={label}
+              >
+                <Icon size={14} aria-hidden="true" />
+              </a>
+            ))}
           </div>
 
           <button

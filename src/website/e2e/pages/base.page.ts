@@ -65,4 +65,10 @@ export class BasePage {
     const screenshot = await this.driver.takeScreenshot();
     fs.writeFileSync(screenshotPath, screenshot, 'base64');
   }
+
+  async getMainLandmarkCount(): Promise<number> {
+    return (await this.driver.executeScript(
+      'return document.querySelectorAll("main").length',
+    )) as number;
+  }
 }

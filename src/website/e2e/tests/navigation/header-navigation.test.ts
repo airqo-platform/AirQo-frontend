@@ -32,14 +32,16 @@ describe('Header Navigation', function () {
     expect(isHomeLinkDisplayed).to.be.true;
   });
 
-  it('should have About link', async function () {
-    const isAboutLinkDisplayed = await basePage.isDisplayed('a[href="/about"]');
+  it('should have About AirQo navigation control', async function () {
+    const isAboutLinkDisplayed = await basePage.isDisplayed(
+      'nav button[aria-controls="site-nav-about-airqo"]',
+    );
     expect(isAboutLinkDisplayed).to.be.true;
   });
 
-  it('should have Products link', async function () {
+  it('should have Products navigation control', async function () {
     const isProductsLinkDisplayed = await basePage.isDisplayed(
-      'a[href="/products"]',
+      'nav button[aria-controls="site-nav-products"]',
     );
     expect(isProductsLinkDisplayed).to.be.true;
   });
@@ -50,9 +52,17 @@ describe('Header Navigation', function () {
     expect(urlContainsHome).to.be.true;
   });
 
-  it('should navigate to About when clicking About link', async function () {
-    await basePage.click('a[href="/about"]');
-    const urlContainsAbout = await basePage.waitForUrlContains('/about');
-    expect(urlContainsAbout).to.be.true;
+  it('should reveal About AirQo links when activated', async function () {
+    await basePage.click('nav button[aria-controls="site-nav-about-airqo"]');
+    const aboutLinkVisible = await basePage.isDisplayed(
+      'nav a[href="/about-us"]',
+    );
+    expect(aboutLinkVisible).to.be.true;
+  });
+
+  it('should expose only one main landmark on the Explore page', async function () {
+    await basePage.navigateTo('/explore-data');
+    const landmarkCount = await basePage.getMainLandmarkCount();
+    expect(landmarkCount).to.equal(1);
   });
 });

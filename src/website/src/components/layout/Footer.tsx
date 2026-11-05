@@ -7,13 +7,23 @@ import { FaFacebookF, FaLinkedinIn, FaYoutube } from 'react-icons/fa';
 import { FaXTwitter } from 'react-icons/fa6';
 
 import mainConfig from '@/config/site.config';
+import { AFRICA_CLEAN_AIR_FORUM_URL } from '@/lib/navItems';
 import { CLOUDINARY_IMAGES } from '@/services/external/cloudinary.service';
 
 import CountrySelectorDialog from '../sections/footer/CountrySelectorDialog';
 import MonitorDisplay from '../sections/footer/MonitorDisplay';
 import ScrollToTopButton from './ScrollToTopButton';
 
-const footerLinks = {
+type FooterLink = {
+  label: string;
+  href: string;
+  external?: boolean;
+};
+
+const footerLinks: Record<
+  'products' | 'solutions' | 'about' | 'developers',
+  FooterLink[]
+> = {
   products: [
     { label: 'Binos Monitor', href: '/products/monitor' },
     { label: 'AirQo Nexus', href: '/products/nexus' },
@@ -31,7 +41,6 @@ const footerLinks = {
     {
       label: 'Network Coverage',
       href: '/solutions/network-coverage',
-      external: true,
     },
   ],
   about: [
@@ -39,16 +48,10 @@ const footerLinks = {
     { label: 'Resources', href: '/resources' },
     { label: 'Events', href: '/events' },
     { label: 'FAQs', href: '/faqs' },
-    { label: 'Africa Clean Air Forum', href: '/africa-clean-air-forum' },
     {
-      label: 'Faces of Clean Air',
-      href: '/africa-clean-air-forum-2026/faces-of-clean-air',
-    },
-    { label: 'Clean Air Faces', href: '/africa-clean-air-forum-2026/selfies' },
-    { label: 'Air Quality Quiz', href: '/africa-clean-air-forum-2026/quiz' },
-    {
-      label: 'Quiz Leaderboard',
-      href: '/africa-clean-air-forum-2026/leaderboard',
+      label: 'Africa Clean Air Forum',
+      href: AFRICA_CLEAN_AIR_FORUM_URL,
+      external: true,
     },
     { label: 'Press', href: '/press' },
     { label: 'Careers', href: '/careers' },
@@ -96,6 +99,7 @@ const socialLinks = [
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
+  const [makerereImageFailed, setMakerereImageFailed] = React.useState(false);
 
   return (
     <footer
@@ -234,22 +238,20 @@ const Footer = () => {
 
           <div className="flex flex-col gap-2.5">
             <Link
-              href="https://platform.airqo.net/docs/data-access/researchers-guide/"
+              href="https://platform.airqo.net/docs/api/intro/"
               target="_blank"
               rel="noopener noreferrer"
               className="group flex items-center justify-between rounded-lg border border-gray-200 bg-white px-4 py-3 hover:border-gray-300 transition-colors"
             >
               <span className="text-[14px] font-medium text-gray-700">
-                Researchers Guide
+                AirQo API Guide
               </span>
               <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-400 group-hover:text-blue-600 transition-colors">
                 View Guide
               </span>
             </Link>
             <Link
-              href="https://platform.airqo.net/docs/data-access/fair-usage-policy/"
-              target="_blank"
-              rel="noopener noreferrer"
+              href="/legal/airqo-data#rate-limiting"
               className="group flex items-center justify-between rounded-lg border border-gray-200 bg-white px-4 py-3 hover:border-gray-300 transition-colors"
             >
               <span className="text-[14px] font-medium text-gray-700">
@@ -309,15 +311,19 @@ const Footer = () => {
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="text-[11px] uppercase tracking-wider text-gray-400">
-            A project by
-          </span>
-          <Image
-            src={CLOUDINARY_IMAGES.makerereName}
-            alt="Makerere University"
-            width={160}
-            height={26}
-          />
+          {makerereImageFailed ? (
+            <span className="text-sm font-medium text-gray-600">
+              A project by Makerere University
+            </span>
+          ) : (
+            <Image
+              src={CLOUDINARY_IMAGES.makerereName}
+              alt="A project by Makerere University"
+              width={160}
+              height={26}
+              onError={() => setMakerereImageFailed(true)}
+            />
+          )}
         </div>
       </div>
     </footer>

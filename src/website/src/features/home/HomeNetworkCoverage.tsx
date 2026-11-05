@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useMemo, useRef } from 'react';
 import { HiArrowSmallLeft, HiArrowSmallRight } from 'react-icons/hi2';
 
+import { Button } from '@/components/ui/button';
 import type { ImpactCountryEntry } from '@/features/solutions/network-coverage/networkCoverageTypes';
 import { useNetworkCoverageImpact } from '@/hooks/useApiHooks';
 import { getFlagUrl } from '@/lib/utils/languages';
@@ -63,12 +64,16 @@ const HomeNetworkCoverage = () => {
             We couldn&apos;t load live network coverage right now.
           </p>
           <div className="mt-6 flex flex-wrap items-center gap-4">
-            <Link
-              href="/solutions/network-coverage"
-              className="inline-flex items-center gap-2 font-medium text-white underline-offset-4 hover:underline"
+            <Button
+              asChild
+              size="lg"
+              className="h-auto w-fit max-w-full gap-2 whitespace-normal bg-white px-5 py-3 text-left text-[#0B1B3A] hover:bg-blue-50"
             >
-              View full network coverage →
-            </Link>
+              <Link href="/solutions/network-coverage">
+                Discover network coverage
+                <span aria-hidden="true">&rarr;</span>
+              </Link>
+            </Button>
             <button
               type="button"
               onClick={() => refetch()}
@@ -102,13 +107,16 @@ const HomeNetworkCoverage = () => {
             <p className="mt-4 text-blue-100">
               Explore air quality monitors and networks across the continent.
             </p>
-            <Link
-              href="/solutions/network-coverage"
-              className="mt-8 inline-flex w-fit items-center gap-2 rounded-lg bg-white px-5 py-2.5 font-semibold text-[#0B1B3A] transition-colors hover:bg-blue-50"
+            <Button
+              asChild
+              size="lg"
+              className="mt-8 h-auto w-fit max-w-full gap-2 whitespace-normal bg-white px-5 py-3 text-left text-[#0B1B3A] hover:bg-blue-50"
             >
-              View full network coverage
-              <span aria-hidden="true">→</span>
-            </Link>
+              <Link href="/solutions/network-coverage">
+                Discover network coverage
+                <span aria-hidden="true">&rarr;</span>
+              </Link>
+            </Button>
           </div>
 
           <div className="min-w-0">

@@ -1,7 +1,7 @@
 import ResourcesPage from '@/features/clean-air-forum/resources/ResourcesPage';
 import {
   generateMetadata as createMetadata,
-  METADATA_CONFIGS,
+  getForumPageMetadata,
 } from '@/lib/metadata';
 
 export function generateMetadata({
@@ -9,11 +9,9 @@ export function generateMetadata({
 }: {
   params: { uniqueTitle: string };
 }) {
-  const encodedTitle = encodeURIComponent(params.uniqueTitle);
-  return createMetadata({
-    ...METADATA_CONFIGS.cleanAirForumResources,
-    url: `/africa-clean-air-forum/${encodedTitle}/resources`,
-  });
+  return createMetadata(
+    getForumPageMetadata(params.uniqueTitle, 'Resources', 'resources'),
+  );
 }
 
 const Page = () => {

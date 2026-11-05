@@ -1,11 +1,13 @@
 import { Metadata } from 'next';
 
+import MainLayout from '@/components/layout/MainLayout';
+
 export const metadata: Metadata = {
-  title: 'Explore Air Quality Data | AirQo Nexus Platform and Mobile App',
+  title: 'Explore Air Quality Data and Tools | AirQo',
   description:
-    'Explore real-time air quality data and analytics with AirQo’s powerful tools. Access data via our mobile app, web platform, and advanced analytics to monitor and improve air quality in Africa.',
+    'Explore AirQo data, maps, monitoring products, developer tools, research, and practical resources for understanding and improving air quality across Africa.',
   keywords:
-    'Explore air quality data, AirQo Nexus, AirQo mobile app, air pollution data, real-time air quality data, AirQo tools, environmental data Africa',
+    'Explore air quality data, AirQo Nexus, AirQo mobile app, AirQo API, air pollution data, live air quality map, AirQo tools, environmental data Africa',
 };
 
 export default function ExploreDataLayout({
@@ -13,5 +15,9 @@ export default function ExploreDataLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <>{children}</>;
+  return (
+    <MainLayout showMarketingSections={false} showNewsletter={false}>
+      {children}
+    </MainLayout>
+  );
 }

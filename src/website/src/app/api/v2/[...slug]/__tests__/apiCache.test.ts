@@ -2,7 +2,8 @@ import {
   buildApiCacheKey,
   getApiCache,
   getApiCachePolicy,
-  invalidateApiCacheByPathPrefix,
+  getApiCacheResponseHeaders,
+  isNetworkCoveragePath,
   setApiCache,
 } from '../apiCache';
 
@@ -62,7 +63,6 @@ describe('buildApiCacheKey', () => {
 
 describe('API cache policy', () => {
   it.each([
-    ['devices/network-coverage', 'networkCoverage'],
     [
       'devices/readings/grids/grid-1/representative',
       'gridRepresentativeReading',
@@ -78,6 +78,56 @@ describe('API cache policy', () => {
     expect(
       getApiCachePolicy('devices/readings/grids/grid-1/latest'),
     ).toBeUndefined();
+  });
+
+  it('does not server-cache network coverage reads', () => {
+    expect(getApiCachePolicy('devices/network-coverage')).toBeUndefined();
+    expect(
+      getApiCachePolicy('devices/network-coverage/countries/kenya'),
+    ).toBeUndefined();
+  });
+});
+
+describe('Network Coverage proxy caching', () => {
+  it.each([
+    'devices/network-coverage',
+    'devices/network-coverage/',
+    'devices/network-coverage/countries/kenya',
+  ])('recognizes %s as a Network Coverage path', (path) => {
+    expect(isNetworkCoveragePath(path)).toBe(true);
+  });
+
+  it.each([
+    'devices/network-coverage-v2',
+    'devices/network-coverages',
+    'devices/other-resource',
+  ])('does not mistake %s for a Network Coverage path', (path) => {
+    expect(isNetworkCoveragePath(path)).toBe(false);
+  });
+
+  it('prevents browser caching of Network Coverage responses', () => {
+    expect(
+      getApiCacheResponseHeaders('devices/network-coverage/countries/kenya'),
+    ).toEqual({ 'Cache-Control': 'no-store' });
+  });
+
+  it('preserves the existing response cache policy for allowlisted reads', () => {
+    const cachePolicy = getApiCachePolicy(
+      'devices/readings/grids/grid-1/representative',
+    );
+
+    expect(
+      getApiCacheResponseHeaders(
+        'devices/readings/grids/grid-1/representative',
+        cachePolicy,
+      ),
+    ).toEqual({
+      'Cache-Control': 'private, max-age=60, stale-while-revalidate=600',
+    });
+  });
+
+  it('does not add cache headers to other uncached routes', () => {
+    expect(getApiCacheResponseHeaders('devices/sites')).toEqual({});
   });
 });
 
@@ -97,38 +147,5 @@ describe('API cache store', () => {
       ttlMs: 1000,
     });
     expect(getApiCache('api-cache-store-test-miss')).toBeUndefined();
-  });
-
-  it('invalidates every query variant below a resource path', () => {
-    setApiCache(
-      'api/v2/devices/network-coverage',
-      { scope: 'summary' },
-      200,
-      1000,
-    );
-    setApiCache(
-      'api/v2/devices/network-coverage?tenant=airqo',
-      { scope: 'summary' },
-      200,
-      1000,
-    );
-    setApiCache(
-      'api/v2/devices/network-coverage/countries/kenya/monitors',
-      { scope: 'country' },
-      200,
-      1000,
-    );
-    setApiCache('api/v2/devices/other-resource', { keep: true }, 200, 1000);
-
-    invalidateApiCacheByPathPrefix('api/v2/devices/network-coverage');
-
-    expect(getApiCache('api/v2/devices/network-coverage')).toBeUndefined();
-    expect(
-      getApiCache('api/v2/devices/network-coverage?tenant=airqo'),
-    ).toBeUndefined();
-    expect(
-      getApiCache('api/v2/devices/network-coverage/countries/kenya/monitors'),
-    ).toBeUndefined();
-    expect(getApiCache('api/v2/devices/other-resource')).toBeDefined();
   });
 });

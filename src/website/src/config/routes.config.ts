@@ -7,7 +7,6 @@ export type Route = {
 export type RoutesConfig = {
   home: Route;
   products: {
-    index: Route;
     monitor: Route;
     nexus: Route;
     calibrate: Route;
@@ -15,12 +14,10 @@ export type RoutesConfig = {
     api: Route;
   };
   solutions: {
-    index: Route;
     communities: Route;
     'african-cities': Route;
   };
   developers: {
-    index: Route;
     packages: Route;
     'airqo-devcon': Route;
   };
@@ -44,15 +41,13 @@ export type RoutesConfig = {
 const routesConfig: RoutesConfig = {
   home: { path: '/home', label: 'Home' },
   products: {
-    index: { path: '/products', label: 'Products' },
     monitor: { path: '/products/monitor', label: 'Monitor' },
     nexus: { path: '/products/nexus', label: 'AirQo Nexus' },
     calibrate: { path: '/products/calibrate', label: 'Calibrate' },
-    mobile: { path: '/products/mobile', label: 'Mobile' },
+    mobile: { path: '/products/mobile-app', label: 'Mobile' },
     api: { path: '/products/api', label: 'API' },
   },
   solutions: {
-    index: { path: '/solutions', label: 'Solutions' },
     communities: { path: '/solutions/communities', label: 'Communities' },
     'african-cities': {
       path: '/solutions/african-cities',
@@ -60,20 +55,19 @@ const routesConfig: RoutesConfig = {
     },
   },
   developers: {
-    index: { path: '/developers', label: 'Developers' },
-    packages: { path: '/developers/packages', label: 'Packages' },
+    packages: { path: '/packages', label: 'Packages' },
     'airqo-devcon': { path: '/developers/airqo-devcon', label: 'AirQo DevCon' },
   },
   company: {
-    about: { path: '/about', label: 'About' },
+    about: { path: '/about-us', label: 'About' },
     careers: { path: '/careers', label: 'Careers' },
     press: { path: '/press', label: 'Press' },
     contact: { path: '/contact', label: 'Contact' },
-    partners: { path: '/partners', label: 'Partners' },
+    partners: { path: '/about-us#partners', label: 'Partners' },
   },
   legal: {
-    terms: { path: '/legal/terms', label: 'Terms of Service' },
-    privacy: { path: '/legal/privacy', label: 'Privacy Policy' },
+    terms: { path: '/legal/terms-of-service', label: 'Terms of Service' },
+    privacy: { path: '/legal/privacy-policy', label: 'Privacy Policy' },
   },
   blogs: {
     index: { path: '/blogs', label: 'Blogs' },

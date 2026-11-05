@@ -72,10 +72,10 @@ describe('navigationConfig', () => {
 
     it('contains expected hrefs', () => {
       const hrefs = navigationConfig.mainNav.map((item) => item.href);
-      expect(hrefs).toContain('/products');
-      expect(hrefs).toContain('/solutions');
-      expect(hrefs).toContain('/developers');
-      expect(hrefs).toContain('/about');
+      expect(hrefs).toContain('/explore-data');
+      expect(hrefs).toContain('/solutions/african-cities');
+      expect(hrefs).toContain('https://platform.airqo.net/docs/api/intro/');
+      expect(hrefs).toContain('/about-us');
       expect(hrefs).toContain('https://blog.airqo.net/');
       expect(hrefs).toContain('/faqs');
     });

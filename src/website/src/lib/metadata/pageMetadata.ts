@@ -5,81 +5,79 @@ import { optimizeCloudinaryUrl } from '@/services/external/cloudinary.service';
 import { generateMetadata } from './generateMetadata';
 import { MetadataConfig } from './metadata.config';
 
-// Shared optimized OG images (q_auto/f_webp + width 1200 for social cards)
+// Use fixed-size JPEGs for reliable support in social link preview crawlers.
 const OG_IMAGES = {
   airQuality: optimizeCloudinaryUrl(
     'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132435/website/photos/AirQuality_meyioj.webp',
-    { width: 1200 },
+    { width: 1200, height: 630, crop: 'fill', format: 'jpg' },
   ),
   team: optimizeCloudinaryUrl(
     'https://res.cloudinary.com/dbibjvyhm/image/upload/v1757015506/website/photos/about/teamImage_ganc1y_tyu1ft.webp',
-    { width: 1200 },
+    { width: 1200, height: 630, crop: 'fill', format: 'jpg' },
   ),
   monitor: optimizeCloudinaryUrl(
     'https://res.cloudinary.com/dbibjvyhm/image/upload/v1741869234/website/photos/OurProducts/Monitor/image15_ua8tyc.jpg',
-    { width: 1200 },
+    { width: 1200, height: 630, crop: 'fill', format: 'jpg' },
   ),
   analytics: optimizeCloudinaryUrl(
     'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728175853/website/photos/analyticsHome_l3hgcy.png',
-    { width: 1200 },
+    { width: 1200, height: 630, crop: 'fill', format: 'jpg' },
   ),
   api: optimizeCloudinaryUrl(
     'https://res.cloudinary.com/dbibjvyhm/image/upload/v1729071534/website/photos/wrapper_zpnvdw.png',
-    { width: 1200 },
+    { width: 1200, height: 630, crop: 'fill', format: 'jpg' },
   ),
   mobileApp: optimizeCloudinaryUrl(
     'https://res.cloudinary.com/dbibjvyhm/image/upload/v1742911840/website/photos/OurProducts/MobileApp/Home___Light_mode_aw3ysg.png',
-    { width: 1200 },
+    { width: 1200, height: 630, crop: 'fill', format: 'jpg' },
   ),
   networkScreenshot: optimizeCloudinaryUrl(
     'https://res.cloudinary.com/dbibjvyhm/image/upload/v1742912754/website/photos/Screenshot_2025-03-25_172412_amk2tl.png',
-    { width: 1200 },
+    { width: 1200, height: 630, crop: 'fill', format: 'jpg' },
   ),
   forum: optimizeCloudinaryUrl(
     'https://res.cloudinary.com/dbibjvyhm/image/upload/v1747588673/website/cleanAirForum/images/WhatsApp_Image_2025-05-16_at_11.03.31_AM_xtrxg9.jpg',
-    { width: 1200 },
+    { width: 1200, height: 630, crop: 'fill', format: 'jpg' },
   ),
   community: optimizeCloudinaryUrl(
     'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132440/website/photos/community/Rectangle_411_toaajz.webp',
-    { width: 1200 },
+    { width: 1200, height: 630, crop: 'fill', format: 'jpg' },
   ),
   networkCoverage: optimizeCloudinaryUrl(
     'https://res.cloudinary.com/dbibjvyhm/image/upload/v1786456550/website/photos/network_zw6quv.webp',
-    { width: 1200 },
+    { width: 1200, height: 630, crop: 'fill', format: 'jpg' },
   ),
   careers: optimizeCloudinaryUrl(
     'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728310706/website/photos/about/careerImage_t91yzh.png',
-    { width: 1200 },
+    { width: 1200, height: 630, crop: 'fill', format: 'jpg' },
   ),
   events: optimizeCloudinaryUrl(
     'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132390/website/cleanAirForum/images/section1_usfuoj.webp',
-    { width: 1200 },
+    { width: 1200, height: 630, crop: 'fill', format: 'jpg' },
   ),
 } as const;
 
 // Page-specific metadata configurations with enhanced SEO
 export const METADATA_CONFIGS = {
   home: {
-    title:
-      "AirQo | Africa's Leading Air Quality Monitoring Network - Real-time Pollution Data",
+    title: 'AirQo | Air quality data and research across Africa',
     description:
-      'Leading air quality monitoring network across Africa. Real-time PM2.5 data from 400+ sensors in 14 African countries. Track pollution levels across major African cities. Free mobile app & API access. Trusted by governments, researchers, and communities. Partner: Google.org, World Bank, WHO.',
+      'AirQo works with African communities to measure air quality and share data for research, public awareness, and action.',
     keywords:
       'air quality Africa, air pollution monitoring, African air quality network, real-time PM2.5 Africa, air quality sensors Africa, pollution data Africa, air monitoring network, African cities air quality, air quality monitoring system, low-cost sensors Africa, clean air Africa, air quality app Africa, air quality API, environmental monitoring Africa, PM2.5 tracking, air pollution data, Makerere University air quality, Google.org Africa, WHO air quality Africa, air quality research Africa, African environmental data',
-    url: '/',
+    url: '/home',
     image: {
       url: OG_IMAGES.airQuality,
       alt: "AirQo - Africa's Leading Air Quality Monitoring Network with Real-time Pollution Data",
       width: 1200,
       height: 630,
-      type: 'image/webp',
+      type: 'image/jpeg',
     },
   },
   about: {
-    title:
-      'About AirQo | Uganda Air Quality Research - Makerere University Innovation Since 2015',
+    title: 'About AirQo | Air quality research in Africa',
     description:
-      "Founded at Makerere University, Uganda - Africa's #1 air quality monitoring network. Operating in Kampala, Nairobi, Lagos, Accra with 200+ sensors. $4.3M Google.org funding. Serving 60M+ people across Uganda, Kenya, Nigeria, Ghana, Rwanda, Tanzania. Led by Prof. Engineer Bainomugisha.",
+      "Learn about AirQo's work with researchers, communities, and institutions to improve access to air quality information in Africa.",
     keywords:
       'About AirQo Uganda, Makerere University research, air quality innovation Uganda, Kampala environmental research, AirQo team Kenya, Professor Bainomugisha Uganda, air pollution monitoring Africa, Uganda environmental technology, Kenya air quality research, Nigeria pollution initiative, Ghana clean air, Google.org Africa partnership, World Bank Uganda, EPIC Air Quality Fund Africa, Uganda innovation, East Africa air research, environmental technology Uganda, Kampala innovation hub, African scientists air quality',
     url: '/about-us',
@@ -88,14 +86,13 @@ export const METADATA_CONFIGS = {
       alt: 'AirQo Team at Makerere University - Leading Air Quality Research in Africa',
       width: 1200,
       height: 630,
-      type: 'image/webp',
+      type: 'image/jpeg',
     },
   },
   monitor: {
-    title:
-      'AirQo Binos Monitor | Air Quality Sensors Uganda, Kenya, Nigeria - Locally Designed for Africa',
+    title: 'AirQo Binos air quality monitor',
     description:
-      "Deploy AirQo's Uganda-designed Binos monitors across Kampala, Nairobi, Lagos, Accra. Built for African climate: dust resistance, tropical weather durability, solar/grid power. Real-time PM2.5, PM10, NO2 monitoring. Proven in 16+ African cities. Made for Uganda, Kenya, Nigeria, Ghana conditions.",
+      'Learn about the AirQo Binos monitor and how it supports local air quality measurement.',
     keywords:
       'AirQo Binos monitor Uganda, air quality sensors Kenya, pollution monitors Nigeria, Ghana air sensors, Kampala air quality monitor, Nairobi pollution sensor, Lagos air monitor, Accra PM2.5 sensor, African climate sensors, Uganda environmental equipment, Kenya pollution devices, tropical weather sensors, dust-resistant monitors Africa, solar powered air sensors, Uganda made monitors, East Africa air sensors, West Africa pollution monitors, low-cost sensors Uganda, Makerere University sensors',
     url: '/products/monitor',
@@ -108,10 +105,9 @@ export const METADATA_CONFIGS = {
     },
   },
   nexus: {
-    title:
-      'AirQo Nexus | Uganda, Kenya, Nigeria, Ghana Real-time Air Quality Dashboard - 200+ Monitors',
+    title: 'AirQo Nexus | Air quality data platform',
     description:
-      'Track Kampala, Nairobi, Lagos, Accra air quality live. Real-time PM2.5 data from 200+ Uganda, Kenya, Nigeria, Ghana monitors. Historical trends, pollution hotspots, health alerts. Free access to African air quality data. Platform: platform.airqo.net. Coverage: Kampala, Jinja, Entebbe, Nairobi, Mombasa, Kisumu, Lagos, Abuja, Accra.',
+      "View air quality measurements and trends with AirQo Nexus, AirQo's data platform.",
     keywords:
       'Kampala air quality dashboard, Nairobi pollution data, Lagos air quality live, Accra PM2.5 tracking, Uganda air quality platform, Kenya pollution dashboard, Nigeria air data, Ghana air monitoring, East Africa air quality data, real-time pollution Uganda, Kampala PM2.5, Nairobi air trends, AirQo Nexus Uganda, Kenya environmental dashboard, pollution visualization Africa, Jinja air quality, Mombasa pollution, Kisumu air data, African cities AirQo Nexus, platform.airqo.net Uganda',
     url: '/products/nexus',
@@ -120,14 +116,13 @@ export const METADATA_CONFIGS = {
       alt: 'AirQo Nexus Platform - Real-time Air Quality Dashboard for Africa',
       width: 1200,
       height: 630,
-      type: 'image/png',
+      type: 'image/jpeg',
     },
   },
   api: {
-    title:
-      'AirQo API | Open Air Quality Data Access for Developers - Free Tier Available',
+    title: 'AirQo API | Air quality data for developers',
     description:
-      "Integrate AirQo's comprehensive air quality data into your applications. Access real-time and historical PM2.5, PM10, NO2 data from 200+ monitors across 16+ African cities. RESTful API with documentation, SDKs, and free tier for developers.",
+      'Use the AirQo API to access air quality data for applications, research, and analysis.',
     keywords:
       'AirQo API, air quality API Africa, open air data, developer API, environmental data API, PM2.5 API, pollution data access, RESTful API, air quality SDK, African cities data, real-time air API, historical air data, free API tier, environmental monitoring API',
     url: '/products/api',
@@ -136,77 +131,73 @@ export const METADATA_CONFIGS = {
       alt: 'AirQo Developer API - Open Access to African Air Quality Data',
       width: 1200,
       height: 630,
-      type: 'image/png',
+      type: 'image/jpeg',
     },
   },
   beacon: {
-    title:
-      'AirQo Beacon | Device Health Monitoring for Air Quality Sensor Networks',
+    title: 'AirQo Beacon | Monitor network health',
     description:
-      'AirQo Beacon helps teams manage air quality monitoring networks by tracking device health, uptime, offline devices, collocation performance, and site-level data quality in one dashboard.',
+      'Learn how AirQo Beacon helps teams monitor device health and manage air quality networks.',
     keywords:
       'air quality monitoring network management, device health monitoring, air quality sensor networks, collocation management, air quality device management, sensor network management, network uptime monitoring, low-cost sensor monitoring, air quality data quality, air quality monitoring dashboard, reference monitor collocation',
     url: '/products/beacon',
     image: {
-      url: '/assets/images/products/beacon/beacon-home.webp',
+      url: '/assets/images/seo/beacon-social.jpg',
       alt: 'AirQo Beacon device render mounted under a solar panel',
-      width: 1536,
-      height: 1024,
-      type: 'image/webp',
+      width: 1200,
+      height: 630,
+      type: 'image/jpeg',
     },
   },
   vertex: {
-    title: 'AirQo Vertex | Open Air Quality Data Sharing Platform',
+    title: 'AirQo Vertex | Share air quality data',
     description:
-      'AirQo Vertex helps monitor owners connect air quality monitors, manage sensor networks, track device health, and share public air quality data through an open data platform.',
+      'Learn how AirQo Vertex helps monitor owners manage devices and share air quality data.',
     keywords:
       'open air quality data sharing platform, open air quality data, public air quality data, open data platform, air quality monitoring network, connect air quality monitors, low-cost air quality sensors, sensor network management, device health monitoring, open air quality network',
     url: '/products/vertex',
     image: {
-      url: '/assets/images/products/vertex/bring-device.webp',
+      url: '/assets/images/seo/vertex-social.jpg',
       alt: 'AirQo Vertex deployment workflow shown on a laptop in a field operations setting',
-      width: 1672,
-      height: 941,
-      type: 'image/webp',
+      width: 1200,
+      height: 630,
+      type: 'image/jpeg',
     },
   },
   aiPlatform: {
-    title:
-      'AirQo AI Platform | Forecasting, Site Selection, Categorization, and Reporting',
+    title: 'AirQo AI tools for air quality',
     description:
-      'Use AirQo AI to forecast PM2.5, optimize monitor placement, categorize sites, automate air quality reports, and turn environmental data into decision-ready insight.',
+      'Explore AirQo tools for air quality forecasting, site selection, categorisation, and reporting.',
     keywords:
       'AirQo AI Platform, air quality forecasting, environmental intelligence platform, sensor site selection, air quality reports, site categorization, spatial analysis, PM2.5 forecasting, AI for air quality',
     url: '/products/ai-platform',
     image: {
-      url: '/assets/images/products/ai-platform/hero.webp',
+      url: '/assets/images/seo/ai-platform-social.jpg',
       alt: 'AirQo AI platform shown on a laptop with locate planning and monitoring site selection',
-      width: 1448,
-      height: 1086,
-      type: 'image/webp',
+      width: 1200,
+      height: 630,
+      type: 'image/jpeg',
     },
   },
   airqoDevCon: {
-    title:
-      'AirQo DevCon 2026 | Free Student Developer Conference at Makerere University',
+    title: 'AirQo DevCon 2026 | Technology and clean air',
     description:
-      'Apply for AirQo DevCon 2026, a free 2-day hands-on technical workshop at Makerere University where students build real air quality hardware, software, and AI solutions for Uganda.',
+      'Find information about AirQo DevCon 2026, its activities, and opportunities to take part.',
     keywords:
       'AirQo DevCon 2026, Makerere University developer conference, Uganda student developers, clean air hackathon Uganda, hardware firmware workshop, air quality AI workshop, student tech event Kampala, AirQo open source, PCB soldering workshop Uganda, data science air quality',
     url: '/developers/airqo-devcon',
     image: {
-      url: '/assets/images/devcon/airqo-devcon-workshop-v2.webp',
+      url: '/assets/images/seo/devcon-social.jpg',
       alt: 'Students building clean air hardware and software at AirQo DevCon 2026',
-      width: 1448,
-      height: 1086,
-      type: 'image/webp',
+      width: 1200,
+      height: 630,
+      type: 'image/jpeg',
     },
   },
   mobileApp: {
-    title:
-      'AirQo App Uganda, Kenya, Nigeria | Free Air Quality Tracker - Kampala, Nairobi, Lagos',
+    title: 'AirQo mobile app | Local air quality information',
     description:
-      'Free air quality app for Uganda, Kenya, Nigeria, Ghana. Track Kampala, Nairobi, Lagos, Accra pollution live. PM2.5 alerts, health tips, daily forecasts. iOS & Android. Know when air is safe in your African city. Protect your family with real-time updates for 16+ African cities.',
+      'Get the AirQo app to check air quality information from your phone.',
     keywords:
       'AirQo app Uganda, air quality app Kenya, pollution app Nigeria, Ghana air app, Kampala air quality app, Nairobi pollution app, Lagos air quality tracker, Accra PM2.5 app, Uganda pollution alerts, Kenya air monitoring app, Nigeria environmental app, East Africa air app, African cities air quality, free air quality app Africa, Uganda health app, Kenya pollution tracker, Android air quality Uganda, iOS pollution app Africa, Jinja air app, Mombasa air quality',
     url: '/products/mobile-app',
@@ -215,14 +206,13 @@ export const METADATA_CONFIGS = {
       alt: 'AirQo Mobile App - Air Quality Monitoring in Your Pocket',
       width: 1200,
       height: 630,
-      type: 'image/png',
+      type: 'image/jpeg',
     },
   },
   calibrate: {
-    title:
-      'AirQalibrate | Advanced Sensor Calibration Platform for Air Quality Networks',
+    title: 'AirQalibrate | Air quality sensor calibration',
     description:
-      'Ensure data accuracy with AirQalibrate - our advanced calibration platform for air quality sensors. Machine learning-based calibration, drift correction, and quality assurance for maintaining reliable air quality monitoring networks across Africa.',
+      'Learn how AirQalibrate supports calibration and quality assurance for air quality sensor data.',
     keywords:
       'AirQalibrate, sensor calibration, air quality calibration, data quality assurance, sensor accuracy, ML calibration, drift correction, sensor maintenance, environmental monitoring QA, calibration platform, sensor network management, data validation',
     url: '/products/calibrate',
@@ -231,14 +221,13 @@ export const METADATA_CONFIGS = {
       alt: 'AirQalibrate - Advanced Sensor Calibration Platform',
       width: 1200,
       height: 630,
-      type: 'image/webp',
+      type: 'image/jpeg',
     },
   },
   contact: {
-    title:
-      'Contact AirQo Uganda | Kampala Office - Makerere University | Partner with Us Kenya, Nigeria',
+    title: 'Contact AirQo',
     description:
-      'Contact AirQo Kampala office at Makerere University, Uganda. Partnership inquiries for Uganda, Kenya, Nigeria, Ghana projects. Technical support for African sensors. Collaboration with East/West African organizations. Email: info@airqo.net. Office: Makerere University, Kampala, Uganda. Serving Uganda, Kenya, Nigeria.',
+      'Contact AirQo with questions about our work, services, or partnership opportunities.',
     keywords:
       'Contact AirQo Uganda, AirQo Kampala office, Makerere University contact, Uganda air quality support, Kenya partnership AirQo, Nigeria collaboration inquiries, Ghana AirQo contact, Kampala office address, Uganda technical support, East Africa partnerships, AirQo email Uganda, Makerere University Kampala, Uganda environmental organization, Kenya AirQo office, African partnership inquiries',
     url: '/contact',
@@ -247,14 +236,13 @@ export const METADATA_CONFIGS = {
       alt: 'Contact AirQo Team - Air Quality Experts at Makerere University',
       width: 1200,
       height: 630,
-      type: 'image/webp',
+      type: 'image/jpeg',
     },
   },
   exploreData: {
-    title:
-      'Uganda, Kenya, Nigeria Air Quality Map | Live PM2.5 Kampala, Nairobi, Lagos - Explore Data',
+    title: 'Explore AirQo air quality data and tools',
     description:
-      'Interactive air quality map: Kampala, Nairobi, Lagos, Accra, Jinja, Mombasa, Kisumu live PM2.5. 200+ monitors across Uganda, Kenya, Nigeria, Ghana, Rwanda, Tanzania. Real-time pollution data, historical trends, downloadable datasets. Free access to East & West African air quality research data.',
+      "Explore AirQo's maps and tools for viewing air quality information across African cities.",
     keywords:
       'Kampala air quality map, Nairobi pollution map, Lagos air quality live, Accra PM2.5 map, Uganda air quality data, Kenya pollution map, Nigeria air monitoring, Ghana air data, Jinja air quality, Mombasa pollution data, Kisumu air map, Entebbe air quality, East Africa pollution map, interactive air map Uganda, real-time air quality Kenya, Uganda environmental data, Kenya air research data, live pollution Uganda, African cities air map, PM2.5 map Africa',
     url: '/explore-data',
@@ -263,14 +251,13 @@ export const METADATA_CONFIGS = {
       alt: 'AirQo Interactive Air Quality Map - Explore Data Across Africa',
       width: 1200,
       height: 630,
-      type: 'image/png',
+      type: 'image/jpeg',
     },
   },
   cleanAirForum: {
-    title:
-      'Africa Clean Air Forum 2025 Nairobi Kenya | Africa Air Quality Conference - Uganda, Nigeria, Ghana Leaders',
+    title: 'Africa Clean Air Forum 2025 | Event information',
     description:
-      "Africa's largest air quality conference - Nairobi, Kenya 2025. 500+ experts from Uganda, Kenya, Nigeria, Ghana, Rwanda, Tanzania. Network with African ministers, WHO officials, researchers. Register now. Venue: Nairobi. Participants from Kampala, Lagos, Accra, Kigali, Dar es Salaam. Africa's clean air future.",
+      'Find event information, speakers, sessions, resources, and logistics from Africa Clean Air Forum 2025.',
     keywords:
       'Africa Clean Air Forum Nairobi, Kenya air quality conference, Nairobi environmental summit 2025, East Africa air conference, Uganda air quality forum, Kenya environmental leaders, Nigeria clean air summit, Ghana air conference, African ministers environment, Nairobi conference venue, Kampala to Nairobi conference, air quality policy Africa, Kenya climate summit, East Africa environmental forum, African air quality networking, Nairobi 2025 registration',
     url: '/africa-clean-air-forum/about',
@@ -283,10 +270,9 @@ export const METADATA_CONFIGS = {
     },
   },
   solutionsAfricanCities: {
-    title:
-      'Smart City Air Monitoring Uganda, Kenya, Nigeria | Solutions for Kampala, Nairobi, Lagos',
+    title: 'Air quality solutions for African cities',
     description:
-      'Smart city air quality for African municipalities. Trusted by Kampala, Nairobi, Lagos, Accra city governments. Deploy cost-effective sensors, real-time dashboards, policy-ready data. Help your Uganda, Kenya, Nigeria, Ghana city government make data-driven decisions. Partner with 16+ African cities.',
+      "Explore AirQo's air quality monitoring and data services for African cities.",
     keywords:
       'Smart city Kampala, Nairobi smart city air quality, Lagos urban monitoring, Accra city pollution, Uganda municipal air monitoring, Kenya city government solutions, Nigeria urban air quality, Ghana smart city sensors, Kampala city planning, Nairobi urban data, African city governments, Uganda urban planning, Kenya municipal solutions, city air dashboard Uganda, urban environmental Uganda, Jinja city monitoring, Mombasa urban planning',
     url: '/solutions/african-cities',
@@ -299,10 +285,9 @@ export const METADATA_CONFIGS = {
     },
   },
   solutionsCommunities: {
-    title:
-      'Community Air Quality Uganda, Kenya | Citizen Science Kampala, Nairobi - Grassroots Solutions',
+    title: 'Community air quality | AirQo',
     description:
-      'Empower Uganda, Kenya, Nigeria communities with hyperlocal air data. Citizen science programs in Kampala, Nairobi, Lagos neighborhoods. Free tools for community leaders, schools, NGOs. Join 60M+ people in Uganda, Kenya, Nigeria using AirQo data. Environmental justice for African communities.',
+      'Learn how AirQo works with communities to understand local air quality and support informed action.',
     keywords:
       'Community air monitoring Uganda, citizen science Kenya, grassroots Nigeria air quality, community empowerment Uganda, Kampala neighborhood pollution, Nairobi community air data, Lagos local air monitoring, African community science, Uganda environmental justice, Kenya local action, community health Uganda, neighborhood air quality Kenya, participatory monitoring Africa, Uganda community leaders, Kenya NGO air monitoring, African community empowerment',
     url: '/solutions/communities',
@@ -311,14 +296,13 @@ export const METADATA_CONFIGS = {
       alt: 'Community-Driven Air Quality Monitoring Solutions',
       width: 1200,
       height: 630,
-      type: 'image/webp',
+      type: 'image/jpeg',
     },
   },
   solutionsResearch: {
-    title:
-      'Air Quality Research Data Uganda, Kenya | Academic API Access - Makerere University',
+    title: 'Air quality research tools and data | AirQo',
     description:
-      'Free research data: Uganda, Kenya, Nigeria air quality datasets. Makerere University validated data from 200+ monitors. API access for African university researchers. Publications support. Partner institutions: Makerere University Uganda, Nairobi University Kenya, NIMET Nigeria. Advance African air quality science.',
+      'Find AirQo data and tools for air quality research and analysis.',
     keywords:
       'Air quality research Uganda, Makerere University data, Kenya academic air data, Nigeria research API, Ghana environmental research, Uganda university air data, African research collaboration, academic datasets Uganda, Kampala research data, Nairobi university data, air quality science Africa, Uganda policy research, Kenya environmental studies, African air quality publications, research API Uganda, Makerere partnerships',
     url: '/solutions/research',
@@ -327,13 +311,13 @@ export const METADATA_CONFIGS = {
       alt: 'Air Quality Research Data and Tools for Academia',
       width: 1200,
       height: 630,
-      type: 'image/png',
+      type: 'image/jpeg',
     },
   },
   solutionsNetworkCoverage: {
-    title: 'Africa Network Map | Air Quality Monitoring Landscape',
+    title: 'Africa Network Map',
     description:
-      "This platform provides a unified view of Africa's air quality monitoring landscape. It integrates metadata on monitoring initiatives across the continent, combining both low-cost sensors and high-precision reference monitors. Users can explore geographic distribution, active coverage, instrumentation, and institutional stewardship for monitoring locations across the continent.",
+      'Explore a map of air quality monitoring networks, cities, and stations across Africa.',
     keywords:
       'Africa air quality monitoring landscape, air quality monitoring Africa, reference monitors Africa, low-cost sensors Africa, air monitoring stations, monitoring network coverage map, African air monitoring infrastructure, environmental sensors Africa, AirQo network, monitoring station locations Africa',
     url: '/solutions/network-coverage',
@@ -342,14 +326,13 @@ export const METADATA_CONFIGS = {
       alt: 'Air Quality Monitoring Landscape in Africa - Coverage Map & Sensor Locations',
       width: 1200,
       height: 823,
-      type: 'image/webp',
+      type: 'image/jpeg',
     },
   },
   solutionsKampalaStudy: {
-    title:
-      'Kampala air pollution exposure study | Join the Clean Air Research - AirQo',
+    title: 'Kampala air pollution exposure study',
     description:
-      'Participate in the Kampala real-time air pollution exposure study. Access real-time air quality data, contribute to clean air research, and help build healthier communities. Join hundreds of Kampala residents making a difference in urban air quality monitoring.',
+      "Learn about AirQo's Kampala air pollution exposure study and how to take part.",
     keywords:
       'Kampala air quality study, air pollution research Kampala, clean air initiative, citizen science air quality, real-time pollution monitoring, health exposure study, urban air quality research, community participation, environmental health Kampala, AirQo study',
     url: '/solutions/kampala-study',
@@ -358,13 +341,13 @@ export const METADATA_CONFIGS = {
       alt: 'Kampala Air Quality Research Study - Real-time Pollution Monitoring',
       width: 1200,
       height: 630,
-      type: 'image/webp',
+      type: 'image/jpeg',
     },
   },
   privacyPolicy: {
-    title: 'Privacy Policy | AirQo - Data Protection & User Privacy',
+    title: 'Privacy policy | AirQo',
     description:
-      'AirQo privacy policy outlines how we collect, use, and protect your personal information. Learn about data security, user rights, GDPR compliance, and our commitment to protecting your privacy while providing air quality services.',
+      'Read how AirQo collects, uses, and protects personal information.',
     keywords:
       'AirQo privacy policy, data protection, GDPR compliance, user privacy, personal data security, privacy rights, data collection policy, information security',
     url: '/legal/privacy-policy',
@@ -377,9 +360,9 @@ export const METADATA_CONFIGS = {
     },
   },
   cookiesPolicy: {
-    title: 'Cookies Policy | AirQo - Cookies & Local Storage',
+    title: 'Cookies policy | AirQo',
     description:
-      'Learn how AirQo uses cookies and local storage for authentication, preferences, performance, analytics, Google Auth, and Mapbox-powered services.',
+      'Learn how AirQo uses cookies and local storage on its website and services.',
     keywords:
       'AirQo cookies policy, local storage policy, cookies, browser storage, authentication cookies, analytics cookies, user preferences, Mapbox cookies, Google Auth cookies',
     url: '/legal/cookies',
@@ -392,9 +375,9 @@ export const METADATA_CONFIGS = {
     },
   },
   termsOfService: {
-    title: 'Terms of Service | AirQo Platform Usage Agreement',
+    title: 'Terms of service | AirQo',
     description:
-      "Read AirQo's terms of service for using our air quality monitoring platform, mobile app, API, and data services. Understand usage rights, limitations, and responsibilities for accessing African air quality data.",
+      'Read the terms that apply when using AirQo websites, platforms, and data services.',
     keywords:
       'AirQo terms of service, usage agreement, platform terms, service conditions, API terms, data usage rights, legal terms, user agreement',
     url: '/legal/terms-of-service',
@@ -407,9 +390,9 @@ export const METADATA_CONFIGS = {
     },
   },
   paymentRefundPolicy: {
-    title: 'Payment & Refund Policy | AirQo Services Billing Terms',
+    title: 'Payment and refund policy | AirQo',
     description:
-      "Understand AirQo's payment processing, billing cycles, and refund policies for premium services, API access, and monitoring solutions. Clear terms for transactions and dispute resolution.",
+      'Review AirQo payment, billing, and refund terms for paid services.',
     keywords:
       'AirQo payment policy, refund terms, billing policy, payment processing, transaction terms, refund process, service billing',
     url: '/legal/payment-refund-policy',
@@ -422,10 +405,9 @@ export const METADATA_CONFIGS = {
     },
   },
   airqoDataPolicy: {
-    title:
-      'AirQo Open Data Policy | Creative Commons License & Usage Guidelines',
+    title: 'AirQo data access policy',
     description:
-      "Access AirQo's open air quality data under Creative Commons license. Learn about data usage rights, attribution requirements, API access terms, and how researchers and developers can leverage our environmental data for impact.",
+      'Review the terms and attribution guidance for accessing and using AirQo data.',
     keywords:
       'AirQo open data, Creative Commons license, data usage policy, open data access, attribution requirements, research data rights, API licensing, environmental data sharing',
     url: '/legal/airqo-data',
@@ -434,14 +416,13 @@ export const METADATA_CONFIGS = {
       alt: 'AirQo Open Data Policy and Licensing',
       width: 1200,
       height: 630,
-      type: 'image/png',
+      type: 'image/jpeg',
     },
   },
   cleanAirForumSessions: {
-    title:
-      'Sessions & Agenda | Africa Clean Air Forum 2025 Nairobi - 3-Day Program',
+    title: 'Sessions and agenda | Africa Clean Air Forum',
     description:
-      'Explore 50+ sessions at Africa Clean Air Forum 2025 including keynotes, panel discussions, workshops, and networking events. Topics cover air quality monitoring, policy frameworks, health impacts, and clean air solutions for African cities.',
+      'Explore sessions and agenda information for Africa Clean Air Forum.',
     keywords:
       'Africa Clean Air Forum agenda, conference sessions, air quality workshops, Nairobi 2025 program, environmental panels, policy discussions, technical workshops, networking events',
     url: '/africa-clean-air-forum/africa-clean-air-forum-2025/sessions',
@@ -454,10 +435,8 @@ export const METADATA_CONFIGS = {
     },
   },
   cleanAirForumSpeakers: {
-    title:
-      'Speakers & Experts | Africa Clean Air Forum 2025 - 100+ Environmental Leaders',
-    description:
-      'Meet 100+ distinguished speakers at Africa Clean Air Forum 2025 including government ministers, WHO officials, researchers, and innovators. Leading voices in air quality science, policy, and technology sharing insights on African air pollution solutions.',
+    title: 'Speakers | Africa Clean Air Forum',
+    description: 'Find speaker information for Africa Clean Air Forum.',
     keywords:
       'Africa Clean Air Forum speakers, air quality experts, environmental leaders, conference presenters, WHO officials, African ministers, research scientists, policy makers',
     url: '/africa-clean-air-forum/africa-clean-air-forum-2025/speakers',
@@ -470,10 +449,9 @@ export const METADATA_CONFIGS = {
     },
   },
   cleanAirForumResources: {
-    title:
-      'Resources & Materials | Africa Clean Air Forum 2025 - Download Center',
+    title: 'Resources | Africa Clean Air Forum',
     description:
-      'Access presentations, research papers, policy briefs, and tools from Africa Clean Air Forum 2025. Download air quality datasets, monitoring guides, implementation frameworks, and best practices for clean air initiatives in African cities.',
+      'Browse resources and materials published for Africa Clean Air Forum.',
     keywords:
       'Africa Clean Air Forum resources, conference materials, research downloads, policy documents, air quality tools, presentation slides, implementation guides, best practices',
     url: '/africa-clean-air-forum/africa-clean-air-forum-2025/resources',
@@ -486,10 +464,9 @@ export const METADATA_CONFIGS = {
     },
   },
   cleanAirForumSponsorships: {
-    title:
-      'Sponsorship Opportunities | Africa Clean Air Forum 2025 - Partner with Us',
+    title: 'Sponsorship | Africa Clean Air Forum',
     description:
-      'Partner with Africa Clean Air Forum 2025 to showcase your commitment to clean air in Africa. Sponsorship packages include exhibition space, speaking opportunities, branding, and networking with 500+ environmental leaders and decision-makers.',
+      'Learn about sponsorship opportunities for Africa Clean Air Forum.',
     keywords:
       'Africa Clean Air Forum sponsorship, partnership opportunities, conference sponsors, exhibition packages, environmental partnerships, corporate sponsorship, event partnership',
     url: '/africa-clean-air-forum/africa-clean-air-forum-2025/sponsorships',
@@ -502,10 +479,9 @@ export const METADATA_CONFIGS = {
     },
   },
   cleanAirForumLogistics: {
-    title:
-      'Venue & Travel Info | Africa Clean Air Forum 2025 Nairobi - Plan Your Visit',
+    title: 'Venue and travel | Africa Clean Air Forum',
     description:
-      'Plan your trip to Africa Clean Air Forum 2025 in Nairobi, Kenya. Find venue details, recommended hotels, visa information, local transportation, and travel tips. Special rates available at partner hotels near the conference center.',
+      'Find venue, travel, and attendance information for Africa Clean Air Forum.',
     keywords:
       'Africa Clean Air Forum venue, Nairobi conference location, travel Kenya, conference hotels, visa information, airport transfers, accommodation Nairobi, travel logistics',
     url: '/africa-clean-air-forum/africa-clean-air-forum-2025/logistics',
@@ -518,9 +494,8 @@ export const METADATA_CONFIGS = {
     },
   },
   cleanAirForumProgramCommittee: {
-    title: 'Program Committee | Africa Clean Air Forum 2025 Organizing Team',
-    description:
-      'Meet the distinguished program committee organizing Africa Clean Air Forum 2025. Leading researchers, policymakers, and practitioners from WHO, UNEP, African governments, and academia shaping the conference agenda for maximum impact.',
+    title: 'Programme committee | Africa Clean Air Forum',
+    description: 'Meet the programme committee for Africa Clean Air Forum.',
     keywords:
       'Africa Clean Air Forum committee, conference organizers, program committee, scientific committee, organizing team, conference leadership, advisory board',
     url: '/africa-clean-air-forum/africa-clean-air-forum-2025/program-committee',
@@ -533,10 +508,9 @@ export const METADATA_CONFIGS = {
     },
   },
   cleanAirForumGlossary: {
-    title:
-      'Air Quality Glossary | Africa Clean Air Forum 2025 - Key Terms & Definitions',
+    title: 'Air quality glossary | Africa Clean Air Forum',
     description:
-      'Comprehensive glossary of air quality terms, monitoring technologies, and policy concepts. Understand PM2.5, PM10, AQI, WHO guidelines, and technical terminology used in air pollution science and clean air initiatives.',
+      'Browse definitions of air quality and monitoring terms used at Africa Clean Air Forum.',
     keywords:
       'Air quality glossary, PM2.5 definition, AQI explained, air pollution terms, monitoring terminology, WHO guidelines, environmental definitions, technical glossary',
     url: '/africa-clean-air-forum/africa-clean-air-forum-2025/glossary',
@@ -549,10 +523,9 @@ export const METADATA_CONFIGS = {
     },
   },
   cleanAirForumPartners: {
-    title:
-      'Partners & Collaborators | Africa Clean Air Forum 2025 - Global Support Network',
+    title: 'Partners | Africa Clean Air Forum',
     description:
-      'Africa Clean Air Forum 2025 partners include WHO, UNEP, World Bank, Google.org, African governments, and leading environmental organizations. Together advancing clean air solutions through collaboration and knowledge sharing.',
+      'Learn about the organizations supporting Africa Clean Air Forum.',
     keywords:
       'Africa Clean Air Forum partners, conference collaborators, WHO partnership, UNEP support, World Bank, Google.org, environmental partners, African organizations',
     url: '/africa-clean-air-forum/africa-clean-air-forum-2025/partners',
@@ -565,10 +538,9 @@ export const METADATA_CONFIGS = {
     },
   },
   careers: {
-    title:
-      'Jobs at AirQo Uganda | Environmental Careers Kampala - Data Science, Engineering Jobs Kenya',
+    title: 'Careers at AirQo',
     description:
-      "Join AirQo's team in Kampala, Uganda and Nairobi, Kenya. 50+ professionals combating African air pollution. Open positions: data science, engineering, research, community engagement. Work from Kampala office or remote across Uganda, Kenya, Nigeria. Competitive Uganda salaries, international benefits. Impact 60M+ Africans.",
+      'Explore current career opportunities and learn about working with AirQo.',
     keywords:
       'AirQo jobs Uganda, environmental careers Kampala, data science jobs Uganda, engineering careers Kenya, Nairobi environmental jobs, Uganda tech careers, remote jobs Uganda, Makerere University careers, Kampala NGO jobs, Kenya data science, Uganda research positions, environmental jobs East Africa, air quality careers Africa, impact jobs Uganda, sustainability careers Kampala, Uganda tech jobs, Kenya engineering jobs',
     url: '/careers',
@@ -577,14 +549,12 @@ export const METADATA_CONFIGS = {
       alt: 'Join AirQo Team - Environmental Careers in Africa',
       width: 1200,
       height: 630,
-      type: 'image/png',
+      type: 'image/jpeg',
     },
   },
   events: {
-    title:
-      'Events & Conferences | AirQo Air Quality Workshops & Community Engagement',
-    description:
-      'Stay updated with AirQo events including Africa Clean Air Forum, community workshops, hackathons, training sessions, and webinars. Join us at conferences across Africa to learn about air quality monitoring and clean air solutions.',
+    title: 'AirQo events',
+    description: 'Browse AirQo events, workshops, and community activities.',
     keywords:
       'AirQo events, air quality conferences, environmental workshops, community events, hackathons, training sessions, webinars, African environmental events',
     url: '/events',
@@ -593,13 +563,13 @@ export const METADATA_CONFIGS = {
       alt: 'AirQo Events and Conferences',
       width: 1200,
       height: 630,
-      type: 'image/webp',
+      type: 'image/jpeg',
     },
   },
   press: {
-    title: 'Press & Media Coverage | AirQo in the News - Media Resources',
+    title: 'AirQo in the news | Press and media',
     description:
-      'Access AirQo press releases, media coverage, and journalist resources. Featured in CNN, BBC, Reuters, and leading African media. Download press kits, high-resolution images, and expert quotes on air quality in Africa.',
+      'Find AirQo media coverage, press information, and contact details for media enquiries.',
     keywords:
       'AirQo press, media coverage, press releases, journalist resources, news coverage, media kit, expert quotes, air quality news, environmental journalism Africa',
     url: '/press',
@@ -608,13 +578,13 @@ export const METADATA_CONFIGS = {
       alt: 'AirQo Press and Media Resources',
       width: 1200,
       height: 630,
-      type: 'image/webp',
+      type: 'image/jpeg',
     },
   },
   blogs: {
-    title: 'Blogs & Insights | AirQo Air Quality Stories, Research and Updates',
+    title: 'AirQo stories and insights',
     description:
-      'Read AirQo blogs covering air quality insights, community impact stories, research updates, policy discussions, and product news from across Africa.',
+      'Read AirQo stories and updates about air quality, research, and community work.',
     keywords:
       'AirQo blogs, air quality insights, environmental stories, clean air updates, air quality research, African air pollution news, community impact stories, air quality blog',
     url: '/blogs',
@@ -623,13 +593,13 @@ export const METADATA_CONFIGS = {
       alt: 'AirQo Blogs and Insights',
       width: 1200,
       height: 630,
-      type: 'image/webp',
+      type: 'image/jpeg',
     },
   },
   resources: {
-    title: 'Resources & Publications | AirQo Research Papers, Reports & Guides',
+    title: 'AirQo publications and guides',
     description:
-      "Access AirQo's library of 50+ research publications, technical reports, policy briefs, and educational materials. Download air quality datasets, monitoring guides, and case studies from our work across 16+ African cities.",
+      'Browse AirQo publications, reports, guides, and other resources.',
     keywords:
       'AirQo resources, research publications, air quality reports, technical guides, policy briefs, educational materials, case studies, datasets, monitoring guides',
     url: '/resources',
@@ -638,14 +608,13 @@ export const METADATA_CONFIGS = {
       alt: 'AirQo Resources and Publications Library',
       width: 1200,
       height: 630,
-      type: 'image/webp',
+      type: 'image/jpeg',
     },
   },
   faqs: {
-    title:
-      'FAQs | Frequently Asked Questions About AirQo Air Quality Monitoring',
+    title: 'AirQo FAQs',
     description:
-      'Find answers to common questions about AirQo sensors, data access, mobile app, API usage, partnerships, and air quality basics. Learn how to interpret PM2.5 readings, access our data, and collaborate with us.',
+      'Find answers to common questions about AirQo, air quality data, and monitoring.',
     keywords:
       'AirQo FAQ, frequently asked questions, air quality help, sensor questions, data access FAQ, API documentation, PM2.5 explained, partnership inquiries',
     url: '/faqs',
@@ -654,14 +623,13 @@ export const METADATA_CONFIGS = {
       alt: 'AirQo Frequently Asked Questions',
       width: 1200,
       height: 630,
-      type: 'image/webp',
+      type: 'image/jpeg',
     },
   },
   partners: {
-    title:
-      'Partners & Collaborators | Google.org, World Bank, WHO & More - AirQo',
+    title: 'AirQo partners and collaborators',
     description:
-      "Meet AirQo's strategic partners including Google.org ($4.3M AI Impact Challenge), World Bank, WHO, UNEP, and 20+ organizations. Together we're scaling air quality monitoring to protect 60+ million people across Africa.",
+      'Learn about the organizations working with AirQo on air quality research and action.',
     keywords:
       'AirQo partners, Google.org partnership, World Bank collaboration, WHO partnership, UNEP, environmental partnerships, African collaborations, strategic partners, funding partners',
     url: '/partners',
@@ -670,10 +638,42 @@ export const METADATA_CONFIGS = {
       alt: 'AirQo Strategic Partners and Collaborators',
       width: 1200,
       height: 630,
-      type: 'image/webp',
+      type: 'image/jpeg',
     },
   },
 } as const;
+
+const formatForumEventName = (uniqueTitle: string): string => {
+  const words = uniqueTitle
+    .replace(/[-_]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .split(' ')
+    .filter(Boolean);
+  const formatted = words
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+
+  return /africa clean air forum/i.test(formatted)
+    ? formatted
+    : `Africa Clean Air Forum ${formatted}`;
+};
+
+export const getForumPageMetadata = (
+  uniqueTitle: string,
+  section: string,
+  routeSection: string,
+): MetadataConfig => {
+  const eventName = formatForumEventName(uniqueTitle);
+
+  return {
+    title: `${section} | ${eventName} | AirQo`,
+    description: `${section} information for ${eventName}.`,
+    keywords: `${eventName}, ${section}, clean air, air quality Africa`,
+    url: `/africa-clean-air-forum/${encodeURIComponent(uniqueTitle)}/${routeSection}`,
+    image: METADATA_CONFIGS.cleanAirForum.image,
+  };
+};
 
 export type MetadataConfigKey = keyof typeof METADATA_CONFIGS;
 

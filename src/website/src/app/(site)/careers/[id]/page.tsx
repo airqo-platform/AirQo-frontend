@@ -2,15 +2,14 @@ import { Metadata } from 'next';
 import { headers } from 'next/headers';
 
 import DetailsPage from '@/features/careers/DetailsPage';
-import { buildSiteUrl } from '@/lib/siteUrl';
-import { optimizeCloudinaryUrl } from '@/services/external/cloudinary.service';
+import {
+  cleanMetadataText,
+  DEFAULT_METADATA,
+  resolveMetadataImage,
+} from '@/lib/metadata';
+import { buildSiteUrl, getPrimarySiteUrl } from '@/lib/siteUrl';
 import { careersService } from '@/services/website';
 import type { Career } from '@/types/api';
-
-const careerOgImage = optimizeCloudinaryUrl(
-  'https://res.cloudinary.com/dbibjvyhm/image/upload/v1757015506/website/photos/about/teamImage_ganc1y_tyu1ft.webp',
-  { width: 1200 },
-);
 
 const getCareer = async (id: string): Promise<Career | null> => {
   try {
@@ -29,21 +28,36 @@ export async function generateMetadata({
   const requestHeaders = await headers();
   const requestHost =
     requestHeaders.get('x-forwarded-host') ?? requestHeaders.get('host');
+  const requestProtocol =
+    requestHeaders.get('x-forwarded-proto') ??
+    (process.env.NODE_ENV === 'development' ? 'http' : 'https');
   const canonicalUrl = buildSiteUrl(
     `/careers/${encodeURIComponent(params.id)}`,
+    undefined,
     requestHost,
+    requestProtocol,
   );
+  const siteUrl = getPrimarySiteUrl(requestHost, requestProtocol);
 
   const career = await getCareer(params.id);
 
   const fallbackTitle = 'Career Opportunity | AirQo Careers';
   const fallbackDescription =
-    'Explore this exciting career opportunity at AirQo. Join our mission to improve air quality across African cities through innovative technology and community engagement.';
-  const title = career?.title?.trim() || fallbackTitle;
-  const description = career?.description?.trim() || fallbackDescription;
+    'Explore this career opportunity at AirQo and learn how to apply.';
+  const title = career?.title?.trim()
+    ? `${career.title.trim()} | AirQo Careers`
+    : fallbackTitle;
+  const description = cleanMetadataText(
+    career?.description || career?.descriptions?.[0]?.description,
+    fallbackDescription,
+  );
+  const imageUrl = resolveMetadataImage(
+    DEFAULT_METADATA.defaultImage.url,
+    siteUrl,
+  );
 
   return {
-    title,
+    title: { absolute: title },
     description,
     keywords:
       'AirQo career opportunity, job opening, environmental careers, air quality jobs, tech jobs Africa, AirQo employment',
@@ -57,16 +71,23 @@ export async function generateMetadata({
       description,
       images: [
         {
-          url: careerOgImage,
+          url: imageUrl,
           width: 1200,
           height: 630,
-          alt: title,
+          alt: DEFAULT_METADATA.defaultImage.alt,
         },
       ],
       siteName: 'AirQo',
     },
+    twitter: {
+      card: 'summary_large_image',
+      site: '@AirQoProject',
+      title,
+      description,
+      images: [{ url: imageUrl, alt: DEFAULT_METADATA.defaultImage.alt }],
+    },
     robots: {
-      index: true,
+      index: career?.is_active !== false,
       follow: true,
     },
   };
