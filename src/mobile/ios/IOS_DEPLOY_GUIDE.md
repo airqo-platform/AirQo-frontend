@@ -105,9 +105,9 @@ cd ios && pod install && cd ..
 # From the mobile/ directory
 ./scripts/build_ios_testflight.sh
 ```
-Runs the full "Before Every Release" + build sequence for you: `git pull origin staging` → `flutter clean` → `flutter pub get` → `pod install` → bumps the build number in `pubspec.yaml` → `flutter build ipa --release`. Output IPA is still at `build/ios/ipa/airqo.ipa`.
+Runs the full "Before Every Release" + build sequence for you: `git pull origin staging` → `flutter clean` → `flutter pub get` → `pod install` → `flutter build ipa --release` using the next build number → checks that an IPA exists → bumps the build number in `pubspec.yaml`. Output IPA is still at `build/ios/ipa/airqo.ipa`.
 
-Note: it bumps the build number on every run, including reruns after a failed build — check `pubspec.yaml` afterward if you need to know the exact build number produced.
+Note: `pubspec.yaml` only changes once an IPA exists. A failed build or export leaves the version unchanged, so a rerun reuses the same build number. The script output shows the build number used by each run, including a failed one.
 
 ### Option B: Command Line (manual)
 ```bash

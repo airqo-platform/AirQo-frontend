@@ -47,7 +47,7 @@ if [[ -z "$ipa_path" ]]; then
     echo "pubspec.yaml was not changed; it is still ${current_version}."
     if [[ -d "$archive_path" ]]; then
       echo "The archive was built as ${new_version} and can be uploaded from Xcode:"
-      echo "  open ${MOBILE_DIR}/${archive_path}"
+      printf '  open %q\n' "${MOBILE_DIR}/${archive_path}"
       echo "If you upload it, set 'version: ${new_version}' in pubspec.yaml and commit it,"
       echo "otherwise the next run will reuse this build number and be rejected."
     fi
