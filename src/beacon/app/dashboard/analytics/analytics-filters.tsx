@@ -17,30 +17,69 @@ import { airQloudService, type AirQloudBasic } from "@/services/airqloud.service
 import { deviceApiService } from "@/services/device-api.service"
 import type { Device } from "@/types/api.types"
 import { useGroup } from "@/lib/group-context"
-import { DEFAULT_COHORT_TAG, cohortTagsFor } from "@/lib/cohort-tags"
+import { DEFAULT_COHORT_TAG, cohortTagsFor, isDefaultCohort } from "@/lib/cohort-tags"
 import { useSyncActions, SyncToolbar } from "@/components/analytics/sync-toolbar"
 
-export type AnalyticsFilterType = "airqlouds" | "grids" | "devices"
+export type AnalyticsFilterType = "airqlouds" | "devices"
 
-const FILTER_TYPE_LABELS: Record<AnalyticsFilterType, string> = {
-  airqlouds: "Cohorts",
-  grids: "Grids",
+/** Options offered in "Filter By", in display order. Cohorts are called clusters on screen. */
+export const FILTER_TYPES: AnalyticsFilterType[] = ["airqlouds", "devices"]
+
+export const FILTER_TYPE_LABELS: Record<AnalyticsFilterType, string> = {
+  airqlouds: "Clusters",
   devices: "Devices",
 }
 
-const DEFAULT_FILTER_TYPES: AnalyticsFilterType[] = ["airqlouds", "grids", "devices"]
+/** One of the things a filter type selects, for messages and report titles. */
+export const FILTER_ITEM_LABELS: Record<AnalyticsFilterType, string> = {
+  airqlouds: "Cluster",
+  devices: "Device",
+}
+
+const DEFAULT_PERIOD_DAYS = 14
 
 interface AnalyticsFiltersProps {
   initialFilterType?: AnalyticsFilterType
-  /** Options offered in "Filter By", in display order. */
-  filterTypes?: AnalyticsFilterType[]
   onFilterChange?: (filters: FilterState) => void
   onAnalyse?: (filters: FilterState) => void
   isAnalysing?: boolean
-  hideDateRange?: boolean
-  title?: string
-  /** Renames "Filter By" options, e.g. cohorts shown as clusters. */
-  filterTypeLabels?: Partial<Record<AnalyticsFilterType, string>>
+}
+
+/** The chosen period as exact start and end times, whole days unless a time was set. */
+export const getFilterDateWindow = (filterState: FilterState) => {
+  const startDate = new Date(filterState.dateRange.from as Date)
+  const endDate = new Date(filterState.dateRange.to as Date)
+
+  if (filterState.includeTime && filterState.timeRange) {
+    const [startHours, startMinutes] = filterState.timeRange.from.split(":")
+    const [endHours, endMinutes] = filterState.timeRange.to.split(":")
+    startDate.setHours(Number.parseInt(startHours), Number.parseInt(startMinutes), 0, 0)
+    endDate.setHours(Number.parseInt(endHours), Number.parseInt(endMinutes), 59, 999)
+  } else {
+    startDate.setHours(0, 0, 0, 0)
+    endDate.setHours(23, 59, 59, 999)
+  }
+
+  return { startDate, endDate }
+}
+
+/** Performance data for what the filters selected, the same way on every page that uses them. */
+export const fetchFilteredPerformance = (filterState: FilterState, start: string, end: string, group: string) => {
+  if (filterState.filterType === "airqlouds") {
+    return airQloudService.getAirQloudPerformance({
+      start,
+      end,
+      ids: filterState.selectedItems,
+      group,
+    })
+  }
+
+  return deviceApiService.getDevicePerformanceData({
+    start,
+    end,
+    deviceNames: filterState.selectedItems,
+    group,
+  })
 }
 
 export interface FilterState {
@@ -64,15 +103,10 @@ interface SelectedItem {
 
 export default function AnalyticsFilters({ 
   initialFilterType = "airqlouds",
-  filterTypes = DEFAULT_FILTER_TYPES,
   onFilterChange,
-  onAnalyse, 
+  onAnalyse,
   isAnalysing,
-  hideDateRange = false,
-  title = "Performance Analysis",
-  filterTypeLabels,
 }: AnalyticsFiltersProps) {
-  const typeLabels = { ...FILTER_TYPE_LABELS, ...filterTypeLabels }
   const { activeGroup, loading: groupLoading } = useGroup()
   const syncActions = useSyncActions()
   const [filterType, setFilterType] = useState<AnalyticsFilterType>(initialFilterType)
@@ -81,10 +115,8 @@ export default function AnalyticsFilters({
   const [searchTerm, setSearchTerm] = useState("")
   const [includeTime, setIncludeTime] = useState(false)
   const [airqlouds, setAirqlouds] = useState<AirQloudBasic[]>([])
-  const [grids, setGrids] = useState<AirQloudBasic[]>([])
   const [devices, setDevices] = useState<Device[]>([])
   const [isLoadingAirqlouds, setIsLoadingAirqlouds] = useState(false)
-  const [isLoadingGrids, setIsLoadingGrids] = useState(false)
   const [isLoadingDevices, setIsLoadingDevices] = useState(false)
 
   // Cohort Tags State
@@ -96,17 +128,11 @@ export default function AnalyticsFilters({
     from: Date | undefined
     to: Date | undefined
   }>(() => {
-    if (hideDateRange) {
-      const today = new Date()
-      today.setHours(23, 59, 59, 999)
-      const from = subDays(today, 13)
-      from.setHours(0, 0, 0, 0)
-      return { from, to: today }
-    }
-    return {
-      from: undefined,
-      to: undefined,
-    }
+    const today = new Date()
+    today.setHours(23, 59, 59, 999)
+    const from = subDays(today, DEFAULT_PERIOD_DAYS - 1)
+    from.setHours(0, 0, 0, 0)
+    return { from, to: today }
   })
   const [timeRange, setTimeRange] = useState<{
     from: string
@@ -141,9 +167,11 @@ export default function AnalyticsFilters({
     if (stored) {
       try {
         const parsed: SelectedItem[] = JSON.parse(stored)
-        const map = new Map(parsed.map(item => [item.id, item]))
+        // Selections saved before the default cohort stopped being listed can still hold it
+        const selectable = filterType === "airqlouds" ? parsed.filter(item => !isDefaultCohort(item.name)) : parsed
+        const map = new Map(selectable.map(item => [item.id, item]))
         setSelectedItemsMap(map)
-        setSelectedItems(parsed.map(item => item.id))
+        setSelectedItems(selectable.map(item => item.id))
       } catch (error) {
         console.error('Error loading selected items from localStorage:', error)
       }
@@ -169,8 +197,8 @@ export default function AnalyticsFilters({
         try {
           setIsLoadingAirqlouds(true)
           const normalizeAirqlouds = (response: any): AirQloudBasic[] => {
-            if (Array.isArray(response)) return response
-            return response.airqlouds || []
+            const clusters: AirQloudBasic[] = Array.isArray(response) ? response : response.airqlouds || []
+            return clusters.filter((cluster) => !isDefaultCohort(cluster.name))
           }
 
           const fetchByTags = async (tags: string[]) => {
@@ -224,36 +252,6 @@ export default function AnalyticsFilters({
     return () => clearTimeout(timer)
   }, [filterType, searchTerm, cohortTags, availableTags, activeGroup, groupLoading])
 
-  // Fetch Grids from API
-  useEffect(() => {
-    const fetchGrids = async () => {
-      if (filterType === "grids") {
-        if (groupLoading || !activeGroup) return
-
-        try {
-          setIsLoadingGrids(true)
-          const response = await airQloudService.getGridsBasic({
-            search: searchTerm || undefined,
-            limit: 100,
-            group: activeGroup,
-          })
-
-          setGrids((response as any).airqlouds || [])
-        } catch (error) {
-          console.error('Error fetching grids:', error)
-        } finally {
-          setIsLoadingGrids(false)
-        }
-      }
-    }
-
-    const timer = setTimeout(() => {
-      fetchGrids()
-    }, 300)
-
-    return () => clearTimeout(timer)
-  }, [filterType, searchTerm, activeGroup, groupLoading])
-
   // Fetch Devices from API
   useEffect(() => {
     const fetchDevices = async () => {
@@ -284,17 +282,12 @@ export default function AnalyticsFilters({
     return () => clearTimeout(timer)
   }, [filterType, searchTerm, activeGroup, groupLoading])
 
-  let currentItems: Array<{ id: string; name: string }>
-  if (filterType === "airqlouds") {
-    currentItems = airqlouds.map((aq: AirQloudBasic) => ({ id: aq.id, name: aq.name || '' }))
-  } else if (filterType === "grids") {
-    currentItems = grids.map((grid: AirQloudBasic) => ({ id: grid.id, name: grid.name || '' }))
-  } else {
-    currentItems = devices.map((d: Device) => ({ id: d.name || d.device_name || '', name: d.name || d.device_name || '' }))
-  }
+  const currentItems: Array<{ id: string; name: string }> = filterType === "airqlouds"
+    ? airqlouds.map((aq: AirQloudBasic) => ({ id: aq.id, name: aq.name || '' }))
+    : devices.map((d: Device) => ({ id: d.name || d.device_name || '', name: d.name || d.device_name || '' }))
 
-  const filterTypeLabel = typeLabels[filterType]
-  const isLoadingItems = (isLoadingAirqlouds && filterType === "airqlouds") || (isLoadingGrids && filterType === "grids") || (isLoadingDevices && filterType === "devices")
+  const filterTypeLabel = FILTER_TYPE_LABELS[filterType]
+  const isLoadingItems = filterType === "airqlouds" ? isLoadingAirqlouds : isLoadingDevices
 
   const handleFilterTypeChange = (value: AnalyticsFilterType) => {
     setFilterType(value)
@@ -385,10 +378,10 @@ export default function AnalyticsFilters({
   }
 
   return (
-    <Card>
+    <Card data-tour="analysis-filters">
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle>{title}</CardTitle>
+          <CardTitle>Clustered Analysis</CardTitle>
           <div className="flex items-center gap-2">
             <SyncToolbar {...syncActions} />
           </div>
@@ -406,8 +399,8 @@ export default function AnalyticsFilters({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {filterTypes.map((type) => (
-                    <SelectItem key={type} value={type}>{typeLabels[type]}</SelectItem>
+                  {FILTER_TYPES.map((type) => (
+                    <SelectItem key={type} value={type}>{FILTER_TYPE_LABELS[type]}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -490,17 +483,16 @@ export default function AnalyticsFilters({
           {/* Right Side: Date and Time Selection */}
           <div className="space-y-4">
             {/* Date Range Selection */}
-            {!hideDateRange && (
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Date Range</label>
-              <div className="grid grid-cols-2 gap-2">
-                {/* Date Range Picker - Half Width */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Date Range</label>
+              {/* Side by side when there's room for the whole range, stacked in narrow columns */}
+              <div className="flex flex-wrap gap-2">
                 <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
                       className={cn(
-                        "w-full justify-start text-left font-normal",
+                        "flex-[1_1_16rem] justify-start text-left font-normal",
                         !dateRange.from && "text-muted-foreground"
                       )}
                     >
@@ -604,10 +596,9 @@ export default function AnalyticsFilters({
                   </PopoverContent>
                 </Popover>
 
-                {/* Quick Select Popover - Half Width */}
                 <Popover>
                   <PopoverTrigger asChild>
-                    <Button variant="outline" className="w-full">
+                    <Button variant="outline" className="flex-[1_1_8rem]">
                       Quick Select
                     </Button>
                   </PopoverTrigger>
@@ -687,7 +678,6 @@ export default function AnalyticsFilters({
                 </Popover>
               </div>
             </div>
-            )}
 
             {/* Selected Items Display */}
             <div className="space-y-2">
@@ -730,7 +720,7 @@ export default function AnalyticsFilters({
             timeRange: includeTime ? timeRange : undefined,
             includeTime,
           })}
-          disabled={isAnalysing || selectedItems.length === 0 || (!hideDateRange && (!dateRange?.from || !dateRange?.to))}
+          disabled={isAnalysing || selectedItems.length === 0 || !dateRange?.from || !dateRange?.to}
         >
           {isAnalysing ? (
             <>
