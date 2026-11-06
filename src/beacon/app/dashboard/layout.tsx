@@ -8,6 +8,7 @@ import { useSession, signOut } from "next-auth/react"
 import TopNav from "@/components/dashboard/top-nav"
 import Sidebar from "@/components/dashboard/sidebar"
 import PrimarySidebar from "@/components/dashboard/primary-sidebar"
+import { TourProvider } from "@/components/tour/tour-provider"
 import { GroupProvider, useGroup } from "@/lib/group-context"
 import { useNavigationAccess } from "@/hooks/use-navigation-access"
 import { getDevicesHome, getModuleForPath, isRouteAccessible } from "@/lib/navigation"
@@ -110,6 +111,7 @@ export default function DashboardLayout({
 
   return (
     <GroupProvider>
+      <TourProvider>
       <NetworkStatusBanner />
       <div className="flex flex-col h-screen gap-2 px-1.5 pt-1.5 pb-0.5 overflow-hidden bg-background">
         {/* Top Navigation Bar */}
@@ -165,6 +167,7 @@ export default function DashboardLayout({
         />
       </div>
       <LoginFeedbackToast />
+      </TourProvider>
     </GroupProvider>
   )
 }

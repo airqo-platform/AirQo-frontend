@@ -38,7 +38,7 @@ import { ManufacturerFilter } from "@/components/devices/manufacturer-filter"
 import { useNetworks } from "@/hooks/use-networks"
 import { buildNetworkFilterOptions, pruneNetworkSelection, serializeNetworkFilter } from "@/lib/manufacturers"
 import { formatSiteLocation } from "@/lib/maintenance-map"
-import { DEFAULT_COHORT_TAG, cohortTagsFor } from "@/lib/cohort-tags"
+import { DEFAULT_COHORT_TAG, cohortTagsFor, withoutDefaultCohort } from "@/lib/cohort-tags"
 import { formatCompactNumber } from "@/lib/utils"
 
 type GridAdminLevelFilter = GridAdminLevel | "all"
@@ -478,7 +478,9 @@ export default function AirQloudsTable({
       case "devices":
         return airQloudService.getDevicesWithPerformance({ ...params, network: networkFilterParam })
       default:
-        return airQloudService.getAirQlouds({ ...params, tags: tags.length > 0 ? tags.join(",") : undefined })
+        return airQloudService
+          .getAirQlouds({ ...params, tags: tags.length > 0 ? tags.join(",") : undefined })
+          .then(withoutDefaultCohort)
     }
   }
 
@@ -1001,7 +1003,7 @@ export default function AirQloudsTable({
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {visibleData.map((airqloud) => {
+                  {visibleData.map((airqloud, rowIndex) => {
                     const hasNoData = airqloud.uptime === null && airqloud.errorMargin === null
                     // A site without readings still has a details page, listing its devices
                     const opensDetails = !hasNoData || isSiteMode
@@ -1009,6 +1011,7 @@ export default function AirQloudsTable({
                     return (
                       <TableRow
                         key={airqloud.id}
+                        data-tour={rowIndex === 0 ? "entity-row" : undefined}
                         className={`${hasNoData
                           ? `opacity-60${isSiteMode ? " cursor-pointer" : ""}`
                           : "cursor-pointer hover:bg-muted/50 transition-colors"

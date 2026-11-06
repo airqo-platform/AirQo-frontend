@@ -143,11 +143,6 @@ export default function UsersPage() {
     } catch (error: any) {
       console.error("Error fetching users:", error)
       setError(error.message || "Failed to load users")
-      toast({
-        title: "Error",
-        description: error.message || "Failed to load users",
-        variant: "destructive",
-      })
       setUsers([])
     } finally {
       setLoading(false)

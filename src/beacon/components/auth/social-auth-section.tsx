@@ -60,7 +60,7 @@ export default function SocialAuthSection({
   onError,
 }: SocialAuthSectionProps) {
   const actionLabel = mode === 'register' ? 'Continue with' : 'Sign in with';
-  const redirectPath = callbackUrl || '/dashboard/devices';
+  const redirectPath = callbackUrl || '/dashboard/home';
   const [lastUsedProvider, setLastUsedProvider] =
     useState<SupportedSocialAuthProvider | null>(null);
 

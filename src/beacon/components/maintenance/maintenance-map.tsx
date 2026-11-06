@@ -875,7 +875,7 @@ export default function MaintenanceMap({
   }, [resetKey])
 
   return (
-    <div id={mapContainerId} className="relative w-full h-full overflow-hidden bg-gray-100">
+    <div id={mapContainerId} data-tour="maintenance-map" className="relative w-full h-full overflow-hidden bg-gray-100">
       {/* Map DOM Canvas */}
       <div ref={mapContainer} className="absolute inset-0 z-0" />
 

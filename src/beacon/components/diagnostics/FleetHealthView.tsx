@@ -189,7 +189,7 @@ export function FleetHealthView({ group, canManage, title, description, basePath
         </Card>
       ) : summary ? (
         <>
-          <Card className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
+          <Card data-tour="fleet-summary" className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
             <Stat label="Devices diagnosed" value={summary.devices_diagnosed} />
             <Stat
               label="With issues"
@@ -202,7 +202,7 @@ export function FleetHealthView({ group, canManage, title, description, basePath
           </Card>
 
           <div className="flex flex-col xl:flex-row gap-5 items-start">
-            <section aria-labelledby="fix-queue-title" className="flex-1 min-w-0 w-full space-y-3">
+            <section data-tour="fleet-queue" aria-labelledby="fix-queue-title" className="flex-1 min-w-0 w-full space-y-3">
               <div className="flex flex-wrap items-baseline justify-between gap-2">
                 <h2 id="fix-queue-title" className="text-lg font-semibold text-foreground">
                   What to fix
@@ -232,15 +232,16 @@ export function FleetHealthView({ group, canManage, title, description, basePath
                   <p className="text-sm font-medium text-foreground">No issues were found on this day.</p>
                 </Card>
               ) : (
-                groups.map((issueGroup) => (
-                  <FleetGroupCard
-                    key={issueGroup.subsystem}
-                    group={issueGroup}
-                    open={openGroup === issueGroup.subsystem}
-                    onToggle={() => setOpenGroup(openGroup === issueGroup.subsystem ? null : issueGroup.subsystem)}
-                    lowestScoringTotal={summary.worst_devices.length}
-                    listHref={issuesHref({ subsystem: issueGroup.subsystem })}
-                  />
+                groups.map((issueGroup, groupIndex) => (
+                  <div key={issueGroup.subsystem} data-tour={groupIndex === 0 ? "fleet-first-group" : undefined}>
+                    <FleetGroupCard
+                      group={issueGroup}
+                      open={openGroup === issueGroup.subsystem}
+                      onToggle={() => setOpenGroup(openGroup === issueGroup.subsystem ? null : issueGroup.subsystem)}
+                      lowestScoringTotal={summary.worst_devices.length}
+                      listHref={issuesHref({ subsystem: issueGroup.subsystem })}
+                    />
+                  </div>
                 ))
               )}
 
