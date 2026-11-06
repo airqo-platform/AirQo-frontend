@@ -2,8 +2,11 @@ import test from "node:test"
 import assert from "node:assert/strict"
 import "../test-env.mjs"
 
+import { createElement } from "react"
+import { renderToStaticMarkup } from "react-dom/server"
 import { NextRequest } from "next/server"
 import middleware from "@/middleware"
+import { GroupLinkError } from "@/components/group-link-error"
 import { findGroupTitle, getGroupLink } from "@/lib/group-context"
 import { getSafeReturnPath } from "@/lib/navigation"
 import { consumeOAuthTokenHandoffFromUrl, resolveOAuthRedirectAfterUrl } from "@/lib/oauth-session"
@@ -41,6 +44,14 @@ test("a ?group= link resolves to the user's own spelling, which everything else 
 test("a ?group= link to a group the user isn't in is ignored", () => {
   assert.equal(findGroupTitle(GROUPS, getGroupLink("?group=other_org")), null)
   assert.equal(findGroupTitle([], getGroupLink("?group=kcca")), null)
+})
+
+test("a link that can't be confirmed offers a retry and a way to carry on", () => {
+  const html = renderToStaticMarkup(createElement(GroupLinkError, { onRetry() {}, onContinue() {} }))
+
+  assert.match(html, /role="alert"/)
+  assert.match(html, /Try again/)
+  assert.match(html, /Continue without it/)
 })
 
 test("no usable ?group= leaves nothing to apply", () => {
