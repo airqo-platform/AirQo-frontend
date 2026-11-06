@@ -1,4 +1,5 @@
 import { buildPlatformApiUrl } from "./config";
+import { getSafeReturnPath } from "./navigation";
 
 const OAUTH_FRAGMENT_TOKEN_KEY = 'token';
 const OAUTH_SUCCESS_PROVIDER_KEY = 'success';
@@ -115,6 +116,15 @@ export const normalizeOAuthAccessToken = (token: string): string => {
     .trim();
 };
 
+// The platform returns to `redirect_after` with `success` added, so this page is where the user was heading
+const getOAuthLandingPath = (): string | null => {
+  const params = new URLSearchParams(window.location.search);
+  params.delete(OAUTH_SUCCESS_PROVIDER_KEY);
+  const query = params.toString();
+
+  return getSafeReturnPath(`${window.location.pathname}${query ? `?${query}` : ''}`);
+};
+
 export const consumeOAuthTokenHandoffFromUrl = (): OAuthTokenHandoff | null => {
   if (typeof window === 'undefined') {
     return null;
@@ -155,7 +165,7 @@ export const consumeOAuthTokenHandoffFromUrl = (): OAuthTokenHandoff | null => {
   return {
     token,
     provider: provider || getLastUsedOAuthProvider(),
-    callbackUrl: callbackUrl || null,
+    callbackUrl: callbackUrl || getOAuthLandingPath(),
   };
 };
 

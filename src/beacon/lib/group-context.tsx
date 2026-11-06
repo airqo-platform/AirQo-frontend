@@ -1,6 +1,6 @@
 "use client"
 
-import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react"
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from "react"
 import { useSession } from "next-auth/react"
 import { themeService } from "@/services/theme-service"
 
@@ -53,6 +53,19 @@ export function isGroupAdmin(group: UserGroup | null | undefined): boolean {
   );
 }
 
+/** The group named by a `?group=` link, e.g. from Vertex's Open in Beacon. */
+export function getGroupLink(search: string): string | null {
+  return new URLSearchParams(search).get("group")?.trim() || null;
+}
+
+/** The user's own title for a linked group, or null if they don't belong to it. Vertex's admin pages always link `airqo`. */
+export function findGroupTitle(groups: UserGroup[], title: string | null): string | null {
+  if (!title) return null;
+
+  const wanted = title.toLowerCase();
+  return groups.find((g) => g.grp_title?.toLowerCase() === wanted)?.grp_title ?? null;
+}
+
 interface GroupContextValue {
   /** The currently active group title (e.g. "airqo") */
   activeGroup: string | null
@@ -99,9 +112,12 @@ export function GroupProvider({ children }: Readonly<{ children: React.ReactNode
   const [availableGroups, setAvailableGroups] = useState<UserGroup[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  // A `?group=` link applies once per load, so a token refresh can't undo a later manual switch
+  const groupLinkPending = useRef(true)
 
   // Persist group selection
   const setActiveGroup = useCallback((grpTitle: string) => {
+    groupLinkPending.current = false
     setCurrentActiveGroup(grpTitle)
     if (typeof globalThis.window !== "undefined") {
       globalThis.localStorage.setItem(STORAGE_KEY, grpTitle)
@@ -118,6 +134,8 @@ export function GroupProvider({ children }: Readonly<{ children: React.ReactNode
     }
 
     const fetchGroups = async () => {
+      const groupLink = groupLinkPending.current ? getGroupLink(globalThis.location.search) : null
+
       // 1. Try to load from cache first (Stale-While-Revalidate pattern)
       if (typeof globalThis.window !== "undefined") {
         try {
@@ -126,13 +144,20 @@ export function GroupProvider({ children }: Readonly<{ children: React.ReactNode
             const cachedGroups = JSON.parse(cachedGroupsStr)
             if (Array.isArray(cachedGroups) && cachedGroups.length > 0) {
               setAvailableGroups(cachedGroups)
-              
-              const persisted = globalThis.localStorage.getItem(STORAGE_KEY)
-              if (persisted && cachedGroups.some((g: any) => g.grp_title === persisted)) {
-                setCurrentActiveGroup(persisted)
+
+              const linkedGroup = findGroupTitle(cachedGroups, groupLink)
+              if (linkedGroup) setActiveGroup(linkedGroup)
+
+              // A link the cache can't confirm waits for the profile: starting under the
+              // persisted group would fetch for the wrong one, and the route guard could leave the page
+              if (linkedGroup || !groupLink) {
+                const persisted = globalThis.localStorage.getItem(STORAGE_KEY)
+                if (persisted && cachedGroups.some((g: any) => g.grp_title === persisted)) {
+                  setCurrentActiveGroup(persisted)
+                }
+                // Immediately show UI since we have cached data
+                setLoading(false)
               }
-              // Immediately show UI since we have cached data
-              setLoading(false)
             }
           }
         } catch (e) {
@@ -193,6 +218,13 @@ export function GroupProvider({ children }: Readonly<{ children: React.ReactNode
           globalThis.localStorage.setItem('isAirqoAdmin', String(isAirqoAdmin))
         }
 
+        // The profile settles a link the cache couldn't: it applies, or it's ignored for good
+        if (groupLinkPending.current) {
+          const linkedGroup = findGroupTitle(groups, groupLink)
+          if (linkedGroup) setActiveGroup(linkedGroup)
+          groupLinkPending.current = false
+        }
+
         // Pick active group: persisted selection → first group returned by profile
         const persisted =
           typeof globalThis.window !== "undefined"
@@ -241,7 +273,7 @@ export function GroupProvider({ children }: Readonly<{ children: React.ReactNode
     }
 
     fetchGroups()
-  }, [session?.accessToken, status])
+  }, [session?.accessToken, status, setActiveGroup])
 
   const activeGroupData = useMemo(() => {
     return availableGroups.find(g => g.grp_title === activeGroup) || null
