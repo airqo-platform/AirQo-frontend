@@ -59,7 +59,7 @@ export function SitesSummaryCards({ performanceDays }: Readonly<{ performanceDay
 
   return (
     <div className="space-y-2">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div data-tour="sites-summary" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <SummaryCard
           title="Total Sites"
           value={summary?.total_sites ?? unavailable}

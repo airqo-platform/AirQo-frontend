@@ -27,7 +27,7 @@ export const isSupportedSocialAuthProvider = (
 };
 
 export const resolveOAuthRedirectAfterUrl = (
-  targetPath = '/dashboard/devices'
+  targetPath = '/dashboard/home'
 ): string | null => {
   if (typeof window === 'undefined') {
     return null;

@@ -63,7 +63,7 @@ export default withAuth(
                              token?.privilege?.toLowerCase() === 'net admin')) ||
                            request.cookies.get('isAirqoAdmin')?.value === 'true'
                              
-      const defaultRoute = isAirqoAdmin ? '/dashboard' : '/dashboard/devices'
+      const defaultRoute = isAirqoAdmin ? '/dashboard' : '/dashboard/home'
       return NextResponse.redirect(new URL(defaultRoute, request.url))
     }
 
@@ -76,7 +76,7 @@ export default withAuth(
                            request.cookies.get('isAirqoAdmin')?.value === 'true'
                              
       if (!isAirqoAdmin) {
-        return NextResponse.redirect(new URL('/dashboard/devices', request.url))
+        return NextResponse.redirect(new URL('/dashboard/home', request.url))
       }
     }
     

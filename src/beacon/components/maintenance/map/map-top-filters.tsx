@@ -168,6 +168,7 @@ export const MapTopFilters: React.FC<MapTopFiltersProps> = ({
 
   return (
     <div
+      data-tour="maintenance-filters"
       className={`flex items-center gap-1.5 flex-wrap min-w-0 ${className}`}
     >
       {/* Period Dropdown */}

@@ -83,9 +83,7 @@ function DiagnosticSimulatorContent() {
         setProfileId((current) => current || p[0]?.id || "");
       })
       .catch((err: any) => {
-        const errMsg = err?.message || "Failed to load hardware profiles.";
-        setProfilesError(errMsg);
-        toast({ title: "Error Loading Profiles", description: errMsg, variant: "destructive" });
+        setProfilesError(err?.message || "Failed to load hardware profiles.");
       })
       .finally(() => setProfilesLoading(false));
   }, []);

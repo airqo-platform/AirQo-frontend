@@ -54,7 +54,7 @@ function AuthEffect({ children }: { children: ReactNode }) {
     if (handoff) {
       setHandoffProcessed(true);
       
-      const callbackUrl = handoff.callbackUrl || '/dashboard/devices';
+      const callbackUrl = handoff.callbackUrl || '/dashboard/home';
       // Lets the dashboard follow this sign-in with the login experience prompt
       markLoginStarted();
       
