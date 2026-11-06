@@ -409,8 +409,8 @@ export default function AirQloudDetailPage() {
   const [data, setData] = useState<AirQloudDetailData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  // The Sites page summarises 14 days, so a site opened from it shows the same window
-  const daysOfData = isSiteMode ? 14 : 13
+  // The same window as the Sites page and Vertex's health cards
+  const daysOfData = 14
 
   useEffect(() => {
     // Set on a group switch or unmount, so a slower earlier request can't overwrite the newer one's data

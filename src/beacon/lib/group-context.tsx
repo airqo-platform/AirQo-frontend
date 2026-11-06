@@ -1,6 +1,6 @@
 "use client"
 
-import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react"
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from "react"
 import { useSession } from "next-auth/react"
 import { themeService } from "@/services/theme-service"
 
@@ -53,6 +53,19 @@ export function isGroupAdmin(group: UserGroup | null | undefined): boolean {
   );
 }
 
+/** The group named by a `?group=` link, e.g. from Vertex's Open in Beacon. */
+export function getGroupLink(search: string): string | null {
+  return new URLSearchParams(search).get("group")?.trim() || null;
+}
+
+/** The user's own title for a linked group, or null if they don't belong to it. Vertex's admin pages always link `airqo`. */
+export function findGroupTitle(groups: UserGroup[], title: string | null): string | null {
+  if (!title) return null;
+
+  const wanted = title.toLowerCase();
+  return groups.find((g) => g.grp_title?.toLowerCase() === wanted)?.grp_title ?? null;
+}
+
 interface GroupContextValue {
   /** The currently active group title (e.g. "airqo") */
   activeGroup: string | null
@@ -64,6 +77,12 @@ interface GroupContextValue {
   loading: boolean
   /** Error message if fetching failed */
   error: string | null
+  /** A `?group=` link couldn't be confirmed, so `loading` stays true until it's retried or dropped */
+  groupLinkFailed: boolean
+  /** Ask for the profile again to confirm the link */
+  retryGroupLink: () => void
+  /** Carry on without the link, as if it had never been opened */
+  dropGroupLink: () => void
   /** Active group details */
   activeGroupData: UserGroup | null
   /** Whether the user is an admin of the active group */
@@ -84,6 +103,9 @@ const GroupContext = createContext<GroupContextValue>({
   setActiveGroup: () => {},
   loading: true,
   error: null,
+  groupLinkFailed: false,
+  retryGroupLink: () => {},
+  dropGroupLink: () => {},
   activeGroupData: null,
   isActiveGroupAdmin: false,
   activeGroupPermissions: [],
@@ -99,13 +121,27 @@ export function GroupProvider({ children }: Readonly<{ children: React.ReactNode
   const [availableGroups, setAvailableGroups] = useState<UserGroup[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  // A `?group=` link applies once per load, so a token refresh can't undo a later manual switch
+  const groupLinkPending = useRef(true)
+  const [groupLinkFailed, setGroupLinkFailed] = useState(false)
+  const [fetchAttempt, setFetchAttempt] = useState(0)
 
   // Persist group selection
   const setActiveGroup = useCallback((grpTitle: string) => {
+    groupLinkPending.current = false
     setCurrentActiveGroup(grpTitle)
     if (typeof globalThis.window !== "undefined") {
       globalThis.localStorage.setItem(STORAGE_KEY, grpTitle)
     }
+  }, [])
+
+  const retryGroupLink = useCallback(() => {
+    setFetchAttempt((attempt) => attempt + 1)
+  }, [])
+
+  const dropGroupLink = useCallback(() => {
+    groupLinkPending.current = false
+    setFetchAttempt((attempt) => attempt + 1)
   }, [])
 
   // On mount/session change: fetch user profile → extract groups → pick active group
@@ -117,7 +153,18 @@ export function GroupProvider({ children }: Readonly<{ children: React.ReactNode
       return
     }
 
+    // Set when a newer request takes over, so a slower older profile can't undo its result or a manual switch
+    let superseded = false
+
     const fetchGroups = async () => {
+      const groupLink = groupLinkPending.current ? getGroupLink(globalThis.location.search) : null
+      // Until the profile settles a link the cache couldn't, the page stays held back:
+      // any fallback would show the wrong organisation, and having none would leave the page
+      const isLinkUnconfirmed = () => Boolean(groupLink) && groupLinkPending.current
+
+      setError(null)
+      setGroupLinkFailed(false)
+
       // 1. Try to load from cache first (Stale-While-Revalidate pattern)
       if (typeof globalThis.window !== "undefined") {
         try {
@@ -126,13 +173,20 @@ export function GroupProvider({ children }: Readonly<{ children: React.ReactNode
             const cachedGroups = JSON.parse(cachedGroupsStr)
             if (Array.isArray(cachedGroups) && cachedGroups.length > 0) {
               setAvailableGroups(cachedGroups)
-              
-              const persisted = globalThis.localStorage.getItem(STORAGE_KEY)
-              if (persisted && cachedGroups.some((g: any) => g.grp_title === persisted)) {
-                setCurrentActiveGroup(persisted)
+
+              const linkedGroup = findGroupTitle(cachedGroups, groupLink)
+              if (linkedGroup) setActiveGroup(linkedGroup)
+
+              // A link the cache can't confirm waits for the profile: starting under the
+              // persisted group would fetch for the wrong one, and the route guard could leave the page
+              if (linkedGroup || !groupLink) {
+                const persisted = globalThis.localStorage.getItem(STORAGE_KEY)
+                if (persisted && cachedGroups.some((g: any) => g.grp_title === persisted)) {
+                  setCurrentActiveGroup(persisted)
+                }
+                // Immediately show UI since we have cached data
+                setLoading(false)
               }
-              // Immediately show UI since we have cached data
-              setLoading(false)
             }
           }
         } catch (e) {
@@ -143,7 +197,7 @@ export function GroupProvider({ children }: Readonly<{ children: React.ReactNode
       try {
         const token = session?.accessToken
         if (!token) {
-          setLoading(false)
+          if (isLinkUnconfirmed()) setGroupLinkFailed(true)
           return
         }
 
@@ -156,11 +210,15 @@ export function GroupProvider({ children }: Readonly<{ children: React.ReactNode
           },
         })
 
+        if (superseded) return
+
         if (!response.ok) {
           throw new Error(`Failed to fetch user profile (${response.status})`)
         }
 
         const data = await response.json()
+
+        if (superseded) return
 
         // The platform returns { success, users: [{ groups: [...] }] }
         const user = data.users?.[0]
@@ -191,6 +249,13 @@ export function GroupProvider({ children }: Readonly<{ children: React.ReactNode
           const maxAge = 7 * 24 * 60 * 60 // 7 days
           globalThis.document.cookie = `isAirqoAdmin=${isAirqoAdmin}; path=/; max-age=${maxAge}; SameSite=Strict`
           globalThis.localStorage.setItem('isAirqoAdmin', String(isAirqoAdmin))
+        }
+
+        // The profile settles a link the cache couldn't: it applies, or it's ignored for good
+        if (groupLinkPending.current) {
+          const linkedGroup = findGroupTitle(groups, groupLink)
+          if (linkedGroup) setActiveGroup(linkedGroup)
+          groupLinkPending.current = false
         }
 
         // Pick active group: persisted selection → first group returned by profile
@@ -224,8 +289,15 @@ export function GroupProvider({ children }: Readonly<{ children: React.ReactNode
           return prevActive
         })
       } catch (err: any) {
+        if (superseded) return
+
         console.error("Error fetching user groups:", err)
         setError(err.message || "Failed to load groups")
+
+        if (isLinkUnconfirmed()) {
+          setGroupLinkFailed(true)
+          return
+        }
 
         // Fallback: try persisted value
         const persisted =
@@ -236,12 +308,16 @@ export function GroupProvider({ children }: Readonly<{ children: React.ReactNode
           setCurrentActiveGroup((prevActive) => (prevActive === persisted ? prevActive : persisted))
         }
       } finally {
-        setLoading(false)
+        if (!superseded && !isLinkUnconfirmed()) setLoading(false)
       }
     }
 
     fetchGroups()
-  }, [session?.accessToken, status])
+
+    return () => {
+      superseded = true
+    }
+  }, [session?.accessToken, status, setActiveGroup, fetchAttempt])
 
   const activeGroupData = useMemo(() => {
     return availableGroups.find(g => g.grp_title === activeGroup) || null
@@ -282,6 +358,9 @@ export function GroupProvider({ children }: Readonly<{ children: React.ReactNode
       setActiveGroup,
       loading,
       error,
+      groupLinkFailed,
+      retryGroupLink,
+      dropGroupLink,
       activeGroupData,
       isActiveGroupAdmin,
       activeGroupPermissions,
@@ -294,6 +373,9 @@ export function GroupProvider({ children }: Readonly<{ children: React.ReactNode
       setActiveGroup,
       loading,
       error,
+      groupLinkFailed,
+      retryGroupLink,
+      dropGroupLink,
       activeGroupData,
       isActiveGroupAdmin,
       activeGroupPermissions,

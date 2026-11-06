@@ -8,6 +8,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Loader2, AlertCircle, Eye, EyeOff } from "lucide-react"
 import authService from "@/services/api-service"
 import { markLoginStarted } from "@/lib/feedback-preferences"
+import { getSafeReturnPath } from "@/lib/navigation"
 import { signIn, useSession } from "next-auth/react"
 import SocialAuthSection from "@/components/auth/social-auth-section"
 import SelectedEmailCard from "@/components/auth/selected-email-card"
@@ -26,6 +27,8 @@ export default function LoginPage() {
   const [error, setError] = useState<string>("")
   const [showPassword, setShowPassword] = useState<boolean>(false)
   const [step, setStep] = useState<1 | 2>(1)
+  // The page the middleware was taking a signed-out user to, such as a link from Vertex
+  const [returnPath, setReturnPath] = useState<string | null>(null)
   const passwordInputRef = useRef<HTMLInputElement>(null)
   
   const { data: session, status } = useSession()
@@ -36,7 +39,9 @@ export default function LoginPage() {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search)
     const action = urlParams.get('action')
-    
+    const from = getSafeReturnPath(urlParams.get('from'))
+    setReturnPath(from)
+
     if (action === 'logout') {
       authService.clearAllAuthData()
       router.replace('/login')
@@ -51,7 +56,9 @@ export default function LoginPage() {
                                session?.user?.privilege?.toLowerCase() === 'super' || 
                                session?.user?.privilege?.toLowerCase() === 'net admin'));
         
-        if (isAirqoAdmin) {
+        if (from) {
+          router.push(from)
+        } else if (isAirqoAdmin) {
           router.push("/dashboard")
         } else {
           router.push("/dashboard/home")
@@ -146,7 +153,7 @@ export default function LoginPage() {
           console.error("Error checking user session on login:", err)
         }
         
-        window.location.href = redirectTarget
+        window.location.href = returnPath ?? redirectTarget
         return
       } else {
         setError("Unexpected response. Please try again.")
@@ -219,7 +226,7 @@ export default function LoginPage() {
             )}
           </Button>
 
-          <SocialAuthSection mode="login" disabled={isLoading} onError={(msg) => setError(msg)} />
+          <SocialAuthSection mode="login" disabled={isLoading} callbackUrl={returnPath} onError={(msg) => setError(msg)} />
 
           <div className="w-full pt-1 text-center">
             <p className="text-sm text-slate-600 dark:text-slate-400">
