@@ -125,7 +125,9 @@ const NETWORK_HEALTH_TOUR: PageTour = {
 const MAINTENANCE_TOUR: PageTour = {
   id: "maintenance",
   title: "Maintenance",
-  readyTarget: tourTarget("maintenance-map"),
+  // The map is on the page before it has anything on it, so wait for its first device. Leaflet's
+  // marker elements have no size of their own, and a target has to be visible, so look inside one.
+  readyTarget: `${tourTarget("maintenance-map")} .custom-device-marker > *`,
   steps: [
     {
       target: tourTarget("maintenance-map"),
@@ -277,17 +279,18 @@ export function getTourCardPosition(
 
   if (!target) return bottomCentre
 
+  // Clamped even where it fits, because the page can scroll the target off screen behind the tour
   if (target.bottom + gap + card.height <= viewport.height - margin) {
-    return { top: target.bottom + gap, left: clampLeft(target.left) }
+    return { top: clampTop(target.bottom + gap), left: clampLeft(target.left) }
   }
   if (target.top - gap - card.height >= margin) {
-    return { top: target.top - gap - card.height, left: clampLeft(target.left) }
+    return { top: clampTop(target.top - gap - card.height), left: clampLeft(target.left) }
   }
   if (target.right + gap + card.width <= viewport.width - margin) {
-    return { top: clampTop(target.top), left: target.right + gap }
+    return { top: clampTop(target.top), left: clampLeft(target.right + gap) }
   }
   if (target.left - gap - card.width >= margin) {
-    return { top: clampTop(target.top), left: target.left - gap - card.width }
+    return { top: clampTop(target.top), left: clampLeft(target.left - gap - card.width) }
   }
   return bottomCentre
 }

@@ -74,6 +74,7 @@ export default function TopNav({
   const isAirqoGroup = activeGroup?.toLowerCase() === "airqo"
   const { hasTour, startTour } = useTour()
   const tourChosenRef = useRef(false)
+  const helpButtonRef = useRef<HTMLButtonElement>(null)
   const [showLogoutDialog, setShowLogoutDialog] = useState(false)
   const [isSyncingGroups, setIsSyncingGroups] = useState(false)
   const [mounted, setMounted] = useState(false)
@@ -181,6 +182,7 @@ export default function TopNav({
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
+                    ref={helpButtonRef}
                     variant="ghost"
                     size="icon"
                     data-tour="help-menu"
@@ -205,7 +207,7 @@ export default function TopNav({
                       className="cursor-pointer rounded-lg"
                       onSelect={() => {
                         tourChosenRef.current = true
-                        startTour()
+                        startTour(helpButtonRef.current)
                       }}
                     >
                       Take a tour of this page

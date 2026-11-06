@@ -79,7 +79,7 @@ type TextLine = Array<{ text: string; bold: boolean; x: number }>
  * position: viewers substitute their own Helvetica, so a run measured here can draw slightly wider
  * there, and whatever followed it would run into it.
  */
-function layoutText(pdf: jsPDF, text: ReportText, maxWidth: number, size: number): TextLine[] {
+export function layoutText(pdf: jsPDF, text: ReportText, maxWidth: number, size: number): TextLine[] {
   pdf.setFontSize(size)
   const widthOf = (value: string, bold: boolean) => {
     pdf.setFont("helvetica", bold ? "bold" : "normal")
@@ -90,6 +90,18 @@ function layoutText(pdf: jsPDF, text: ReportText, maxWidth: number, size: number
   let cursor = 0
   let pendingSpace = 0
 
+  const placeWord = (word: string, bold: boolean) => {
+    const width = widthOf(word, bold)
+    if (cursor > 0 && cursor + pendingSpace + width > maxWidth) {
+      lines.push([])
+      cursor = 0
+      pendingSpace = 0
+    }
+    lines[lines.length - 1].push({ text: word, bold, x: cursor + pendingSpace })
+    cursor += pendingSpace + width
+    pendingSpace = 0
+  }
+
   for (const part of text) {
     const bold = Boolean(part.bold)
     for (const token of toPdfText(part.text).split(/(\s+)/)) {
@@ -98,15 +110,15 @@ function layoutText(pdf: jsPDF, text: ReportText, maxWidth: number, size: number
         if (cursor > 0) pendingSpace = widthOf(" ", bold)
         continue
       }
-      const width = widthOf(token, bold)
-      if (cursor > 0 && cursor + pendingSpace + width > maxWidth) {
-        lines.push([])
-        cursor = 0
-        pendingSpace = 0
+      // A name with no spaces can be wider than the line, and would run off the page
+      let rest = token
+      while (rest.length > 1 && widthOf(rest, bold) > maxWidth) {
+        let fit = rest.length - 1
+        while (fit > 1 && widthOf(rest.slice(0, fit), bold) > maxWidth) fit -= 1
+        placeWord(rest.slice(0, fit), bold)
+        rest = rest.slice(fit)
       }
-      lines[lines.length - 1].push({ text: token, bold, x: cursor + pendingSpace })
-      cursor += pendingSpace + width
-      pendingSpace = 0
+      placeWord(rest, bold)
     }
   }
   return lines

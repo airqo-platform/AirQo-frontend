@@ -18,7 +18,8 @@ import {
   buildStatusGauge,
   niceMax,
 } from "@/lib/reports/report-charts"
-import { buildDeviceReportPdf } from "@/lib/reports/device-report-pdf"
+import { buildDeviceReportPdf, layoutText } from "@/lib/reports/device-report-pdf"
+import { jsPDF } from "jspdf"
 
 const FROM = new Date(2026, 9, 26, 0, 0, 0, 0) // Mon Oct 26
 const TO = new Date(2026, 10, 8, 23, 59, 59, 999) // Sun Nov 8, 14 days
@@ -183,6 +184,88 @@ test("today only counts the hours so far", () => {
   assert.equal(report.hasPartialDay, true)
 })
 
+test("today stays a day in progress through its last hour", () => {
+  const generatedAt = new Date(2026, 10, 8, 23, 30)
+  const report = buildReport([{ _id: "d1", name: "aq_1", data: readings(ALL_DAYS, 24) }], { generatedAt })
+  const today = report.days[report.days.length - 1]
+  assert.equal(today.expectedHours, 24)
+  assert.equal(today.isComplete, false)
+  assert.equal(report.days[0].isComplete, true)
+  assert.equal(report.hasPartialDay, true)
+})
+
+test("a device with a wrong clock can't push a day past 100%", () => {
+  const generatedAt = new Date(2026, 10, 8, 9, 30)
+  const report = buildReport([{ _id: "d1", name: "aq_1", data: readings([13], 24) }], { generatedAt })
+  const today = report.days[report.days.length - 1]
+  assert.equal(today.uptime, 100)
+  assert.equal(report.devices[0].records, 20)
+})
+
+test("a clock-change day is held to the hours it actually has", () => {
+  const originalTimeZone = process.env.TZ
+  process.env.TZ = "America/New_York"
+  try {
+    // March 8, 2026: clocks go from 02:00 to 03:00
+    const from = new Date(2026, 2, 8, 0, 0, 0, 0)
+    const to = new Date(2026, 2, 8, 23, 59, 59, 999)
+    const data = Array.from({ length: 23 }, (_, offset) => ({
+      datetime: new Date(from.getTime() + offset * 3600000 + 1800000).toISOString(),
+      record_count: 1,
+    }))
+    const report = buildReport([{ _id: "d1", name: "aq_1", data }], { from, to, generatedAt: new Date(2026, 2, 9, 9) })
+    assert.equal(report.days[0].expectedHours, 23)
+    assert.equal(report.days[0].uptime, 100)
+    assert.equal(report.days[0].isComplete, true)
+  } finally {
+    if (originalTimeZone === undefined) delete process.env.TZ
+    else process.env.TZ = originalTimeZone
+  }
+})
+
+test("a device in two clusters counts once in the hourly pattern too", () => {
+  const device = { _id: "d1", name: "aq_1", data: readings(ALL_DAYS, 24) }
+  const once = buildReport([device])
+  const twice = buildReport([], {
+    entities: [
+      { name: "kampala", devices: [device] },
+      { name: "mbale", devices: [device] },
+    ],
+    itemNames: ["kampala", "mbale"],
+  })
+  assert.deepEqual(twice.devices[0].groups, ["kampala", "mbale"])
+  assert.deepEqual(twice.hourlyCoverage, once.hourlyCoverage)
+})
+
+test("the API's own percentage beats guessing the scale from readings", () => {
+  const data = readings([0], 2)
+  assert.equal(buildReport([{ _id: "d1", name: "aq_1", uptime: 0.5, uptime_percent: 50, data }]).devices[0].uptime, 50)
+  assert.equal(buildReport([{ _id: "d1", name: "aq_1", uptime: 0.5, uptime_percent: 0.5, data }]).devices[0].uptime, 0.5)
+})
+
+test("coordinates the map can't draw leave a device unplaced", () => {
+  const report = buildReport([
+    { _id: "d1", name: "north_pole", latitude: 90, longitude: 32.5 },
+    { _id: "d2", name: "bad_longitude", latitude: 0.3, longitude: 200 },
+    { _id: "d3", name: "kampala", latitude: 0.3, longitude: 32.5 },
+  ])
+  assert.deepEqual(
+    report.devices.filter((device) => device.latitude !== null).map((device) => device.name),
+    ["kampala"]
+  )
+})
+
+test("a name wider than the line is split rather than run off the page", () => {
+  const pdf = new jsPDF({ unit: "mm", format: "a4" })
+  const name = "steel_and_tube_industries_".repeat(12)
+  const lines = layoutText(pdf, [{ text: `For ${name} now`, bold: true }], 100, 10)
+  assert.ok(lines.length > 1)
+  for (const line of lines) {
+    for (const word of line) assert.ok(word.x + pdf.getTextWidth(word.text) <= 100.01, word.text)
+  }
+  assert.equal(lines.flat().map((word) => word.text).join("").replace("For", "").replace("now", ""), name)
+})
+
 test("an empty selection still produces a sensible report", () => {
   const report = buildReport([])
   assert.equal(report.summary.deviceCount, 0)
@@ -260,4 +343,16 @@ test("the PDF holds real text and leaves out sections that were switched off", (
   const pagesOf = (sections) => buildDeviceReportPdf(report, sections).getNumberOfPages()
   const none = { map: false, dailyUptime: false, patterns: false, dataReceived: false, sensorHealth: false }
   assert.ok(pagesOf(all) > pagesOf(none))
+
+  const contentOf = (sections) => JSON.stringify(buildDeviceReportPdf(report, sections).internal.pages)
+  const titles = {
+    dailyUptime: "Average uptime per day",
+    patterns: "Uptime by hour of day",
+    dataReceived: "Readings received per day",
+    sensorHealth: "Largest sensor error margins",
+  }
+  for (const [section, title] of Object.entries(titles)) {
+    assert.ok(contentOf({ ...none, [section]: true }).includes(title), `${section} on`)
+    assert.ok(!contentOf({ ...all, [section]: false }).includes(title), `${section} off`)
+  }
 })

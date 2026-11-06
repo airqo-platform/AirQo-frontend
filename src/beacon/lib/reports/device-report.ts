@@ -1,4 +1,4 @@
-import { eachDayOfInterval, format, startOfDay, startOfWeek } from "date-fns"
+import { addDays, eachDayOfInterval, format, startOfDay, startOfWeek } from "date-fns"
 
 /**
  * The device health report, worked out once from the performance data. The on-screen preview and
@@ -68,6 +68,8 @@ export interface ReportDay {
   date: Date
   /** Hours of this day inside the period and not in the future. */
   expectedHours: number
+  /** Whether the whole day is inside the period and already over. */
+  isComplete: boolean
   uptime: number | null
   records: number
   reportingDevices: number
@@ -189,6 +191,11 @@ const firstSensorValue = (reading: any, keys: string[]): number | null => {
 const SENSOR_1_KEYS = ["s1_pm2_5", "pm2.5 sensor1", "pm2_5_sensor1", "pm2_5_s1", "pm2_5_s1_raw"]
 const SENSOR_2_KEYS = ["s2_pm2_5", "pm2.5 sensor2", "pm2_5_sensor2", "pm2_5_s2", "pm2_5_s2_raw"]
 
+// The map can't draw past this: 90° projects to infinity, so a device reporting it is treated as unplaced
+const MAX_MAP_LATITUDE = 85.0511
+
+const deviceIdOf = (raw: any) => String(raw._id ?? raw.device_id ?? raw.id ?? raw.name ?? raw.device_name)
+
 function summariseDevice(
   raw: any,
   groupName: string | undefined,
@@ -258,13 +265,19 @@ function summariseDevice(
   const hasReadings = seenHours.size > 0
   const fromReadings =
     hasReadings && window.expectedHours > 0 ? Math.min(100, (seenHours.size / window.expectedHours) * 100) : null
-  const uptime = toUptimePercent(raw.uptime, fromReadings)
+  const exactPercent = toNumber(raw.uptime_percent)
+  const uptime = exactPercent !== null ? Math.min(exactPercent, 100) : toUptimePercent(raw.uptime, fromReadings)
   const latitude = toNumber(raw.latitude)
   const longitude = toNumber(raw.longitude)
-  const hasCoordinates = latitude !== null && longitude !== null && !(latitude === 0 && longitude === 0)
+  const hasCoordinates =
+    latitude !== null &&
+    longitude !== null &&
+    !(latitude === 0 && longitude === 0) &&
+    Math.abs(latitude) <= MAX_MAP_LATITUDE &&
+    Math.abs(longitude) <= 180
 
   return {
-    id: String(raw._id ?? raw.device_id ?? raw.id ?? raw.name ?? raw.device_name),
+    id: deviceIdOf(raw),
     name: raw.long_name || raw.name || raw.device_name || String(raw._id ?? raw.device_id ?? raw.id ?? "Unknown device"),
     groups: groupName ? [groupName] : [],
     latitude: hasCoordinates ? latitude : null,
@@ -307,33 +320,40 @@ export function buildDeviceReport(input: DeviceReportInput): DeviceReport {
   const hourSlots = new Array<number>(24).fill(0)
   const dayFrames = eachDayOfInterval({ start: from, end: to }).map((date) => {
     const dayStart = startOfDay(date).getTime()
+    const dayEnd = startOfDay(addDays(date, 1)).getTime()
     const spanStart = Math.max(dayStart, fromMs)
-    const spanEnd = Math.min(dayStart + 24 * HOUR_MS, toMs + 1, generatedAt.getTime())
-    let expectedHours = 0
-    for (let hour = 0; hour < 24; hour += 1) {
-      const hourStart = dayStart + hour * HOUR_MS
-      if (hourStart < spanEnd && hourStart + HOUR_MS > spanStart) {
-        expectedHours += 1
-        hourSlots[hour] += 1
-      }
+    const spanEnd = Math.min(dayEnd, toMs + 1, generatedAt.getTime())
+    // Distinct clock hours, the way readings are counted, so a clock-change day isn't held to 24
+    const clockHours = new Set<number>()
+    for (let hourStart = dayStart; hourStart < dayEnd; hourStart += HOUR_MS) {
+      if (hourStart < spanEnd && hourStart + HOUR_MS > spanStart) clockHours.add(new Date(hourStart).getHours())
     }
-    return { date, key: dayKey(date), expectedHours }
+    clockHours.forEach((hour) => {
+      hourSlots[hour] += 1
+    })
+    return {
+      date,
+      key: dayKey(date),
+      expectedHours: clockHours.size,
+      isComplete: spanStart === dayStart && spanEnd === dayEnd,
+    }
   })
   const expectedHours = dayFrames.reduce((sum, day) => sum + day.expectedHours, 0)
 
   const hourHits = new Array<number>(24).fill(0)
-  const window = { from: fromMs, to: toMs, expectedHours }
+  // Not past now either: a device with a wrong clock can send readings dated in the future
+  const window = { from: fromMs, to: Math.min(toMs, generatedAt.getTime()), expectedHours }
   const byId = new Map<string, ReportDevice>()
   for (const entity of input.entities) {
     for (const raw of entity.devices ?? []) {
-      const device = summariseDevice(raw, entity.name, window, hourHits)
-      const existing = byId.get(device.id)
+      const existing = byId.get(deviceIdOf(raw))
       if (existing) {
         // The same device in two clusters is counted once, under both names
-        existing.groups.push(...device.groups.filter((group) => !existing.groups.includes(group)))
-      } else {
-        byId.set(device.id, device)
+        if (entity.name && !existing.groups.includes(entity.name)) existing.groups.push(entity.name)
+        continue
       }
+      const device = summariseDevice(raw, entity.name, window, hourHits)
+      byId.set(device.id, device)
     }
   }
 
@@ -375,7 +395,7 @@ export function buildDeviceReport(input: DeviceReportInput): DeviceReport {
   }
 
   const liveDays = days.filter((day) => day.expectedHours > 0)
-  const completeDays = liveDays.filter((day) => day.expectedHours === 24)
+  const completeDays = liveDays.filter((day) => day.isComplete)
   const comparableDays = completeDays.length > 0 ? completeDays : liveDays
 
   const weekGroups = new Map<number, ReportDay[]>()
@@ -698,7 +718,7 @@ export function buildDeviceReport(input: DeviceReportInput): DeviceReport {
       slots > 0 && deviceCount > 0 ? (hourHits[hour] / (slots * deviceCount)) * 100 : null
     ),
     bandCounts,
-    hasPartialDay: liveDays.some((day) => day.expectedHours < 24),
+    hasPartialDay: liveDays.some((day) => !day.isComplete),
     showGroups: input.entities.length > 1,
     summary: {
       deviceCount,

@@ -333,7 +333,7 @@ export function HomePage() {
         deviceLink={deviceLink}
         features={features}
         lockedLabel={lockedLabel}
-        onStartTour={startTour}
+        onStartTour={() => startTour()}
       />
     )
   }
@@ -348,7 +348,7 @@ export function HomePage() {
         .slice(0, MAX_RECENT_PAGES)}
       features={features}
       lockedLabel={lockedLabel}
-      onStartTour={startTour}
+      onStartTour={() => startTour()}
       vertexHref={deviceLink}
     />
   )

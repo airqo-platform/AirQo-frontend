@@ -62,14 +62,20 @@ test("Home keeps showing a new user what an organisation would unlock", () => {
 
 test("Home has nothing locked for an organisation member", () => {
   const features = getHomeFeatures(ORG_MEMBER)
+  assert.deepEqual(
+    features.map((feature) => feature.id),
+    ["devices", "sites", "analytics", "network-health", "maintenance", "reports"]
+  )
   assert.ok(features.every((feature) => feature.available))
-  assert.ok(!features.some((feature) => feature.id === "my-devices"))
 })
 
 test("Home doesn't tell AirQo staff they need an organisation", () => {
   const features = getHomeFeatures(AIRQO_ADMIN)
+  assert.deepEqual(
+    features.map((feature) => feature.id),
+    ["my-devices", "devices", "sites", "analytics", "maintenance", "reports"]
+  )
   assert.ok(features.every((feature) => feature.available))
-  assert.ok(!features.some((feature) => feature.id === "network-health"))
 })
 
 test("every listed Home feature that's available can actually be opened", () => {
@@ -171,11 +177,23 @@ test("a tour is remembered per person", () => {
   assert.equal(hasSeenTour("person-b", "home"), false)
 })
 
+test("seen tours survive a reload, which clears the session's memory", () => {
+  markTourSeen("person-c", "home")
+  assert.deepEqual(JSON.parse(globalThis.localStorage.getItem("beacon_tours_seen_person-c")), ["home"])
+
+  globalThis.localStorage.setItem("beacon_tours_seen_person-d", JSON.stringify(["reports"]))
+  assert.equal(hasSeenTour("person-d", "reports"), true)
+  assert.equal(hasSeenTour("person-d", "home"), false)
+})
+
 test("the tour card stays on screen wherever its target is", () => {
   const card = { width: 384, height: 200 }
   const viewport = { width: 1280, height: 800 }
   const box = (top, left, bottom, right) => ({ top, left, bottom, right })
 
+  // Scrolled out of view above or below while the tour is open
+  assert.deepEqual(getTourCardPosition(box(-400, 100, -300, 400), card, viewport), { top: 16, left: 100 })
+  assert.deepEqual(getTourCardPosition(box(2000, 100, 2100, 400), card, viewport), { top: 584, left: 100 })
   // Below a target in the top bar, pulled in from the right edge
   assert.deepEqual(getTourCardPosition(box(15, 1000, 53, 1130), card, viewport), { top: 67, left: 880 })
   // Above a target at the bottom of the page

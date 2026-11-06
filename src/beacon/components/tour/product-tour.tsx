@@ -9,9 +9,10 @@ import { findVisibleTarget, getTourCardPosition, type TourStep } from "@/lib/tou
 
 /**
  * Above everything a page can open: dialogs (z-[9999]), the navigation drawer (z-[10001]), its
- * flyouts (z-[10002]), toasts (z-[10003]) and the maintenance map's controls.
+ * flyouts (z-[10002]), toasts (z-[10003]), the side menu's flyouts (z-[99999]) and the maintenance
+ * map's controls.
  */
-const TOUR_Z_INDEX = 10050
+const TOUR_Z_INDEX = 100000
 
 const FOCUSABLE_SELECTOR = [
   "button:not([disabled])",

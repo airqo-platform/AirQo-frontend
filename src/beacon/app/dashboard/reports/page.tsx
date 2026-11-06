@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useToast } from "@/components/ui/use-toast"
 import { useGroup } from "@/lib/group-context"
 import AnalyticsFilters, {
@@ -43,9 +43,17 @@ export default function ReportsPage() {
     dataReceived: true,
     sensorHealth: true,
   })
+  const latestPreview = useRef(0)
+
+  // A report belongs to the organisation it was run for, so neither it nor one still loading outlives a switch
+  useEffect(() => {
+    latestPreview.current += 1
+    setReport(null)
+    setIsAnalysing(false)
+  }, [activeGroup])
 
   useEffect(() => {
-    if (!report) return
+    if (!report || !sections.map) return
     let isCurrent = true
     setMap({ status: "loading", image: null })
     renderDeviceMap(report.devices, sections.mapHeatmap)
@@ -59,7 +67,7 @@ export default function ReportsPage() {
     return () => {
       isCurrent = false
     }
-  }, [report, sections.mapHeatmap])
+  }, [report, sections.map, sections.mapHeatmap])
 
   const handlePreview = async (filterState: FilterState) => {
     if (groupLoading || !activeGroup) {
@@ -89,12 +97,14 @@ export default function ReportsPage() {
       return
     }
 
+    const previewId = ++latestPreview.current
     setIsAnalysing(true)
     setReport(null)
 
     try {
       const { startDate, endDate } = getFilterDateWindow(filterState)
       const response = await fetchFilteredPerformance(filterState, startDate.toISOString(), endDate.toISOString(), activeGroup)
+      if (previewId !== latestPreview.current) return
       const isDevices = filterState.filterType === "devices"
       const results: any[] = Array.isArray(response) ? response : (response as any)?.data || []
 
@@ -115,13 +125,14 @@ export default function ReportsPage() {
         description: "Data has been loaded into the preview section.",
       })
     } catch (error) {
+      if (previewId !== latestPreview.current) return
       toast({
         title: "Failed to load data",
         description: error instanceof Error ? error.message : "An error occurred",
         variant: "destructive",
       })
     } finally {
-      setIsAnalysing(false)
+      if (previewId === latestPreview.current) setIsAnalysing(false)
     }
   }
 
@@ -135,7 +146,14 @@ export default function ReportsPage() {
         loadReportLogo().catch(() => null),
       ])
       downloadDeviceReportPdf(report, sections, { map: map.image, logo })
-      toast({ title: "Success", description: "PDF generated successfully." })
+      toast(
+        sections.map && !map.image
+          ? {
+              title: "PDF saved without the map",
+              description: "The map couldn't be drawn for these devices, so the rest of the report was exported.",
+            }
+          : { title: "Success", description: "PDF generated successfully." }
+      )
     } catch (err) {
       console.error(err)
       toast({ title: "Export Failed", description: "An error occurred during PDF generation.", variant: "destructive" })

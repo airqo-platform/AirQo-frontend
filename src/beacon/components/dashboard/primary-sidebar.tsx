@@ -262,10 +262,10 @@ export default function PrimarySidebar({ isOpen, onClose, activeModule }: Readon
               <Link
                 href={ROUTES.HOME}
                 onClick={onClose}
-                className={drawerItemClassName(activeModule === "devices")}
+                className={drawerItemClassName(pathname === ROUTES.HOME)}
                 aria-current={pathname === ROUTES.HOME ? "page" : undefined}
               >
-                <DrawerItemBody icon={AqHomeSmile} label="Home" isActive={activeModule === "devices"} />
+                <DrawerItemBody icon={AqHomeSmile} label="Home" isActive={pathname === ROUTES.HOME} />
               </Link>
 
               {/* Administrative Panel - AirQo maintainers only */}

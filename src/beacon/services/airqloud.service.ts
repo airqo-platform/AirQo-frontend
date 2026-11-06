@@ -328,6 +328,8 @@ function normalizeSyncedDevice(device: any): any {
     name,
     long_name: longName,
     uptime,
+    // The fraction can't tell 0.5% from 50%, so reports read the API's own percentage
+    uptime_percent: device.uptime_percent ?? device.uptime ?? null,
     data_completeness: dataCompleteness,
     sensor_error_margin: sensorErrorMargin,
     data,

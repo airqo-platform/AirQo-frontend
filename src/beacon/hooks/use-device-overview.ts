@@ -16,22 +16,26 @@ const NO_DEVICES: DeviceCounts = { total: 0, tracked: 0, deployed: 0, online: 0,
 /** The list endpoint reports the whole organisation's counts alongside each page, so one row is enough. */
 async function fetchOrganisationCounts(group: string): Promise<DeviceCounts> {
   const { meta, pagination } = await getDevicesForUIPaginated({ skip: 0, limit: 1, group })
-  return {
-    total: meta?.totalDevices ?? meta?.total ?? pagination.total,
-    tracked: meta?.devicesInAtLeastOneCohort ?? 0,
-    deployed: meta?.deployedDevices ?? 0,
-    online: meta?.onlineDevices ?? 0,
-    offline: meta?.offlineDevices ?? 0,
+  const total = meta?.totalDevices ?? meta?.total ?? pagination.total
+  if (total === 0) return NO_DEVICES
+
+  const deployed = meta?.deployedDevices
+  const online = meta?.onlineDevices
+  const offline = meta?.offlineDevices
+  // Zeroes would read as a fleet with nothing deployed or online, so this counts as a failed load
+  if (deployed === undefined || online === undefined || offline === undefined) {
+    throw new Error("The device list came back without its counts")
   }
+  return { total, tracked: meta?.devicesInAtLeastOneCohort ?? 0, deployed, online, offline }
 }
 
-async function fetchPersonalCounts(userId: string, groups: UserGroup[]): Promise<DeviceCounts> {
+/** The organisations someone's own devices can come from: everything but the AirQo (personal) context. */
+const personalGroupIds = (groups: UserGroup[]): string[] =>
+  groups.filter((group) => group.grp_title?.toLowerCase() !== "airqo").map((group) => group._id)
+
+async function fetchPersonalCounts(userId: string, groupIds: string[]): Promise<DeviceCounts> {
   const cohortIds = await getPersonalUserCohorts(userId)
-  const { devices } = await getMyDevicesForUI({
-    userId,
-    groupIds: groups.filter((group) => group.grp_title?.toLowerCase() !== "airqo").map((group) => group._id),
-    cohortIds,
-  })
+  const { devices } = await getMyDevicesForUI({ userId, groupIds, cohortIds })
   return countDevices(devices)
 }
 
@@ -45,12 +49,13 @@ export function useDeviceOverview() {
   const { activeGroup, availableGroups, loading: groupLoading } = useGroup()
   const { showOrgDevices } = useNavigationAccess()
   const userId = session?.user?._id
+  const groupIds = personalGroupIds(availableGroups)
 
   return useQuery({
-    queryKey: ["device-overview", showOrgDevices ? "org" : "my", activeGroup, userId],
+    queryKey: ["device-overview", showOrgDevices ? "org" : "my", activeGroup, userId, showOrgDevices ? null : groupIds],
     enabled: !groupLoading && (showOrgDevices || Boolean(userId)),
     queryFn: async () => {
-      if (!showOrgDevices) return fetchPersonalCounts(userId as string, availableGroups)
+      if (!showOrgDevices) return fetchPersonalCounts(userId as string, groupIds)
       return activeGroup ? fetchOrganisationCounts(activeGroup) : NO_DEVICES
     },
   })

@@ -1,6 +1,6 @@
 "use client"
 
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react"
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react"
 import { usePathname } from "next/navigation"
 import { useSession } from "next-auth/react"
 import {
@@ -27,7 +27,8 @@ const TOUR_PROMPT_SLOT = "product-tour"
 interface TourContextValue {
   /** Whether the page on screen has a tour to replay. */
   hasTour: boolean
-  startTour: () => void
+  /** Replays the tour. Focus returns to `returnFocusTo` afterwards, or else to whatever had it. */
+  startTour: (returnFocusTo?: HTMLElement | null) => void
 }
 
 const TourContext = createContext<TourContextValue>({ hasTour: false, startTour: () => {} })
@@ -44,12 +45,14 @@ export function TourProvider({ children }: Readonly<{ children: React.ReactNode 
   const { data: session } = useSession()
   const { toast } = useToast()
   const [activeSteps, setActiveSteps] = useState<TourStep[] | null>(null)
+  const returnFocusRef = useRef<HTMLElement | null>(null)
 
   const personId = session?.user?._id || session?.user?.email || ""
   const tour = pathname && !access.loading ? getTourForPath(pathname, access) : null
 
   useEffect(() => {
     setActiveSteps(null)
+    returnFocusRef.current = null
   }, [pathname])
 
   useEffect(() => {
@@ -87,20 +90,27 @@ export function TourProvider({ children }: Readonly<{ children: React.ReactNode 
   const closeTour = useCallback(() => {
     if (tour && personId) markTourSeen(personId, tour.id)
     setActiveSteps(null)
+    returnFocusRef.current?.focus()
+    returnFocusRef.current = null
   }, [tour, personId])
 
-  const startTour = useCallback(() => {
-    if (!tour) return
-    const steps = getVisibleSteps(tour)
-    if (steps.length === 0) {
-      toast({
-        title: "Nothing to show here yet",
-        description: "This page's tour starts once it has something on it.",
-      })
-      return
-    }
-    setActiveSteps(steps)
-  }, [tour, toast])
+  const startTour = useCallback(
+    (returnFocusTo?: HTMLElement | null) => {
+      if (!tour) return
+      const steps = getVisibleSteps(tour)
+      if (steps.length === 0) {
+        toast({
+          title: "Nothing to show here yet",
+          description: "This page's tour starts once it has something on it.",
+        })
+        return
+      }
+      const focused = document.activeElement
+      returnFocusRef.current = returnFocusTo ?? (focused instanceof HTMLElement ? focused : null)
+      setActiveSteps(steps)
+    },
+    [tour, toast]
+  )
 
   const value = useMemo(() => ({ hasTour: Boolean(tour), startTour }), [tour, startTour])
 

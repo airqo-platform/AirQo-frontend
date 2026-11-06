@@ -159,7 +159,7 @@ export default function DevicesView({ scope }: Readonly<{ scope: DeviceScope }>)
     return () => clearTimeout(timer)
   }, [searchTerm])
 
-  const orgListQuery = JSON.stringify([activeGroup, networkFilterParam, debouncedSearchTerm.trim()])
+  const orgListQuery = JSON.stringify([activeGroup, networkFilterParam, debouncedSearchTerm.trim(), currentPage])
 
   // Fetch device counts
   const fetchDeviceCounts = async () => {
@@ -543,12 +543,21 @@ export default function DevicesView({ scope }: Readonly<{ scope: DeviceScope }>)
 
   const hasInitialData = deviceScope === "org" ? devices.length > 0 : myDevices.length > 0
 
+  // A later page can come back empty when the list shrinks or the organisation changes, which says
+  // nothing about the first page, so go and ask it
+  const isLaterPageEmpty =
+    deviceScope === "org" && !error && currentPage > 1 && devices.length === 0 && answeredOrgListQuery === orgListQuery
+  useEffect(() => {
+    if (isLaterPageEmpty) setCurrentPage(1)
+  }, [isLaterPageEmpty])
+
   // Only once the source has answered, with no search or filter narrowing it down
   const hasNoOrganisation = !groupLoading && !activeGroup
   const hasNoDevices = deviceScope === "my"
     ? myDevicesLoaded && !myDevicesError && myDevices.length === 0
     : hasNoOrganisation ||
       (!error &&
+        currentPage === 1 &&
         devices.length === 0 &&
         answeredOrgListQuery === orgListQuery &&
         !networkFilterParam &&
