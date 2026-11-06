@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { LogOut, Loader2 } from "lucide-react"
@@ -11,8 +11,8 @@ import GroupSelector from "@/components/dashboard/group-selector"
 import { syncGroups } from "@/services/device-api.service"
 import { useToast } from "@/components/ui/use-toast"
 import { useGroup } from "@/lib/group-context"
-import { useNavigationAccess } from "@/hooks/use-navigation-access"
-import { getDevicesHome, getModuleForPath, getPageTitle } from "@/lib/navigation"
+import { useTour } from "@/components/tour/tour-provider"
+import { ROUTES, getModuleForPath, getPageTitle } from "@/lib/navigation"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -72,7 +72,8 @@ export default function TopNav({
   const { toast } = useToast()
   const { activeGroup } = useGroup()
   const isAirqoGroup = activeGroup?.toLowerCase() === "airqo"
-  const devicesHome = getDevicesHome(useNavigationAccess())
+  const { hasTour, startTour } = useTour()
+  const tourChosenRef = useRef(false)
   const [showLogoutDialog, setShowLogoutDialog] = useState(false)
   const [isSyncingGroups, setIsSyncingGroups] = useState(false)
   const [mounted, setMounted] = useState(false)
@@ -149,7 +150,7 @@ export default function TopNav({
               </Button>
 
               <Link
-                href={devicesHome}
+                href={ROUTES.HOME}
                 className="flex items-center space-x-2.5 cursor-pointer focus:outline-none"
               >
                 <AqAirQo size={32} color="#0A84FF" />
@@ -177,16 +178,44 @@ export default function TopNav({
               <GroupSelector />
 
               {/* Help & Feedback */}
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={openFeedbackDialog}
-                className="text-muted-foreground hover:text-foreground rounded-full h-9 w-9 hover:bg-muted transition-colors"
-                title="Help & Feedback"
-                aria-label="Help & Feedback"
-              >
-                <AqHelpCircle className="w-5 h-5" />
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    data-tour="help-menu"
+                    className="text-muted-foreground hover:text-foreground rounded-full h-9 w-9 hover:bg-muted transition-colors"
+                    title="Help & Feedback"
+                    aria-label="Help & Feedback"
+                  >
+                    <AqHelpCircle className="w-5 h-5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align="end"
+                  className="w-56 bg-card border border-border shadow-lg rounded-xl mt-1 z-[9999]"
+                  onCloseAutoFocus={(event) => {
+                    // Focus belongs in the tour's card, not on this button behind its overlay
+                    if (tourChosenRef.current) event.preventDefault()
+                    tourChosenRef.current = false
+                  }}
+                >
+                  {hasTour && (
+                    <DropdownMenuItem
+                      className="cursor-pointer rounded-lg"
+                      onSelect={() => {
+                        tourChosenRef.current = true
+                        startTour()
+                      }}
+                    >
+                      Take a tour of this page
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuItem className="cursor-pointer rounded-lg" onSelect={() => openFeedbackDialog()}>
+                    Send feedback
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
 
               {/* Apps Dropdown */}
               <AppDropdown />

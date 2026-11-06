@@ -146,6 +146,7 @@ export const MapTopControls: React.FC<MapTopControlsProps> = ({
       {/* Route Action Button */}
       {onToggleRoute && (
         <button
+          data-tour="maintenance-route"
           onClick={onToggleRoute}
           className={`flex items-center px-3 py-1.5 rounded-full text-xs font-bold shadow-md hover:shadow-lg transition-all ${
             isRouting || hasRoute

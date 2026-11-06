@@ -54,7 +54,7 @@ export default function LoginPage() {
         if (isAirqoAdmin) {
           router.push("/dashboard")
         } else {
-          router.push("/dashboard/devices")
+          router.push("/dashboard/home")
         }
       }
     }
@@ -128,7 +128,7 @@ export default function LoginPage() {
       }
       
       if (response?.ok) {
-        let redirectTarget = "/dashboard/devices"
+        let redirectTarget = "/dashboard/home"
         try {
           const { getSession } = await import("next-auth/react")
           const userSession = await getSession()

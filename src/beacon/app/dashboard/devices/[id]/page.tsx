@@ -372,12 +372,12 @@ export default function DeviceDetailPage() {
       {/* Tabs for Device Information */}
       <Tabs defaultValue={initialTab} className="mt-2">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
-          <TabsList className="grid w-full max-w-4xl grid-cols-7">
+          <TabsList data-tour="device-tabs" className="grid w-full max-w-4xl grid-cols-7">
             <TabsTrigger value="device-details" className="flex items-center">
               <MapPin className="mr-2 h-4 w-4" />
               Device Details
             </TabsTrigger>
-            <TabsTrigger value="diagnostics" className="flex items-center text-blue-700 font-medium">
+            <TabsTrigger data-tour="device-diagnostics-tab" value="diagnostics" className="flex items-center text-blue-700 font-medium">
               <Stethoscope className="mr-2 h-4 w-4 text-blue-600" />
               Diagnostics
             </TabsTrigger>

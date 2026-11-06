@@ -24,7 +24,7 @@ import {
 import { useNavigationAccess } from "@/hooks/use-navigation-access"
 import { useRecentlyVisited } from "@/hooks/use-recently-visited"
 import { useGroup } from "@/lib/group-context"
-import { getDevicesHome, isRouteAccessible, type NavModule } from "@/lib/navigation"
+import { ROUTES, isRouteAccessible, type NavModule } from "@/lib/navigation"
 import { cn } from "@/lib/utils"
 
 interface PrimarySidebarProps {
@@ -159,9 +159,9 @@ export default function PrimarySidebar({ isOpen, onClose, activeModule }: Readon
   const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [openFlyout, setOpenFlyout] = useState<FlyoutMenu | null>(null)
 
-  const devicesHome = getDevicesHome(access)
   const recentPages = visitedPages.filter((page) => isRouteAccessible(page.href, access))
-  const moduleSections = getSidebarSections(activeModule, access)
+  // The drawer has its own Home entry, so leave out the sidebar's untitled one
+  const moduleSections = getSidebarSections(activeModule, access).filter((section) => section.title)
 
   useEffect(() => {
     return () => {
@@ -260,10 +260,10 @@ export default function PrimarySidebar({ isOpen, onClose, activeModule }: Readon
             <nav className="flex flex-col gap-2" aria-label="Primary">
               {/* Home - visible to all users */}
               <Link
-                href={devicesHome}
+                href={ROUTES.HOME}
                 onClick={onClose}
                 className={drawerItemClassName(activeModule === "devices")}
-                aria-current={pathname === devicesHome ? "page" : undefined}
+                aria-current={pathname === ROUTES.HOME ? "page" : undefined}
               >
                 <DrawerItemBody icon={AqHomeSmile} label="Home" isActive={activeModule === "devices"} />
               </Link>

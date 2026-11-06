@@ -300,6 +300,7 @@ export default function Sidebar({ sidebarOpen, onToggleSidebar, activeModule }: 
 
   return (
     <aside
+      data-tour="side-menu"
       className={cn(
         "hidden md:block shrink-0 transition-all duration-300 relative h-full z-30",
         sidebarOpen ? "w-64" : "w-16"
@@ -340,7 +341,7 @@ export default function Sidebar({ sidebarOpen, onToggleSidebar, activeModule }: 
               key={section.id}
               className={cn(index > 0 && (sidebarOpen ? "mt-6" : "mt-3 pt-3 border-t border-border"))}
             >
-              {sidebarOpen && (
+              {sidebarOpen && section.title && (
                 <div className="mb-2 px-2 text-xs font-semibold tracking-wider text-muted-foreground">
                   {section.title}
                 </div>

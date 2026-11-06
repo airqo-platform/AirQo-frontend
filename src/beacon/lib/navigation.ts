@@ -14,6 +14,7 @@
  */
 
 export const ROUTES = {
+  HOME: "/dashboard/home",
   ADMIN_OVERVIEW: "/dashboard",
   DEVICES: "/dashboard/devices",
   MY_DEVICES: "/dashboard/devices/my-devices",
@@ -151,8 +152,8 @@ export function isRouteAccessible(pathname: string, access: NavigationAccess): b
 }
 
 /**
- * Landing page of the devices module: the drawer's "Home" and the guard's redirect target.
- * As in Vertex, the AirQo (personal) context lands on the user's own devices.
+ * Where the route guard sends someone off a page their organisation doesn't offer. As in
+ * Vertex, the AirQo (personal) context lands on the user's own devices.
  */
 export function getDevicesHome(access: NavigationAccess): string {
   return access.showMyDevices ? ROUTES.MY_DEVICES : ROUTES.DEVICES
@@ -199,6 +200,7 @@ export function getRecentPage(pathname: string): RecentPage | null {
 export const DEFAULT_PAGE_TITLE = "Beacon"
 
 const PAGE_TITLES: Record<string, string> = {
+  "/dashboard/home": "Home",
   "/dashboard": "Network Overview",
   "/dashboard/devices": "Devices",
   "/dashboard/devices/my-devices": "My Devices",
