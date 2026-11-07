@@ -11,7 +11,7 @@ import CohortDetailsModal from "@/components/features/cohorts/edit-cohort-detail
 import { PERMISSIONS } from "@/core/permissions/constants";
 import ReusableButton from "@/components/shared/button/ReusableButton";
 import CohortMeasurementsApiCard from "@/components/features/cohorts/cohort-measurements-api-card";
-import CohortHealthCard from "@/components/features/beacon/cohort-health-card";
+import CohortHealthCard from "@/components/features/beacon/lazy-cohort-health-card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { usePageTitle } from "@/context/page-title-context";

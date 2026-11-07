@@ -12,6 +12,9 @@ import type {
 } from "@/app/types/beacon";
 import CohortHealthCard from "./cohort-health-card";
 import DeviceHealthCard from "./device-health-card";
+import LazyCohortHealthCard from "./lazy-cohort-health-card";
+import LazyDeviceHealthCard from "./lazy-device-health-card";
+import LazySiteHealthCard from "./lazy-site-health-card";
 import SiteHealthCard from "./site-health-card";
 
 const navigation = vi.hoisted(() => ({ pathname: "/admin/networks/n1/devices/d1" }));
@@ -247,6 +250,37 @@ const summary = (overrides: Partial<BeaconDiagnosticsSummary> = {}): BeaconDiagn
     { issue_code: "c", title: "Third issue", severity: "LOW", subsystem: "sensor", device_count: 5 },
   ],
   ...overrides,
+});
+
+describe("lazy-loaded cards", () => {
+  it("shows a placeholder, then the device card", async () => {
+    api.getDeviceIssueSummary.mockResolvedValue(deviceSummary());
+
+    const { container } = renderWithProviders(<LazyDeviceHealthCard deviceId="d1" deviceName="g1" />, {
+      preloadedState,
+    });
+
+    expect(container.querySelector(".animate-pulse")).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Device Health" })).toBeInTheDocument();
+  });
+
+  it("loads the cohort card", async () => {
+    api.getCohortHealth.mockResolvedValue({ name: "hw_kcca", diagnostics_summary: summary() });
+
+    renderWithProviders(<LazyCohortHealthCard cohortId="c1" />, { preloadedState });
+
+    expect(await screen.findByRole("heading", { name: "Cohort Health" })).toBeInTheDocument();
+  });
+
+  it("loads the site card", async () => {
+    api.getSiteHealth.mockRejectedValue(httpError(404));
+
+    renderWithProviders(<LazySiteHealthCard siteId="s1" getDeviceHref={(id) => `/devices/overview/${id}`} />, {
+      preloadedState,
+    });
+
+    expect(await screen.findByRole("heading", { name: "Site Health" })).toBeInTheDocument();
+  });
 });
 
 describe("CohortHealthCard", () => {

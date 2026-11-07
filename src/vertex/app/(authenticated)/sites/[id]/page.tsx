@@ -16,7 +16,7 @@ import { EditSiteDetailsDialog } from "@/components/features/sites/edit-site-det
 import ClientPaginatedDevicesTable from "@/components/features/devices/client-paginated-devices-table";
 import SiteMeasurementsApiCard from "@/components/features/sites/site-measurements-api-card";
 import SiteActivityCard from "@/components/features/sites/site-activity-card";
-import SiteHealthCard from "@/components/features/beacon/site-health-card";
+import SiteHealthCard from "@/components/features/beacon/lazy-site-health-card";
 import { RouteGuard } from "@/components/layout/accessConfig/route-guard";
 import { PERMISSIONS } from "@/core/permissions/constants";
 import { usePageTitle } from "@/context/page-title-context";

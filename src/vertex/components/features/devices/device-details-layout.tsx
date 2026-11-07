@@ -23,7 +23,7 @@ import { DeviceLocationCard, hasDeviceLocation } from "@/components/features/dev
 import MaintenanceStatusCard from "@/components/features/devices/maintenance-status-card";
 import DeviceCategoryCard from "@/components/features/devices/device-category-card";
 import DeviceHistoryCard from "@/components/features/devices/device-history-card";
-import DeviceHealthCard from "@/components/features/beacon/device-health-card";
+import DeviceHealthCard from "@/components/features/beacon/lazy-device-health-card";
 import { AqArrowLeft, AqSignal02, AqTool01 } from "@airqo/icons-react";
 import { usePageTitle } from "@/context/page-title-context";
 
