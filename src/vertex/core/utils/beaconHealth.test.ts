@@ -3,6 +3,7 @@ import {
   formatLifecycleState,
   getBeaconUrl,
   getDailyUptime,
+  getDiagnosisAsOf,
   getHealthWindow,
   getLastDayWithData,
   getLikelyCause,
@@ -82,6 +83,12 @@ describe("diagnosis age", () => {
 
   it("doesn't call a missing date stale", () => {
     expect(isDiagnosisStale(null, NOW)).toBe(false);
+  });
+
+  it("dates only a diagnosis too old to present as current", () => {
+    expect(getDiagnosisAsOf("2026-11-03", NOW)).toBe(" on 3 Nov");
+    expect(getDiagnosisAsOf("2026-11-04", NOW)).toBe("");
+    expect(getDiagnosisAsOf(null, NOW)).toBe("");
   });
 
   it("applies the same limit to recent data", () => {

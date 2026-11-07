@@ -1,4 +1,3 @@
-import { useMemo } from "react";
 import { usePathname } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { beacon } from "../apis/beacon";
@@ -30,7 +29,7 @@ export const useHealthScope = () => {
 };
 
 export const useDeviceHealth = (deviceId: string, deviceName?: string) => {
-  const window = useMemo(() => getHealthWindow(), []);
+  const window = getHealthWindow();
 
   const issues = useQuery({
     queryKey: ["beacon-health", "device-issues", deviceId],
@@ -49,13 +48,14 @@ export const useDeviceHealth = (deviceId: string, deviceName?: string) => {
   return { issues, performance, window };
 };
 
-export const useSiteHealth = (siteId: string, group?: string) => {
-  const window = useMemo(() => getHealthWindow(), []);
+export const useSiteHealth = (siteId: string, group: string | undefined, isAdminRoute: boolean) => {
+  const window = getHealthWindow();
 
   const site = useQuery({
     queryKey: ["beacon-health", "site", siteId, group, window.startDateTime],
     queryFn: ({ signal }) => beacon.getSiteHealth(siteId, window, group, signal),
-    enabled: !!siteId,
+    // Without a group the API answers for every organisation, which only /admin pages should see
+    enabled: !!siteId && (isAdminRoute || !!group),
     ...HEALTH_QUERY_OPTIONS,
   });
 
@@ -63,7 +63,7 @@ export const useSiteHealth = (siteId: string, group?: string) => {
 };
 
 export const useCohortHealth = (cohortId: string) => {
-  const window = useMemo(() => getHealthWindow(), []);
+  const window = getHealthWindow();
 
   return useQuery({
     queryKey: ["beacon-health", "cohort", cohortId, window.startDateTime],

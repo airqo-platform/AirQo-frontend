@@ -4,8 +4,12 @@ import Link from "next/link";
 import type { BeaconHealthDevice } from "@/app/types/beacon";
 import { useHealthScope, useSiteHealth } from "@/core/hooks/useBeaconHealth";
 import {
+  formatHealthDate,
+  formatLifecycleState,
   getBeaconUrl,
   getDailyUptime,
+  getDiagnosisAsOf,
+  isDiagnosisStale,
   isNotInBeacon,
   sortDevicesByHealth,
 } from "@/core/utils/beaconHealth";
@@ -29,8 +33,9 @@ const DEVICES_SHOWN = 3;
 
 const DeviceRow = ({ device, href }: { device: BeaconHealthDevice; href: string }) => {
   const diagnosis = device.diagnostics;
+  const isOld = isDiagnosisStale(diagnosis?.diagnosis_date);
   const uptime = device.uptime === null || device.uptime === undefined ? null : `${Math.round(device.uptime)}%`;
-  const detail = [diagnosis && `${Math.round(diagnosis.overall_health_score)}/100`, uptime]
+  const detail = [diagnosis && !isOld && `${Math.round(diagnosis.overall_health_score)}/100`, uptime]
     .filter(Boolean)
     .join(", ");
 
@@ -41,11 +46,13 @@ const DeviceRow = ({ device, href }: { device: BeaconHealthDevice; href: string 
     >
       <span className="font-medium">{device.device_name}</span>
       <span className="flex items-center gap-2 whitespace-nowrap">
-        {diagnosis ? (
-          <StateBadge state={diagnosis.lifecycle_state} />
-        ) : (
-          <HealthBadge tone="gray">No diagnosis</HealthBadge>
+        {!diagnosis && <HealthBadge tone="gray">No diagnosis</HealthBadge>}
+        {diagnosis && isOld && (
+          <HealthBadge tone="gray">
+            {formatLifecycleState(diagnosis.lifecycle_state)} on {formatHealthDate(diagnosis.diagnosis_date)}
+          </HealthBadge>
         )}
+        {diagnosis && !isOld && <StateBadge state={diagnosis.lifecycle_state} />}
         <span className="text-xs text-muted-foreground">{detail}</span>
       </span>
     </Link>
@@ -59,11 +66,12 @@ interface SiteHealthCardProps {
 }
 
 export default function SiteHealthCard({ siteId, getDeviceHref }: SiteHealthCardProps) {
-  const { apiGroup, linkGroup } = useHealthScope();
-  const { site: query, window } = useSiteHealth(siteId, apiGroup);
+  const { apiGroup, linkGroup, isAdminRoute } = useHealthScope();
+  const { site: query, window } = useSiteHealth(siteId, apiGroup, isAdminRoute);
   const beaconHref = getBeaconUrl(`/dashboard/sites/${encodeURIComponent(siteId)}`, linkGroup);
 
-  if (query.isLoading) return <HealthCardSkeleton title={TITLE} />;
+  // Pending covers the wait for an organisation as well as the request itself
+  if (query.isPending) return <HealthCardSkeleton title={TITLE} />;
   if (isNotInBeacon(query.error)) return <NotInBeaconCard title={TITLE} noun="site" />;
   if (!query.data) {
     return <HealthCardError title={TITLE} beaconHref={beaconHref} onRetry={() => void query.refetch()} />;
@@ -85,11 +93,12 @@ export default function SiteHealthCard({ siteId, getDeviceHref }: SiteHealthCard
   }
 
   const hidden = devices.length - DEVICES_SHOWN;
+  const asOf = getDiagnosisAsOf(summary.latest_diagnosis_date);
 
   return (
     <HealthCard
       title={TITLE}
-      badge={<SummaryBadge summary={summary} />}
+      badge={<SummaryBadge summary={summary} devices={devices} />}
       diagnosedOn={summary.latest_diagnosis_date}
       beaconHref={beaconHref}
     >
@@ -109,9 +118,9 @@ export default function SiteHealthCard({ siteId, getDeviceHref }: SiteHealthCard
         {hidden > 0 && <span className="text-xs text-muted-foreground">and {hidden} more</span>}
       </div>
 
-      {summary.top_issues.length > 0 && <TopIssues issues={summary.top_issues} />}
-      {/* "None" is only true of devices that were diagnosed */}
-      {summary.top_issues.length === 0 && summary.devices_diagnosed > 0 && (
+      {summary.top_issues.length > 0 && <TopIssues issues={summary.top_issues} label={`Top issues${asOf}`} />}
+      {/* "None" is only true of devices that were diagnosed, and recently */}
+      {summary.top_issues.length === 0 && summary.devices_diagnosed > 0 && !asOf && (
         <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
           <HealthLabel>Open issues</HealthLabel>
           <span className="text-sm font-medium">None</span>

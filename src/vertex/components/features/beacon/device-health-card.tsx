@@ -145,9 +145,10 @@ export default function DeviceHealthCard({ deviceId, deviceName }: DeviceHealthC
   const uptime = performance.data?.uptime;
   const dataKnown = Boolean(performance.data);
   const days = dataKnown ? getDailyUptime(performance.data?.data, window) : [];
+  const retryUptime = performance.isError ? () => void performance.refetch() : undefined;
   const uptimeBlock = (
     <div className="flex flex-col gap-2">
-      <UptimeStat uptime={uptime} />
+      <UptimeStat uptime={uptime} onRetry={retryUptime} />
       {days.length > 0 && <DailyUptimeBars days={days} />}
     </div>
   );
@@ -155,7 +156,7 @@ export default function DeviceHealthCard({ deviceId, deviceName }: DeviceHealthC
   if (summary.days_diagnosed === 0 || !summary.latest_diagnosis_date) {
     return (
       <HealthCard title={TITLE} badge={<HealthBadge tone="gray">Not diagnosed</HealthBadge>} beaconHref={beaconHref}>
-        {Boolean(uptime) && uptimeBlock}
+        {uptimeBlock}
         <HealthMessage title="No diagnosis in the last 14 days">
           Beacon only diagnoses a device on days it has readings from it.
         </HealthMessage>
@@ -189,7 +190,7 @@ export default function DeviceHealthCard({ deviceId, deviceName }: DeviceHealthC
     >
       <div className="flex flex-col gap-2">
         <div className="flex items-end justify-between gap-3">
-          <UptimeStat uptime={uptime} />
+          <UptimeStat uptime={uptime} onRetry={retryUptime} />
           {score !== null && (
             <div className="flex flex-col gap-1 text-right">
               <HealthLabel>Health</HealthLabel>

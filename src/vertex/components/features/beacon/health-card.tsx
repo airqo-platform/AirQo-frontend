@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import type {
   BeaconDiagnosticsSummary,
+  BeaconHealthDevice,
   BeaconIssueSeverity,
   BeaconLifecycleState,
   BeaconSummaryIssue,
@@ -98,8 +99,14 @@ export const StateBadge = ({ state }: { state: BeaconLifecycleState }) => (
 );
 
 /** The headline state of a site or cohort, from the roll-up of its devices' diagnoses. */
-export const SummaryBadge = ({ summary }: { summary: BeaconDiagnosticsSummary }) => {
-  const { devices_total, devices_diagnosed, devices_with_issues, devices_not_diagnosed } = summary;
+export const SummaryBadge = ({
+  summary,
+  devices = [],
+}: {
+  summary: BeaconDiagnosticsSummary;
+  devices?: BeaconHealthDevice[];
+}) => {
+  const { devices_total, devices_diagnosed, devices_with_issues, lifecycle_state_counts: counts } = summary;
 
   if (devices_diagnosed === 0) return <HealthBadge tone="gray">Not diagnosed</HealthBadge>;
   if (isDiagnosisStale(summary.latest_diagnosis_date)) {
@@ -107,7 +114,8 @@ export const SummaryBadge = ({ summary }: { summary: BeaconDiagnosticsSummary })
   }
 
   if (devices_total === 1) {
-    const [state] = Object.keys(summary.lifecycle_state_counts) as BeaconLifecycleState[];
+    const states = Object.keys(counts) as BeaconLifecycleState[];
+    const state = states.find((candidate) => (counts[candidate] ?? 0) > 0);
     if (state) return <StateBadge state={state} />;
   }
   if (devices_with_issues > 0) {
@@ -117,24 +125,41 @@ export const SummaryBadge = ({ summary }: { summary: BeaconDiagnosticsSummary })
       </HealthBadge>
     );
   }
-  if (devices_not_diagnosed > 0) {
+
+  // The roll-up keeps diagnoses up to 7 days old, but "Healthy" has to be true of every device now
+  const staleDevices = devices.filter((device) => isDiagnosisStale(device.diagnostics?.diagnosis_date)).length;
+  const recentlyDiagnosed = devices_diagnosed - staleDevices;
+  if (recentlyDiagnosed < devices_total) {
     return (
       <HealthBadge tone="gray">
-        {devices_diagnosed} of {devices_total} diagnosed
+        {recentlyDiagnosed} of {devices_total} diagnosed recently
       </HealthBadge>
     );
   }
-  return <HealthBadge tone="green">Healthy</HealthBadge>;
+  if (counts.NO_DATA === devices_total) return <HealthBadge tone="gray">No data</HealthBadge>;
+  if (counts.HEALTHY === devices_total) return <HealthBadge tone="green">Healthy</HealthBadge>;
+  return <HealthBadge tone="gray">No open issues</HealthBadge>;
 };
 
-export const UptimeStat = ({ uptime }: { uptime?: number | null }) => {
+export const UptimeStat = ({ uptime, onRetry }: { uptime?: number | null; onRetry?: () => void }) => {
   const band = UPTIME_BANDS[getUptimeBand(uptime)];
 
   return (
     <div className="flex flex-col gap-1">
       <HealthLabel>Uptime, 14 days</HealthLabel>
       {uptime === null || uptime === undefined ? (
-        <span className="text-sm text-muted-foreground">Not available</span>
+        <span className="flex flex-wrap items-center gap-x-2 text-sm text-muted-foreground">
+          Not available
+          {onRetry && (
+            <button
+              type="button"
+              onClick={onRetry}
+              className="rounded-sm font-medium text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              Try again
+            </button>
+          )}
+        </span>
       ) : (
         <div className="flex items-center gap-2">
           <span className="text-2xl font-bold tracking-tight">{Math.round(uptime)}%</span>
@@ -220,9 +245,17 @@ export const IssueRow = ({
 
 const formatDeviceCount = (count: number) => `${count} ${count === 1 ? "device" : "devices"}`;
 
-export const TopIssues = ({ issues, limit = 2 }: { issues: BeaconSummaryIssue[]; limit?: number }) => (
+export const TopIssues = ({
+  issues,
+  limit = 2,
+  label = "Top issues",
+}: {
+  issues: BeaconSummaryIssue[];
+  limit?: number;
+  label?: string;
+}) => (
   <div className="flex flex-col gap-2">
-    <HealthLabel>Top issues</HealthLabel>
+    <HealthLabel>{label}</HealthLabel>
     {issues.slice(0, limit).map((issue) => (
       <IssueRow
         key={issue.issue_code}

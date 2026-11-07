@@ -10,6 +10,7 @@ import {
   type UptimeBand,
   formatLifecycleState,
   getBeaconUrl,
+  getDiagnosisAsOf,
   getUptimeBand,
   isNotInBeacon,
 } from "@/core/utils/beaconHealth";
@@ -90,11 +91,12 @@ export default function CohortHealthCard({ cohortId }: { cohortId: string }) {
   }
 
   const hasUptime = cohort.uptime !== null && cohort.uptime !== undefined;
+  const asOf = getDiagnosisAsOf(summary.latest_diagnosis_date);
 
   return (
     <HealthCard
       title={TITLE}
-      badge={<SummaryBadge summary={summary} />}
+      badge={<SummaryBadge summary={summary} devices={cohort.devices} />}
       diagnosedOn={summary.latest_diagnosis_date}
       beaconHref={beaconHref}
     >
@@ -106,11 +108,11 @@ export default function CohortHealthCard({ cohortId }: { cohortId: string }) {
       )}
 
       <div className="flex flex-col gap-2">
-        <HealthLabel>Device states</HealthLabel>
+        <HealthLabel>Device states{asOf}</HealthLabel>
         <SegmentedBar label="Device states" segments={getStateSegments(summary)} />
       </div>
 
-      {summary.top_issues.length > 0 && <TopIssues issues={summary.top_issues} />}
+      {summary.top_issues.length > 0 && <TopIssues issues={summary.top_issues} label={`Top issues${asOf}`} />}
     </HealthCard>
   );
 }

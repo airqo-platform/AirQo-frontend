@@ -83,6 +83,10 @@ export const hasRecentData = (lastDay: Date | null, now: Date = new Date()): boo
 export const formatHealthDate = (date: string | Date): string =>
   format(typeof date === "string" ? parseISO(date) : date, "d MMM");
 
+/** " on 29 Oct" for a diagnosis too old to present as current, otherwise nothing. */
+export const getDiagnosisAsOf = (diagnosisDate?: string | null, now: Date = new Date()): string =>
+  diagnosisDate && isDiagnosisStale(diagnosisDate, now) ? ` on ${formatHealthDate(diagnosisDate)}` : "";
+
 /** "LIKELY_FAILURE" → "Likely failure". */
 export const formatLifecycleState = (state: BeaconLifecycleState): string => {
   const words = state.replace(/_/g, " ").toLowerCase();

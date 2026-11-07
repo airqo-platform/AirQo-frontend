@@ -203,18 +203,39 @@ describe("DeviceHealthCard", () => {
 
     expect(await screen.findByText("Not diagnosed")).toBeInTheDocument();
     expect(screen.getByText("No diagnosis in the last 14 days")).toBeInTheDocument();
-    expect(screen.queryByText("Uptime, 14 days")).not.toBeInTheDocument();
+    // A silent device's 0% is the most useful thing the card can say about it
+    expect(screen.getByText("Uptime, 14 days")).toBeInTheDocument();
+    expect(screen.getByText("0%")).toBeInTheDocument();
     expect(beaconLink()).toBeInTheDocument();
   });
 
-  it("still shows the diagnosis when only uptime fails", async () => {
+  it("still shows the diagnosis when only uptime fails, and can retry uptime alone", async () => {
     api.getDeviceIssueSummary.mockResolvedValue(deviceSummary());
-    api.getDevicePerformance.mockRejectedValue(httpError(500));
+    api.getDevicePerformance.mockRejectedValueOnce(httpError(500));
 
     renderCard();
 
     expect(await screen.findByText("Healthy")).toBeInTheDocument();
     expect(screen.getByText("Not available")).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole("button", { name: "Try again" }));
+
+    expect(await screen.findByText("64%")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Try again" })).not.toBeInTheDocument();
+    expect(api.getDeviceIssueSummary).toHaveBeenCalledTimes(1);
+  });
+
+  it("offers the uptime retry on a device Beacon has never diagnosed too", async () => {
+    api.getDeviceIssueSummary.mockResolvedValue(
+      deviceSummary({ days_diagnosed: 0, latest_diagnosis_date: null, health_trend: [] })
+    );
+    api.getDevicePerformance.mockRejectedValue(httpError(500));
+
+    renderCard();
+
+    expect(await screen.findByText("Not diagnosed")).toBeInTheDocument();
+    expect(screen.getByText("Not available")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Try again" })).toBeInTheDocument();
   });
 
   it("offers a retry when Beacon can't be reached, without signing anyone out", async () => {
@@ -339,6 +360,106 @@ describe("CohortHealthCard", () => {
     );
   });
 
+  it.each([
+    { counts: { HEALTHY: 2 }, badge: "Healthy" },
+    { counts: { NO_DATA: 2 }, badge: "No data" },
+    { counts: { HEALTHY: 1, RECOVERING: 1 }, badge: "No open issues" },
+  ])("calls a cohort with no issues $badge from its device states", async ({ counts, badge }) => {
+    api.getCohortHealth.mockResolvedValue({
+      name: "hw_kcca",
+      diagnostics_summary: summary({
+        devices_total: 2,
+        devices_diagnosed: 2,
+        devices_not_diagnosed: 0,
+        devices_with_issues: 0,
+        lifecycle_state_counts: counts,
+        max_severity: null,
+        top_issues: [],
+      }),
+    });
+
+    renderCard();
+
+    expect(await screen.findByText(badge)).toBeInTheDocument();
+  });
+
+  it("ignores states with no devices when naming a single device's state", async () => {
+    api.getCohortHealth.mockResolvedValue({
+      name: "hw_kcca",
+      diagnostics_summary: summary({
+        devices_total: 1,
+        devices_diagnosed: 1,
+        devices_not_diagnosed: 0,
+        devices_with_issues: 1,
+        lifecycle_state_counts: { HEALTHY: 0, DEGRADING: 1 },
+        top_issues: [],
+      }),
+    });
+
+    renderCard();
+
+    expect(await screen.findByText("Degrading")).toBeInTheDocument();
+  });
+
+  it("doesn't call a cohort healthy when some devices weren't diagnosed", async () => {
+    api.getCohortHealth.mockResolvedValue({
+      name: "hw_kcca",
+      diagnostics_summary: summary({
+        devices_total: 4,
+        devices_diagnosed: 3,
+        devices_not_diagnosed: 1,
+        devices_with_issues: 0,
+        lifecycle_state_counts: { HEALTHY: 3 },
+        max_severity: null,
+        top_issues: [],
+      }),
+    });
+
+    renderCard();
+
+    expect(await screen.findByText("3 of 4 diagnosed recently")).toBeInTheDocument();
+    expect(screen.queryByText("Healthy")).not.toBeInTheDocument();
+  });
+
+  it("doesn't call a cohort healthy when one device's diagnosis is out of date", async () => {
+    const device = (name: string, diagnosis_date: string): BeaconHealthDevice => ({
+      device_id: name,
+      device_name: name,
+      diagnostics: { diagnosis_date, overall_health_score: 100, lifecycle_state: "HEALTHY", issue_count: 0 },
+    });
+    api.getCohortHealth.mockResolvedValue({
+      name: "hw_kcca",
+      devices: [device("fresh", "2026-11-05"), device("old", "2026-10-31")],
+      diagnostics_summary: summary({
+        devices_total: 2,
+        devices_diagnosed: 2,
+        devices_not_diagnosed: 0,
+        devices_with_issues: 0,
+        lifecycle_state_counts: { HEALTHY: 2 },
+        max_severity: null,
+        top_issues: [],
+      }),
+    });
+
+    renderCard();
+
+    expect(await screen.findByText("1 of 2 diagnosed recently")).toBeInTheDocument();
+    expect(screen.queryByText("Healthy")).not.toBeInTheDocument();
+  });
+
+  it("dates the states and issues of an out-of-date cohort", async () => {
+    api.getCohortHealth.mockResolvedValue({
+      name: "hw_kcca",
+      diagnostics_summary: summary({ latest_diagnosis_date: "2026-10-29" }),
+    });
+
+    renderCard();
+
+    expect(await screen.findByText("No recent diagnosis")).toBeInTheDocument();
+    expect(screen.getByText("Device states on 29 Oct")).toBeInTheDocument();
+    expect(screen.getByText("Top issues on 29 Oct")).toBeInTheDocument();
+  });
+
   it("says so when Beacon hasn't synced the cohort, with nothing to open", async () => {
     api.getCohortHealth.mockRejectedValue(httpError(404));
 
@@ -369,13 +490,14 @@ describe("SiteHealthCard", () => {
     name: string,
     score: number,
     uptime: number,
-    state: "HEALTHY" | "DEGRADING" | "SUSPICIOUS"
+    state: "HEALTHY" | "DEGRADING" | "SUSPICIOUS",
+    diagnosisDate = "2026-11-05"
   ): BeaconHealthDevice => ({
     device_id: name,
     device_name: name,
     uptime,
     diagnostics: {
-      diagnosis_date: "2026-11-05",
+      diagnosis_date: diagnosisDate,
       overall_health_score: score,
       lifecycle_state: state,
       issue_count: 0,
@@ -456,7 +578,7 @@ describe("SiteHealthCard", () => {
     api.getSiteHealth.mockResolvedValue({
       name: "Old",
       uptime: 20,
-      devices: [diagnosed("aq_1", 97, 20, "HEALTHY")],
+      devices: [diagnosed("aq_1", 97, 20, "HEALTHY", "2026-10-29")],
       diagnostics_summary: summary({
         devices_total: 1,
         devices_diagnosed: 1,
@@ -471,6 +593,50 @@ describe("SiteHealthCard", () => {
     renderCard();
 
     expect(await screen.findByText("No recent diagnosis")).toBeInTheDocument();
+    expect(screen.queryByText("None")).not.toBeInTheDocument();
+    expect(screen.queryByText("Open issues")).not.toBeInTheDocument();
+
+    const row = screen.getByRole("link", { name: /aq_1/ });
+    expect(within(row).getByText("Healthy on 29 Oct")).toBeInTheDocument();
+    expect(within(row).getByText("20%")).toBeInTheDocument();
+    expect(within(row).queryByText("Healthy")).not.toBeInTheDocument();
+  });
+
+  it("dates the issues of an out-of-date site", async () => {
+    api.getSiteHealth.mockResolvedValue({
+      name: "Old",
+      uptime: 20,
+      devices: [diagnosed("aq_1", 40, 20, "DEGRADING", "2026-10-29")],
+      diagnostics_summary: summary({ devices_total: 1, latest_diagnosis_date: "2026-10-29" }),
+    });
+
+    renderCard();
+
+    expect(await screen.findByText("Top issues on 29 Oct")).toBeInTheDocument();
+  });
+
+  it("dates one out-of-date device among current ones, without its old score", async () => {
+    api.getSiteHealth.mockResolvedValue({
+      name: "Mixed",
+      uptime: 20,
+      devices: [diagnosed("fresh", 95, 30, "HEALTHY"), diagnosed("old", 53, 10, "SUSPICIOUS", "2026-10-31")],
+      diagnostics_summary: summary({
+        devices_total: 2,
+        devices_diagnosed: 2,
+        devices_not_diagnosed: 0,
+        devices_with_issues: 0,
+        lifecycle_state_counts: { HEALTHY: 1, SUSPICIOUS: 1 },
+        max_severity: null,
+        top_issues: [],
+      }),
+    });
+
+    renderCard();
+
+    expect(await screen.findByText("1 of 2 diagnosed recently")).toBeInTheDocument();
+    expect(within(screen.getByRole("link", { name: /old/ })).getByText("Suspicious on 31 Oct")).toBeInTheDocument();
+    expect(within(screen.getByRole("link", { name: /old/ })).getByText("10%")).toBeInTheDocument();
+    expect(within(screen.getByRole("link", { name: /fresh/ })).getByText("95/100, 30%")).toBeInTheDocument();
   });
 
   it("doesn't claim there are no issues when nothing was diagnosed", async () => {
@@ -516,5 +682,18 @@ describe("SiteHealthCard", () => {
     renderCard();
     await waitFor(() => expect(api.getSiteHealth).toHaveBeenCalledTimes(2));
     expect(api.getSiteHealth.mock.calls[1][2]).toBe("kcca");
+  });
+
+  it("waits for the organisation rather than asking for every device", async () => {
+    navigation.pathname = "/sites/s1";
+
+    renderWithProviders(
+      <SiteHealthCard siteId="s1" getDeviceHref={(deviceId) => `/devices/overview/${deviceId}`} />,
+      { preloadedState: { user: { activeGroup: null } } }
+    );
+
+    expect(await screen.findByRole("heading", { name: "Site Health" })).toBeInTheDocument();
+    expect(screen.queryByText("Couldn't load health from Beacon")).not.toBeInTheDocument();
+    expect(api.getSiteHealth).not.toHaveBeenCalled();
   });
 });
