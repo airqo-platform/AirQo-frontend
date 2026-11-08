@@ -26,6 +26,11 @@ History before this file was introduced lives in the git log
 
 ## [Unreleased]
 
+### Changed
+
+- Recorded `3.0.10+3` in `pubspec.yaml`, the iOS build delivered to App Store
+  Connect, so the next build script run uses build 4.
+
 ## [3.0.10] - 2026-11-08 (build 3)
 
 Replaces build 2 in App Store review; 3.0.10 hasn't been released, so all
