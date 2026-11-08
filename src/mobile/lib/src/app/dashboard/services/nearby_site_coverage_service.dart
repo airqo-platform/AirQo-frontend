@@ -18,6 +18,12 @@ import 'package:loggy/loggy.dart';
 /// Deliberately does not filter by `online_status`: online status is derived
 /// from the same hourly readings, so during a processing delay every site is
 /// reported offline and an online-only lookup would find nothing.
+///
+/// Instead, a site only counts if it was active within [activeWindow]: either
+/// its device sent raw data (`lastRawData`, from the device feed, unaffected
+/// by processing delays) or it received a processed reading (`lastActive`).
+/// This keeps long-silent sites, whose device was never recalled, from
+/// promising readings that will never arrive.
 class NearbySiteCoverageService with NetworkLoggy {
   NearbySiteCoverageService({
     http.Client? httpClient,
@@ -37,14 +43,26 @@ class NearbySiteCoverageService with NetworkLoggy {
   static const Duration _requestTimeout = Duration(seconds: 8);
   static const Duration _cacheTtl = Duration(minutes: 30);
 
-  /// Only presence matters, so ask for a handful rather than the default 30
-  /// heavily-populated site documents.
-  static const int _lookupLimit = 5;
+  /// Enough nearest sites that a few long-silent ones closest to the user
+  /// can't hide an active one further out. The endpoint also returns one row
+  /// per device, so duplicates use up part of this limit.
+  static const int _lookupLimit = 20;
+
+  /// A site counts as active if it sent data within this window. Long enough
+  /// to ride out processing backlogs (hours to a day or two), short enough to
+  /// drop sites whose device has stopped reporting.
+  static const Duration activeWindow = Duration(days: 7);
+
+  /// Timestamps up to this far ahead of the phone's clock still count, so a
+  /// phone clock running a few minutes slow doesn't discard a real reading.
+  /// Anything later is treated as a wrong device clock.
+  static const Duration _clockSkewAllowance = Duration(minutes: 10);
 
   final Map<String, _CachedCount> _cache = {};
 
-  /// Number of sites within [radiusKm] of the point (capped at the lookup
-  /// limit), or `null` when the lookup failed and coverage is unknown.
+  /// Number of distinct sites within [radiusKm] of the point that were active
+  /// within [activeWindow] (capped by the lookup limit), or `null` when the
+  /// lookup failed and coverage is unknown.
   Future<int?> countSitesWithin({
     required double latitude,
     required double longitude,
@@ -92,13 +110,62 @@ class NearbySiteCoverageService with NetworkLoggy {
         return null;
       }
       final sites = body['sites'];
-      final count = sites is List ? sites.length : 0;
+      final count = sites is List ? countActiveSites(sites, _clock()) : 0;
       _cache[cacheKey] = _CachedCount(count, _clock());
       return count;
     } catch (e) {
       loggy.warning('Nearby coverage check error: $e');
       return null;
     }
+  }
+
+  /// Counts distinct sites (by `_id`) whose newest of `lastRawData` and
+  /// `lastActive` falls within [activeWindow] of [now]. The endpoint joins
+  /// devices and returns one row per device, hence the de-duplication. Sites
+  /// with neither timestamp have never reported and don't count.
+  ///
+  /// Each timestamp is checked on its own before picking the newest, so a
+  /// future one (a device with a wrong clock) can't make a silent site look
+  /// active. The 7-day boundary is inclusive.
+  static int countActiveSites(List<dynamic> sites, DateTime now) {
+    final cutoff = now.subtract(activeWindow);
+    final latestAllowed = now.add(_clockSkewAllowance);
+    DateTime? inWindow(Object? value) {
+      final time = _parseDate(value);
+      if (time == null ||
+          time.isBefore(cutoff) ||
+          time.isAfter(latestAllowed)) {
+        return null;
+      }
+      return time;
+    }
+
+    final activeIds = <Object>{};
+    var unidentified = 0;
+    for (final site in sites) {
+      if (site is! Map) continue;
+      final lastSeen = _newest(
+        inWindow(site['lastRawData']),
+        inWindow(site['lastActive']),
+      );
+      if (lastSeen == null) continue;
+      final id = site['_id'];
+      if (id == null) {
+        unidentified++;
+      } else {
+        activeIds.add(id);
+      }
+    }
+    return activeIds.length + unidentified;
+  }
+
+  static DateTime? _parseDate(Object? value) =>
+      value is String ? DateTime.tryParse(value) : null;
+
+  static DateTime? _newest(DateTime? a, DateTime? b) {
+    if (a == null) return b;
+    if (b == null) return a;
+    return a.isAfter(b) ? a : b;
   }
 
   /// The nearest-sites endpoint rejects coordinates with fewer than 5 decimal
