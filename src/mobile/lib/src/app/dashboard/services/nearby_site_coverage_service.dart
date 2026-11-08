@@ -53,6 +53,11 @@ class NearbySiteCoverageService with NetworkLoggy {
   /// drop sites whose device has stopped reporting.
   static const Duration activeWindow = Duration(days: 7);
 
+  /// Timestamps up to this far ahead of the phone's clock still count, so a
+  /// phone clock running a few minutes slow doesn't discard a real reading.
+  /// Anything later is treated as a wrong device clock.
+  static const Duration _clockSkewAllowance = Duration(minutes: 10);
+
   final Map<String, _CachedCount> _cache = {};
 
   /// Number of distinct sites within [radiusKm] of the point that were active
@@ -118,17 +123,32 @@ class NearbySiteCoverageService with NetworkLoggy {
   /// `lastActive` falls within [activeWindow] of [now]. The endpoint joins
   /// devices and returns one row per device, hence the de-duplication. Sites
   /// with neither timestamp have never reported and don't count.
+  ///
+  /// Each timestamp is checked on its own before picking the newest, so a
+  /// future one (a device with a wrong clock) can't make a silent site look
+  /// active. The 7-day boundary is inclusive.
   static int countActiveSites(List<dynamic> sites, DateTime now) {
     final cutoff = now.subtract(activeWindow);
+    final latestAllowed = now.add(_clockSkewAllowance);
+    DateTime? inWindow(Object? value) {
+      final time = _parseDate(value);
+      if (time == null ||
+          time.isBefore(cutoff) ||
+          time.isAfter(latestAllowed)) {
+        return null;
+      }
+      return time;
+    }
+
     final activeIds = <Object>{};
     var unidentified = 0;
     for (final site in sites) {
       if (site is! Map) continue;
       final lastSeen = _newest(
-        _parseDate(site['lastRawData']),
-        _parseDate(site['lastActive']),
+        inWindow(site['lastRawData']),
+        inWindow(site['lastActive']),
       );
-      if (lastSeen == null || lastSeen.isBefore(cutoff)) continue;
+      if (lastSeen == null) continue;
       final id = site['_id'];
       if (id == null) {
         unidentified++;

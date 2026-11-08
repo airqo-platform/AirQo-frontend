@@ -9,8 +9,9 @@ import 'package:flutter_test/flutter_test.dart';
 class _FakeConnectivityBloc extends Bloc<ConnectivityEvent, ConnectivityState>
     implements ConnectivityBloc {
   _FakeConnectivityBloc(super.initialState) {
-    on<ConnectivityChanged>((event, emit) => emit(
-        event.isConnected ? ConnectivityOnline() : const ConnectivityOffline()));
+    on<ConnectivityChanged>((event, emit) => emit(event.isConnected
+        ? ConnectivityOnline()
+        : const ConnectivityOffline()));
     on<ConnectivityBannerDismissed>((event, emit) {
       dismissCount++;
       if (state is ConnectivityOffline) emit(const ConnectivityOffline(true));
@@ -62,16 +63,22 @@ void main() {
 
     expect(find.text("You're offline"), findsOneWidget);
     expect(
-      find.text(
-          "Showing your saved air quality. We'll refresh when you're back online."),
+      find.text('Check your Wi-Fi or mobile data connection.'),
       findsOneWidget,
     );
     expect(find.text('Internet Connection Lost'), findsNothing);
-    // A Material ancestor is what prevents Flutter's debug text underline.
+    // The banner's own Material is what prevents Flutter's debug text
+    // underline, so look only inside NoInternetBanner: the test Scaffold's
+    // Material must not satisfy this.
+    final bannerMaterial = find.descendant(
+      of: find.byType(NoInternetBanner),
+      matching: find.byType(Material),
+    );
+    expect(bannerMaterial, findsWidgets);
     expect(
-      find.ancestor(
-          of: find.text("You're offline"), matching: find.byType(Material)),
-      findsWidgets,
+      find.descendant(
+          of: bannerMaterial, matching: find.text("You're offline")),
+      findsOneWidget,
     );
     expect(find.byIcon(Icons.cloud_off_rounded), findsOneWidget);
   });
@@ -111,7 +118,8 @@ void main() {
     expect(find.text('Back online'), findsNothing);
   });
 
-  testWidgets('also confirms "Back online" after the offline card was dismissed',
+  testWidgets(
+      'also confirms "Back online" after the offline card was dismissed',
       (tester) async {
     await pumpBanner(tester, const ConnectivityOffline(true));
     expect(find.text("You're offline"), findsNothing);

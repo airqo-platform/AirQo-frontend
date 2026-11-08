@@ -104,6 +104,58 @@ void main() {
       );
     });
 
+    test('counts a site with stale raw data but a recent processed reading',
+        () async {
+      final service = serviceReturning(sitesJson([
+        {'_id': 'a', 'lastRawData': daysAgo(30), 'lastActive': daysAgo(1)},
+      ]));
+      expect(
+        await service.countSitesWithin(
+            latitude: 0.3, longitude: 32.5, radiusKm: 10),
+        1,
+      );
+    });
+
+    test('ignores future timestamps from a wrong device clock', () async {
+      final service = serviceReturning(sitesJson([
+        // Only a far-future timestamp: not active.
+        {'_id': 'bad-clock', 'lastRawData': '2099-01-01T00:00:00.000Z'},
+        // Future raw data is ignored, but the valid lastActive still counts.
+        {
+          '_id': 'mixed',
+          'lastRawData': '2099-01-01T00:00:00.000Z',
+          'lastActive': daysAgo(2),
+        },
+        // A few minutes ahead (phone clock slightly slow) still counts.
+        {
+          '_id': 'skew',
+          'lastRawData': now.add(const Duration(minutes: 5)).toIso8601String(),
+        },
+      ]));
+      expect(
+        await service.countSitesWithin(
+            latitude: 0.3, longitude: 32.5, radiusKm: 10),
+        2,
+      );
+    });
+
+    test('the 7-day boundary is inclusive', () async {
+      final service = serviceReturning(sitesJson([
+        {'_id': 'edge', 'lastActive': daysAgo(7)},
+        {
+          '_id': 'just-past',
+          'lastActive': now
+              .subtract(const Duration(days: 7, seconds: 1))
+              .toIso8601String(),
+        },
+      ]));
+      expect(
+        await service.countSitesWithin(
+            latitude: 0.3, longitude: 32.5, radiusKm: 10),
+        1,
+      );
+    });
+
     test('skips sites that have never reported', () async {
       final service = serviceReturning(sitesJson([
         {'_id': 'new'},
@@ -190,7 +242,8 @@ void main() {
 
   group('NearbySiteCoverageService.formatCoordinate', () {
     test('keeps six decimals', () {
-      expect(NearbySiteCoverageService.formatCoordinate(32.5512349), '32.551235');
+      expect(
+          NearbySiteCoverageService.formatCoordinate(32.5512349), '32.551235');
     });
 
     test('never ends in zero, so trailing-zero stripping keeps 6 decimals', () {

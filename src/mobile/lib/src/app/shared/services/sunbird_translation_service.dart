@@ -210,7 +210,7 @@ class SunbirdTranslationService with UiLoggy {
     'Air quality for your area will appear here shortly',
     'Tap Refresh to check again.',
     "You're offline",
-    "Showing your saved air quality. We'll refresh when you're back online.",
+    'Check your Wi-Fi or mobile data connection.',
     'Back online',
     'Explore Available Cities',
     'No courses available',

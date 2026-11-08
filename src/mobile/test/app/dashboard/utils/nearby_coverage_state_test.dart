@@ -35,12 +35,13 @@ void main() {
       );
     });
 
-    test('falls back to no coverage when no lookup has run', () {
-      // e.g. no position yet: keeps the pre-existing behaviour.
+    test('stays neutral when the count has not been fetched yet', () {
+      // e.g. no position yet, or the frame before the lookup starts: an
+      // unfetched count must not read as "no stations nearby".
       expect(
         nearbyCoverageState(
             isChecking: false, activeSitesNearby: null, lookupFailed: false),
-        NearbyCoverageState.noCoverage,
+        NearbyCoverageState.unknown,
       );
     });
   });

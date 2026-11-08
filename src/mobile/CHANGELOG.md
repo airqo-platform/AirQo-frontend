@@ -32,11 +32,14 @@ History before this file was introduced lives in the git log
   in the last 7 days. `lastRawData` comes from the device feed, so a
   processing backlog still shows "Fresh readings for your area are on their
   way". Sites that have been silent for longer, or never reported, now lead to
-  "No air quality stations found nearby".
+  "No air quality stations found nearby". Each timestamp is checked on its
+  own, and one more than 10 minutes in the future (a wrong device clock) is
+  ignored, so it can't make a silent site look active.
 - **Near You no longer says "No air quality stations found nearby" when the
-  coverage lookup fails.** A timeout, error or missing token now shows a
-  neutral "Air quality for your area will appear here shortly" with a Refresh
-  button. The empty-state choice moved into `nearbyCoverageState()` so it can
+  coverage lookup fails.** A timeout, error, missing token or a count that
+  hasn't been fetched yet now shows a neutral "Air quality for your area will
+  appear here shortly" with a Refresh button. "No stations nearby" needs a
+  confirmed count of zero. The empty-state choice moved into `nearbyCoverageState()` so it can
   be unit tested.
 - **The offline banner no longer shows yellow underlined text.** It had no
   `Material` ancestor, so Flutter drew its debug text style.
@@ -44,14 +47,17 @@ History before this file was introduced lives in the git log
 ### Changed
 
 - `/sites/nearest` returns one row per device, so the coverage service now
-  counts distinct sites by `_id`, and asks for 20 sites instead of 5 so that
-  silent sites closest to the user can't hide an active one further out.
+  counts distinct sites by `_id`, and asks for 20 sites instead of 5. That
+  makes it less likely, though not impossible, that silent sites closest to
+  the user hide an active one further out.
 - **Redesigned the offline banner** (`NoInternetBanner`), following the
   offline patterns in Google apps, YouTube and WhatsApp and Material's snackbar
   guidance. The full-width red "Internet Connection Lost" bar is now a floating
   rounded card under the status bar: charcoal (reversed in dark mode), a
-  cloud-off icon, "You're offline" and "Showing your saved air quality. We'll
-  refresh when you're back online.", with a 48 px dismiss button. After a
+  cloud-off icon, "You're offline" and "Check your Wi-Fi or mobile data
+  connection.", with a 48 px dismiss button. The copy doesn't promise saved
+  readings or an automatic refresh: with no cache the dashboard shows an
+  error, and on reconnect it only refreshes data older than 30 minutes. After a
   reconnection, a brand-blue "Back online" card shows for 3 seconds. It slides
   and fades in, with no motion when reduce motion is on, and screen readers
   announce it. `main.dart` now keeps the banner mounted so it can show the

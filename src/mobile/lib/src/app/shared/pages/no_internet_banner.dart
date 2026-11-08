@@ -9,9 +9,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 /// Connectivity status card, shown floating under the status bar.
 ///
 /// Follows the offline pattern used by Google apps, YouTube and WhatsApp and
-/// Material's snackbar guidance: a compact, calm card that says what still
-/// works ("Showing your saved air quality") rather than a full-width alarm,
-/// plus a brief "Back online" confirmation that hides itself once the
+/// Material's snackbar guidance: a compact, calm card with neutral connection
+/// guidance rather than a full-width alarm, plus a brief "Back online"
+/// confirmation that hides itself once the
 /// connection returns. Neutral colours only, in line with AirQo's positive
 /// messaging; no red or amber.
 class NoInternetBanner extends StatefulWidget {
@@ -192,7 +192,7 @@ class _StatusCard extends StatelessWidget {
                         if (isOffline) ...[
                           const SizedBox(height: 2),
                           TranslatedText(
-                            "Showing your saved air quality. We'll refresh when you're back online.",
+                            'Check your Wi-Fi or mobile data connection.',
                             style: TextStyle(
                               color: foreground.withValues(alpha: 0.8),
                               fontSize: 13,
