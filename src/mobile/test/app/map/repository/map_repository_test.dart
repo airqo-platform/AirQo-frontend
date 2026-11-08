@@ -66,7 +66,7 @@ void main() {
           fail('Expected exception to be thrown');
         } catch (e) {
           expect(e, isA<Exception>());
-          expect(e.toString(), contains('No internet connection'));
+          expect(e.toString(), contains('check your connection'));
         }
       });
 
@@ -76,7 +76,7 @@ void main() {
           fail('Expected exception to be thrown');
         } catch (e) {
           expect(e, isA<Exception>());
-          expect(e.toString(), contains('No internet connection'));
+          expect(e.toString(), contains('check your connection'));
         }
       });
 
@@ -140,8 +140,8 @@ void main() {
         // Both should throw similar exceptions in test environment
         expect(error1, isA<Exception>());
         expect(error2, isA<Exception>());
-        expect(error1.toString(), contains('No internet connection'));
-        expect(error2.toString(), contains('No internet connection'));
+        expect(error1.toString(), contains('check your connection'));
+        expect(error2.toString(), contains('check your connection'));
       });
     });
 

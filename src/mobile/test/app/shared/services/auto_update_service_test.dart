@@ -17,6 +17,10 @@ import 'package:airqo/src/app/shared/services/auto_update_service.dart';
 import 'auto_update_service_test.mocks.dart';
 
 void main() {
+  // Needed when showDialog is true: the service reads the navigator key's
+  // context, which requires a Flutter binding.
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   group('AutoUpdateService', () {
     late AutoUpdateService service;
     late MockClient mockHttpClient;
@@ -129,10 +133,12 @@ void main() {
         return true;
       });
 
+      // The store check only runs on Android; tests run on macOS/Linux.
       service = AutoUpdateService.test(
         httpClient: mockHttpClient,
         packageInfo: mockPackageInfo,
         sharedPreferences: mockPrefs,
+        isAndroid: true,
       );
 
       service.setNavigatorKey(navigatorKey);
@@ -365,6 +371,29 @@ void main() {
         expect(updateAvailable, isTrue);
         verify(mockHttpClient.get(any, headers: anyNamed('headers'))).called(1);
       });
+
+      testWidgets('shows the update dialog with its actions', (tester) async {
+        final key = GlobalKey<NavigatorState>();
+        await tester.pumpWidget(
+          MaterialApp(navigatorKey: key, home: const Scaffold()),
+        );
+        service.setNavigatorKey(key);
+        prefsStorage['last_update_check'] =
+            DateTime.now().millisecondsSinceEpoch;
+
+        when(mockHttpClient.get(any, headers: anyNamed('headers'))).thenAnswer(
+            (_) async => http.Response(playStoreHtmlWithJsonVersion, 200));
+
+        final updateAvailable = await service.manualUpdateCheck();
+        await tester.pumpAndSettle();
+
+        expect(updateAvailable, isTrue);
+        expect(find.text('Update Available'), findsOneWidget);
+        expect(find.text('2.1.0'), findsOneWidget);
+        expect(find.text('Update'), findsOneWidget);
+        expect(find.text('Later'), findsOneWidget);
+        expect(find.text('Skip This Version'), findsOneWidget);
+      });
     });
 
     group('Preferences Management', () {
@@ -441,7 +470,10 @@ void main() {
       });
 
       test('should reject invalid version formats', () async {
-        final invalidVersions = ['1.0', 'v2.1.0', '1.0.0-beta', 'invalid'];
+        // Strings with no x.y.z number anywhere are never saved. Values like
+        // 'v2.1.0' or '1.0.0-beta' are covered by the next test: the general
+        // fallback pattern keeps their numeric core.
+        final invalidVersions = ['1.0', 'invalid'];
 
         for (final version in invalidVersions) {
           // Clear previous state
@@ -457,6 +489,26 @@ void main() {
           await service.checkForUpdates(showDialog: false);
 
           expect(prefsStorage.containsKey('last_known_version'), isFalse);
+        }
+      });
+
+      test('keeps the numeric core of prefixed or pre-release versions',
+          () async {
+        const cases = {'v2.1.0': '2.1.0', '1.0.0-beta': '1.0.0'};
+
+        for (final entry in cases.entries) {
+          prefsStorage.clear();
+          prefsStorage['last_update_check'] = DateTime.now()
+              .subtract(const Duration(days: 4))
+              .millisecondsSinceEpoch;
+
+          final html = '''<script>{"versionName": "${entry.key}"}</script>''';
+          when(mockHttpClient.get(any, headers: anyNamed('headers')))
+              .thenAnswer((_) async => http.Response(html, 200));
+
+          await service.checkForUpdates(showDialog: false);
+
+          expect(prefsStorage['last_known_version'], equals(entry.value));
         }
       });
     });
@@ -504,6 +556,50 @@ void main() {
 
         expect(updateAvailable, isTrue);
         verify(mockHttpClient.get(any, headers: anyNamed('headers'))).called(1);
+      });
+
+      test('skips the Play Store check on other platforms', () async {
+        final nonAndroidService = AutoUpdateService.test(
+          httpClient: mockHttpClient,
+          packageInfo: mockPackageInfo,
+          sharedPreferences: mockPrefs,
+          isAndroid: false,
+        );
+        prefsStorage['last_update_check'] = DateTime.now()
+            .subtract(const Duration(days: 4))
+            .millisecondsSinceEpoch;
+
+        final updateAvailable =
+            await nonAndroidService.checkForUpdates(showDialog: false);
+
+        expect(updateAvailable, isFalse);
+        verifyNever(mockHttpClient.get(any, headers: anyNamed('headers')));
+      });
+
+      test('without an override, follows the real platform', () async {
+        // flutter test never runs on Android, so this checks the fallback to
+        // Platform.isAndroid rather than an update on a real device.
+        final defaultService = AutoUpdateService.test(
+          httpClient: mockHttpClient,
+          packageInfo: mockPackageInfo,
+          sharedPreferences: mockPrefs,
+        );
+        prefsStorage['last_update_check'] = DateTime.now()
+            .subtract(const Duration(days: 4))
+            .millisecondsSinceEpoch;
+        when(mockHttpClient.get(any, headers: anyNamed('headers'))).thenAnswer(
+            (_) async => http.Response(playStoreHtmlWithJsonVersion, 200));
+
+        final updateAvailable =
+            await defaultService.checkForUpdates(showDialog: false);
+
+        expect(updateAvailable, Platform.isAndroid);
+        if (Platform.isAndroid) {
+          verify(mockHttpClient.get(any, headers: anyNamed('headers')))
+              .called(1);
+        } else {
+          verifyNever(mockHttpClient.get(any, headers: anyNamed('headers')));
+        }
       });
     });
   });
