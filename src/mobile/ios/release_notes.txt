@@ -1,4 +1,2 @@
-• Exposure is now available to everyone. See the air quality at the places you go to most, and check a route before you travel. Sign in to start tracking your places.
-• Clearer place names. Air quality cards now show a location's everyday name, with its city or region underneath, instead of a monitor code.
-• Easier to get started. A short introduction and guided tips walk you through Exposure, your Favorites and the map.
+• Near You and the map now keep showing the stations around you, even while their latest readings are on their way.
 • Bug fixes and improvements for a smoother experience.

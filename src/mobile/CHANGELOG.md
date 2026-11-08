@@ -24,6 +24,8 @@ History before this file was introduced lives in the git log
 
 ## [Unreleased]
 
+## [3.0.10] - 2026-11-08
+
 ### Fixed
 
 - **Near You and the map no longer go empty when hourly readings run late.**
@@ -58,3 +60,6 @@ History before this file was introduced lives in the git log
 - The Near You empty state no longer hardcodes "AirQo covers 15 African cities";
   it now reads "AirQo monitors air quality in cities across Africa".
 - Updated the Sunbird translation prewarm list to match the new copy.
+- Set the app version to `3.0.10+0` for the iOS release, because 3.0.9 is
+  already approved. The iOS build script builds it as 3.0.10 (1). Replaced
+  `ios/release_notes.txt` with this release's App Store notes.
