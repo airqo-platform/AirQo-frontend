@@ -1,3 +1,3 @@
 • Near You and the map now let you know when fresh air quality readings for your area are on their way.
-• A clearer offline message, with a quick confirmation when you're back online.
+• A clearer offline message, and your air quality loads again as soon as you're back online.
 • Bug fixes and improvements for a smoother experience.

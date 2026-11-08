@@ -26,6 +26,11 @@ History before this file was introduced lives in the git log
 
 ## [Unreleased]
 
+## [3.0.10] - 2026-11-08 (build 3)
+
+Replaces build 2 in App Store review; 3.0.10 hasn't been released, so all
+three builds ship as one version.
+
 ### Fixed
 
 - **The dashboard reloads when the connection returns after a failed load.**
@@ -40,6 +45,8 @@ History before this file was introduced lives in the git log
 
 - Recorded `3.0.10+2` in `pubspec.yaml`, the iOS build uploaded to App Store
   Connect, so the next build script run uses build 3.
+- Updated `ios/release_notes.txt` so the offline bullet also covers the
+  dashboard loading again when the connection returns.
 
 ## [3.0.10] - 2026-11-08 (build 2)
 
