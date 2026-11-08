@@ -1,2 +1,2 @@
-• Near You and the map now keep showing the stations around you, even while their latest readings are on their way.
+• Near You and the map now let you know when fresh air quality readings for your area are on their way.
 • Bug fixes and improvements for a smoother experience.
