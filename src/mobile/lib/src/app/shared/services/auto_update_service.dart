@@ -582,7 +582,7 @@ class AutoUpdateService with UiLoggy {
   Future<void> _openAppStore(String packageName) async {
     try {
       String url;
-      if (Platform.isAndroid) {
+      if (_isAndroid) {
         url = 'https://play.google.com/store/apps/details?id=$packageName';
       } else {
         throw UnsupportedError('Platform not supported');

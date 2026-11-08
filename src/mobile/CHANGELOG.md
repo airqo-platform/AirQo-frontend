@@ -26,21 +26,24 @@ History before this file was introduced lives in the git log
 
 ### Fixed
 
-- **The mobile test suite passes again (337 tests, 0 failures, up from 18
+- **The mobile test suite passes again (339 tests, 0 failures, up from 18
   failing).** No CI workflow runs `flutter test`, so these had drifted from
   the code unnoticed:
   - `auto_update_service_test` (11): the store check only runs when
     `Platform.isAndroid`, which is false on macOS/Linux test machines, so
     these tests had never passed off-device. `AutoUpdateService.test()` now
-    takes an `isAndroid` override; production still uses `Platform.isAndroid`.
-    Added a test that other platforms skip the store check, and initialised
-    the Flutter test binding the dialog path needs.
+    takes an `isAndroid` override, used for both the store check and opening
+    the store; production still uses `Platform.isAndroid`. Added tests that
+    other platforms skip the store check, that no override follows the real
+    platform, and that a manual check shows the update dialog with its
+    actions. Initialised the Flutter test binding the dialog path needs.
   - `map_repository_test` (3) and `dashboard_repository_test` (1): expected
     the old "No internet connection" message; they now check for "check your
     connection", which the current messages contain.
   - `forecast_repository_test` (1): the fixture predated the forecast API
     migration and sent `aqi.label` as the category. It now sends
-    `aqi_category`, matching `predict/api/prediction.py`.
+    `aqi_category`, matching `predict/api/prediction.py`, and checks that the
+    `label` guidance sentence is kept as `aqiLabel`.
   - `my_trips_view_test` (1): looked for `AqSearchMd`, which became
     `AqSearchSm` (same 18 px size) in the Exposure launch work.
   - `widget_test` (2): `shared_preferences` and `package_info` had no test

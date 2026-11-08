@@ -153,6 +153,11 @@ AIRQO_MOBILE_TOKEN=test-mobile-token
         expect(result.forecasts, hasLength(1));
         expect(result.forecasts[0].pm25, equals(10.2));
         expect(result.forecasts[0].aqiCategory, equals('Good'));
+        expect(
+          result.forecasts[0].aqiLabel,
+          equals(
+              'Get out and smell the fresh air, take a walk, and enjoy outdoor activity.'),
+        );
         expect(result.forecasts[0].forecastConfidence, equals(85.0));
       });
 

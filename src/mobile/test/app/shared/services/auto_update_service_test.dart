@@ -371,6 +371,29 @@ void main() {
         expect(updateAvailable, isTrue);
         verify(mockHttpClient.get(any, headers: anyNamed('headers'))).called(1);
       });
+
+      testWidgets('shows the update dialog with its actions', (tester) async {
+        final key = GlobalKey<NavigatorState>();
+        await tester.pumpWidget(
+          MaterialApp(navigatorKey: key, home: const Scaffold()),
+        );
+        service.setNavigatorKey(key);
+        prefsStorage['last_update_check'] =
+            DateTime.now().millisecondsSinceEpoch;
+
+        when(mockHttpClient.get(any, headers: anyNamed('headers'))).thenAnswer(
+            (_) async => http.Response(playStoreHtmlWithJsonVersion, 200));
+
+        final updateAvailable = await service.manualUpdateCheck();
+        await tester.pumpAndSettle();
+
+        expect(updateAvailable, isTrue);
+        expect(find.text('Update Available'), findsOneWidget);
+        expect(find.text('2.1.0'), findsOneWidget);
+        expect(find.text('Update'), findsOneWidget);
+        expect(find.text('Later'), findsOneWidget);
+        expect(find.text('Skip This Version'), findsOneWidget);
+      });
     });
 
     group('Preferences Management', () {
@@ -551,6 +574,32 @@ void main() {
 
         expect(updateAvailable, isFalse);
         verifyNever(mockHttpClient.get(any, headers: anyNamed('headers')));
+      });
+
+      test('without an override, follows the real platform', () async {
+        // flutter test never runs on Android, so this checks the fallback to
+        // Platform.isAndroid rather than an update on a real device.
+        final defaultService = AutoUpdateService.test(
+          httpClient: mockHttpClient,
+          packageInfo: mockPackageInfo,
+          sharedPreferences: mockPrefs,
+        );
+        prefsStorage['last_update_check'] = DateTime.now()
+            .subtract(const Duration(days: 4))
+            .millisecondsSinceEpoch;
+        when(mockHttpClient.get(any, headers: anyNamed('headers'))).thenAnswer(
+            (_) async => http.Response(playStoreHtmlWithJsonVersion, 200));
+
+        final updateAvailable =
+            await defaultService.checkForUpdates(showDialog: false);
+
+        expect(updateAvailable, Platform.isAndroid);
+        if (Platform.isAndroid) {
+          verify(mockHttpClient.get(any, headers: anyNamed('headers')))
+              .called(1);
+        } else {
+          verifyNever(mockHttpClient.get(any, headers: anyNamed('headers')));
+        }
       });
     });
   });
