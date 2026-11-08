@@ -45,7 +45,7 @@ pod --version   # should print a version number
 ### 4. App Store Connect access
 The team (`DFMDF9D6NT`) is an **Individual** membership owned by Engineer Bainomugisha. Other people work on it as **App Store Connect users**, not as members of the developer website.
 
-1. Ask Engineer Bainomugisha to add your Apple ID at https://appstoreconnect.apple.com → **Users and Access**, with the **App Manager** role (or **Developer** at minimum, which can upload builds).
+1. Ask Engineer Bainomugisha to add your Apple ID at https://appstoreconnect.apple.com → **Users and Access**, with the **App Manager** role (or **Developer** at minimum, which can upload builds). To export builds yourself, also ask for **Access to Cloud Managed Distribution Certificate** (see [Signing & Certificates](#signing--certificates)).
 2. Accept the invitation email, then sign in at https://appstoreconnect.apple.com/apps. Your name at the top right should show **Engineer Bainomugisha** as the team, and **AirQo - Air Quality** should be listed.
 3. Sign into Xcode: **Xcode → Settings → Accounts → `+`** → your Apple ID. Pick the **Engineer Bainomugisha** team, not your **(Personal Team)**.
 
@@ -155,7 +155,11 @@ Xcode handles this automatically if "Automatically manage signing" is checked:
 - Runner target → Signing & Capabilities → check **Automatically manage signing**
 - Team: **Engineer Bainomugisha** (`DFMDF9D6NT`)
 
-You don't need an **Apple Distribution** certificate in your own keychain. With automatic signing, Xcode signs App Store builds with a cloud-managed distribution certificate when your App Store Connect role allows it. Only an Apple Development certificate is needed locally.
+Exporting the IPA needs **one** of these:
+- **Cloud signing permission:** Xcode signs with a cloud-managed distribution certificate, so no Apple Distribution certificate is needed in your keychain. The Account Holder and Admins have this permission. Other roles need **Access to Cloud Managed Distribution Certificate** turned on for their user in **Users and Access**, and the **Developer** role doesn't include it by default.
+- **A local Apple Distribution identity** in your keychain, created by someone allowed to manage certificates.
+
+If you have neither, the export fails with `No signing certificate "iOS Distribution" found`. Ask the Account Holder (Engineer Bainomugisha) to turn on the permission for you, or to export and upload the build from the archive the script leaves behind.
 
 If you see a provisioning profile error:
 1. Xcode → Settings → Accounts → select your Apple ID → **Download Manual Profiles**

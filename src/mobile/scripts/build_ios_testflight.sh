@@ -27,6 +27,13 @@ for tool in git flutter pod xcodebuild unzip security; do
   fi
 done
 
+# Upload needs both API key values; one alone is almost certainly a typo, so stop before building.
+if { [[ -n "${ASC_API_KEY_ID:-}" ]] && [[ -z "${ASC_API_ISSUER_ID:-}" ]]; } ||
+   { [[ -z "${ASC_API_KEY_ID:-}" ]] && [[ -n "${ASC_API_ISSUER_ID:-}" ]]; }; then
+  echo "Error: set both ASC_API_KEY_ID and ASC_API_ISSUER_ID to upload, or neither to upload manually." >&2
+  exit 1
+fi
+
 echo "==> Pulling latest staging"
 if [[ -n "$(git status --porcelain)" ]]; then
   echo "Error: working tree has uncommitted changes. Commit or stash them, then rerun." >&2
@@ -36,9 +43,14 @@ git checkout staging
 git pull --ff-only origin staging
 
 current_version="$(grep '^version:' pubspec.yaml | awk '{print $2}')"
+if [[ ! "$current_version" =~ ^[0-9]+(\.[0-9]+)*\+[0-9]+$ ]]; then
+  echo "Error: pubspec.yaml version '${current_version}' must look like 3.0.9+0 (version+build number)." >&2
+  exit 1
+fi
 name_part="${current_version%+*}"
 build_part="${current_version##*+}"
-new_build=$((build_part + 1))
+# 10# forces base 10, so a build number like 09 isn't read as octal.
+new_build=$((10#$build_part + 1))
 new_version="${name_part}+${new_build}"
 
 echo "==> Building version ${name_part}, build ${new_build}"
@@ -48,8 +60,17 @@ if [[ ! -s "$RELEASE_NOTES" ]]; then
   echo "Warning: ${RELEASE_NOTES} is missing or empty. Add this version's release notes before submitting." >&2
 fi
 
-echo "==> Cleaning build folder"
+# Flutter writes the IPA and archive under its build directory, which
+# `flutter config --build-dir` can move away from the default "build".
+build_dir="$(flutter config --machine 2>/dev/null | plutil -extract build-dir raw -o - - 2>/dev/null || true)"
+build_dir="${build_dir:-build}"
+ipa_dir="${build_dir}/ios/ipa"
+archive_path="${build_dir}/ios/archive/Runner.xcarchive"
+
+echo "==> Cleaning build folder (${build_dir})"
 flutter clean
+# Make sure an IPA from an earlier run can't be picked up as this run's output.
+rm -rf "$ipa_dir"
 
 echo "==> Fetching Dart dependencies"
 flutter pub get
@@ -62,9 +83,8 @@ flutter build ipa --release --build-number="${new_build}"
 
 # flutter build ipa can exit 0 when the archive succeeds but the IPA export
 # fails (e.g. signing errors), so check for the IPA itself.
-ipa_path="$(find build/ios/ipa -maxdepth 1 -name '*.ipa' -print -quit 2>/dev/null || true)"
+ipa_path="$(find "$ipa_dir" -maxdepth 1 -name '*.ipa' -print -quit 2>/dev/null || true)"
 if [[ -z "$ipa_path" ]]; then
-  archive_path="build/ios/archive/Runner.xcarchive"
   {
     echo
     echo "Error: no IPA was created. Check the export errors above."
