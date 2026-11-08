@@ -26,6 +26,21 @@ History before this file was introduced lives in the git log
 
 ## [Unreleased]
 
+### Fixed
+
+- **The dashboard reloads when the connection returns after a failed load.**
+  Starting offline with nothing cached leaves the dashboard on an error. On
+  reconnect, `DashboardBloc` only refreshed an already-loaded dashboard whose
+  data was over 30 minutes old, so the "Back online" banner appeared while the
+  error stayed until a manual refresh. A reconnect now triggers
+  `LoadDashboard(forceRefresh: true)` from the error state. Added
+  `dashboard_bloc_reconnect_test.dart`; the reload test fails without the fix.
+
+### Changed
+
+- Recorded `3.0.10+2` in `pubspec.yaml`, the iOS build uploaded to App Store
+  Connect, so the next build script run uses build 3.
+
 ## [3.0.10] - 2026-11-08 (build 2)
 
 Replaces build 1 in App Store review; version 3.0.10 was never released, so
