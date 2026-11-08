@@ -66,7 +66,7 @@ class MapImpl extends MapRepository with UiLoggy {
         loggy.info('Fetching fresh map data from API');
 
         Response response = await createGetRequest(
-            ApiUtils.map, {"token": dotenv.env['AIRQO_API_TOKEN']!}).timeout(
+            ApiUtils.recentReadings, {"token": dotenv.env['AIRQO_API_TOKEN']!}).timeout(
           const Duration(seconds: 15),
           onTimeout: () {
             loggy.warning('API request timed out after 15 seconds');
@@ -149,7 +149,7 @@ class MapImpl extends MapRepository with UiLoggy {
       loggy.info('Starting background refresh of map data');
 
       Response response = await createGetRequest(
-              ApiUtils.map, {"token": dotenv.env['AIRQO_API_TOKEN']!})
+              ApiUtils.recentReadings, {"token": dotenv.env['AIRQO_API_TOKEN']!})
           .timeout(const Duration(seconds: 30));
 
       if (response.statusCode == 200) {

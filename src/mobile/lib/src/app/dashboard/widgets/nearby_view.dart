@@ -1,6 +1,7 @@
 import 'package:airqo/src/app/dashboard/widgets/nearby_measurement_card.dart';
 import 'package:airqo/src/app/dashboard/widgets/measurement_card_tour.dart';
 import 'package:airqo/src/app/shared/widgets/empty_state_view.dart';
+import 'package:airqo/src/app/shared/widgets/stale_readings_banner.dart';
 import 'package:airqo/src/app/shared/widgets/system_glyph.dart';
 import 'package:airqo/src/app/shared/widgets/translated_text.dart';
 import 'package:flutter/material.dart';
@@ -12,6 +13,8 @@ import 'package:loggy/loggy.dart';
 import 'package:airqo/src/app/dashboard/bloc/dashboard/dashboard_bloc.dart';
 import 'package:airqo/src/app/dashboard/widgets/nearby_view_empty_state.dart';
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
+import 'package:airqo/src/app/dashboard/services/nearby_site_coverage_service.dart';
+import 'package:airqo/src/app/dashboard/utils/reading_freshness.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:airqo/src/app/shared/services/cache_manager.dart';
 import 'package:airqo/src/app/surveys/services/survey_trigger_service.dart';
@@ -22,12 +25,16 @@ class NearbyView extends StatefulWidget {
   final MeasurementCardTourKeys? tourKeys;
   final VoidCallback? onTourTargetReady;
 
+  /// Injectable for tests; defaults to a service backed by the live API.
+  final NearbySiteCoverageService? coverageService;
+
   const NearbyView({
     super.key,
     this.onNavigateToFavorites,
     this.onExploreCities,
     this.tourKeys,
     this.onTourTargetReady,
+    this.coverageService,
   });
 
   @override
@@ -45,6 +52,14 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
   late CacheManager _cacheManager;
   static const String _cachedNearbyLocationsKey = 'nearby_locations';
 
+  late final NearbySiteCoverageService _coverageService;
+  late final bool _ownsCoverageService;
+
+  /// Sites within [_defaultSearchRadius] according to the site registry,
+  /// regardless of reading freshness. `null` = not checked or lookup failed.
+  int? _sitesNearbyCount;
+  bool _isCheckingCoverage = false;
+
   /// Live (or in-flight refresh) payload has no stations. Nearby Hive
   /// cache must not refill the cards in that case.
   bool _isSourceEmpty(DashboardState state) {
@@ -60,7 +75,35 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
   void initState() {
     super.initState();
     _cacheManager = CacheManager();
+    _ownsCoverageService = widget.coverageService == null;
+    _coverageService = widget.coverageService ?? NearbySiteCoverageService();
     _initializeLocationAndData();
+  }
+
+  @override
+  void dispose() {
+    if (_ownsCoverageService) _coverageService.dispose();
+    super.dispose();
+  }
+
+  /// No fresh readings fell within the search radius. Ask the site registry
+  /// whether sites exist here at all, so the empty state can distinguish
+  /// "no coverage" from "readings delayed".
+  Future<void> _checkNearbyCoverage() async {
+    final position = _userPosition;
+    if (position == null || _isCheckingCoverage) return;
+
+    if (mounted) setState(() => _isCheckingCoverage = true);
+    final count = await _coverageService.countSitesWithin(
+      latitude: position.latitude,
+      longitude: position.longitude,
+      radiusKm: _defaultSearchRadius,
+    );
+    if (!mounted) return;
+    setState(() {
+      _sitesNearbyCount = count;
+      _isCheckingCoverage = false;
+    });
   }
 
   Future<void> _initializeLocationAndData() async {
@@ -355,7 +398,12 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
       setState(() {
         _nearbyMeasurementsWithDistance = visibleMeasurements;
         _isLoading = false;
+        if (visibleMeasurements.isNotEmpty) _sitesNearbyCount = null;
       });
+    }
+
+    if (visibleMeasurements.isEmpty) {
+      await _checkNearbyCoverage();
     }
   }
   
@@ -446,6 +494,26 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
         ),
       );
     }
+  }
+
+  /// Cards don't show reading times, so when the newest nearby reading is
+  /// hours old, say so rather than presenting it as current air quality.
+  Widget _buildStaleReadingsBanner(BuildContext context) {
+    final age = newestReadingAge(
+      _nearbyMeasurementsWithDistance.map((e) => e.key),
+      DateTime.now(),
+    );
+    if (age == null || age < kStaleReadingThreshold) {
+      return const SizedBox.shrink();
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(left: 16, right: 16, bottom: 12),
+      child: StaleReadingsBanner(
+        message:
+            'Showing the most recent readings for your area. Fresh updates are on their way.',
+      ),
+    );
   }
 
   @override
@@ -583,12 +651,43 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
               _expandFromCache();
             }
 
+            if (_nearbyMeasurementsWithDistance.isEmpty && _isCheckingCoverage) {
+              return ListView.builder(
+                itemCount: _maxNearbyLocations,
+                padding: const EdgeInsets.only(top: 8, bottom: 16),
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemBuilder: (context, index) =>
+                    const NearbyMeasurementCardLoader(),
+              );
+            }
+
+            // Sites exist within the radius but none has a recent reading:
+            // a data delay, not a coverage gap. Saying "no stations nearby"
+            // here would be false (e.g. Kampala during a processing backlog).
+            if (_nearbyMeasurementsWithDistance.isEmpty &&
+                (_sitesNearbyCount ?? 0) > 0) {
+              return EmptyStateView(
+                icon: SystemGlyph.emptyPlace(context),
+                title: 'Fresh readings for your area are on their way',
+                message:
+                    'New readings from AirQo monitors near you will appear here shortly.',
+                actionLabel: 'Refresh',
+                onAction: () {
+                  context
+                      .read<DashboardBloc>()
+                      .add(LoadDashboard(forceRefresh: true));
+                  _retry();
+                },
+              );
+            }
+
             if (_nearbyMeasurementsWithDistance.isEmpty) {
               return EmptyStateView(
                 icon: SystemGlyph.emptyPlace(context),
                 title: 'No air quality stations found nearby',
                 message:
-                    'AirQo covers 15 African cities. Browse and explore air quality data from any of them.',
+                    'AirQo monitors air quality in cities across Africa. Browse and explore air quality data from any of them.',
                 actionLabel: 'Explore Available Cities',
                 actionIcon: SystemGlyph.explore(),
                 onAction: widget.onExploreCities ??
@@ -632,6 +731,7 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
                     // ),
                   // ),
                 // ),
+              _buildStaleReadingsBanner(context),
               ListView.builder(
                 itemCount: _nearbyMeasurementsWithDistance.length,
                 padding: const EdgeInsets.only(bottom: 16),
