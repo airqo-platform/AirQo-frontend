@@ -22,13 +22,23 @@ void main() {
       );
     }
 
-    http.Response sitesResponse(int count) => http.Response(
-          json.encode({
-            'success': true,
-            'sites': List.generate(count, (i) => {'_id': 's$i'}),
-          }),
+    http.Response sitesJson(List<Map<String, Object?>> sites) => http.Response(
+          json.encode({'success': true, 'sites': sites}),
           200,
         );
+
+    /// [count] distinct sites whose device sent raw data an hour ago.
+    http.Response sitesResponse(int count) => sitesJson(List.generate(
+          count,
+          (i) => {
+            '_id': 's$i',
+            'lastRawData':
+                now.subtract(const Duration(hours: 1)).toIso8601String(),
+          },
+        ));
+
+    String daysAgo(int days) =>
+        now.subtract(Duration(days: days)).toIso8601String();
 
     setUp(() {
       requests = [];
@@ -51,7 +61,73 @@ void main() {
       expect(params['longitude'], '32.551234');
       expect(params['radius'], '10.0');
       expect(params['token'], 'tkn');
+      expect(params['limit'], '20');
       expect(params.containsKey('online_status'), isFalse);
+    });
+
+    test('skips sites that have been silent for longer than a week', () async {
+      final service = serviceReturning(sitesJson([
+        {'_id': 'live', 'lastRawData': daysAgo(1)},
+        {'_id': 'dead', 'lastRawData': daysAgo(90), 'lastActive': daysAgo(95)},
+      ]));
+      expect(
+        await service.countSitesWithin(
+            latitude: 0.3, longitude: 32.5, radiusKm: 10),
+        1,
+      );
+    });
+
+    test('a processing backlog does not hide a site whose device still sends',
+        () async {
+      // lastActive (processed readings) is stale, lastRawData (device feed) is
+      // fresh: the site is active and its readings are on their way.
+      final service = serviceReturning(sitesJson([
+        {'_id': 'kla', 'lastActive': daysAgo(10), 'lastRawData': daysAgo(0)},
+      ]));
+      expect(
+        await service.countSitesWithin(
+            latitude: 0.3, longitude: 32.5, radiusKm: 10),
+        1,
+      );
+    });
+
+    test('falls back to lastActive when there is no raw data timestamp',
+        () async {
+      final service = serviceReturning(sitesJson([
+        {'_id': 'a', 'lastActive': daysAgo(2), 'lastRawData': null},
+        {'_id': 'b', 'lastActive': daysAgo(30)},
+      ]));
+      expect(
+        await service.countSitesWithin(
+            latitude: 0.3, longitude: 32.5, radiusKm: 10),
+        1,
+      );
+    });
+
+    test('skips sites that have never reported', () async {
+      final service = serviceReturning(sitesJson([
+        {'_id': 'new'},
+        {'_id': 'bad', 'lastRawData': 'not-a-date'},
+      ]));
+      expect(
+        await service.countSitesWithin(
+            latitude: 0.3, longitude: 32.5, radiusKm: 10),
+        0,
+      );
+    });
+
+    test('counts a site once when the endpoint returns a row per device',
+        () async {
+      final service = serviceReturning(sitesJson([
+        {'_id': 's1', 'lastRawData': daysAgo(0)},
+        {'_id': 's1', 'lastRawData': daysAgo(0)},
+        {'_id': 's2', 'lastActive': daysAgo(3)},
+      ]));
+      expect(
+        await service.countSitesWithin(
+            latitude: 0.3, longitude: 32.5, radiusKm: 10),
+        2,
+      );
     });
 
     test('returns 0 when the registry has no sites nearby', () async {

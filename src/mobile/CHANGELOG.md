@@ -24,6 +24,43 @@ History before this file was introduced lives in the git log
 
 ## [Unreleased]
 
+### Fixed
+
+- **Near You no longer promises readings from sites that stopped reporting
+  long ago.** `NearbySiteCoverageService` now counts a site only if its device
+  sent raw data (`lastRawData`) or it got a processed reading (`lastActive`)
+  in the last 7 days. `lastRawData` comes from the device feed, so a
+  processing backlog still shows "Fresh readings for your area are on their
+  way". Sites that have been silent for longer, or never reported, now lead to
+  "No air quality stations found nearby".
+- **Near You no longer says "No air quality stations found nearby" when the
+  coverage lookup fails.** A timeout, error or missing token now shows a
+  neutral "Air quality for your area will appear here shortly" with a Refresh
+  button. The empty-state choice moved into `nearbyCoverageState()` so it can
+  be unit tested.
+- **The offline banner no longer shows yellow underlined text.** It had no
+  `Material` ancestor, so Flutter drew its debug text style.
+
+### Changed
+
+- `/sites/nearest` returns one row per device, so the coverage service now
+  counts distinct sites by `_id`, and asks for 20 sites instead of 5 so that
+  silent sites closest to the user can't hide an active one further out.
+- **Redesigned the offline banner** (`NoInternetBanner`), following the
+  offline patterns in Google apps, YouTube and WhatsApp and Material's snackbar
+  guidance. The full-width red "Internet Connection Lost" bar is now a floating
+  rounded card under the status bar: charcoal (reversed in dark mode), a
+  cloud-off icon, "You're offline" and "Showing your saved air quality. We'll
+  refresh when you're back online.", with a 48 px dismiss button. After a
+  reconnection, a brand-blue "Back online" card shows for 3 seconds. It slides
+  and fades in, with no motion when reduce motion is on, and screen readers
+  announce it. `main.dart` now keeps the banner mounted so it can show the
+  reconnection.
+- Added the new Near You and offline banner copy to the Sunbird translation
+  prewarm list.
+- Recorded `3.0.10+1` in `pubspec.yaml`, the iOS build delivered to App Store
+  Connect, so the next build script run uses build 2.
+
 ## [3.0.10] - 2026-11-08
 
 ### Fixed

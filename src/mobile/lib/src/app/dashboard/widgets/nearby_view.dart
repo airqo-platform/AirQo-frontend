@@ -14,6 +14,7 @@ import 'package:airqo/src/app/dashboard/bloc/dashboard/dashboard_bloc.dart';
 import 'package:airqo/src/app/dashboard/widgets/nearby_view_empty_state.dart';
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
 import 'package:airqo/src/app/dashboard/services/nearby_site_coverage_service.dart';
+import 'package:airqo/src/app/dashboard/utils/nearby_coverage_state.dart';
 import 'package:airqo/src/app/dashboard/utils/reading_freshness.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:airqo/src/app/shared/services/cache_manager.dart';
@@ -55,10 +56,14 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
   late final NearbySiteCoverageService _coverageService;
   late final bool _ownsCoverageService;
 
-  /// Sites within [_defaultSearchRadius] according to the site registry,
-  /// regardless of reading freshness. `null` = not checked or lookup failed.
+  /// Recently active sites within [_defaultSearchRadius] according to the site
+  /// registry, whatever their reading freshness. `null` = not checked or
+  /// lookup failed.
   int? _sitesNearbyCount;
   bool _isCheckingCoverage = false;
+
+  /// The registry lookup ran but couldn't answer, so coverage is unknown.
+  bool _coverageLookupFailed = false;
 
   /// Live (or in-flight refresh) payload has no stations. Nearby Hive
   /// cache must not refill the cards in that case.
@@ -102,6 +107,7 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
     if (!mounted) return;
     setState(() {
       _sitesNearbyCount = count;
+      _coverageLookupFailed = count == null;
       _isCheckingCoverage = false;
     });
   }
@@ -398,7 +404,10 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
       setState(() {
         _nearbyMeasurementsWithDistance = visibleMeasurements;
         _isLoading = false;
-        if (visibleMeasurements.isNotEmpty) _sitesNearbyCount = null;
+        if (visibleMeasurements.isNotEmpty) {
+          _sitesNearbyCount = null;
+          _coverageLookupFailed = false;
+        }
       });
     }
 
@@ -651,49 +660,68 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
               _expandFromCache();
             }
 
-            if (_nearbyMeasurementsWithDistance.isEmpty && _isCheckingCoverage) {
-              return ListView.builder(
-                itemCount: _maxNearbyLocations,
-                padding: const EdgeInsets.only(top: 8, bottom: 16),
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemBuilder: (context, index) =>
-                    const NearbyMeasurementCardLoader(),
-              );
-            }
-
-            // Sites exist within the radius but none has a recent reading:
-            // a data delay, not a coverage gap. Saying "no stations nearby"
-            // here would be false (e.g. Kampala during a processing backlog).
-            if (_nearbyMeasurementsWithDistance.isEmpty &&
-                (_sitesNearbyCount ?? 0) > 0) {
-              return EmptyStateView(
-                icon: SystemGlyph.emptyPlace(context),
-                title: 'Fresh readings for your area are on their way',
-                message:
-                    'New readings from AirQo monitors near you will appear here shortly.',
-                actionLabel: 'Refresh',
-                onAction: () {
-                  context
-                      .read<DashboardBloc>()
-                      .add(LoadDashboard(forceRefresh: true));
-                  _retry();
-                },
-              );
-            }
-
             if (_nearbyMeasurementsWithDistance.isEmpty) {
-              return EmptyStateView(
-                icon: SystemGlyph.emptyPlace(context),
-                title: 'No air quality stations found nearby',
-                message:
-                    'AirQo monitors air quality in cities across Africa. Browse and explore air quality data from any of them.',
-                actionLabel: 'Explore Available Cities',
-                actionIcon: SystemGlyph.explore(),
-                onAction: widget.onExploreCities ??
-                    widget.onNavigateToFavorites ??
-                    _retry,
-              );
+              void refresh() {
+                context
+                    .read<DashboardBloc>()
+                    .add(LoadDashboard(forceRefresh: true));
+                _retry();
+              }
+
+              switch (nearbyCoverageState(
+                isChecking: _isCheckingCoverage,
+                activeSitesNearby: _sitesNearbyCount,
+                lookupFailed: _coverageLookupFailed,
+              )) {
+                case NearbyCoverageState.checking:
+                  return ListView.builder(
+                    itemCount: _maxNearbyLocations,
+                    padding: const EdgeInsets.only(top: 8, bottom: 16),
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemBuilder: (context, index) =>
+                        const NearbyMeasurementCardLoader(),
+                  );
+
+                // Active sites exist within the radius but none has a recent
+                // reading: a data delay, not a coverage gap. Saying "no
+                // stations nearby" here would be false (e.g. Kampala during a
+                // processing backlog).
+                case NearbyCoverageState.readingsOnTheWay:
+                  return EmptyStateView(
+                    icon: SystemGlyph.emptyPlace(context),
+                    title: 'Fresh readings for your area are on their way',
+                    message:
+                        'New readings from AirQo monitors near you will appear here shortly.',
+                    actionLabel: 'Refresh',
+                    onAction: refresh,
+                  );
+
+                // The registry couldn't be reached, so we don't know whether
+                // stations exist here. Stay neutral instead of claiming there
+                // are none.
+                case NearbyCoverageState.unknown:
+                  return EmptyStateView(
+                    icon: SystemGlyph.emptyPlace(context),
+                    title: 'Air quality for your area will appear here shortly',
+                    message: 'Tap Refresh to check again.',
+                    actionLabel: 'Refresh',
+                    onAction: refresh,
+                  );
+
+                case NearbyCoverageState.noCoverage:
+                  return EmptyStateView(
+                    icon: SystemGlyph.emptyPlace(context),
+                    title: 'No air quality stations found nearby',
+                    message:
+                        'AirQo monitors air quality in cities across Africa. Browse and explore air quality data from any of them.',
+                    actionLabel: 'Explore Available Cities',
+                    actionIcon: SystemGlyph.explore(),
+                    onAction: widget.onExploreCities ??
+                        widget.onNavigateToFavorites ??
+                        _retry,
+                  );
+              }
             }
           }
 
