@@ -15,6 +15,8 @@ here.** A CI check (`mobile-changelog`) fails the PR otherwise.
    Link the issue or PR where there is one.
 3. When cutting a release, rename **[Unreleased]** to the new version and date
    (e.g. `## [3.0.10] - 2026-11-20`) and start a fresh empty **[Unreleased]**.
+   If a new build replaces one still in App Store review under the same
+   version, label each section with its build, e.g. `(build 2)`.
 
 For PRs with no meaningful change to record (e.g. a typo in a comment), a
 maintainer can add the `skip-changelog` label to bypass the check.
@@ -23,6 +25,11 @@ History before this file was introduced lives in the git log
 (`git log -- src/mobile`).
 
 ## [Unreleased]
+
+## [3.0.10] - 2026-11-08 (build 2)
+
+Replaces build 1 in App Store review; version 3.0.10 was never released, so
+both builds ship as one version.
 
 ### Fixed
 
@@ -97,8 +104,10 @@ History before this file was introduced lives in the git log
   prewarm list.
 - Recorded `3.0.10+1` in `pubspec.yaml`, the iOS build delivered to App Store
   Connect, so the next build script run uses build 2.
+- Added the offline banner to `ios/release_notes.txt`. The notes cover both
+  builds, since 3.0.10 hasn't been released yet.
 
-## [3.0.10] - 2026-11-08
+## [3.0.10] - 2026-11-08 (build 1)
 
 ### Fixed
 
