@@ -18,6 +18,8 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 import 'package:loggy/loggy.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class FakePathProviderPlatform extends PathProviderPlatform
     with MockPlatformInterfaceMixin {
@@ -86,6 +88,17 @@ void main() {
 
   setUpAll(() async {
     PathProviderPlatform.instance = FakePathProviderPlatform();
+
+    // Startup code reads these plugins without catching MissingPluginException,
+    // so give them their built-in in-memory test implementations.
+    SharedPreferences.setMockInitialValues({});
+    PackageInfo.setMockInitialValues(
+      appName: 'AirQo',
+      packageName: 'com.airqo.net',
+      version: '0.0.0',
+      buildNumber: '0',
+      buildSignature: '',
+    );
 
     // PosthogObserver fires Posthog().screen on every navigation; without a
     // platform implementation the channel throws MissingPluginException,

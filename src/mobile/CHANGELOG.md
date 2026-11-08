@@ -26,6 +26,34 @@ History before this file was introduced lives in the git log
 
 ### Fixed
 
+- **The mobile test suite passes again (337 tests, 0 failures, up from 18
+  failing).** No CI workflow runs `flutter test`, so these had drifted from
+  the code unnoticed:
+  - `auto_update_service_test` (11): the store check only runs when
+    `Platform.isAndroid`, which is false on macOS/Linux test machines, so
+    these tests had never passed off-device. `AutoUpdateService.test()` now
+    takes an `isAndroid` override; production still uses `Platform.isAndroid`.
+    Added a test that other platforms skip the store check, and initialised
+    the Flutter test binding the dialog path needs.
+  - `map_repository_test` (3) and `dashboard_repository_test` (1): expected
+    the old "No internet connection" message; they now check for "check your
+    connection", which the current messages contain.
+  - `forecast_repository_test` (1): the fixture predated the forecast API
+    migration and sent `aqi.label` as the category. It now sends
+    `aqi_category`, matching `predict/api/prediction.py`.
+  - `my_trips_view_test` (1): looked for `AqSearchMd`, which became
+    `AqSearchSm` (same 18 px size) in the Exposure launch work.
+  - `widget_test` (2): `shared_preferences` and `package_info` had no test
+    implementation; now uses their built-in mock initial values.
+- **`AutoUpdateService.manualUpdateCheck()` now checks immediately.** It used
+  to apply the 3-day wait between automatic checks, so a manual check within 3
+  days did nothing. `checkForUpdates()` gained a `force` flag for this. Nothing
+  in the app calls the manual check yet, so users weren't affected.
+- Documented that the version scraper keeps the numeric core of values like
+  `v2.1.0` (→ `2.1.0`) and `1.0.0-beta` (→ `1.0.0`) through its general
+  fallback pattern. The old test claimed these were rejected, but it only
+  passed because the check never ran off Android.
+
 - **Near You no longer promises readings from sites that stopped reporting
   long ago.** `NearbySiteCoverageService` now counts a site only if its device
   sent raw data (`lastRawData`) or it got a processed reading (`lastActive`)

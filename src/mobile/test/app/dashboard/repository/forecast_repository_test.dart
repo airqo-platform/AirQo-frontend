@@ -99,7 +99,13 @@ AIRQO_MOBILE_TOKEN=test-mobile-token
                   {
                     'date': '2024-01-15',
                     'forecast': {'pm2_5_mean': 10.2, 'forecast_confidence': 85.0},
-                    'aqi': {'label': 'Good'},
+                    // Matches the forecast API: the category is aqi_category;
+                    // label is a guidance sentence.
+                    'aqi': {
+                      'aqi_category': 'Good',
+                      'label':
+                          'Get out and smell the fresh air, take a walk, and enjoy outdoor activity.',
+                    },
                     'met': {'air_temperature': 24.0, 'relative_humidity': 70.0},
                   },
                 ],

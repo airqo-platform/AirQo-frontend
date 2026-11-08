@@ -122,7 +122,7 @@ void main() {
     await tester.tap(find.text('Home'));
     await tester.pumpAndSettle();
 
-    final icon = tester.widget<AqSearchMd>(find.byType(AqSearchMd));
+    final icon = tester.widget<AqSearchSm>(find.byType(AqSearchSm));
     expect(icon.size, 18);
   });
 

@@ -11,19 +11,31 @@ import 'package:airqo/src/meta/utils/colors.dart';
 class AutoUpdateService with UiLoggy {
   static final AutoUpdateService _instance = AutoUpdateService._internal();
   factory AutoUpdateService() => _instance;
-  AutoUpdateService._internal() : _httpClient = null, _packageInfo = null, _sharedPreferences = null;
+  AutoUpdateService._internal()
+      : _httpClient = null,
+        _packageInfo = null,
+        _sharedPreferences = null,
+        _isAndroidOverride = null;
 
   final http.Client? _httpClient;
   final PackageInfo? _packageInfo;
   final SharedPreferences? _sharedPreferences;
 
+  /// Lets tests choose the platform; tests run on macOS/Linux, where
+  /// [Platform.isAndroid] is false and the store check would never run.
+  final bool? _isAndroidOverride;
+
   AutoUpdateService.test({
     http.Client? httpClient,
     PackageInfo? packageInfo,
     SharedPreferences? sharedPreferences,
+    bool? isAndroid,
   })  : _httpClient = httpClient,
         _packageInfo = packageInfo,
-        _sharedPreferences = sharedPreferences;
+        _sharedPreferences = sharedPreferences,
+        _isAndroidOverride = isAndroid;
+
+  bool get _isAndroid => _isAndroidOverride ?? Platform.isAndroid;
 
   static const String _lastUpdateCheckKey = 'last_update_check';
   static const String _updateSkippedVersionKey = 'update_skipped_version';
@@ -52,9 +64,12 @@ class AutoUpdateService with UiLoggy {
         : await http.get(uri, headers: headers);
   }
 
-  Future<bool> checkForUpdates({bool showDialog = true}) async {
+  /// Checks the store for a newer version. Automatic checks run at most every
+  /// [_updateCheckInterval]; [force] skips that wait (used by
+  /// [manualUpdateCheck]).
+  Future<bool> checkForUpdates({bool showDialog = true, bool force = false}) async {
     try {
-      if (!await _shouldCheckForUpdates()) {
+      if (!force && !await _shouldCheckForUpdates()) {
         loggy.info('Skipping update check - checked recently');
         return false;
       }
@@ -65,7 +80,7 @@ class AutoUpdateService with UiLoggy {
       
       String? storeVersion;
       
-      if (Platform.isAndroid) {
+      if (_isAndroid) {
         storeVersion = await _getAndroidStoreVersion(packageName);
       }
       
@@ -638,8 +653,10 @@ class AutoUpdateService with UiLoggy {
     });
   }
 
+  /// A user-requested check: runs even if an automatic check happened
+  /// recently.
   Future<bool> manualUpdateCheck() async {
-    return await checkForUpdates(showDialog: true);
+    return await checkForUpdates(showDialog: true, force: true);
   }
 
   Future<void> clearUpdatePreferences() async {
