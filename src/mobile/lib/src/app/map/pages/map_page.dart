@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:airqo/src/app/dashboard/bloc/dashboard/dashboard_bloc.dart';
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
+import 'package:airqo/src/app/dashboard/services/nearby_site_coverage_service.dart';
+import 'package:airqo/src/app/dashboard/utils/reading_freshness.dart';
 import 'package:airqo/src/app/dashboard/pages/location_selection/utils/location_helpers.dart';
 import 'package:airqo/src/app/dashboard/pages/forecast_overview_page.dart';
 import 'package:airqo/src/app/map/bloc/map_bloc.dart';
@@ -21,6 +23,7 @@ import 'package:airqo/src/app/map/services/map_navigation_service.dart';
 import 'package:airqo/src/app/other/places/bloc/google_places_bloc.dart';
 import 'package:airqo/src/app/shared/services/cache_manager.dart';
 import 'package:airqo/src/app/shared/widgets/empty_state_view.dart';
+import 'package:airqo/src/app/shared/widgets/stale_readings_banner.dart';
 import 'package:airqo/src/app/shared/widgets/system_glyph.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -52,6 +55,15 @@ class _MapScreenState extends State<MapScreen>
   List<Measurement> localSearchResults = [];
   List<Measurement> nearbyMeasurements = [];
   Position? userPosition;
+
+  /// Radius used for the map's "your area" (nearby list and stale banner).
+  static const double _nearbyRadiusKm = 50.0;
+  final NearbySiteCoverageService _coverageService =
+      NearbySiteCoverageService();
+
+  /// Registry sites within [_nearbyRadiusKm] when no recent readings fall
+  /// there. `null` = not checked, not needed, or lookup failed.
+  int? _sitesNearbyCount;
 
   Set<Marker> _mapMarkers = {};
   bool isInitializing = true;
@@ -462,15 +474,46 @@ class _MapScreenState extends State<MapScreen>
       final d = Geolocator.distanceBetween(
               userPosition!.latitude, userPosition!.longitude, lat, lng) /
           1000;
-      if (d <= 50.0) measWithDistance.add(MapEntry(m, d));
+      if (d <= _nearbyRadiusKm) measWithDistance.add(MapEntry(m, d));
     }
     measWithDistance.sort((a, b) => a.value.compareTo(b.value));
     if (mounted) {
       setState(() {
         nearbyMeasurements =
             measWithDistance.take(6).map((e) => e.key).toList();
+        if (measWithDistance.isNotEmpty) _sitesNearbyCount = null;
       });
     }
+    if (measWithDistance.isEmpty) _checkNearbyCoverage();
+  }
+
+  /// No recent readings near the user: ask the site registry whether that's
+  /// a coverage gap or a data delay (sites exist but dropped out of /recent).
+  Future<void> _checkNearbyCoverage() async {
+    final position = userPosition;
+    if (position == null) return;
+    final count = await _coverageService.countSitesWithin(
+      latitude: position.latitude,
+      longitude: position.longitude,
+      radiusKm: _nearbyRadiusKm,
+    );
+    if (!mounted || nearbyMeasurements.isNotEmpty) return;
+    setState(() => _sitesNearbyCount = count);
+  }
+
+  /// Message for the map's stale-data banner, or `null` when the readings in
+  /// the user's area are current (or there is no coverage to speak of).
+  String? _staleAreaMessage() {
+    if (userPosition == null) return null;
+    if (nearbyMeasurements.isNotEmpty) {
+      final age = newestReadingAge(nearbyMeasurements, DateTime.now());
+      if (age == null || age < kStaleReadingThreshold) return null;
+      return 'Showing the most recent readings for your area. Fresh updates are on their way.';
+    }
+    if ((_sitesNearbyCount ?? 0) > 0) {
+      return 'New readings from AirQo monitors in your area will appear here shortly.';
+    }
+    return null;
   }
 
   void populateMeasurements(List<Measurement> measurements) {
@@ -592,6 +635,7 @@ class _MapScreenState extends State<MapScreen>
     _searchFocusNode.dispose();
     searchController.dispose();
     _cameraController.dispose();
+    _coverageService.dispose();
     super.dispose();
   }
 
@@ -715,6 +759,7 @@ class _MapScreenState extends State<MapScreen>
   Widget _buildMapView({bool showEmptyOverlay = false}) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cardBottom = MediaQuery.of(context).size.height * _sheetPeekSize + 14;
+    final staleMessage = _staleAreaMessage();
 
     return Stack(
       children: [
@@ -782,6 +827,15 @@ class _MapScreenState extends State<MapScreen>
           onDismiss: () => setState(() => _selectedCardMeasurement = null),
           onViewForecast: () => _showForecastModal(_selectedCardMeasurement!),
         ),
+        if (!showEmptyOverlay &&
+            _selectedCardMeasurement == null &&
+            staleMessage != null)
+          Positioned(
+            left: 12,
+            right: 12,
+            bottom: cardBottom,
+            child: StaleReadingsBanner(message: staleMessage, elevated: true),
+          ),
         if (showEmptyOverlay)
           Positioned(
             left: 24,
