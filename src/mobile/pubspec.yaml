@@ -132,6 +132,7 @@ flutter:
     - assets/images/shared/airquality_indicators/
     - assets/images/forecast/
     - assets/map_styles/
+    - .env.example
     - .env.prod
     - .env.dev
   #   - images/a_dot_ham.jpeg
