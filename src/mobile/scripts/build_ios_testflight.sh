@@ -62,7 +62,14 @@ fi
 
 # Flutter writes the IPA and archive under its build directory, which
 # `flutter config --build-dir` can move away from the default "build".
-build_dir="$(flutter config --machine 2>/dev/null | plutil -extract build-dir raw -o - - 2>/dev/null || true)"
+# Fail if the config can't be read, rather than guessing "build" and looking in the wrong place.
+if ! flutter_config="$(flutter config --machine 2>/dev/null)" ||
+   ! printf '%s' "$flutter_config" | plutil -convert json -o /dev/null - >/dev/null 2>&1; then
+  echo "Error: couldn't read Flutter's configuration (flutter config --machine) to find the build directory." >&2
+  exit 1
+fi
+# The config is valid JSON here, so a missing build-dir key means the default.
+build_dir="$(printf '%s' "$flutter_config" | plutil -extract build-dir raw -o - - 2>/dev/null || true)"
 build_dir="${build_dir:-build}"
 ipa_dir="${build_dir}/ios/ipa"
 archive_path="${build_dir}/ios/archive/Runner.xcarchive"

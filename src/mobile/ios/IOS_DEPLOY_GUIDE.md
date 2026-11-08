@@ -120,7 +120,7 @@ The script needs a clean working tree. It then:
 7. Uploads the IPA if an App Store Connect API key is set (see [Option C](#option-c-api-key-upload-from-the-script)); otherwise it reveals the IPA in Finder and opens Transporter
 8. Prints the release notes and the next steps
 
-Output IPA is at `build/ios/ipa/airqo.ipa`.
+By default the IPA is at `build/ios/ipa/airqo.ipa` and the archive at `build/ios/archive/Runner.xcarchive`. If you've set a custom Flutter build directory (`flutter config --build-dir=<dir>`), they're at `<dir>/ios/ipa/` and `<dir>/ios/archive/Runner.xcarchive` instead. The script prints the exact paths, and stops before building if it can't read Flutter's configuration.
 
 `pubspec.yaml` only changes once a verified IPA exists. A failed build, export or verification leaves the version unchanged, so a rerun reuses the same build number. The script output shows the build number used by each run, including a failed one.
 
@@ -171,12 +171,12 @@ If you see a provisioning profile error:
 
 ### Option A: Transporter (recommended)
 1. Open Transporter (the build script opens it for you) and sign in with your Apple ID
-2. Drag in `build/ios/ipa/airqo.ipa`
+2. Drag in `build/ios/ipa/airqo.ipa`, or the IPA path the script printed if you use a custom build directory
 3. Click **Deliver** and wait for **Delivered**
 
 ### Option B: Xcode Organizer
 Use this when the script built an archive but the IPA export failed, or after an Xcode archive.
-1. Open the archive. After the script, run `open build/ios/archive/Runner.xcarchive` (the script prints the full command)
+1. Open the archive. After the script, run the `open` command it printed. By default that's `open build/ios/archive/Runner.xcarchive`; with a custom build directory, it's `<dir>/ios/archive/Runner.xcarchive`
 2. Select the archive → **Distribute App**
 3. Choose **App Store Connect** → **Upload**
 4. Keep the default signing options and click **Upload**
