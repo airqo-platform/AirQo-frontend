@@ -21,6 +21,9 @@ docker-compose up -d --build
 ```
 Service runs on: `http://localhost:3000`
 
+### Staging
+Merging a pull request into `staging` deploys Beacon only if that pull request changes something under `src/beacon/`. The image is built from the latest `staging`, so the next Beacon change also ships any earlier merge that did not deploy.
+
 ### Development
 ```bash
 npm install --legacy-peer-deps
