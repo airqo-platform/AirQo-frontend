@@ -14,6 +14,7 @@ import { useNavigationAccess } from "@/hooks/use-navigation-access"
 import { getDevicesHome, getModuleForPath, isRouteAccessible } from "@/lib/navigation"
 import { cn } from "@/lib/utils"
 import { LoadingState } from "@/components/ui/loading-state"
+import { GroupLinkError } from "@/components/group-link-error"
 import { NetworkStatusBanner } from "@/components/network-status-banner"
 import { useConnectionRecoveryKey } from "@/hooks/use-network-status"
 import { PageSatisfactionBanner } from "@/components/features/feedback/page-satisfaction-banner"
@@ -173,7 +174,7 @@ export default function DashboardLayout({
 }
 
 function GroupRouteGuard({ children }: { children: React.ReactNode }) {
-  const { activeGroup } = useGroup()
+  const { activeGroup, groupLinkFailed, retryGroupLink, dropGroupLink } = useGroup()
   const access = useNavigationAccess()
   const pathname = usePathname()
   const router = useRouter()
@@ -187,6 +188,10 @@ function GroupRouteGuard({ children }: { children: React.ReactNode }) {
     if (access.loading || canViewRoute) return
     router.replace(devicesHome)
   }, [access.loading, canViewRoute, devicesHome, router])
+
+  if (groupLinkFailed) {
+    return <GroupLinkError onRetry={retryGroupLink} onContinue={dropGroupLink} />
+  }
 
   if (access.loading && !activeGroup) {
     return <LoadingState text="Updating active group..." className="min-h-[50vh]" />

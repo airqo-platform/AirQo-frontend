@@ -45,6 +45,24 @@ export type NavModule = "devices" | "admin"
 export const matchesRoute = (pathname: string, route: string): boolean =>
   pathname === route || pathname.startsWith(`${route}/`)
 
+/**
+ * Where to send someone after sign-in: a dashboard path on this site, or null for anything else.
+ * Parsing it the way a browser would catches `//evil.com` and `/\evil.com`. Every signed-in page is
+ * under the dashboard, so limiting to it also rules out targets like `/login?action=logout`.
+ */
+export function getSafeReturnPath(path: string | null | undefined): string | null {
+  if (!path?.startsWith("/")) return null
+
+  const base = "https://beacon.invalid"
+  try {
+    const url = new URL(path, base)
+    if (url.origin !== base || !matchesRoute(url.pathname, ROUTES.ADMIN_OVERVIEW)) return null
+    return `${url.pathname}${url.search}${url.hash}`
+  } catch {
+    return null
+  }
+}
+
 // Everything under these prefixes belongs to the admin module. The overview
 // ("/dashboard") is matched exactly because every other page nests under it.
 const ADMIN_ROUTE_PREFIXES = [
