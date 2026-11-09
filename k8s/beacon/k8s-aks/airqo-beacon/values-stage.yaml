@@ -3,7 +3,7 @@ rollingUpdate:
   maxUnavailable: 0%
 image:
   repository: airqoacr.azurecr.io/airqo-stage-beacon
-  tag: stage-97728ba1-1794200807
+  tag: stage-66862f30-1794221522
   pullPolicy: IfNotPresent
 imagePullSecrets: []
 nameOverride: ''
