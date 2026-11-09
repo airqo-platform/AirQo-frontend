@@ -16,6 +16,7 @@ import { EditSiteDetailsDialog } from "@/components/features/sites/edit-site-det
 import ClientPaginatedDevicesTable from "@/components/features/devices/client-paginated-devices-table";
 import SiteMeasurementsApiCard from "@/components/features/sites/site-measurements-api-card";
 import SiteActivityCard from "@/components/features/sites/site-activity-card";
+import SiteHealthCard from "@/components/features/beacon/lazy-site-health-card";
 import { RouteGuard } from "@/components/layout/accessConfig/route-guard";
 import { PERMISSIONS } from "@/core/permissions/constants";
 import { usePageTitle } from "@/context/page-title-context";
@@ -91,14 +92,18 @@ export default function UserSiteDetailsPage() {
               </div>
 
               <div className="flex flex-col gap-6">
+                <SiteHealthCard
+                  siteId={siteId}
+                  getDeviceHref={(deviceId) => `/devices/overview/${deviceId}`}
+                />
                 <SiteMobileAppCard
                   site={site}
                   onEdit={() => setEditSection("mobile")}
                 />
-                <SiteMeasurementsApiCard siteId={siteId} />
               </div>
 
               <div className="flex flex-col gap-6">
+                <SiteMeasurementsApiCard siteId={siteId} />
                 <SiteActivityCard siteId={siteId} />
               </div>
             </div>

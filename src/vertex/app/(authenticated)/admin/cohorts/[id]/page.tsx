@@ -16,6 +16,7 @@ import { UnassignCohortDevicesDialog } from "@/components/features/cohorts/unass
 import CohortMeasurementsApiCard from "@/components/features/cohorts/cohort-measurements-api-card";
 import { usePageTitle } from "@/context/page-title-context";
 import { CohortOrganizationsCard } from "@/components/features/cohorts/cohort-organizations-card";
+import CohortHealthCard from "@/components/features/beacon/lazy-cohort-health-card";
 
 // Loading skeleton for content grid
 const ContentGridSkeleton = () => (
@@ -118,12 +119,15 @@ export default function CohortDetailsPage() {
                 loading={isLoading}
                 cohort_tags={cohort?.cohort_tags}
               />
-              <CohortMeasurementsApiCard cohortId={cohortId} />
-              <CohortOrganizationsCard
-                cohortId={cohortId}
-                cohortName={cohort?.name || ""}
-                canUnassign={canUpdateDevice}
-              />
+              <CohortHealthCard cohortId={cohortId} />
+              <div className="flex flex-col gap-6">
+                <CohortMeasurementsApiCard cohortId={cohortId} />
+                <CohortOrganizationsCard
+                  cohortId={cohortId}
+                  cohortName={cohort?.name || ""}
+                  canUnassign={canUpdateDevice}
+                />
+              </div>
             </div>
 
             {/* Devices list */}
