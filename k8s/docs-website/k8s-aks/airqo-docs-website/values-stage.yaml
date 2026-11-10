@@ -1,9 +1,9 @@
 replicaCount: 1
 rollingUpdate:
-  maxUnavailable: "0%"
+  maxUnavailable: 0%
 image:
   repository: airqoacr.azurecr.io/airqo-stage-docs
-  tag: stage-638dab8b-1793787125
+  tag: stage-d442f840-1794331199
   pullPolicy: IfNotPresent
 imagePullSecrets: []
 nameOverride: ''
