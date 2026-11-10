@@ -396,20 +396,17 @@ class _DeciderState extends State<Decider> with WidgetsBindingObserver {
                 );
               },
             ),
-            if (connectivityState is ConnectivityOffline)
-              Positioned(
-                top: 0,
-                left: 0,
-                right: 0,
-                child: NoInternetBanner(
-                  onClose: () {
-                    logInfo('No internet connection banner dismissed');
-                    context
-                        .read<ConnectivityBloc>()
-                        .add(ConnectivityBannerDismissed());
-                  },
-                ),
+            // Always mounted: the banner hides itself, and stays in the tree
+            // so it can confirm "Back online" after a reconnection.
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: NoInternetBanner(
+                onClose: () =>
+                    logInfo('No internet connection banner dismissed'),
               ),
+            ),
           ],
         );
       },

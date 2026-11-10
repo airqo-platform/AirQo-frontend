@@ -10,7 +10,16 @@ if (globalThis.window === undefined) {
       clear: () => store.clear(),
     }
   }
-  globalThis.window = { location, localStorage: storage(), sessionStorage: storage(), addEventListener: () => {}, removeEventListener: () => {} }
+  globalThis.window = {
+    location,
+    localStorage: storage(),
+    sessionStorage: storage(),
+    addEventListener: () => {},
+    removeEventListener: () => {},
+    // jsPDF reads these from `window` as soon as it's imported
+    atob: globalThis.atob,
+    btoa: globalThis.btoa,
+  }
   globalThis.location = location
   globalThis.localStorage = globalThis.window.localStorage
   globalThis.sessionStorage = globalThis.window.sessionStorage

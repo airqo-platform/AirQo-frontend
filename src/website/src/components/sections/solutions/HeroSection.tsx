@@ -28,7 +28,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
 }) => {
   return (
     <motion.section
-      className={cn(bgColor, 'py-16 px-4 h-full max-h-[416px]', className)}
+      className={cn(bgColor, 'py-12 sm:py-16 px-4', className)}
       initial={disableInitialAnimation ? false : 'hidden'}
       animate={disableInitialAnimation ? 'visible' : undefined}
       whileInView={disableInitialAnimation ? undefined : 'visible'}
@@ -40,7 +40,9 @@ const HeroSection: React.FC<HeroSectionProps> = ({
       <div className="max-w-xl w-full mx-auto text-center">
         <motion.div variants={itemVariants} className="space-y-3">
           <p className="text-gray-500">{breadcrumbText}</p>
-          <h1 className="text-4xl font-bold">{title}</h1>
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold break-words">
+            {title}
+          </h1>
           <p className="text-lg">{description}</p>
         </motion.div>
       </div>

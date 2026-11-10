@@ -125,7 +125,7 @@ const AfricanCities: React.FC = () => {
   if (countriesLoading) {
     return (
       <div
-        className={`${mainConfig.containerClass} px-4 py-6 lg:px-8 lg:py-12`}
+        className={`${mainConfig.containerClass} px-4 py-6 sm:px-6 lg:px-8 lg:py-12`}
       >
         <div className="mb-8">
           <CountrySkeleton />
@@ -143,7 +143,9 @@ const AfricanCities: React.FC = () => {
   if (!africanCountries || africanCountries.length === 0) return null;
 
   return (
-    <div className={`${mainConfig.containerClass} px-4 py-6 lg:px-8 lg:py-12`}>
+    <div
+      className={`${mainConfig.containerClass} px-4 py-6 sm:px-6 lg:px-8 lg:py-12`}
+    >
       {/* Top Section: Countries List */}
       <div className="mb-8">
         <div className="flex flex-wrap gap-3 md:gap-4 justify-center lg:justify-start">

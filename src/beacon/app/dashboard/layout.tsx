@@ -8,11 +8,13 @@ import { useSession, signOut } from "next-auth/react"
 import TopNav from "@/components/dashboard/top-nav"
 import Sidebar from "@/components/dashboard/sidebar"
 import PrimarySidebar from "@/components/dashboard/primary-sidebar"
+import { TourProvider } from "@/components/tour/tour-provider"
 import { GroupProvider, useGroup } from "@/lib/group-context"
 import { useNavigationAccess } from "@/hooks/use-navigation-access"
 import { getDevicesHome, getModuleForPath, isRouteAccessible } from "@/lib/navigation"
 import { cn } from "@/lib/utils"
 import { LoadingState } from "@/components/ui/loading-state"
+import { GroupLinkError } from "@/components/group-link-error"
 import { NetworkStatusBanner } from "@/components/network-status-banner"
 import { useConnectionRecoveryKey } from "@/hooks/use-network-status"
 import { PageSatisfactionBanner } from "@/components/features/feedback/page-satisfaction-banner"
@@ -110,6 +112,7 @@ export default function DashboardLayout({
 
   return (
     <GroupProvider>
+      <TourProvider>
       <NetworkStatusBanner />
       <div className="flex flex-col h-screen gap-2 px-1.5 pt-1.5 pb-0.5 overflow-hidden bg-background">
         {/* Top Navigation Bar */}
@@ -165,12 +168,13 @@ export default function DashboardLayout({
         />
       </div>
       <LoginFeedbackToast />
+      </TourProvider>
     </GroupProvider>
   )
 }
 
 function GroupRouteGuard({ children }: { children: React.ReactNode }) {
-  const { activeGroup } = useGroup()
+  const { activeGroup, groupLinkFailed, retryGroupLink, dropGroupLink } = useGroup()
   const access = useNavigationAccess()
   const pathname = usePathname()
   const router = useRouter()
@@ -184,6 +188,10 @@ function GroupRouteGuard({ children }: { children: React.ReactNode }) {
     if (access.loading || canViewRoute) return
     router.replace(devicesHome)
   }, [access.loading, canViewRoute, devicesHome, router])
+
+  if (groupLinkFailed) {
+    return <GroupLinkError onRetry={retryGroupLink} onContinue={dropGroupLink} />
+  }
 
   if (access.loading && !activeGroup) {
     return <LoadingState text="Updating active group..." className="min-h-[50vh]" />

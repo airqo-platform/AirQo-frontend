@@ -41,7 +41,7 @@ const animations = {
 
 export default function FellowshipSection() {
   return (
-    <section className="max-w-5xl mx-auto px-4 lg:px-0 py-16">
+    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
       <motion.div
         variants={animations.container}
         initial="hidden"

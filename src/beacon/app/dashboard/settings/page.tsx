@@ -122,11 +122,6 @@ export default function SettingsPage() {
     } catch (error: any) {
       console.error("Error fetching profile:", error)
       setError(error.message || "Failed to load profile")
-      toast({
-        title: "Error",
-        description: error.message || "Failed to load profile",
-        variant: "destructive",
-      })
     } finally {
       setLoading(false)
     }

@@ -10,6 +10,7 @@
 - [ ] The title of the PR states what changed and the related issues number (used for the release note).
 - [ ] I've included issue number in the "Closes #ISSUE-NUMBER" part of the "[What are the relevant tickets?](#what-are-the-relevant-tickets)" section to [link the issue](https://docs.github.com/en/issues/tracking-your-work-with-issues/linking-a-pull-request-to-an-issue#linking-a-pull-request-to-an-issue-using-a-keyword).
 - [ ] I've updated corresponding documentation for the changes in this PR.
+- [ ] If this PR changes `src/mobile/`, I've added an entry to `src/mobile/CHANGELOG.md` under [Unreleased] (enforced by the `mobile-changelog` check).
 - [ ] I have written unit and/or e2e tests for my change(s).
 
 #### How should this be manually tested?

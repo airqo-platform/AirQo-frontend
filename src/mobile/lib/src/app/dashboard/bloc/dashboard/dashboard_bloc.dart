@@ -470,6 +470,14 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> with UiLoggy {
   void _onConnectionStatusChanged(ConnectionStatusChanged event, Emitter<DashboardState> emit) {
     loggy.info('Connection status changed: ${event.isConnected ? "Online" : "Offline"}');
 
+    // Offline with no cached data leaves the dashboard on an error. Reload as
+    // soon as the connection returns, so it recovers along with the
+    // "Back online" banner instead of waiting for a manual refresh.
+    if (event.isConnected && state is DashboardLoadingError) {
+      add(const LoadDashboard(forceRefresh: true));
+      return;
+    }
+
     if (state is DashboardLoaded) {
       final currentState = state as DashboardLoaded;
       emit(currentState.copyWith(isOffline: !event.isConnected));

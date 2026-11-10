@@ -278,7 +278,7 @@ AIRQO_API_TOKEN=test-token-123
           throwsA(
             predicate((e) => 
               e is Exception && 
-              e.toString().contains('No internet connection and no cached data available')
+              e.toString().contains('check your connection')
             ),
           ),
         );

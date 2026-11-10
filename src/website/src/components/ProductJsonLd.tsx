@@ -24,7 +24,10 @@ const ProductJsonLd = ({ config }: ProductJsonLdProps) => {
   const productSchema = generateProductSchema(config, siteUrl);
   const breadcrumbSchema = generateBreadcrumbSchema(
     [
-      { name: 'Our Products', url: buildSiteUrl('/products', siteUrl) },
+      {
+        name: 'Explore AirQo products',
+        url: buildSiteUrl('/products', siteUrl),
+      },
       {
         name: getProductDisplayName(config.title),
         url: buildSiteUrl(config.url, siteUrl),

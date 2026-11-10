@@ -14,6 +14,7 @@
  */
 
 export const ROUTES = {
+  HOME: "/dashboard/home",
   ADMIN_OVERVIEW: "/dashboard",
   DEVICES: "/dashboard/devices",
   MY_DEVICES: "/dashboard/devices/my-devices",
@@ -43,6 +44,24 @@ export type NavModule = "devices" | "admin"
 
 export const matchesRoute = (pathname: string, route: string): boolean =>
   pathname === route || pathname.startsWith(`${route}/`)
+
+/**
+ * Where to send someone after sign-in: a dashboard path on this site, or null for anything else.
+ * Parsing it the way a browser would catches `//evil.com` and `/\evil.com`. Every signed-in page is
+ * under the dashboard, so limiting to it also rules out targets like `/login?action=logout`.
+ */
+export function getSafeReturnPath(path: string | null | undefined): string | null {
+  if (!path?.startsWith("/")) return null
+
+  const base = "https://beacon.invalid"
+  try {
+    const url = new URL(path, base)
+    if (url.origin !== base || !matchesRoute(url.pathname, ROUTES.ADMIN_OVERVIEW)) return null
+    return `${url.pathname}${url.search}${url.hash}`
+  } catch {
+    return null
+  }
+}
 
 // Everything under these prefixes belongs to the admin module. The overview
 // ("/dashboard") is matched exactly because every other page nests under it.
@@ -151,8 +170,8 @@ export function isRouteAccessible(pathname: string, access: NavigationAccess): b
 }
 
 /**
- * Landing page of the devices module: the drawer's "Home" and the guard's redirect target.
- * As in Vertex, the AirQo (personal) context lands on the user's own devices.
+ * Where the route guard sends someone off a page their organisation doesn't offer. As in
+ * Vertex, the AirQo (personal) context lands on the user's own devices.
  */
 export function getDevicesHome(access: NavigationAccess): string {
   return access.showMyDevices ? ROUTES.MY_DEVICES : ROUTES.DEVICES
@@ -199,6 +218,7 @@ export function getRecentPage(pathname: string): RecentPage | null {
 export const DEFAULT_PAGE_TITLE = "Beacon"
 
 const PAGE_TITLES: Record<string, string> = {
+  "/dashboard/home": "Home",
   "/dashboard": "Network Overview",
   "/dashboard/devices": "Devices",
   "/dashboard/devices/my-devices": "My Devices",

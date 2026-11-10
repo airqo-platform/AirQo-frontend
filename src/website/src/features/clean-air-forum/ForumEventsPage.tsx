@@ -79,7 +79,7 @@ const ForumEventsPage: React.FC<{ skipHero?: boolean }> = ({ skipHero }) => {
     <div className="w-full">
       {/* Optional Hero Section is rendered by page wrapper when needed */}
       {!skipHero && (
-        <section className="bg-[#F2F1F6] px-4 lg:px-0 py-16">
+        <section className="bg-[#F2F1F6] px-4 sm:px-6 lg:px-8 py-16">
           <div className="max-w-5xl mx-auto">
             <div className="max-w-4xl mx-auto text-center">
               <h1 className="text-4xl md:text-5xl font-bold mb-6 text-gray-900">

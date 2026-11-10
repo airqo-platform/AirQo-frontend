@@ -1,7 +1,11 @@
 {
   "compilerOptions": {
     "target": "es2017",
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -13,20 +17,47 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
-    "types": ["jest", "node"],
+    "types": [
+      "jest",
+      "node"
+    ],
     "paths": {
-      "@/*": ["./src/*"],
-      "@/components/*": ["./src/components/*"],
-      "@/lib/*": ["./src/lib/*"],
-      "@/hooks/*": ["./src/hooks/*"],
-      "@/store/*": ["./src/store/*"],
-      "@/types/*": ["./src/types/*"],
-      "@/services/*": ["./src/services/*"],
-      "@/features/*": ["./src/features/*"],
-      "@/config/*": ["./src/config/*"],
-      "@/queries/*": ["./src/queries/*"],
-      "@/styles/*": ["./src/styles/*"],
-      "@public/*": ["./public/*"]
+      "@/*": [
+        "./src/*"
+      ],
+      "@/components/*": [
+        "./src/components/*"
+      ],
+      "@/lib/*": [
+        "./src/lib/*"
+      ],
+      "@/hooks/*": [
+        "./src/hooks/*"
+      ],
+      "@/store/*": [
+        "./src/store/*"
+      ],
+      "@/types/*": [
+        "./src/types/*"
+      ],
+      "@/services/*": [
+        "./src/services/*"
+      ],
+      "@/features/*": [
+        "./src/features/*"
+      ],
+      "@/config/*": [
+        "./src/config/*"
+      ],
+      "@/queries/*": [
+        "./src/queries/*"
+      ],
+      "@/styles/*": [
+        "./src/styles/*"
+      ],
+      "@public/*": [
+        "./public/*"
+      ]
     },
     "plugins": [
       {
@@ -41,5 +72,10 @@
     ".next/types/**/*.ts",
     "jest.config.js"
   ],
-  "exclude": ["node_modules", ".next", "out", "e2e"]
+  "exclude": [
+    "node_modules",
+    ".next",
+    "out",
+    "e2e"
+  ]
 }

@@ -1,0 +1,72 @@
+name: mobile-changelog
+
+# Every PR that touches src/mobile/ must add an entry to src/mobile/CHANGELOG.md.
+#
+# Runs on every PR to staging (no `paths:` filter) so it can be marked as a
+# required status check: a path-filtered workflow never reports on PRs outside
+# its paths, which would leave a required check pending forever. PRs that
+# don't touch src/mobile/ pass immediately.
+#
+# Bypass: a maintainer can add the `skip-changelog` label for changes with
+# nothing worth recording.
+
+permissions:
+  contents: read
+
+on:
+  pull_request:
+    branches:
+      - staging
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+
+jobs:
+  changelog:
+    name: mobile changelog updated
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: require CHANGELOG entry for mobile changes
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          SKIP_LABEL: ${{ contains(github.event.pull_request.labels.*.name, 'skip-changelog') }}
+        run: |
+          set -euo pipefail
+          CHANGELOG="src/mobile/CHANGELOG.md"
+
+          git diff --name-only "$BASE_SHA...$HEAD_SHA" > changed.txt
+
+          if ! grep -q '^src/mobile/' changed.txt; then
+            echo "No changes under src/mobile/ — nothing to check."
+            exit 0
+          fi
+
+          if [[ "$SKIP_LABEL" == "true" ]]; then
+            echo "::notice::skip-changelog label present — changelog check bypassed."
+            exit 0
+          fi
+
+          if ! grep -qx "$CHANGELOG" changed.txt; then
+            echo "::error file=$CHANGELOG::This PR changes src/mobile/ but does not update $CHANGELOG. Add an entry under [Unreleased] describing what changed and why (see the top of the file). Maintainers can apply the 'skip-changelog' label for changes with nothing worth recording."
+            echo "Mobile files changed:"
+            grep '^src/mobile/' changed.txt
+            exit 1
+          fi
+
+          # Require real content, not just whitespace or a moved line.
+          # (grep exits 1 on no match; `|| true` keeps pipefail from aborting
+          # before we can print a useful error.)
+          added=$(git diff "$BASE_SHA...$HEAD_SHA" -- "$CHANGELOG" \
+            | { grep -E '^\+[^+]' || true; } \
+            | { grep -vE '^\+[[:space:]]*$' || true; } \
+            | wc -l | tr -d '[:space:]')
+          if [[ "$added" -eq 0 ]]; then
+            echo "::error file=$CHANGELOG::$CHANGELOG was touched but no new content was added. Add an entry under [Unreleased]."
+            exit 1
+          fi
+
+          echo "$CHANGELOG updated ($added new line(s))."

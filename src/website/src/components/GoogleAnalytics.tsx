@@ -2,9 +2,9 @@
 
 import { usePathname, useSearchParams } from 'next/navigation';
 import Script from 'next/script';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
-const FALLBACK_MEASUREMENT_ID = 'G-79ZVCLEDSG';
+import { hasAnalyticsConsent } from '@/lib/utils/cookieConsent';
 
 declare global {
   interface Window {
@@ -20,14 +20,24 @@ interface GoogleAnalyticsProps {
 /**
  * Single component to initialize Google Analytics and
  * track page views on route changes using the Next.js App Router.
+ *
+ * Nothing is loaded or queued before the visitor grants analytics
+ * consent: the gtag scripts render and `page_view` fires only while
+ * `hasAnalyticsConsent()` is true.
  */
 export default function GoogleAnalytics({
   measurementId,
 }: GoogleAnalyticsProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const [analyticsConsent, setAnalyticsConsent] = useState(false);
+
+  // There is intentionally no hardcoded fallback ID: analytics is only
+  // initialized when a measurement ID is provided via prop or env.
   const resolvedMeasurementId =
-    measurementId?.trim() || FALLBACK_MEASUREMENT_ID;
+    measurementId?.trim() ||
+    process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID?.trim() ||
+    '';
 
   // GA4 linker domains for cross-domain measurement.
   // Include all sibling AirQo properties so outbound links receive _gl params.
@@ -46,8 +56,25 @@ export default function GoogleAnalytics({
     return Array.from(all);
   }, []);
 
+  // Track consent grants/revocations, including changes made in another tab.
   useEffect(() => {
     if (typeof window === 'undefined') {
+      return;
+    }
+
+    const syncConsent = () => setAnalyticsConsent(hasAnalyticsConsent());
+    syncConsent();
+
+    window.addEventListener('cookieConsentChanged', syncConsent);
+    window.addEventListener('storage', syncConsent);
+    return () => {
+      window.removeEventListener('cookieConsentChanged', syncConsent);
+      window.removeEventListener('storage', syncConsent);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!analyticsConsent || typeof window === 'undefined') {
       return;
     }
 
@@ -69,9 +96,9 @@ export default function GoogleAnalytics({
       page_title: document.title,
       send_to: resolvedMeasurementId,
     });
-  }, [pathname, resolvedMeasurementId, searchParams]);
+  }, [analyticsConsent, pathname, resolvedMeasurementId, searchParams]);
 
-  if (!resolvedMeasurementId) {
+  if (!resolvedMeasurementId || !analyticsConsent) {
     return null;
   }
 
@@ -103,6 +130,7 @@ export default function GoogleAnalytics({
 
 /**
  * helper function to track custom GA events.
+ * No-ops until analytics consent has been granted.
  */
 export function trackEvent({
   action,
@@ -116,6 +144,10 @@ export function trackEvent({
   value?: number;
 }) {
   if (typeof window === 'undefined') {
+    return;
+  }
+
+  if (!hasAnalyticsConsent()) {
     return;
   }
 

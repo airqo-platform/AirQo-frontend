@@ -149,7 +149,7 @@ function DashboardContent() {
       })
 
       if (!hasAirqoAdmin) {
-        router.replace('/dashboard/devices')
+        router.replace('/dashboard/home')
       } else {
         setIsAuthorized(true)
       }

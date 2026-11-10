@@ -5,18 +5,31 @@
 
 export type ConsentType = 'necessary' | 'analytics' | 'marketing';
 
+/**
+ * Bump whenever the consent contract changes so previously stored choices
+ * are considered invalid and the visitor is prompted again.
+ */
+export const CONSENT_VERSION = 2;
+
+/** Consent choices are valid for 6 months from when they are given. */
+export const CONSENT_EXPIRY_MS = 6 * 30 * 24 * 60 * 60 * 1000;
+
 export interface ConsentPreferences {
   necessary: boolean; // Always true - required for site functionality
   analytics: boolean;
   marketing: boolean;
   timestamp: number;
+  version: number;
+  expiresAt: number;
 }
 
 const CONSENT_KEY = 'airqo_cookie_consent';
 const CONSENT_BANNER_DISMISSED_KEY = 'airqo_consent_banner_dismissed';
 
 /**
- * Get current consent preferences from localStorage
+ * Get current consent preferences from localStorage.
+ * Returns null when nothing is stored, the record is malformed, the
+ * consent version no longer matches, or the choice has expired.
  */
 export function getConsentPreferences(): ConsentPreferences | null {
   if (typeof window === 'undefined' || !window.localStorage) return null;
@@ -31,8 +44,12 @@ export function getConsentPreferences(): ConsentPreferences | null {
       typeof preferences.necessary === 'boolean' &&
       typeof preferences.analytics === 'boolean' &&
       typeof preferences.marketing === 'boolean' &&
-      typeof preferences.timestamp === 'number'
+      typeof preferences.timestamp === 'number' &&
+      typeof preferences.version === 'number' &&
+      typeof preferences.expiresAt === 'number'
     ) {
+      if (preferences.version !== CONSENT_VERSION) return null;
+      if (Date.now() > preferences.expiresAt) return null;
       return preferences;
     }
     return null;
@@ -46,17 +63,22 @@ export function getConsentPreferences(): ConsentPreferences | null {
  * Save consent preferences to localStorage
  */
 export function setConsentPreferences(
-  preferences: Omit<ConsentPreferences, 'timestamp'>,
+  preferences: Omit<ConsentPreferences, 'timestamp' | 'version' | 'expiresAt'>,
 ): void {
   if (typeof window === 'undefined' || !window.localStorage) return;
 
   try {
+    const now = Date.now();
     const fullPreferences: ConsentPreferences = {
       ...preferences,
       necessary: true, // Always true
-      timestamp: Date.now(),
+      timestamp: now,
+      version: CONSENT_VERSION,
+      expiresAt: now + CONSENT_EXPIRY_MS,
     };
     localStorage.setItem(CONSENT_KEY, JSON.stringify(fullPreferences));
+    // Let listeners (e.g. Google Analytics) react to the new choice.
+    window.dispatchEvent(new Event('cookieConsentChanged'));
   } catch (error) {
     console.error('Error saving consent preferences:', error);
   }
@@ -114,6 +136,7 @@ export function clearConsentPreferences(): void {
   if (typeof window === 'undefined') return;
   localStorage.removeItem(CONSENT_KEY);
   localStorage.removeItem(CONSENT_BANNER_DISMISSED_KEY);
+  window.dispatchEvent(new Event('cookieConsentChanged'));
 }
 
 /**

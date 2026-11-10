@@ -98,7 +98,7 @@ const findLanguageByCode = (languageCode: string): Language | undefined => {
   );
 };
 
-const TopBanner = () => {
+const TopBanner = ({ insideShell = false }: { insideShell?: boolean }) => {
   const pathname = usePathname();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isApplyingLanguage, setIsApplyingLanguage] = useState(false);
@@ -205,59 +205,61 @@ const TopBanner = () => {
 
   return (
     <>
-      <div className="w-full bg-blue-50 border-b border-blue-100 notranslate">
-        <div className="container mx-auto flex max-w-5xl items-center gap-2 px-2 py-1">
-          <div className="flex flex-none items-center space-x-4">
+      <div
+        className={`w-full border-b border-line bg-surface-muted notranslate ${
+          insideShell ? 'rounded-t-md' : ''
+        }`}
+      >
+        <div className="mx-auto flex max-w-7xl flex-nowrap items-center gap-2 px-4 py-1 sm:px-6 lg:px-8">
+          <div className="hidden flex-none items-center space-x-1 sm:flex">
             <a
               href="mailto:info@airqo.net"
-              className="hidden md:block text-blue-600 font-medium text-sm hover:text-blue-800 transition-colors"
-              aria-label="Contact us via email"
+              className="hidden px-2 text-sm font-medium text-blue-600 transition-colors hover:text-blue-800 md:block"
+              aria-label="Email AirQo at info@airqo.net"
             >
               (info@airqo.net)
             </a>
-            <a
-              href="https://www.facebook.com/AirQo"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-600 bg-blue-50 rounded-full p-2 hover:bg-blue-200 transition-all"
-              aria-label="Follow us on Facebook"
-            >
-              <FaFacebookF size={14} />
-            </a>
-            <a
-              href="https://x.com/AirQoProject"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-600 bg-blue-50 rounded-full p-2 hover:bg-blue-200 transition-all"
-              aria-label="Follow us on Twitter"
-            >
-              <FaXTwitter size={14} />
-            </a>
-            <a
-              href="https://www.linkedin.com/company/airqo/mycompany/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-600 bg-blue-50 rounded-full p-2 hover:bg-blue-200 transition-all"
-              aria-label="Follow us on LinkedIn"
-            >
-              <FaLinkedinIn size={14} />
-            </a>
-            <a
-              href="https://www.youtube.com/channel/UCx7YtV55TcqKGeKsDdT5_XQ"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-600 bg-blue-50 rounded-full p-2 hover:bg-blue-200 transition-all"
-              aria-label="Subscribe to our YouTube channel"
-            >
-              <FaYoutube size={14} />
-            </a>
+
+            {[
+              {
+                href: 'https://www.facebook.com/AirQo',
+                label: 'Follow us on Facebook',
+                icon: FaFacebookF,
+              },
+              {
+                href: 'https://x.com/AirQoProject',
+                label: 'Follow us on X',
+                icon: FaXTwitter,
+              },
+              {
+                href: 'https://www.linkedin.com/company/airqo/mycompany/',
+                label: 'Follow us on LinkedIn',
+                icon: FaLinkedinIn,
+              },
+              {
+                href: 'https://www.youtube.com/channel/UCx7YtV55TcqKGeKsDdT5_XQ',
+                label: 'Subscribe to our YouTube channel',
+                icon: FaYoutube,
+              },
+            ].map(({ href, label, icon: Icon }) => (
+              <a
+                key={label}
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-full p-2 text-blue-600 transition-colors hover:bg-blue-100 hover:text-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
+                aria-label={label}
+              >
+                <Icon size={14} aria-hidden="true" />
+              </a>
+            ))}
           </div>
 
           <button
             onClick={() => setIsModalOpen(true)}
             disabled={isApplyingLanguage}
             className="ml-auto flex flex-none items-center space-x-2 rounded-md px-3 py-1.5 text-sm text-gray-700 transition-colors hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-wait disabled:opacity-70"
-            aria-label="Select language"
+            aria-label={`Select language, current: ${selectedLanguage.name}`}
           >
             <LanguageFlag
               flag={selectedLanguage.flag}
@@ -268,7 +270,7 @@ const TopBanner = () => {
               wrapperClassName="flex items-center justify-center w-5 h-4 overflow-hidden rounded border border-gray-200"
               fallbackTextClassName="flex items-center justify-center w-full h-full bg-blue-100 text-blue-600 font-semibold text-[9px] rounded border border-blue-200"
             />
-            <span className="font-medium">
+            <span className="max-w-[120px] truncate font-medium">
               {isApplyingLanguage ? 'Applying...' : selectedLanguage.name}
             </span>
           </button>

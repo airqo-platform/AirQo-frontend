@@ -27,6 +27,11 @@ To run this project locally:
 
 Contributions are welcome! Please feel free to submit pull requests or report issues.
 
+**Every change to `src/mobile/` must include an entry in [CHANGELOG.md](CHANGELOG.md)**
+under `[Unreleased]`. The `mobile-changelog` CI check fails pull requests that
+change mobile code without one. See the top of the changelog for how to write
+an entry.
+
 ## License:
 
 This project is open-source and licensed under the MIT License.

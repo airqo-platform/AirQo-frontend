@@ -70,7 +70,7 @@ const NewsLetter: React.FC = () => {
   }, [formStatus]);
 
   return (
-    <section className="bg-blue-50 py-28 px-4">
+    <section className="bg-surface-muted px-4 py-14 sm:px-6 sm:py-16 lg:px-8">
       <div
         className={`${mainConfig.containerClass} flex flex-col items-center justify-center gap-12`}
       >
@@ -78,10 +78,10 @@ const NewsLetter: React.FC = () => {
           // Split layout for idle state (header and form side-by-side on lg screens)
           <div className="flex flex-col lg:flex-row items-center lg:items-start lg:justify-between gap-12 w-full">
             <div className="lg:w-1/2 text-center lg:text-left space-y-4">
-              <h2 className="text-2xl leading-tight md:text-[40px] font-bold text-blue-600">
+              <h2 className="text-2xl leading-tight md:text-[40px] font-bold tracking-tight text-ink">
                 Subscribe to our Newsletter
               </h2>
-              <p className="text-blue-600 text-[20px]">
+              <p className="text-base text-gray-600 sm:text-lg">
                 Learn how we are advancing air quality management in African
                 Cities
               </p>
@@ -95,7 +95,7 @@ const NewsLetter: React.FC = () => {
                   type="text"
                   name="firstName"
                   placeholder="First name"
-                  className="w-full p-3 outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full rounded-md border border-line bg-white px-4 py-3 text-sm text-ink outline-none transition-colors placeholder:text-gray-400 focus:border-brand focus:ring-2 focus:ring-brand/20"
                   required
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
@@ -104,7 +104,7 @@ const NewsLetter: React.FC = () => {
                   type="text"
                   name="lastName"
                   placeholder="Last name"
-                  className="w-full p-3 outline-none focus:ring-2 focus:ring-blue-500 mt-4 md:mt-0"
+                  className="w-full rounded-md border border-line bg-white px-4 py-3 text-sm text-ink outline-none transition-colors placeholder:text-gray-400 focus:border-brand focus:ring-2 focus:ring-brand/20 mt-4 md:mt-0"
                   required
                   value={lastName}
                   onChange={(e) => setLastName(e.target.value)}
@@ -115,14 +115,14 @@ const NewsLetter: React.FC = () => {
                   type="email"
                   name="email"
                   placeholder="Enter your email"
-                  className="w-full p-3 outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full rounded-md border border-line bg-white px-4 py-3 text-sm text-ink outline-none transition-colors placeholder:text-gray-400 focus:border-brand focus:ring-2 focus:ring-brand/20"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />
                 <CustomButton
                   type="submit"
-                  className="rounded-none"
+                  className="rounded-md px-5 py-3"
                   disabled={loading}
                 >
                   {loading ? 'Submitting...' : 'Subscribe'}
@@ -138,7 +138,7 @@ const NewsLetter: React.FC = () => {
                 <span role="img" aria-label="waving hand" className="text-4xl">
                   👋
                 </span>
-                <p className="text-blue-600 text-[20px]">
+                <p className="text-base text-ink">
                   Thank you for signing up. We will send you an email to confirm
                   your subscription shortly.
                 </p>
@@ -151,7 +151,10 @@ const NewsLetter: React.FC = () => {
                 <p className="text-red-600 text-[20px]">
                   Oops! Something went wrong. Please try again!
                 </p>
-                <CustomButton onClick={handleReset} className="rounded-none">
+                <CustomButton
+                  onClick={handleReset}
+                  className="rounded-md px-5 py-3"
+                >
                   Try Again
                 </CustomButton>
               </>

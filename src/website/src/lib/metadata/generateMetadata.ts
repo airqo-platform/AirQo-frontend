@@ -1,7 +1,13 @@
 import { Metadata } from 'next';
 
 import { getPrimarySiteUrl } from '../siteUrl';
-import { compact, DEFAULT_METADATA, MetadataConfig } from './metadata.config';
+import {
+  cleanMetadataText,
+  compact,
+  DEFAULT_METADATA,
+  MetadataConfig,
+  resolveMetadataImage,
+} from './metadata.config';
 
 const logError = (...args: any[]): void => {
   console.error('[AirQo Metadata Error]', ...args);
@@ -24,25 +30,33 @@ export function generateMetadata(
     throw new Error('Metadata config must include title, description, and url');
   }
 
-  const image = config.image || DEFAULT_METADATA.defaultImage;
   const siteUrl = getPrimarySiteUrl(hostHeader);
+  let fullUrl: string;
+  try {
+    const resolved = new URL(config.url, siteUrl);
+    if (!/^https?:$/.test(resolved.protocol)) {
+      throw new Error('Metadata URL must use http or https');
+    }
+    fullUrl = resolved.toString();
+  } catch {
+    throw new Error('Metadata URL must be a valid http or https URL');
+  }
 
-  const fullUrl = config.url.startsWith('http')
-    ? config.url
-    : `${siteUrl}${config.url}`;
-
+  const image = config.image || DEFAULT_METADATA.defaultImage;
+  const imageUrl = resolveMetadataImage(image.url, siteUrl);
+  const description = cleanMetadataText(
+    config.description,
+    DEFAULT_METADATA.defaultDescription,
+  );
   const socialUrl = fullUrl;
 
   const socialDomain = new URL(siteUrl).host;
 
   return {
-    title: config.title,
-    description: config.description,
+    title: { absolute: config.title },
+    description,
     keywords: config.keywords,
-    authors: [
-      { name: 'AirQo' },
-      { name: 'Makerere University', url: 'https://mak.ac.ug' },
-    ],
+    authors: [{ name: 'AirQo' }],
     creator: 'AirQo',
     publisher: 'AirQo',
 
@@ -62,49 +76,23 @@ export function generateMetadata(
 
     alternates: {
       canonical: fullUrl,
-      languages: {
-        'en-US': fullUrl,
-        'en-GB': fullUrl,
-        'en-UG': fullUrl,
-        'en-KE': fullUrl,
-        'en-NG': fullUrl,
-        'en-ZA': fullUrl,
-        'en-GH': fullUrl,
-        'en-RW': fullUrl,
-        'en-TZ': fullUrl,
-        'sw-KE': fullUrl,
-        'sw-TZ': fullUrl,
-        'sw-UG': fullUrl,
-        'x-default': fullUrl,
-      },
     },
 
     openGraph: {
       type: config.type || 'website',
       url: socialUrl,
       title: config.title,
-      description: config.description,
+      description,
       siteName: DEFAULT_METADATA.siteName,
       locale: DEFAULT_METADATA.locale,
-      alternateLocale: [
-        'en_GB',
-        'en_UG',
-        'en_KE',
-        'en_NG',
-        'en_GH',
-        'en_RW',
-        'en_TZ',
-        'sw_KE',
-        'sw_TZ',
-      ],
       images: [
         {
-          url: image.url,
+          url: imageUrl,
           width: image.width || DEFAULT_METADATA.defaultImage.width,
           height: image.height || DEFAULT_METADATA.defaultImage.height,
-          alt: image.alt,
+          alt: image.alt || DEFAULT_METADATA.defaultImage.alt,
           type: image.type || DEFAULT_METADATA.defaultImage.type,
-          secureUrl: image.url,
+          secureUrl: imageUrl,
         },
       ],
       ...(config.publishedTime && { publishedTime: config.publishedTime }),
@@ -118,11 +106,13 @@ export function generateMetadata(
       site: DEFAULT_METADATA.twitterHandle,
       creator: DEFAULT_METADATA.twitterHandle,
       title: config.title,
-      description: config.description,
+      description,
       images: [
         {
-          url: image.url,
-          alt: image.alt,
+          url: imageUrl,
+          alt: image.alt || DEFAULT_METADATA.defaultImage.alt,
+          width: image.width || DEFAULT_METADATA.defaultImage.width,
+          height: image.height || DEFAULT_METADATA.defaultImage.height,
         },
       ],
     },
@@ -134,10 +124,7 @@ export function generateMetadata(
       'apple-mobile-web-app-title': 'AirQo',
       'apple-mobile-web-app-capable': 'yes',
       'apple-mobile-web-app-status-bar-style': 'black-translucent',
-      'apple-touch-icon': '/apple-touch-icon.png',
       'msapplication-TileColor': DEFAULT_METADATA.themeColor,
-      'msapplication-TileImage': '/mstile-144x144.png',
-      'msapplication-config': '/browserconfig.xml',
       'theme-color': DEFAULT_METADATA.themeColor,
       'mobile-web-app-capable': 'yes',
       'application-name': 'AirQo',
@@ -150,7 +137,5 @@ export function generateMetadata(
     },
 
     metadataBase: new URL(siteUrl),
-    category: 'Environment',
-    classification: 'Air Quality Monitoring',
   };
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
+import 'package:airqo/src/app/dashboard/utils/reading_freshness.dart';
 import 'package:airqo/src/app/shared/utils/monitor_place_label.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:airqo/src/meta/utils/forecast_utils.dart';
@@ -70,6 +71,7 @@ class MapAirQualityCard extends StatelessWidget {
           : 'assets/images/shared/airquality_indicators/unavailable.svg';
     }
     final locationText = _locationDescription(measurement);
+    final readingAge = newestReadingAge([measurement], DateTime.now());
     final locationName = measurementSpokenTitle(
       measurement,
       measurement.siteDetails?.searchName ??
@@ -252,6 +254,31 @@ class MapAirQualityCard extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
+                if (readingAge != null &&
+                    readingAge >= kStaleReadingThreshold) ...[
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.autorenew,
+                        size: 14,
+                        color: AppTextColors.muted(context),
+                      ),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          'Fresh update on its way',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: AppTextColors.muted(context),
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
                 const SizedBox(height: 10),
                 SizedBox(
                   width: double.infinity,

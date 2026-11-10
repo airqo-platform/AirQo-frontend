@@ -11,6 +11,7 @@ import CohortDetailsModal from "@/components/features/cohorts/edit-cohort-detail
 import { PERMISSIONS } from "@/core/permissions/constants";
 import ReusableButton from "@/components/shared/button/ReusableButton";
 import CohortMeasurementsApiCard from "@/components/features/cohorts/cohort-measurements-api-card";
+import CohortHealthCard from "@/components/features/beacon/lazy-cohort-health-card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { usePageTitle } from "@/context/page-title-context";
@@ -87,8 +88,8 @@ export default function CohortDetailsPage() {
                     </Alert>
                 ) : (
                     <div className="flex flex-col gap-8">
-                        {/* Top Cards: Details & API */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+                        {/* Top Cards: Details, Health & API */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
                             <CohortDetailsCard
                                 name={cohort?.name || ""}
                                 id={cohort?._id || ""}
@@ -97,6 +98,7 @@ export default function CohortDetailsPage() {
                                 onShowDetailsModal={() => setShowDetailsModal(true)}
                                 loading={isLoading}
                             />
+                            <CohortHealthCard cohortId={cohortId} />
                             <CohortMeasurementsApiCard cohortId={cohortId} />
                         </div>
 

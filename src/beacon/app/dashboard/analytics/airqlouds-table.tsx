@@ -38,7 +38,8 @@ import { ManufacturerFilter } from "@/components/devices/manufacturer-filter"
 import { useNetworks } from "@/hooks/use-networks"
 import { buildNetworkFilterOptions, pruneNetworkSelection, serializeNetworkFilter } from "@/lib/manufacturers"
 import { formatSiteLocation } from "@/lib/maintenance-map"
-import { DEFAULT_COHORT_TAG, cohortTagsFor } from "@/lib/cohort-tags"
+import { DEFAULT_COHORT_TAG, cohortTagsFor, withoutDefaultCohort } from "@/lib/cohort-tags"
+import { summarizeDailyPerformance } from "@/lib/performance-summary"
 import { formatCompactNumber } from "@/lib/utils"
 
 type GridAdminLevelFilter = GridAdminLevel | "all"
@@ -324,14 +325,20 @@ const summarizeCohortData = (
 const processAirQloudData = (airqloud: AirQloudWithPerformance, performanceDays: number = 14): ProcessedAirQloud => {
   const numberOfDevices = airqloud.numberOfDevices || (airqloud.devices ? airqloud.devices.length : (airqloud.device_count || 0));
 
-  // Compute daily uptime / error-margin / correlation directly from the synced
-  // hourly data array. Falls back to the API-provided cohort.uptime when no
-  // data points are present.
-  const summary = summarizeCohortData(
-    airqloud.data || [],
-    performanceDays,
-    Array.isArray(airqloud.devices) ? airqloud.devices : [],
-  )
+  // Cohorts, grids and sites come with a per-day summary. Devices still send their
+  // hourly readings, so they are summarised here, falling back to the API-provided
+  // uptime when no data points are present.
+  const summary = Array.isArray(airqloud.daily)
+    ? summarizeDailyPerformance(
+        airqloud.daily,
+        typeof airqloud.error_margin === 'number' ? airqloud.error_margin : null,
+        airqloud.correlation ?? null,
+      )
+    : summarizeCohortData(
+        airqloud.data || [],
+        performanceDays,
+        Array.isArray(airqloud.devices) ? airqloud.devices : [],
+      )
 
   const fallbackUptime = airqloud.uptime != null ? airqloud.uptime * 100 : null
   const overallUptime = summary.averageUptime ?? fallbackUptime
@@ -344,8 +351,8 @@ const processAirQloudData = (airqloud: AirQloudWithPerformance, performanceDays:
   // yesterday. We check the per-device `data` rows directly (rather than the
   // metadata `last_active`/`is_active` flags) so that devices that look active
   // in metadata but have stopped reporting are correctly flagged.
-  let offlineDevices: number | null = null;
-  if (airqloud.devices && Array.isArray(airqloud.devices)) {
+  let offlineDevices: number | null = airqloud.offline_devices ?? null;
+  if (offlineDevices === null && airqloud.devices && Array.isArray(airqloud.devices)) {
     // Use UTC-midnight anchors so the window aligns with the UTC-based
     // timestamps in row.datetime (which carry explicit offsets like +03:00 and
     // are parsed by Date() into UTC milliseconds).
@@ -468,6 +475,8 @@ export default function AirQloudsTable({
       skip,
       group: activeGroup ?? undefined,
       includeDiagnostics: true,
+      includeSeries: false,
+      includeDevices: false,
     }
 
     switch (entityType) {
@@ -478,7 +487,9 @@ export default function AirQloudsTable({
       case "devices":
         return airQloudService.getDevicesWithPerformance({ ...params, network: networkFilterParam })
       default:
-        return airQloudService.getAirQlouds({ ...params, tags: tags.length > 0 ? tags.join(",") : undefined })
+        return airQloudService
+          .getAirQlouds({ ...params, tags: tags.length > 0 ? tags.join(",") : undefined })
+          .then(withoutDefaultCohort)
     }
   }
 
@@ -1001,7 +1012,7 @@ export default function AirQloudsTable({
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {visibleData.map((airqloud) => {
+                  {visibleData.map((airqloud, rowIndex) => {
                     const hasNoData = airqloud.uptime === null && airqloud.errorMargin === null
                     // A site without readings still has a details page, listing its devices
                     const opensDetails = !hasNoData || isSiteMode
@@ -1009,6 +1020,7 @@ export default function AirQloudsTable({
                     return (
                       <TableRow
                         key={airqloud.id}
+                        data-tour={rowIndex === 0 ? "entity-row" : undefined}
                         className={`${hasNoData
                           ? `opacity-60${isSiteMode ? " cursor-pointer" : ""}`
                           : "cursor-pointer hover:bg-muted/50 transition-colors"

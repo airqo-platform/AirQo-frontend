@@ -205,7 +205,7 @@ const CountrySelectorDialog: React.FC = () => {
               label: 'country_selector',
             });
           }}
-          className="flex items-center space-x-2 px-4 py-2 bg-gray-100 rounded-xl text-gray-800 hover:bg-gray-200 transition-all"
+          className="flex items-center space-x-2 px-4 py-2 bg-gray-100 rounded-md text-ink hover:bg-gray-200 transition-all"
         >
           <IoLocationSharp size={20} color="#2563eb" />
           <span>
@@ -315,7 +315,7 @@ const CountrySelectorDialog: React.FC = () => {
 
         <DialogFooter className="mt-6 flex flex-row justify-end items-center p-4 w-full border-t border-gray-300 gap-4">
           <CustomButton
-            className="text-gray-600 h-[40px] p-3 text-center flex justify-center items-center border bg-transparent border-gray-300 hover:bg-gray-100"
+            className="text-gray-600 h-[40px] p-3 text-center flex justify-center items-center border bg-transparent border-gray-300 hover:bg-gray-100 active:bg-gray-200"
             onClick={() => setIsOpen(false)}
           >
             Cancel

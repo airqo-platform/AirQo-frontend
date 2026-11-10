@@ -56,11 +56,23 @@ export interface Cohort {
   sensor_error_margin?: number | null
   error_margin?: number | number[] | null  // Single number in summary mode, array in raw mode
   data?: any[]
+  /** Present when a list is requested with `includeSeries: false`. */
+  daily?: PerformanceDay[] | null
+  correlation?: number | null
+  offline_devices?: number | null
   /** Roll-up of the devices' latest diagnoses, present when requested with `includeDiagnostics`. */
   diagnostics_summary?: DiagnosticsSummary | null
   // Optional performance fields for compatibility
   freq?: number[]
   timestamp?: string[]
+}
+
+/** One UTC day of a cohort, grid or site. */
+export interface PerformanceDay {
+  date: string
+  uptime: number
+  error_margin?: number | null
+  correlation?: number | null
 }
 
 export interface Grid {
@@ -131,6 +143,10 @@ export interface AirQloudsQueryParams {
   admin_level?: string
   /** Attach each device's latest diagnosis and a per-entity `diagnostics_summary`. */
   includeDiagnostics?: boolean
+  /** Cohorts, grids and sites: `false` returns a per-day summary instead of every device's hourly readings. */
+  includeSeries?: boolean
+  /** Cohorts, grids and sites: `false` leaves out the device list. */
+  includeDevices?: boolean
   /** Devices only: comma-separated sensor manufacturer(s), see serializeNetworkFilter. */
   network?: string
 }
@@ -328,6 +344,8 @@ function normalizeSyncedDevice(device: any): any {
     name,
     long_name: longName,
     uptime,
+    // The fraction can't tell 0.5% from 50%, so reports read the API's own percentage
+    uptime_percent: device.uptime_percent ?? device.uptime ?? null,
     data_completeness: dataCompleteness,
     sensor_error_margin: sensorErrorMargin,
     data,
@@ -380,7 +398,7 @@ function normalizeSyncedGrid(grid: any): any {
 
   const id = grid._id ?? grid.grid_id
   const devices = flattenGridDevices(grid).map(normalizeSyncedDevice)
-  const numberOfDevices = grid.numberOfDevices ?? grid.device_count ?? devices.length
+  const numberOfDevices = grid.numberOfDevices ?? grid.number_of_devices ?? grid.device_count ?? devices.length
   const country = grid.country ?? grid.sites?.find((site: any) => site?.country)?.country ?? ''
 
   const uptime = toLegacyFraction(grid.uptime)
@@ -674,6 +692,8 @@ class AirQloudService {
     appendParam(queryParams, 'search', params.search)
     appendParam(queryParams, 'group', params.group)
     appendParam(queryParams, 'includeDiagnostics', params.includeDiagnostics)
+    appendParam(queryParams, 'includeSeries', params.includeSeries)
+    appendParam(queryParams, 'includeDevices', params.includeDevices)
 
     const endpoint = this.getEndpoint('/cohorts/synced')
     const qs = queryParams.toString()
@@ -719,6 +739,8 @@ class AirQloudService {
     appendParam(queryParams, 'search', params.search)
     appendParam(queryParams, 'group', params.group)
     appendParam(queryParams, 'includeDiagnostics', params.includeDiagnostics)
+    appendParam(queryParams, 'includeSeries', params.includeSeries)
+    appendParam(queryParams, 'includeDevices', params.includeDevices)
 
     const endpoint = this.getEndpoint('/grids/synced')
     const qs = queryParams.toString()
@@ -1153,6 +1175,8 @@ class AirQloudService {
     appendParam(queryParams, 'search', params.search)
     appendParam(queryParams, 'group', params.group)
     appendParam(queryParams, 'includeDiagnostics', params.includeDiagnostics)
+    appendParam(queryParams, 'includeSeries', params.includeSeries)
+    appendParam(queryParams, 'includeDevices', params.includeDevices)
 
     const endpoint = this.getEndpoint('/sites/')
     const qs = queryParams.toString()

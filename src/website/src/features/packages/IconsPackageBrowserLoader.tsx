@@ -7,7 +7,7 @@ import { FiGrid, FiSearch } from 'react-icons/fi';
 const IconsPackageBrowser = dynamic(() => import('./IconsPackageBrowser'), {
   ssr: false,
   loading: () => (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
         <div className="h-11 w-full animate-pulse rounded-lg bg-slate-100" />
         <div className="mt-4 flex flex-wrap gap-2">
@@ -36,7 +36,7 @@ export default function IconsPackageBrowserLoader() {
 
   if (!isBrowserEnabled) {
     return (
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
           <div className="mx-auto max-w-3xl text-center space-y-4">
             <div className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-4 py-2 text-sm font-medium text-blue-700">

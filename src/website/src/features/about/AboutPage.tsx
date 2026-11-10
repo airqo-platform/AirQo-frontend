@@ -81,7 +81,7 @@ const normalizeTeamCategory = (
 
 const SkeletonCard: React.FC = () => (
   <div className="flex flex-col items-center space-y-4">
-    <div className="w-[310px] h-[390px] bg-gray-300 rounded-lg animate-pulse"></div>
+    <div className="w-full max-w-[310px] h-[390px] bg-gray-300 rounded-lg animate-pulse"></div>
     <div className="flex items-center w-full justify-between">
       <div className="text-left w-2/3">
         <div className="h-4 bg-gray-300 rounded w-1/2 mb-2 animate-pulse"></div>
@@ -292,7 +292,7 @@ const AboutPage: React.FC = () => {
       return (
         <section
           id={sectionId}
-          className={`${mainConfig.containerClass} w-full px-4 lg:px-0 space-y-8 scroll-mt-[200px]`}
+          className={`${mainConfig.containerClass} w-full px-4 sm:px-6 lg:px-8 space-y-8 scroll-mt-[200px]`}
         >
           <div className="flex flex-col lg:flex-row items-start lg:space-x-12">
             <h2 className="text-3xl lg:text-[48px] font-medium flex-shrink-0 w-full text-left lg:w-1/3">
@@ -321,7 +321,7 @@ const AboutPage: React.FC = () => {
       <>
         <section
           id={sectionId}
-          className={`${mainConfig.containerClass} w-full px-4 lg:px-0 space-y-8 scroll-mt-[200px]`}
+          className={`${mainConfig.containerClass} w-full px-4 sm:px-6 lg:px-8 space-y-8 scroll-mt-[200px]`}
         >
           <div className="flex flex-col lg:flex-row items-start lg:space-x-12">
             {/* Title */}
@@ -390,7 +390,7 @@ const AboutPage: React.FC = () => {
       <>
         <section
           id="team"
-          className={`${mainConfig.containerClass} w-full px-4 lg:px-0 space-y-10 scroll-mt-[200px]`}
+          className={`${mainConfig.containerClass} w-full px-4 sm:px-6 lg:px-8 space-y-10 scroll-mt-[200px]`}
         >
           <div className="flex flex-col lg:flex-row items-start lg:space-x-12">
             <h2 className="text-3xl lg:text-[48px] font-medium flex-shrink-0 w-full text-left lg:w-1/3">
@@ -471,7 +471,7 @@ const AboutPage: React.FC = () => {
   return (
     <div className="pb-16 flex flex-col w-full">
       {/* Hero Section */}
-      <section className="bg-[#F3F4F6] mb-16 px-4 lg:px-0 h-[300px] w-full scroll-mt-[100px]">
+      <section className="bg-[#F3F4F6] mb-16 px-4 sm:px-6 lg:px-8 h-[300px] w-full scroll-mt-[100px]">
         <div
           className={`${mainConfig.containerClass} w-full h-full flex flex-col justify-between`}
         >
@@ -498,7 +498,7 @@ const AboutPage: React.FC = () => {
 
       <div className={`space-y-16 ${mainConfig.containerClass}`}>
         {/* Introduction Section */}
-        <section className="w-full px-4 lg:px-0 scroll-mt-[100px]">
+        <section className="w-full px-4 sm:px-6 lg:px-8 scroll-mt-[100px]">
           <p className="text-2xl lg:text-[48px] max-w-[800px] leading-[48px] font-medium text-left">
             At AirQo, we empower communities across Africa with accurate,
             hyperlocal, and timely air quality data to drive air pollution
@@ -509,7 +509,7 @@ const AboutPage: React.FC = () => {
         {/* Vision Section */}
         <section
           id="vision"
-          className="w-full px-4 lg:px-0 space-y-8 scroll-mt-[100px]"
+          className="w-full px-4 sm:px-6 lg:px-8 space-y-8 scroll-mt-[100px]"
         >
           <div className="flex flex-col-reverse relative transition-transform duration-500 ease-in-out transform hover:scale-110 cursor-pointer">
             <Image
@@ -517,7 +517,7 @@ const AboutPage: React.FC = () => {
               alt="Abstract Outline"
               width={1024}
               height={480}
-              className="object-cover w-auto h-auto"
+              className="w-full max-w-[1024px] h-auto object-cover"
               loading="eager"
             />
             <Image
@@ -525,19 +525,19 @@ const AboutPage: React.FC = () => {
               alt="Abstract Outline"
               width={1024}
               height={49}
-              className="absolute w-auto h-auto object-cover"
+              className="absolute w-full max-w-[1024px] h-auto object-cover"
               loading="eager"
             />
           </div>
           <div className="flex flex-col lg:flex-row justify-start items-center gap-8">
-            <div className="relative w-full h-[400px] flex items-center justify-center">
+            <div className="relative w-full min-h-[400px] flex items-center justify-center">
               {/* Background Abstract Shape Image */}
               <Image
                 src={images.vector3}
                 alt="Abstract Background"
                 width={800}
                 height={400}
-                className="absolute w-[300px] h-[200px] lg:w-[410px] lg:h-[225px]"
+                className="absolute w-full max-w-[300px] h-auto lg:max-w-[410px]"
                 loading="eager"
               />
 
@@ -547,7 +547,7 @@ const AboutPage: React.FC = () => {
                 alt="Abstract Outline"
                 width={800}
                 height={400}
-                className="absolute w-[350px] h-[230px] lg:w-[450px] lg:h-[300px] object-contain"
+                className="absolute w-full max-w-[350px] h-auto lg:max-w-[450px] object-contain"
                 loading="eager"
               />
 
@@ -569,7 +569,10 @@ const AboutPage: React.FC = () => {
         <Divider />
 
         {/* Story Section */}
-        <section id="story" className="w-full px-4 space-y-8 scroll-mt-[150px]">
+        <section
+          id="story"
+          className="w-full px-4 sm:px-6 lg:px-8 space-y-8 scroll-mt-[150px]"
+        >
           <div className="flex flex-col lg:flex-row items-start lg:space-x-12">
             {/* Title */}
             <h2 className="text-3xl lg:text-[48px] text-left w-full font-medium flex-shrink-0 lg:w-1/3">
@@ -609,7 +612,7 @@ const AboutPage: React.FC = () => {
         {/* Mission Section */}
         <section
           id="mission"
-          className="w-full px-4 space-y-4 scroll-mt-[150px]"
+          className="w-full px-4 sm:px-6 lg:px-8 space-y-4 scroll-mt-[150px]"
         >
           <p className="text-lg lg:text-[48px] leading-[56px] font-medium text-left">
             Our mission is to efficiently collect, analyze and forecast air
@@ -624,7 +627,7 @@ const AboutPage: React.FC = () => {
         {/* Values Section */}
         <section
           id="values"
-          className="w-full px-4 space-y-8 scroll-mt-[150px]"
+          className="w-full px-4 sm:px-6 lg:px-8 space-y-8 scroll-mt-[150px]"
         >
           <div className="flex flex-col lg:flex-row items-start lg:space-x-12">
             {/* Title */}
@@ -696,7 +699,7 @@ const AboutPage: React.FC = () => {
         {/* Partners Section */}
         <section
           id="partners"
-          className="w-full px-4 lg:px-0 space-y-8 scroll-mt-[200px]"
+          className="w-full px-4 sm:px-6 lg:px-8 space-y-8 scroll-mt-[200px]"
         >
           <div className="flex flex-col lg:flex-row items-start lg:space-x-12">
             {/* Title */}
@@ -716,7 +719,7 @@ const AboutPage: React.FC = () => {
               </p>
               <CustomButton
                 onClick={() => dispatch(openModal())}
-                className="bg-transparent p-0 m-0 flex items-center text-blue-700"
+                className="bg-transparent p-0 m-0 flex items-center text-blue-700 hover:bg-transparent hover:text-blue-800 active:bg-transparent"
               >
                 <span>Partner with Us </span>
                 <FaArrowRightLong className="inline-block ml-2 " />

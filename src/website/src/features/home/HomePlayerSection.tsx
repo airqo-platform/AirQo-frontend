@@ -1,17 +1,15 @@
 'use client';
 
-import PlayIcon from '@public/assets/icons/playIcon.png';
 import { AnimatePresence, motion } from 'framer-motion';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
+import React, { useCallback, useRef, useState } from 'react';
+import { FiArrowRight, FiArrowUpRight, FiPlay } from 'react-icons/fi';
 
 import { trackEvent } from '@/components/GoogleAnalytics';
-import { CustomButton } from '@/components/ui';
 import mainConfig from '@/config/site.config';
-import { useDispatch } from '@/hooks';
-import { openModal } from '@/store/slices/modalSlice';
+import { optimizeCloudinaryUrl } from '@/services/external/cloudinary.service';
 
 // Dynamically import ReactPlayer with forwardRef
 const ReactPlayer = dynamic(
@@ -29,11 +27,17 @@ const ReactPlayer = dynamic(
 ReactPlayer.displayName = 'ReactPlayer';
 
 const HOME_FULL_VIDEO = 'https://www.youtube.com/watch?v=2NebAd1F8x8';
-const VIDEO_PREVIEW_IMAGE =
-  'https://res.cloudinary.com/dbibjvyhm/video/upload/so_2,f_jpg,q_auto,w_1600/v1716038850/website/videos/opening_jtpafn.jpg';
 
-// Whether the configured video is a directly hosted file we can feed into a <video> element
-const isHostedVideo = /\.(mp4|webm|ogg)(\?|$)/i.test(HOME_FULL_VIDEO);
+const HERO_IMAGE = optimizeCloudinaryUrl(
+  'https://res.cloudinary.com/dbibjvyhm/image/upload/v1743546958/website/photos/OurProducts/Monitor/Two_members_in_field_knwffk.jpg',
+  { width: 1600 },
+);
+
+const HERO_STATS = [
+  { value: '16', label: 'Cities' },
+  { value: '500+', label: 'Monitors' },
+  { value: '9', label: 'Countries' },
+] as const;
 
 const animations = {
   backdrop: {
@@ -51,103 +55,6 @@ const animations = {
   },
 };
 
-interface VideoState {
-  isModalOpen: boolean;
-}
-
-const TextSection: React.FC<{
-  onExploreData: () => void;
-  onGetInvolved: () => void;
-}> = React.memo(({ onExploreData, onGetInvolved }) => (
-  <div className="lg:w-1/2 w-full flex flex-col justify-center gap-1">
-    <h1 className="text-[32px] lg:text-[56px] font-semibold leading-tight">
-      Clean air for all African cities
-    </h1>
-    <p className="text-base mb-6 max-w-[390px]">
-      <span className="text-lg text-blue-600 font-medium">
-        &quot;9 out of 10 people breathe polluted air&quot;
-      </span>
-      <br />
-      We empower communities with accurate, hyperlocal and timely air quality
-      data to drive air pollution mitigation actions.
-    </p>
-    <div className="flex gap-4">
-      <CustomButton onClick={onExploreData}>Explore data</CustomButton>
-      <CustomButton
-        onClick={onGetInvolved}
-        className="bg-blue-50 text-blue-600"
-      >
-        Get involved
-      </CustomButton>
-    </div>
-  </div>
-));
-
-TextSection.displayName = 'TextSection';
-
-const VideoSection: React.FC<{
-  onPlay: () => void;
-  videoRef: React.RefObject<HTMLVideoElement>;
-  shouldReduceMotion: boolean | null;
-}> = React.memo(({ onPlay, videoRef, shouldReduceMotion }) => {
-  const showPosterImage = shouldReduceMotion !== false;
-  const playButtonMotionProps =
-    shouldReduceMotion === false
-      ? { whileHover: { scale: 1.05 }, whileTap: { scale: 0.98 } }
-      : {};
-
-  return (
-    <div className="lg:w-1/2 w-full relative flex items-center justify-center">
-      <div className="w-full h-[250px] sm:h-[300px] md:h-[400px] lg:h-[450px] rounded-lg overflow-hidden relative">
-        {showPosterImage || !isHostedVideo ? (
-          <Image
-            src={VIDEO_PREVIEW_IMAGE}
-            alt="AirQo story preview image"
-            fill
-            priority
-            sizes="(max-width: 1024px) 100vw, 50vw"
-            className="object-cover"
-          />
-        ) : (
-          <video
-            ref={videoRef}
-            className="absolute left-0 top-0 h-full w-full object-cover"
-            autoPlay
-            muted
-            loop
-            playsInline
-            preload="metadata"
-            poster={VIDEO_PREVIEW_IMAGE}
-            crossOrigin="anonymous"
-            aria-label="Muted AirQo story preview video"
-          >
-            <source src={HOME_FULL_VIDEO} type="video/mp4" />
-          </video>
-        )}
-        <div className="absolute inset-0 bg-gradient-to-tr from-blue-950/40 via-blue-900/10 to-transparent" />
-        <motion.button
-          onClick={onPlay}
-          className={`absolute inset-0 flex items-center justify-center focus:outline-none transition-transform duration-300 ${
-            shouldReduceMotion === false ? 'hover:scale-110' : ''
-          }`}
-          {...playButtonMotionProps}
-          aria-label="Play Video"
-        >
-          <Image
-            src={PlayIcon || '/placeholder.svg'}
-            alt="Play Icon"
-            width={65}
-            height={65}
-            priority={true}
-          />
-        </motion.button>
-      </div>
-    </div>
-  );
-});
-
-VideoSection.displayName = 'VideoSection';
-
 const VideoModal = React.forwardRef<
   HTMLDivElement,
   {
@@ -158,31 +65,30 @@ const VideoModal = React.forwardRef<
 >(({ isOpen, onClose, playerRef }, ref) => (
   <motion.div
     ref={ref}
-    className="fixed inset-0 bg-black bg-opacity-70 z-[10000] flex items-center justify-center"
+    className="fixed inset-0 z-[10000] flex items-center justify-center bg-ink/70 p-4"
     variants={animations.backdrop}
     initial="hidden"
     animate="visible"
     exit="hidden"
-    transition={{ duration: 0.3, ease: 'easeInOut' }}
     onClick={onClose}
   >
     <motion.div
-      className="bg-white rounded-lg overflow-hidden w-full max-w-3xl p-4 relative"
+      className="relative w-full max-w-3xl rounded-md bg-white p-4"
       variants={animations.modal}
       initial="hidden"
       animate="visible"
       exit="exit"
-      transition={{ duration: 0.3, ease: 'easeInOut' }}
       onClick={(e) => e.stopPropagation()}
     >
       <button
+        type="button"
         onClick={onClose}
-        className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 focus:outline-none z-10"
-        aria-label="Close Modal"
+        aria-label="Close video"
+        className="absolute right-3 top-3 z-10 flex h-9 w-9 items-center justify-center rounded-md text-gray-500 transition-colors hover:bg-gray-100 hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          className="h-6 w-6"
+          className="h-5 w-5"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -196,7 +102,7 @@ const VideoModal = React.forwardRef<
         </svg>
       </button>
 
-      <div className="relative pb-[56.25%]">
+      <div className="relative aspect-video overflow-hidden rounded-md bg-ink">
         <ReactPlayer
           ref={playerRef}
           url={HOME_FULL_VIDEO}
@@ -204,17 +110,18 @@ const VideoModal = React.forwardRef<
           controls
           width="100%"
           height="100%"
-          className="absolute top-0 left-0"
+          className="absolute left-0 top-0"
           onEnded={onClose}
         />
       </div>
 
-      <CustomButton
+      <button
+        type="button"
         onClick={onClose}
-        className="mt-4 bg-blue-600 text-white px-6 py-2 hover:bg-blue-700 transition-colors"
+        className="mt-4 inline-flex items-center justify-center rounded-md bg-brand px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
       >
         Close
-      </CustomButton>
+      </button>
     </motion.div>
   </motion.div>
 ));
@@ -222,104 +129,124 @@ const VideoModal = React.forwardRef<
 VideoModal.displayName = 'VideoModal';
 
 const HomePlayerSection: React.FC = () => {
-  const router = useRouter();
-  const dispatch = useDispatch();
-  const [videoState, setVideoState] = useState<VideoState>({
-    isModalOpen: false,
-  });
-  const [shouldReduceMotion, setShouldReduceMotion] = useState<boolean | null>(
-    null,
-  );
-
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const modalPlayerRef = useRef<any>(null);
-  const previewVideoRef = useRef<HTMLVideoElement>(null);
 
-  useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-
-    const updateMotionPreference = () => {
-      const nextShouldReduceMotion = mediaQuery.matches;
-      setShouldReduceMotion(nextShouldReduceMotion);
-
-      if (nextShouldReduceMotion && previewVideoRef.current) {
-        previewVideoRef.current.pause();
-      }
-    };
-
-    updateMotionPreference();
-
-    if (typeof mediaQuery.addEventListener === 'function') {
-      mediaQuery.addEventListener('change', updateMotionPreference);
-
-      return () => {
-        mediaQuery.removeEventListener('change', updateMotionPreference);
-      };
-    }
-
-    mediaQuery.addListener(updateMotionPreference);
-
-    return () => {
-      mediaQuery.removeListener(updateMotionPreference);
-    };
-  }, []);
-
-  const handlePlayButtonClick = useCallback(() => {
+  const handlePlayFilm = useCallback(() => {
     trackEvent({
       action: 'video_play',
       category: 'video',
       label: 'home_page_video',
     });
-    setVideoState((prev) => ({ ...prev, isModalOpen: true }));
+    setIsModalOpen(true);
   }, []);
 
   const handleCloseModal = useCallback(() => {
     if (modalPlayerRef.current) {
       modalPlayerRef.current.seekTo(0);
     }
-    setVideoState((prev) => ({ ...prev, isModalOpen: false }));
+    setIsModalOpen(false);
   }, []);
 
-  const handleExploreData = useCallback(() => {
-    trackEvent({
-      action: 'button_click',
-      category: 'navigation',
-      label: 'explore_data',
-    });
-    router.push('/explore-data');
-  }, [router]);
-
-  const handleGetInvolved = useCallback(() => {
-    trackEvent({
-      action: 'button_click',
-      category: 'engagement',
-      label: 'get_involved',
-    });
-    dispatch(openModal());
-  }, [dispatch]);
-
   return (
-    <div
-      className={`flex flex-col-reverse px-4 lg:flex-row items-center justify-between ${mainConfig.containerClass} mt-8 gap-8`}
-    >
-      <TextSection
-        onExploreData={handleExploreData}
-        onGetInvolved={handleGetInvolved}
-      />
-      <VideoSection
-        onPlay={handlePlayButtonClick}
-        videoRef={previewVideoRef}
-        shouldReduceMotion={shouldReduceMotion}
-      />
+    <section className="bg-white">
+      <div
+        className={`${mainConfig.containerClass} px-4 py-10 sm:px-6 sm:py-14 lg:px-8 lg:py-16`}
+      >
+        <div className="grid items-center gap-10 lg:grid-cols-12 lg:gap-12">
+          <div className="min-w-0 lg:col-span-7">
+            <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-slate-600">
+              Air quality data for African cities
+            </p>
+            <h1 className="mt-4 max-w-2xl text-balance text-[40px] font-semibold leading-[1.05] tracking-[-0.03em] text-ink sm:text-5xl lg:text-6xl">
+              The air African cities breathe, made visible.
+            </h1>
+            <p className="mt-5 max-w-xl text-lg leading-8 text-gray-600">
+              AirQo builds and calibrates monitors in Africa, then turns their
+              data into open information for communities, cities, and
+              researchers.
+            </p>
+
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+              <a
+                href="https://ai.airqo.net/map"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="See live air quality map (opens in a new tab)"
+                className="inline-flex items-center justify-center gap-2 rounded-md bg-brand px-6 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
+              >
+                See live air quality
+                <FiArrowUpRight aria-hidden="true" className="h-4 w-4" />
+              </a>
+              <Link
+                href="/products"
+                className="inline-flex items-center justify-center gap-2 rounded-md border border-ink bg-white px-6 py-3.5 text-sm font-semibold text-ink transition-colors hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
+              >
+                Explore products
+                <FiArrowRight aria-hidden="true" className="h-4 w-4" />
+              </Link>
+            </div>
+
+            <div className="mt-10 grid grid-cols-3 border-t border-line pt-6">
+              {HERO_STATS.map((stat, index) => (
+                <div
+                  key={stat.label}
+                  className={
+                    index === 0
+                      ? 'min-w-0 pr-4 sm:pr-6'
+                      : 'min-w-0 border-l border-line pl-4 sm:pl-6'
+                  }
+                >
+                  <p className="text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
+                    {stat.value}
+                  </p>
+                  <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.14em] text-slate-600 sm:text-[11px]">
+                    {stat.label}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="min-w-0 lg:col-span-5">
+            <div className="relative aspect-[4/3] overflow-hidden rounded-md border border-line bg-surface-muted">
+              <Image
+                src={HERO_IMAGE}
+                alt="AirQo field engineers installing a Binos monitor in Kampala, Uganda"
+                fill
+                priority
+                sizes="(max-width: 1024px) 100vw, 40vw"
+                className="object-cover"
+              />
+            </div>
+            <div className="mt-3 flex items-start justify-between gap-4">
+              <p className="text-sm leading-6 text-gray-500">
+                AirQo field engineers installing a Binos monitor in Kampala,
+                Uganda.
+              </p>
+              <button
+                type="button"
+                onClick={handlePlayFilm}
+                className="inline-flex shrink-0 items-center gap-2 rounded-sm text-sm font-semibold text-brand transition-colors hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+              >
+                <FiPlay aria-hidden="true" className="h-3.5 w-3.5" />
+                Watch the film
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <AnimatePresence>
-        {videoState.isModalOpen && (
+        {isModalOpen && (
           <VideoModal
-            isOpen={videoState.isModalOpen}
+            isOpen={isModalOpen}
             onClose={handleCloseModal}
             playerRef={modalPlayerRef}
           />
         )}
       </AnimatePresence>
-    </div>
+    </section>
   );
 };
 

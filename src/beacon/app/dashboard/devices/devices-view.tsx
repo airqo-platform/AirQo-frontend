@@ -22,14 +22,8 @@ import {
   Map as MapIcon,
   Activity
 } from "lucide-react"
-import {
-  AqMonitor,
-  AqMarkerPin01,
-  AqSignal01,
-  AqAlertTriangle,
-  AqServer03,
-} from "@airqo/icons-react"
-import { SummaryCard } from "@/components/dashboard/summary-card"
+import { DeviceSummaryCards } from "@/components/devices/device-summary-cards"
+import { NoDevicesPrompt } from "@/components/onboarding/no-devices-prompt"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Pagination } from "@/components/ui/pagination"
@@ -46,6 +40,7 @@ import { useSession } from "next-auth/react"
 import type { ApiResponseMeta, DeviceSummaryResponse, UIDevice } from "@/types/api.types"
 import UpdateDeviceDialog from "@/components/dashboard/update-device-dialog"
 import { formatCategoryLabel } from "@/lib/utils"
+import { getDeviceLastSeenTimestamp, isDeviceOnline } from "@/lib/device-status"
 import { useGroup } from "@/lib/group-context"
 import { ROUTES } from "@/lib/navigation"
 import { useNetworks } from "@/hooks/use-networks"
@@ -98,6 +93,8 @@ export default function DevicesView({ scope }: Readonly<{ scope: DeviceScope }>)
   // State for personal devices (My Devices)
   const [myDevices, setMyDevices] = useState<UIDevice[]>([])
   const [myDevicesLoading, setMyDevicesLoading] = useState(false)
+  // Before the first response an empty list only means "not loaded yet"
+  const [myDevicesLoaded, setMyDevicesLoaded] = useState(false)
   const [myDevicesError, setMyDevicesError] = useState<string | null>(null)
   const [myDevicesCounts, setMyDevicesCounts] = useState({
     total: 0,
@@ -116,6 +113,9 @@ export default function DevicesView({ scope }: Readonly<{ scope: DeviceScope }>)
     deviceScope === "org" ? ["airqo"] : []
   )
   const networkFilterParam = serializeNetworkFilter(networkFilter)
+  // The query the org list last answered, so an organisation with no devices can be told apart
+  // from a filter that matched nothing or a request still in flight
+  const [answeredOrgListQuery, setAnsweredOrgListQuery] = useState<string | null>(null)
   const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(null)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [isSyncing, setIsSyncing] = useState(false)
@@ -158,6 +158,8 @@ export default function DevicesView({ scope }: Readonly<{ scope: DeviceScope }>)
     }, 350)
     return () => clearTimeout(timer)
   }, [searchTerm])
+
+  const orgListQuery = JSON.stringify([activeGroup, networkFilterParam, debouncedSearchTerm.trim(), currentPage])
 
   // Fetch device counts
   const fetchDeviceCounts = async () => {
@@ -220,6 +222,7 @@ export default function DevicesView({ scope }: Readonly<{ scope: DeviceScope }>)
       setTotalPages(data.pagination.pages)
       setHasNext(data.pagination.has_next)
       setHasPrevious(data.pagination.has_previous)
+      setAnsweredOrgListQuery(orgListQuery)
     } catch (err) {
       if (requestId !== devicesRequestRef.current) return
       console.error("Error fetching devices:", err)
@@ -282,6 +285,7 @@ export default function DevicesView({ scope }: Readonly<{ scope: DeviceScope }>)
         total: result.total_devices,
         deployed: result.deployed_devices
       })
+      setMyDevicesLoaded(true)
     } catch (err: any) {
       console.error("Error fetching my devices:", err)
       setMyDevicesError(err.message || "Failed to fetch personal devices")
@@ -348,32 +352,6 @@ export default function DevicesView({ scope }: Readonly<{ scope: DeviceScope }>)
     }
   }
 
-  // Calculate percentages for progress bars
-  const calculatePercentage = useCallback((value: number, total: number) => {
-    return total > 0
-      ? Math.round((value / total) * 100)
-      : 0
-  }, [])
-
-  const getDeviceLastSeenTimestamp = useCallback((device: UIDevice) => {
-    return device.reading_timestamp || device.last_updated || null
-  }, [])
-
-  // Helper to check if device is online based on "previous day" logic
-  const isDeviceOnline = useCallback((device: UIDevice) => {
-    const lastSeenTimestamp = getDeviceLastSeenTimestamp(device)
-    if (!lastSeenTimestamp) return false
-
-    const updatedDate = new Date(lastSeenTimestamp)
-    if (Number.isNaN(updatedDate.getTime())) return false
-
-    const cutoffDate = new Date()
-    cutoffDate.setDate(cutoffDate.getDate() - 1)
-    cutoffDate.setHours(0, 0, 0, 0)
-
-    return updatedDate >= cutoffDate
-  }, [getDeviceLastSeenTimestamp])
-
   const totalDevicesCount = deviceScope === "org"
     ? (devicesMeta?.totalDevices ?? devicesMeta?.total ?? deviceCounts.total_devices)
     : myDevices.length
@@ -393,11 +371,6 @@ export default function DevicesView({ scope }: Readonly<{ scope: DeviceScope }>)
   const offlineDevicesCount = deviceScope === "org"
     ? (devicesMeta?.offlineDevices ?? deviceCounts.tracked_offline)
     : myDevices.filter(d => !isDeviceOnline(d)).length
-
-  const trackedPercentage = calculatePercentage(trackedDevicesCount, totalDevicesCount)
-  const onlinePercentage = calculatePercentage(onlineDevicesCount, trackedDevicesCount)
-  const offlinePercentage = calculatePercentage(offlineDevicesCount, trackedDevicesCount)
-  const deployedPercentage = calculatePercentage(deployedDevicesCount, totalDevicesCount)
 
   // Sort devices - online devices first, then by name
   const sortedDevices = useMemo(() => {
@@ -468,7 +441,7 @@ export default function DevicesView({ scope }: Readonly<{ scope: DeviceScope }>)
       return { variant: "default", className: "bg-green-500 hover:bg-green-600", icon: Wifi, text: "Online" }
     }
     return { variant: "secondary", className: "bg-gray-500 hover:bg-gray-600", icon: WifiOff, text: "Offline" }
-  }, [isDeviceOnline])
+  }, [])
 
   // Get deployment status badge
   const getDeploymentBadge = useCallback((status: string | undefined) => {
@@ -570,33 +543,71 @@ export default function DevicesView({ scope }: Readonly<{ scope: DeviceScope }>)
 
   const hasInitialData = deviceScope === "org" ? devices.length > 0 : myDevices.length > 0
 
+  // A later page can come back empty when the list shrinks or the organisation changes, which says
+  // nothing about the first page, so go and ask it
+  const isLaterPageEmpty =
+    deviceScope === "org" && !error && currentPage > 1 && devices.length === 0 && answeredOrgListQuery === orgListQuery
+  useEffect(() => {
+    if (isLaterPageEmpty) setCurrentPage(1)
+  }, [isLaterPageEmpty])
+
+  // Only once the source has answered, with no search or filter narrowing it down
+  const hasNoOrganisation = !groupLoading && !activeGroup
+  const hasNoDevices = deviceScope === "my"
+    ? myDevicesLoaded && !myDevicesError && myDevices.length === 0
+    : hasNoOrganisation ||
+      (!error &&
+        currentPage === 1 &&
+        devices.length === 0 &&
+        answeredOrgListQuery === orgListQuery &&
+        !networkFilterParam &&
+        !searchTerm.trim() &&
+        !debouncedSearchTerm.trim())
+
+  const pageHeader = (
+    <div className="flex justify-between items-center">
+      <h1 className="text-2xl font-bold">{deviceScope === "my" ? "My Devices" : "Device Monitoring"}</h1>
+      {isAirqoGroup && (
+        <SyncMenu
+          items={[
+            {
+              id: "devices",
+              label: "Sync Devices",
+              description: "Devices and their performance from the AirQo platform",
+              onSelect: handleSyncDevices,
+              busy: isSyncing,
+              disabled: isRefreshing,
+            },
+            {
+              id: "refresh",
+              label: "Refresh Data",
+              description: "Reload this list",
+              onSelect: refreshData,
+              busy: isRefreshing,
+              disabled: isSyncing,
+            },
+          ]}
+        />
+      )}
+    </div>
+  )
+
+  if (hasNoDevices) {
+    return (
+      <div className="space-y-6">
+        {pageHeader}
+        <NoDevicesPrompt
+          scope={deviceScope === "org" && activeGroup ? "org" : "my"}
+          onRefresh={refreshData}
+          isRefreshing={isRefreshing}
+        />
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">{deviceScope === "my" ? "My Devices" : "Device Monitoring"}</h1>
-        {isAirqoGroup && (
-          <SyncMenu
-            items={[
-              {
-                id: "devices",
-                label: "Sync Devices",
-                description: "Devices and their performance from the AirQo platform",
-                onSelect: handleSyncDevices,
-                busy: isSyncing,
-                disabled: isRefreshing,
-              },
-              {
-                id: "refresh",
-                label: "Refresh Data",
-                description: "Reload this list",
-                onSelect: refreshData,
-                busy: isRefreshing,
-                disabled: isSyncing,
-              },
-            ]}
-          />
-        )}
-      </div>
+      {pageHeader}
 
       {activeError && (
         <Alert variant="destructive">
@@ -606,59 +617,16 @@ export default function DevicesView({ scope }: Readonly<{ scope: DeviceScope }>)
         </Alert>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Total & Tracked Devices */}
-        <SummaryCard
-          title="Total Devices"
-          value={isDataLoading && !hasInitialData ? "..." : totalDevicesCount}
-          icon={AqServer03}
-          iconVariant="primary"
-          secondaryLabel={`Tracked (${trackedPercentage}%)`}
-          secondaryValue={isDataLoading && !hasInitialData ? "..." : trackedDevicesCount}
-          progressPercentage={trackedPercentage}
-          progressVariant="primary"
-          isLoading={isDataLoading && !hasInitialData}
-        />
-
-        {/* Deployed Devices */}
-        <SummaryCard
-          title="Deployed Devices"
-          value={isDataLoading && !hasInitialData ? "..." : deployedDevicesCount}
-          icon={AqMarkerPin01}
-          iconVariant="blue"
-          secondaryLabel="of total devices"
-          secondaryValue={`${deployedPercentage}%`}
-          progressPercentage={deployedPercentage}
-          progressVariant="blue"
-          isLoading={isDataLoading && !hasInitialData}
-        />
-
-        {/* Online Devices */}
-        <SummaryCard
-          title="Online (Tracked)"
-          value={isDataLoading && !hasInitialData ? "..." : onlineDevicesCount}
-          icon={AqSignal01}
-          iconVariant="emerald"
-          secondaryLabel="transmission rate"
-          secondaryValue={`${onlinePercentage}%`}
-          progressPercentage={onlinePercentage}
-          progressVariant="emerald"
-          isLoading={isDataLoading && !hasInitialData}
-        />
-
-        {/* Offline Devices */}
-        <SummaryCard
-          title="Offline (Tracked)"
-          value={isDataLoading && !hasInitialData ? "..." : offlineDevicesCount}
-          icon={AqAlertTriangle}
-          iconVariant="rose"
-          secondaryLabel="offline rate"
-          secondaryValue={`${offlinePercentage}%`}
-          progressPercentage={offlinePercentage}
-          progressVariant="rose"
-          isLoading={isDataLoading && !hasInitialData}
-        />
-      </div>
+      <DeviceSummaryCards
+        counts={{
+          total: totalDevicesCount,
+          tracked: trackedDevicesCount,
+          deployed: deployedDevicesCount,
+          online: onlineDevicesCount,
+          offline: offlineDevicesCount,
+        }}
+        isLoading={isDataLoading && !hasInitialData}
+      />
 
       {/* Device List Section with Tabs */}
       <Card className="hover:shadow-md transition-shadow">
@@ -674,7 +642,7 @@ export default function DevicesView({ scope }: Readonly<{ scope: DeviceScope }>)
         <CardContent className="p-4">
           <>
             {/* Controls Container */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between mb-4 gap-4">
+            <div data-tour="device-filters" className="flex flex-col md:flex-row md:items-center justify-between mb-4 gap-4">
               {/* Search Input */}
               <div className="relative flex-1 max-w-md">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -748,7 +716,7 @@ export default function DevicesView({ scope }: Readonly<{ scope: DeviceScope }>)
                     </tr>
                   </thead>
                   <tbody>
-                    {currentItems.map((device) => {
+                    {currentItems.map((device, deviceIndex) => {
                       const statusInfo = getStatusBadge(device)
                       const deploymentInfo = getDeploymentBadge(device.status)
                       const StatusIcon = statusInfo.icon
@@ -762,6 +730,7 @@ export default function DevicesView({ scope }: Readonly<{ scope: DeviceScope }>)
                       return (
                         <tr
                           key={device.device_id}
+                          data-tour={deviceIndex === 0 ? "device-row" : undefined}
                           className="border-b hover:bg-gray-50 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset"
                           onClick={() => handleRowClick(device.device_id)}
                           onKeyDown={(e) => {

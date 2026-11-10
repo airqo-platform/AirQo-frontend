@@ -23,6 +23,7 @@ import { DeviceLocationCard, hasDeviceLocation } from "@/components/features/dev
 import MaintenanceStatusCard from "@/components/features/devices/maintenance-status-card";
 import DeviceCategoryCard from "@/components/features/devices/device-category-card";
 import DeviceHistoryCard from "@/components/features/devices/device-history-card";
+import DeviceHealthCard from "@/components/features/beacon/lazy-device-health-card";
 import { AqArrowLeft, AqSignal02, AqTool01 } from "@airqo/icons-react";
 import { usePageTitle } from "@/context/page-title-context";
 
@@ -230,39 +231,32 @@ export default function DeviceDetailsLayout({ deviceId }: DeviceDetailsLayoutPro
                     Device not found.
                 </div>
             ) : (
-                <div className="columns-1 md:columns-2 lg:columns-3 gap-4 mt-6">
-                    <div className="break-inside-avoid mb-4 inline-block w-full order-1">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6 items-start">
+                    <div className="flex flex-col gap-4">
                         <DeviceDetailsCard
                             deviceId={deviceId}
                             onShowDetailsModal={() => setShowDetailsModal(true)}
                         />
+                        {hasDeviceLocation(device) && <DeviceLocationCard device={device} />}
                     </div>
-                    {hasDeviceLocation(device) && <div className="break-inside-avoid mb-4 inline-block w-full order-2">
-                        <DeviceLocationCard device={device} />
-                    </div>}
-                    <div className="break-inside-avoid mb-4 inline-block w-full order-3">
+                    <div className="flex flex-col gap-4">
+                        <DeviceHealthCard deviceId={deviceId} deviceName={device.name} />
                         <OnlineStatusCard deviceId={deviceId} />
-                    </div>
-                    {Number.isFinite(deviceNum) && <div className="break-inside-avoid mb-4 inline-block w-full order-5">
-                        <RunDeviceTestCard
-                            deviceNumber={deviceNum}
-                            getElapsedDurationMapper={getElapsedDurationMapper}
-                        />
-                    </div>}
-                    <div className="break-inside-avoid mb-4 inline-block w-full order-4">
-                        <DeviceMeasurementsApiCard deviceId={deviceId} deviceName={device.name} />
-                    </div>
-                    <div className="break-inside-avoid mb-4 inline-block w-full order-4">
                         <MaintenanceStatusCard nextMaintenance={device.nextMaintenance} />
                     </div>
-                    <div className="break-inside-avoid mb-4 inline-block w-full order-4">
+                    <div className="flex flex-col gap-4">
+                        {Number.isFinite(deviceNum) && (
+                            <RunDeviceTestCard
+                                deviceNumber={deviceNum}
+                                getElapsedDurationMapper={getElapsedDurationMapper}
+                            />
+                        )}
+                        <DeviceMeasurementsApiCard deviceId={deviceId} deviceName={device.name} />
                         <DeviceHistoryCard
                             deviceName={device.name}
                             previousSites={device.previous_sites}
                             currentSite={device.site}
                         />
-                    </div>
-                    <div className="break-inside-avoid mb-4 inline-block w-full order-3">
                         <DeviceCategoryCard device={device} />
                     </div>
                 </div>

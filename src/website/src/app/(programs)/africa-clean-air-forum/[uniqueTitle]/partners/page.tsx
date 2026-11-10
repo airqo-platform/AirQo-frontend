@@ -1,10 +1,18 @@
 import PartnersPage from '@/features/clean-air-forum/partners/PartnersPage';
 import {
   generateMetadata as createMetadata,
-  METADATA_CONFIGS,
+  getForumPageMetadata,
 } from '@/lib/metadata';
 
-export const metadata = createMetadata(METADATA_CONFIGS.cleanAirForumPartners);
+export function generateMetadata({
+  params,
+}: {
+  params: { uniqueTitle: string };
+}) {
+  return createMetadata(
+    getForumPageMetadata(params.uniqueTitle, 'Partners', 'partners'),
+  );
+}
 
 const Page = () => {
   return <PartnersPage />;

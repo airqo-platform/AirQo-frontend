@@ -8,9 +8,13 @@ class ApiUtils {
   static String baseUrl =
       dotenv.env['AIRQO_API_URL'] ?? "http://localhost:3001";
 
-  static String map = "/api/v2/devices/readings/recent";
+  /// Latest reading per site within the backend lookback window. Backs both
+  /// Near You and the map screen; not the separate /readings/map endpoint.
+  static String recentReadings = "/api/v2/devices/readings/recent";
 
   static String sitesSearch = "/api/v2/devices/sites/summary";
+
+  static String nearestSites = "/api/v2/devices/sites/nearest";
 
   static String learnCatalog = "/api/v2/devices/learn/catalog";
 

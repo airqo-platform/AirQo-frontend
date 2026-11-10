@@ -46,7 +46,8 @@ export interface NavItemConfig {
 
 export interface NavSection {
   id: string
-  title: string
+  /** Sections without a title show their items alone, like Home. */
+  title?: string
   items: NavItemConfig[]
 }
 
@@ -65,6 +66,13 @@ export function isNavItemActive(item: NavItemConfig, pathname: string | null): b
 }
 
 // ─── Devices module ──────────────────────────────────────────────────────────
+
+const HOME_ITEM: NavItemConfig = {
+  id: "home",
+  label: "Home",
+  href: ROUTES.HOME,
+  icon: AqHomeSmile,
+}
 
 const MY_DEVICES_ITEM: NavItemConfig = {
   id: "my-devices",
@@ -135,8 +143,10 @@ export function getDeviceNavSections(access: NavigationAccess): NavSection[] {
     access.canAccessSites ? SITES_ITEM : null,
   ].filter((item): item is NavItemConfig => item !== null)
 
+  const home: NavSection = { id: "home", items: [HOME_ITEM] }
   const sections: NavSection[] = access.isPersonalContext
     ? [
+        home,
         { id: "personal-assets", title: "Personal assets", items: [MY_DEVICES_ITEM] },
         {
           id: "network-monitoring",
@@ -145,7 +155,8 @@ export function getDeviceNavSections(access: NavigationAccess): NavSection[] {
         },
       ]
     : [
-        { id: "organization-assets", title: "Organization assets", items: orgAssetItems },
+        home,
+        { id: "organization-assets", title: "Organisation assets", items: orgAssetItems },
         { id: "monitoring", title: "Monitoring", items: monitoringItems },
       ]
 
