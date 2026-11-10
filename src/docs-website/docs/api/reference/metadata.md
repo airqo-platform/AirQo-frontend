@@ -450,7 +450,7 @@ curl "https://api.airqo.net/api/v2/devices/sites/nearest?latitude=0.34760&longit
 **Example — lightweight check for sites that reported in the last 7 days**
 
 ```bash
-curl "https://api.airqo.net/api/v2/devices/sites/nearest?latitude=0.247&longitude=32.5825&radius=10&active_within_days=7&summary=true&token={SECRET_TOKEN}"
+curl "https://api.airqo.net/api/v2/devices/sites/nearest?latitude=0.3476&longitude=32.5825&radius=10&active_within_days=7&summary=true&token={SECRET_TOKEN}"
 ```
 
 ```json
