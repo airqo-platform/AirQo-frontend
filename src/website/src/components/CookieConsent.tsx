@@ -86,7 +86,7 @@ export default function CookieConsent() {
                     href="/legal/cookies"
                     className="text-blue-600 hover:text-blue-700 underline font-medium"
                   >
-                    Learn more
+                    Read our cookie policy
                   </Link>
                 </p>
               </div>

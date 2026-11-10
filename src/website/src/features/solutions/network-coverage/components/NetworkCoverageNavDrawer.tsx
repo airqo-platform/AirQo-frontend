@@ -184,19 +184,21 @@ const NetworkCoverageNavDrawer: React.FC<NetworkCoverageNavDrawerProps> = ({
 
         {/* Footer CTAs */}
         <div className="flex flex-shrink-0 flex-col gap-2 border-t border-slate-200 bg-slate-50 px-4 py-4">
-          <Link
-            href="/explore-data"
-            onClick={onClose}
+          <a
+            href="https://ai.airqo.net/map"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Open live map (opens in a new tab)"
             className="flex w-full items-center justify-center rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
           >
-            Explore Data
-          </Link>
+            Open live map
+          </a>
           <Link
-            href="/home"
+            href="/products"
             onClick={onClose}
             className="flex w-full items-center justify-center rounded-lg border border-blue-200 bg-white px-4 py-2.5 text-sm font-semibold text-blue-700 transition-colors hover:bg-blue-50"
           >
-            Back to Main Site
+            Explore products
           </Link>
         </div>
       </div>

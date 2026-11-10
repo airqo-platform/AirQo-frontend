@@ -74,6 +74,21 @@ export const METADATA_CONFIGS = {
       type: 'image/jpeg',
     },
   },
+  products: {
+    title: 'AirQo Products | Measure, Understand, and Act on Air Quality',
+    description:
+      'Explore the AirQo product suite: locally built air quality monitors, calibration, data platforms, forecasting, APIs, and public tools for cleaner air in African cities.',
+    keywords:
+      'AirQo products, Binos Monitor, AirQalibrate, AirQo Beacon, AirQo Nexus, AirQo AI Platform, Air Quality API, AirQo Mobile App, AirQo Vertex, air quality monitoring Africa, low-cost sensors, air quality data platform',
+    url: '/products',
+    image: {
+      url: OG_IMAGES.monitor,
+      alt: 'AirQo products for measuring, understanding, and acting on air quality',
+      width: 1200,
+      height: 630,
+      type: 'image/jpeg',
+    },
+  },
   about: {
     title: 'About AirQo | Air quality research in Africa',
     description:
@@ -120,11 +135,11 @@ export const METADATA_CONFIGS = {
     },
   },
   api: {
-    title: 'AirQo API | Air quality data for developers',
+    title: 'Air Quality API | Air quality data for developers',
     description:
-      'Use the AirQo API to access air quality data for applications, research, and analysis.',
+      'Use the Air Quality API to access air quality data for applications, research, and analysis.',
     keywords:
-      'AirQo API, air quality API Africa, open air data, developer API, environmental data API, PM2.5 API, pollution data access, RESTful API, air quality SDK, African cities data, real-time air API, historical air data, free API tier, environmental monitoring API',
+      'Air Quality API, air quality API Africa, open air data, developer API, environmental data API, PM2.5 API, pollution data access, RESTful API, air quality SDK, African cities data, real-time air API, historical air data, free API tier, environmental monitoring API',
     url: '/products/api',
     image: {
       url: OG_IMAGES.api,
@@ -239,31 +254,31 @@ export const METADATA_CONFIGS = {
       type: 'image/jpeg',
     },
   },
-  exploreData: {
-    title: 'Explore AirQo air quality data and tools',
+  cleanAirForum: {
+    title: 'Africa Clean Air Forum 2026 | Event information',
     description:
-      "Explore AirQo's maps and tools for viewing air quality information across African cities.",
+      'Find event information, speakers, sessions, resources, and logistics from Africa Clean Air Forum 2026.',
     keywords:
-      'Kampala air quality map, Nairobi pollution map, Lagos air quality live, Accra PM2.5 map, Uganda air quality data, Kenya pollution map, Nigeria air monitoring, Ghana air data, Jinja air quality, Mombasa pollution data, Kisumu air map, Entebbe air quality, East Africa pollution map, interactive air map Uganda, real-time air quality Kenya, Uganda environmental data, Kenya air research data, live pollution Uganda, African cities air map, PM2.5 map Africa',
-    url: '/explore-data',
+      'Africa Clean Air Forum Nairobi, Kenya air quality conference, Africa Clean Air Forum 2026, East Africa air conference, Uganda air quality forum, Kenya environmental leaders, Nigeria clean air summit, Ghana air conference, African ministers environment, conference venue, Kampala to Nairobi conference, air quality policy Africa, Kenya climate summit, East Africa environmental forum, African air quality networking, Africa Clean Air Forum 2026 registration',
+    url: '/africa-clean-air-forum-2026',
     image: {
-      url: OG_IMAGES.networkScreenshot,
-      alt: 'AirQo Interactive Air Quality Map - Explore Data Across Africa',
+      url: OG_IMAGES.forum,
+      alt: 'Africa Clean Air Forum 2026 - Partnerships for Clean Air in Africa',
       width: 1200,
       height: 630,
       type: 'image/jpeg',
     },
   },
-  cleanAirForum: {
-    title: 'Africa Clean Air Forum 2025 | Event information',
+  solutions: {
+    title: 'Air quality solutions | AirQo',
     description:
-      'Find event information, speakers, sessions, resources, and logistics from Africa Clean Air Forum 2025.',
+      'Explore AirQo solutions for African cities, communities, research, network coverage, and the Kampala air pollution exposure study.',
     keywords:
-      'Africa Clean Air Forum Nairobi, Kenya air quality conference, Nairobi environmental summit 2025, East Africa air conference, Uganda air quality forum, Kenya environmental leaders, Nigeria clean air summit, Ghana air conference, African ministers environment, Nairobi conference venue, Kampala to Nairobi conference, air quality policy Africa, Kenya climate summit, East Africa environmental forum, African air quality networking, Nairobi 2025 registration',
-    url: '/africa-clean-air-forum/about',
+      'AirQo solutions, air quality solutions Africa, city air quality monitoring, community air quality information, air quality research data, Africa monitoring network map, Kampala air pollution study, air quality action Africa',
+    url: '/solutions',
     image: {
-      url: OG_IMAGES.forum,
-      alt: 'Africa Clean Air Forum 2025 Nairobi - Partnerships for Clean Air in Africa',
+      url: OG_IMAGES.airQuality,
+      alt: 'AirQo air quality solutions for cities, communities, and research',
       width: 1200,
       height: 630,
       type: 'image/jpeg',
@@ -325,7 +340,7 @@ export const METADATA_CONFIGS = {
       url: OG_IMAGES.networkCoverage,
       alt: 'Air Quality Monitoring Landscape in Africa - Coverage Map & Sensor Locations',
       width: 1200,
-      height: 823,
+      height: 630,
       type: 'image/jpeg',
     },
   },
@@ -424,11 +439,11 @@ export const METADATA_CONFIGS = {
     description:
       'Explore sessions and agenda information for Africa Clean Air Forum.',
     keywords:
-      'Africa Clean Air Forum agenda, conference sessions, air quality workshops, Nairobi 2025 program, environmental panels, policy discussions, technical workshops, networking events',
-    url: '/africa-clean-air-forum/africa-clean-air-forum-2025/sessions',
+      'Africa Clean Air Forum agenda, conference sessions, air quality workshops, Africa Clean Air Forum 2026 program, environmental panels, policy discussions, technical workshops, networking events',
+    url: '/africa-clean-air-forum-2026',
     image: {
       url: OG_IMAGES.forum,
-      alt: 'Africa Clean Air Forum 2025 Conference Sessions',
+      alt: 'Africa Clean Air Forum 2026 Conference Sessions',
       width: 1200,
       height: 630,
       type: 'image/jpeg',
@@ -439,10 +454,10 @@ export const METADATA_CONFIGS = {
     description: 'Find speaker information for Africa Clean Air Forum.',
     keywords:
       'Africa Clean Air Forum speakers, air quality experts, environmental leaders, conference presenters, WHO officials, African ministers, research scientists, policy makers',
-    url: '/africa-clean-air-forum/africa-clean-air-forum-2025/speakers',
+    url: '/africa-clean-air-forum-2026',
     image: {
       url: OG_IMAGES.forum,
-      alt: 'Africa Clean Air Forum 2025 Distinguished Speakers',
+      alt: 'Africa Clean Air Forum 2026 Distinguished Speakers',
       width: 1200,
       height: 630,
       type: 'image/jpeg',
@@ -454,10 +469,10 @@ export const METADATA_CONFIGS = {
       'Browse resources and materials published for Africa Clean Air Forum.',
     keywords:
       'Africa Clean Air Forum resources, conference materials, research downloads, policy documents, air quality tools, presentation slides, implementation guides, best practices',
-    url: '/africa-clean-air-forum/africa-clean-air-forum-2025/resources',
+    url: '/africa-clean-air-forum-2026',
     image: {
       url: OG_IMAGES.forum,
-      alt: 'Africa Clean Air Forum 2025 Resources and Downloads',
+      alt: 'Africa Clean Air Forum 2026 Resources and Downloads',
       width: 1200,
       height: 630,
       type: 'image/jpeg',
@@ -469,10 +484,10 @@ export const METADATA_CONFIGS = {
       'Learn about sponsorship opportunities for Africa Clean Air Forum.',
     keywords:
       'Africa Clean Air Forum sponsorship, partnership opportunities, conference sponsors, exhibition packages, environmental partnerships, corporate sponsorship, event partnership',
-    url: '/africa-clean-air-forum/africa-clean-air-forum-2025/sponsorships',
+    url: '/africa-clean-air-forum-2026',
     image: {
       url: OG_IMAGES.forum,
-      alt: 'Africa Clean Air Forum 2025 Sponsorship Opportunities',
+      alt: 'Africa Clean Air Forum 2026 Sponsorship Opportunities',
       width: 1200,
       height: 630,
       type: 'image/jpeg',
@@ -483,11 +498,11 @@ export const METADATA_CONFIGS = {
     description:
       'Find venue, travel, and attendance information for Africa Clean Air Forum.',
     keywords:
-      'Africa Clean Air Forum venue, Nairobi conference location, travel Kenya, conference hotels, visa information, airport transfers, accommodation Nairobi, travel logistics',
-    url: '/africa-clean-air-forum/africa-clean-air-forum-2025/logistics',
+      'Africa Clean Air Forum venue, conference location, travel Kenya, conference hotels, visa information, airport transfers, accommodation, travel logistics',
+    url: '/africa-clean-air-forum-2026',
     image: {
       url: OG_IMAGES.forum,
-      alt: 'Africa Clean Air Forum 2025 Venue in Nairobi',
+      alt: 'Africa Clean Air Forum 2026 Venue',
       width: 1200,
       height: 630,
       type: 'image/jpeg',
@@ -498,10 +513,10 @@ export const METADATA_CONFIGS = {
     description: 'Meet the programme committee for Africa Clean Air Forum.',
     keywords:
       'Africa Clean Air Forum committee, conference organizers, program committee, scientific committee, organizing team, conference leadership, advisory board',
-    url: '/africa-clean-air-forum/africa-clean-air-forum-2025/program-committee',
+    url: '/africa-clean-air-forum-2026',
     image: {
       url: OG_IMAGES.forum,
-      alt: 'Africa Clean Air Forum 2025 Program Committee',
+      alt: 'Africa Clean Air Forum 2026 Program Committee',
       width: 1200,
       height: 630,
       type: 'image/jpeg',
@@ -513,7 +528,7 @@ export const METADATA_CONFIGS = {
       'Browse definitions of air quality and monitoring terms used at Africa Clean Air Forum.',
     keywords:
       'Air quality glossary, PM2.5 definition, AQI explained, air pollution terms, monitoring terminology, WHO guidelines, environmental definitions, technical glossary',
-    url: '/africa-clean-air-forum/africa-clean-air-forum-2025/glossary',
+    url: '/africa-clean-air-forum-2026',
     image: {
       url: OG_IMAGES.forum,
       alt: 'Air Quality Terms and Definitions Glossary',
@@ -528,10 +543,10 @@ export const METADATA_CONFIGS = {
       'Learn about the organizations supporting Africa Clean Air Forum.',
     keywords:
       'Africa Clean Air Forum partners, conference collaborators, WHO partnership, UNEP support, World Bank, Google.org, environmental partners, African organizations',
-    url: '/africa-clean-air-forum/africa-clean-air-forum-2025/partners',
+    url: '/africa-clean-air-forum-2026',
     image: {
       url: OG_IMAGES.forum,
-      alt: 'Africa Clean Air Forum 2025 Partners and Collaborators',
+      alt: 'Africa Clean Air Forum 2026 Partners and Collaborators',
       width: 1200,
       height: 630,
       type: 'image/jpeg',

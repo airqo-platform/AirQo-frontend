@@ -126,8 +126,16 @@ describe('Network Coverage proxy caching', () => {
     });
   });
 
-  it('does not add cache headers to other uncached routes', () => {
-    expect(getApiCacheResponseHeaders('devices/sites')).toEqual({});
+  it('defaults uncached routes to an explicit no-store', () => {
+    expect(getApiCacheResponseHeaders('devices/sites')).toEqual({
+      'Cache-Control': 'no-store',
+    });
+  });
+
+  it('keeps writes uncacheable', () => {
+    expect(getApiCacheResponseHeaders('website/blog-posts', undefined)).toEqual(
+      { 'Cache-Control': 'no-store' },
+    );
   });
 });
 

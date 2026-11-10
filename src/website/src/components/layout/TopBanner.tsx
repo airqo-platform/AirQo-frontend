@@ -98,7 +98,7 @@ const findLanguageByCode = (languageCode: string): Language | undefined => {
   );
 };
 
-const TopBanner = () => {
+const TopBanner = ({ insideShell = false }: { insideShell?: boolean }) => {
   const pathname = usePathname();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isApplyingLanguage, setIsApplyingLanguage] = useState(false);
@@ -205,13 +205,17 @@ const TopBanner = () => {
 
   return (
     <>
-      <div className="w-full border-b border-blue-100 bg-blue-50 notranslate">
-        <div className="container mx-auto flex max-w-5xl items-center gap-2 px-2 py-1">
-          <div className="flex flex-none items-center space-x-1">
+      <div
+        className={`w-full border-b border-line bg-surface-muted notranslate ${
+          insideShell ? 'rounded-t-md' : ''
+        }`}
+      >
+        <div className="mx-auto flex max-w-7xl flex-nowrap items-center gap-2 px-4 py-1 sm:px-6 lg:px-8">
+          <div className="hidden flex-none items-center space-x-1 sm:flex">
             <a
               href="mailto:info@airqo.net"
               className="hidden px-2 text-sm font-medium text-blue-600 transition-colors hover:text-blue-800 md:block"
-              aria-label="Contact us via email"
+              aria-label="Email AirQo at info@airqo.net"
             >
               (info@airqo.net)
             </a>
@@ -255,7 +259,7 @@ const TopBanner = () => {
             onClick={() => setIsModalOpen(true)}
             disabled={isApplyingLanguage}
             className="ml-auto flex flex-none items-center space-x-2 rounded-md px-3 py-1.5 text-sm text-gray-700 transition-colors hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-wait disabled:opacity-70"
-            aria-label="Select language"
+            aria-label={`Select language, current: ${selectedLanguage.name}`}
           >
             <LanguageFlag
               flag={selectedLanguage.flag}
@@ -266,7 +270,7 @@ const TopBanner = () => {
               wrapperClassName="flex items-center justify-center w-5 h-4 overflow-hidden rounded border border-gray-200"
               fallbackTextClassName="flex items-center justify-center w-full h-full bg-blue-100 text-blue-600 font-semibold text-[9px] rounded border border-blue-200"
             />
-            <span className="font-medium">
+            <span className="max-w-[120px] truncate font-medium">
               {isApplyingLanguage ? 'Applying...' : selectedLanguage.name}
             </span>
           </button>

@@ -24,10 +24,24 @@ describe('Footer', function () {
     expect(displayed).to.be.true;
   });
 
-  it('should contain product links', async function () {
+  it('should contain product family links and no direct product pages', async function () {
     const links = await footer.getFooterLinks();
-    const productLinks = links.filter((l) => l.includes('/products/'));
-    expect(productLinks).to.not.be.empty;
+    const productLinks = links.filter((l) => l.includes('/products'));
+
+    for (const family of ['measure', 'understand', 'act']) {
+      const hasFamilyLink = productLinks.some((l) =>
+        l.includes(`/products#${family}`),
+      );
+      expect(hasFamilyLink, `missing /products#${family} link`).to.be.true;
+    }
+
+    const hasAllProducts = productLinks.some((l) => /\/products\/?$/.test(l));
+    expect(hasAllProducts, 'missing All products link').to.be.true;
+
+    const directProductPages = productLinks.filter((l) =>
+      l.includes('/products/'),
+    );
+    expect(directProductPages).to.have.length(0);
   });
 
   it('should contain solution links', async function () {

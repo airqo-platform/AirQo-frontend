@@ -3,9 +3,9 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useMemo, useRef } from 'react';
+import { FiArrowRight } from 'react-icons/fi';
 import { HiArrowSmallLeft, HiArrowSmallRight } from 'react-icons/hi2';
 
-import { Button } from '@/components/ui/button';
 import type { ImpactCountryEntry } from '@/features/solutions/network-coverage/networkCoverageTypes';
 import { useNetworkCoverageImpact } from '@/hooks/useApiHooks';
 import { getFlagUrl } from '@/lib/utils/languages';
@@ -46,43 +46,8 @@ const HomeNetworkCoverage = () => {
 
   if (isLoading) {
     return (
-      <div className="mx-auto min-h-[26rem] max-w-7xl animate-pulse rounded-2xl bg-[#0B1B3A]/20 px-4" />
-    );
-  }
-
-  if (error) {
-    return (
-      <section className="px-4 py-12 md:py-16">
-        <div className="mx-auto max-w-7xl rounded-2xl bg-gradient-to-br from-[#0B1B3A] via-[#10265A] to-[#0B1B3A] px-6 py-12 text-white md:px-12 md:py-16">
-          <span className="inline-block rounded-full bg-white/10 px-3 py-1 text-sm font-medium text-blue-100">
-            Network coverage
-          </span>
-          <h2 className="mt-4 text-3xl font-bold lg:text-4xl">
-            Air quality monitoring across Africa
-          </h2>
-          <p className="mt-4 text-blue-100">
-            We couldn&apos;t load live network coverage right now.
-          </p>
-          <div className="mt-6 flex flex-wrap items-center gap-4">
-            <Button
-              asChild
-              size="lg"
-              className="h-auto w-fit max-w-full gap-2 whitespace-normal bg-white px-5 py-3 text-left text-[#0B1B3A] hover:bg-blue-50"
-            >
-              <Link href="/solutions/network-coverage">
-                Discover network coverage
-                <span aria-hidden="true">&rarr;</span>
-              </Link>
-            </Button>
-            <button
-              type="button"
-              onClick={() => refetch()}
-              className="rounded-lg border border-white/25 px-4 py-2 text-sm font-medium hover:bg-white/10"
-            >
-              Try again
-            </button>
-          </div>
-        </div>
+      <section className="px-4 py-12 sm:px-6 md:py-16 lg:px-8">
+        <div className="mx-auto min-h-[26rem] max-w-7xl animate-pulse rounded-md border border-line bg-surface-muted" />
       </section>
     );
   }
@@ -90,81 +55,96 @@ const HomeNetworkCoverage = () => {
   return (
     <section
       aria-labelledby="network-coverage-heading"
-      className="px-4 py-12 md:py-16"
+      className="px-4 py-12 sm:px-6 md:py-16 lg:px-8"
     >
-      <div className="mx-auto max-w-7xl overflow-hidden rounded-2xl bg-gradient-to-br from-[#0B1B3A] via-[#10265A] to-[#0B1B3A] text-white">
-        <div className="grid gap-8 p-6 md:p-10 lg:grid-cols-[minmax(0,340px)_1fr] lg:gap-12 lg:p-12">
-          <div>
-            <span className="inline-block rounded-full bg-white/10 px-3 py-1 text-sm font-medium text-blue-100">
+      <div className="mx-auto max-w-7xl rounded-md border border-line bg-surface-muted p-6 sm:p-8 lg:p-10">
+        <div className="grid gap-8 lg:grid-cols-[minmax(0,320px)_1fr] lg:gap-12">
+          <div className="min-w-0">
+            <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-slate-600">
               Network coverage
-            </span>
+            </p>
             <h2
               id="network-coverage-heading"
-              className="mt-4 text-3xl font-bold lg:text-4xl"
+              className="mt-3 text-3xl font-bold tracking-tight text-ink lg:text-4xl"
             >
               Air quality monitoring across Africa
             </h2>
-            <p className="mt-4 text-blue-100">
+            <p className="mt-4 text-base leading-7 text-gray-600">
               Explore air quality monitors and networks across the continent.
             </p>
-            <Button
-              asChild
-              size="lg"
-              className="mt-8 h-auto w-fit max-w-full gap-2 whitespace-normal bg-white px-5 py-3 text-left text-[#0B1B3A] hover:bg-blue-50"
+            <Link
+              href="/solutions/network-coverage"
+              className="mt-8 inline-flex w-fit max-w-full items-center gap-2 rounded-md bg-brand px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
             >
-              <Link href="/solutions/network-coverage">
-                Discover network coverage
-                <span aria-hidden="true">&rarr;</span>
-              </Link>
-            </Button>
+              Discover network coverage
+              <FiArrowRight aria-hidden="true" className="h-4 w-4" />
+            </Link>
           </div>
 
           <div className="min-w-0">
-            <div className="flex items-center justify-between gap-4">
-              <p className="text-sm font-medium uppercase tracking-wide text-blue-200">
-                Explore by country
-              </p>
-              {countries.length > 1 && (
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    aria-label="Previous countries"
-                    onClick={() => scrollByCard(-1)}
-                    className="rounded-full border border-white/25 p-2 hover:bg-white/10"
-                  >
-                    <HiArrowSmallLeft className="h-5 w-5" />
-                  </button>
-                  <button
-                    type="button"
-                    aria-label="Next countries"
-                    onClick={() => scrollByCard(1)}
-                    className="rounded-full border border-white/25 p-2 hover:bg-white/10"
-                  >
-                    <HiArrowSmallRight className="h-5 w-5" />
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {countries.length === 0 ? (
-              <p className="mt-6 text-blue-100">
-                Live network coverage data is not available right now.
-              </p>
+            {error ? (
+              <div className="flex h-full flex-col items-start justify-center gap-3">
+                <p className="text-lg font-semibold text-ink">
+                  16 cities · 9 countries
+                </p>
+                <p className="text-sm leading-6 text-gray-600">
+                  Live network coverage is unavailable right now.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => refetch()}
+                  className="rounded-sm text-sm font-semibold text-brand transition-colors hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+                >
+                  Try again
+                </button>
+              </div>
+            ) : countries.length === 0 ? (
+              <div className="flex h-full flex-col items-start justify-center gap-3">
+                <p className="text-lg font-semibold text-ink">
+                  16 cities · 9 countries
+                </p>
+                <p className="text-sm leading-6 text-gray-600">
+                  Network coverage details are not available right now.
+                </p>
+              </div>
             ) : (
-              <div className="relative mt-6">
-                <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-8 bg-gradient-to-r from-[#0B1B3A] to-transparent" />
-                <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-8 bg-gradient-to-l from-[#0B1B3A] to-transparent" />
+              <>
+                <div className="flex items-center justify-between gap-4">
+                  <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-slate-600">
+                    Explore by country
+                  </p>
+                  {countries.length > 1 && (
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        aria-label="Previous countries"
+                        onClick={() => scrollByCard(-1)}
+                        className="rounded-md border border-line bg-white p-2 text-ink transition-colors hover:border-brand hover:text-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+                      >
+                        <HiArrowSmallLeft className="h-5 w-5" />
+                      </button>
+                      <button
+                        type="button"
+                        aria-label="Next countries"
+                        onClick={() => scrollByCard(1)}
+                        className="rounded-md border border-line bg-white p-2 text-ink transition-colors hover:border-brand hover:text-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+                      >
+                        <HiArrowSmallRight className="h-5 w-5" />
+                      </button>
+                    </div>
+                  )}
+                </div>
 
                 <ul
                   ref={scrollRef}
                   role="region"
                   aria-label="Network coverage by country"
-                  className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                  className="mt-6 flex snap-x snap-mandatory gap-4 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
                 >
                   {countries.map((country) => (
                     <li
                       key={country.iso2 || country.country}
-                      className="w-[180px] shrink-0 snap-start rounded-xl bg-white p-4 text-[#0B1B3A] transition-transform duration-200 hover:-translate-y-0.5 sm:w-[200px]"
+                      className="w-[180px] shrink-0 snap-start rounded-md border border-line bg-white p-4 sm:w-[200px]"
                     >
                       {isValidIso2(country.iso2) ? (
                         <Image
@@ -174,24 +154,24 @@ const HomeNetworkCoverage = () => {
                           width={32}
                           height={24}
                           unoptimized
-                          className="h-6 w-8 rounded-sm object-cover shadow-sm"
+                          className="h-6 w-8 rounded-sm object-cover"
                         />
                       ) : (
-                        <span className="text-sm font-semibold">
+                        <span className="text-sm font-semibold text-ink">
                           {country.iso2 || '—'}
                         </span>
                       )}
-                      <p className="mt-3 truncate font-semibold">
+                      <p className="mt-3 break-words text-sm font-semibold text-ink">
                         {country.country}
                       </p>
-                      <p className="mt-1 text-2xl font-bold text-[#145DFF]">
+                      <p className="mt-1 text-2xl font-bold text-brand">
                         {formatNumber(country.total)}
                       </p>
                       <p className="text-xs text-gray-500">sensors</p>
                     </li>
                   ))}
                 </ul>
-              </div>
+              </>
             )}
           </div>
         </div>

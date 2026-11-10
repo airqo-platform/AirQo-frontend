@@ -70,8 +70,7 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    "jest.config.js",
-    ".next-verify/types/**/*.ts"
+    "jest.config.js"
   ],
   "exclude": [
     "node_modules",

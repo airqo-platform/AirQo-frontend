@@ -54,7 +54,7 @@ describe('NAV_ITEMS', () => {
       'Solutions',
       'Developers',
       'Resources',
-      'About AirQo',
+      'About',
     ]);
   });
 
@@ -74,7 +74,7 @@ describe('NAV_ITEMS', () => {
           href: '/resources?tab=guide,manual',
         }),
         expect.objectContaining({
-          title: 'AirQo API data access',
+          title: 'Air Quality API data access',
           href: 'https://platform.airqo.net/docs/api/intro/',
         }),
       ]),
@@ -82,7 +82,7 @@ describe('NAV_ITEMS', () => {
   });
 
   it('links Partners to the existing About AirQo section', () => {
-    expect(NAV_ITEMS['About AirQo']).toEqual(
+    expect(NAV_ITEMS.About).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
           title: 'Partners',
@@ -93,7 +93,7 @@ describe('NAV_ITEMS', () => {
   });
 
   it('links Africa Clean Air Forum to its official annual forum page', () => {
-    expect(NAV_ITEMS['About AirQo']).toEqual(
+    expect(NAV_ITEMS.About).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
           title: 'Africa Clean Air Forum',

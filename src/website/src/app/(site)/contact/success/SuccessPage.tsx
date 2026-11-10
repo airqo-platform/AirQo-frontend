@@ -56,8 +56,8 @@ const SuccessPage: React.FC = () => {
 
   return (
     <motion.div
-      className="flex flex-col items-center justify-center w-full h-[calc(100vh-85px)] bg-[#F9FAFB] p-8"
-      style={{ height: 'calc(100vh - 132px)' }}
+      className="flex flex-col items-center justify-center w-full min-h-[calc(100vh-85px)] bg-[#F9FAFB] p-8"
+      style={{ minHeight: 'calc(100vh - 132px)' }}
       initial="hidden"
       animate="visible"
       variants={containerVariants}

@@ -96,7 +96,7 @@ const CommunitiesPage = () => {
 
       {/* AirQo + Communities -> AirQommunities */}
       <motion.section
-        className={`${mainConfig.containerClass} py-16 px-4`}
+        className={`${mainConfig.containerClass} py-16 px-4 sm:px-6 lg:px-8`}
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, amount: 0.2 }}
@@ -116,7 +116,7 @@ const CommunitiesPage = () => {
 
       {/* AirQommunity Champions */}
       <motion.section
-        className="px-4"
+        className="px-4 sm:px-6 lg:px-8"
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, amount: 0.2 }}
@@ -252,7 +252,7 @@ const CommunitiesPage = () => {
 
       {/* Making air quality information accessible */}
       <motion.section
-        className="px-4"
+        className="px-4 sm:px-6 lg:px-8"
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, amount: 0.2 }}
@@ -359,7 +359,7 @@ const CommunitiesPage = () => {
       >
         <CustomButton
           onClick={() => dispatch(openModal())}
-          className={`${mainConfig.containerClass} w-full px-4 rounded-lg text-black py-16 bg-[#FFEA2B]`}
+          className={`${mainConfig.containerClass} w-full px-4 sm:px-6 lg:px-8 rounded-lg text-black py-16 bg-[#FFEA2B] hover:bg-[#EBD621] active:bg-[#EBD621]`}
         >
           <div className="w-full text-center">
             <h2 className="text-3xl mb-4">Become an air quality champion.</h2>

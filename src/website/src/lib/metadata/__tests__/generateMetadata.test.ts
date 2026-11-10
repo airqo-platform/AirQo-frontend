@@ -22,7 +22,7 @@ describe('generateMetadata', () => {
   it('sets page-specific canonical and share metadata with a brand-safe title', () => {
     const metadata = generateMetadata(
       {
-        title: 'AirQo API | Air quality data for developers',
+        title: 'Air Quality API | Air quality data for developers',
         description: '  Build with AirQo data.  ',
         url: '/products/api',
       },
@@ -30,7 +30,7 @@ describe('generateMetadata', () => {
     );
 
     expect(metadata.title).toEqual({
-      absolute: 'AirQo API | Air quality data for developers',
+      absolute: 'Air Quality API | Air quality data for developers',
     });
     expect(metadata.alternates?.canonical).toBe(
       'https://airqo.net/products/api',

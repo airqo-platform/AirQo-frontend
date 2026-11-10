@@ -87,7 +87,7 @@ const ResearchPublicationCard: React.FC<{
       <div className="flex flex-wrap items-center gap-4">
         {publicationUrl && (
           <a
-            className="flex items-center border border-black bg-transparent px-4 py-2 text-black transition-colors hover:bg-black hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+            className="flex items-center rounded-md border border-line bg-white px-4 py-2 text-ink transition-colors hover:bg-surface-muted hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
             href={publicationUrl}
             {...getExternalLinkProps(publicationUrl)}
           >
@@ -97,7 +97,7 @@ const ResearchPublicationCard: React.FC<{
 
         {openAccessUrl && openAccessUrl !== publicationUrl && (
           <a
-            className="flex items-center border border-black bg-transparent px-4 py-2 text-black transition-colors hover:bg-black hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+            className="flex items-center rounded-md border border-line bg-white px-4 py-2 text-ink transition-colors hover:bg-surface-muted hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
             href={openAccessUrl}
             {...getExternalLinkProps(openAccessUrl)}
           >
@@ -300,7 +300,7 @@ const ResourcePage: React.FC = () => {
   return (
     <div className="flex w-full flex-col space-y-16 overflow-hidden">
       <section className="bg-[#F2F1F6] pt-16">
-        <div className={`${mainConfig.containerClass} px-4`}>
+        <div className={`${mainConfig.containerClass} px-4 sm:px-6 lg:px-8`}>
           <h1 className="mb-4 text-4xl font-bold">Resources</h1>
           <p className="mb-8 text-xl">
             Discover our latest collection of resources
@@ -335,7 +335,9 @@ const ResourcePage: React.FC = () => {
         </div>
       </section>
 
-      <section className={`${mainConfig.containerClass} w-full px-4`}>
+      <section
+        className={`${mainConfig.containerClass} w-full px-4 sm:px-6 lg:px-8`}
+      >
         {isResearchCategory &&
           livePublicationsData.data?.degraded &&
           results.length > 0 && (
@@ -425,7 +427,7 @@ const ResourcePage: React.FC = () => {
                   <div className="flex flex-wrap items-center gap-4">
                     {resourceLink && (
                       <a
-                        className="flex items-center border border-black bg-transparent px-4 py-2 text-black transition-colors hover:bg-black hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+                        className="flex items-center rounded-md border border-line bg-white px-4 py-2 text-ink transition-colors hover:bg-surface-muted hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
                         href={resourceLink}
                         {...getExternalLinkProps(resourceLink)}
                       >
@@ -435,7 +437,7 @@ const ResourcePage: React.FC = () => {
                     )}
                     {resourceFileUrl && (
                       <a
-                        className="flex items-center border border-black bg-transparent px-4 py-2 text-black transition-colors hover:bg-black hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+                        className="flex items-center rounded-md border border-line bg-white px-4 py-2 text-ink transition-colors hover:bg-surface-muted hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
                         href={resourceFileUrl}
                         {...getExternalLinkProps(resourceFileUrl)}
                       >

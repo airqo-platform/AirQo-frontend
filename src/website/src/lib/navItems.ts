@@ -1,10 +1,19 @@
 import { API_CONSOLE_URL } from '@/config/console.config';
+import {
+  PRODUCT_FAMILIES,
+  type ProductFamily,
+  type ProductFamilyLabel,
+  PRODUCTS,
+} from '@/config/products.config';
+
+export type { ProductFamily, ProductFamilyLabel };
 
 export type NavMenuItem = {
   title: string;
   description?: string;
   href: string;
   newTab?: boolean;
+  group?: ProductFamilyLabel;
 };
 
 export type NavMenuSection = Record<string, NavMenuItem[]>;
@@ -12,49 +21,24 @@ export type NavMenuSection = Record<string, NavMenuItem[]>;
 export const AFRICA_CLEAN_AIR_FORUM_URL =
   'https://cleanairafrica.org/about-the-annual-forum/';
 
+const familyLabelById: Record<ProductFamily, ProductFamilyLabel> =
+  PRODUCT_FAMILIES.reduce(
+    (labels, family) => {
+      labels[family.id] = family.label;
+      return labels;
+    },
+    {} as Record<ProductFamily, ProductFamilyLabel>,
+  );
+
+const productNavItems: NavMenuItem[] = PRODUCTS.map((product) => ({
+  title: product.name,
+  description: product.tagline,
+  href: product.href,
+  group: familyLabelById[product.family],
+}));
+
 export const NAV_ITEMS: NavMenuSection = {
-  Products: [
-    {
-      title: 'Binos Monitor',
-      description: 'Locally built air quality monitoring hardware',
-      href: '/products/monitor',
-    },
-    {
-      title: 'AirQo Beacon',
-      description: 'Monitor device health and network performance',
-      href: '/products/beacon',
-    },
-    {
-      title: 'AirQalibrate',
-      description: 'Calibrate low-cost sensor data',
-      href: '/products/calibrate',
-    },
-    {
-      title: 'AirQo Nexus',
-      description: 'Real-time air quality data for African cities',
-      href: '/products/nexus',
-    },
-    {
-      title: 'AirQo Vertex',
-      description: 'Open air quality data sharing platform',
-      href: '/products/vertex',
-    },
-    {
-      title: 'AirQo AI Platform',
-      description: 'Forecast, locate, categorize, and automate reporting',
-      href: '/products/ai-platform',
-    },
-    {
-      title: 'AirQo Mobile App',
-      description: 'Discover the quality of air around you',
-      href: '/products/mobile-app',
-    },
-    {
-      title: 'Air Quality API',
-      description: 'Access raw and calibrated data',
-      href: '/products/api',
-    },
-  ],
+  Products: productNavItems,
   Solutions: [
     {
       title: 'For African Cities',
@@ -130,7 +114,7 @@ export const NAV_ITEMS: NavMenuSection = {
       href: '/resources?tab=policy',
     },
     {
-      title: 'AirQo API data access',
+      title: 'Air Quality API data access',
       description: 'Guidance on finding and using AirQo air quality data',
       href: 'https://platform.airqo.net/docs/api/intro/',
       newTab: true,
@@ -152,7 +136,7 @@ export const NAV_ITEMS: NavMenuSection = {
       href: '/faqs',
     },
   ],
-  'About AirQo': [
+  About: [
     { title: 'About AirQo', href: '/about-us' },
     { title: 'Partners', href: '/about-us#partners' },
     { title: 'Press & media', href: '/press' },
@@ -166,5 +150,17 @@ export const NAV_ITEMS: NavMenuSection = {
     },
   ],
 };
+
+/**
+ * Hub destination for each primary navigation section. Used by the navbar
+ * dropdowns and footer to give every section a clear "view all" target.
+ */
+export const NAV_MENU_LINKS = {
+  Products: '/products',
+  Solutions: '/solutions',
+  Developers: '/packages',
+  Resources: '/resources',
+  About: '/about-us',
+} as const;
 
 export default NAV_ITEMS;

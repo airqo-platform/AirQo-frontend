@@ -189,11 +189,6 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       'Low-cost Sensors',
       'Real-time Air Data',
     ],
-    potentialAction: {
-      '@type': 'SearchAction',
-      target: `${siteUrl}explore-data?q={search_term_string}`,
-      'query-input': 'required name=search_term_string',
-    },
   };
 
   return (

@@ -26,7 +26,7 @@ const ProductJsonLd = ({ config }: ProductJsonLdProps) => {
     [
       {
         name: 'Explore AirQo products',
-        url: buildSiteUrl('/explore-data', siteUrl),
+        url: buildSiteUrl('/products', siteUrl),
       },
       {
         name: getProductDisplayName(config.title),

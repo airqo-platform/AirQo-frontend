@@ -65,8 +65,8 @@ describe('Navbar', function () {
       'Resources',
       'About AirQo',
     ];
-    const exploreLink = await navbar.driver.findElement(
-      By.css('nav a[href="/explore-data"]'),
+    const outsideLink = await navbar.driver.findElement(
+      By.css('nav a[href="/home"]'),
     );
 
     for (const title of menuTitles) {
@@ -89,7 +89,7 @@ describe('Navbar', function () {
       expect(await trigger.getAttribute('aria-expanded')).to.equal('true');
     }
 
-    await navbar.driver.actions().move({ origin: exploreLink }).perform();
+    await navbar.driver.actions().move({ origin: outsideLink }).perform();
     await navbar.driver.wait(async () => {
       for (const title of menuTitles) {
         const menuId = `site-nav-${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;

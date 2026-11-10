@@ -14,14 +14,6 @@ export {
   useForumEvents,
   useForumEventTitles,
 } from './forum.queries';
-export {
-  useNetworkCoverageCities,
-  useNetworkCoverageCountryMonitors,
-  useNetworkCoverageImpact,
-  useNetworkCoverageMonitor,
-  useNetworkCoverageSummary,
-} from './network-coverage.queries';
-export { usePartnerDetails, usePartners } from './partners.queries';
 export { queryClient } from './query-client';
 export { apiQueryKeys } from './query-keys';
 export {

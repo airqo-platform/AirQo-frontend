@@ -117,6 +117,8 @@ export async function generateMetadata({
         {
           url: imageUrl,
           alt: title,
+          width: 1200,
+          height: 630,
         },
       ],
       siteName: 'AirQo',
@@ -129,7 +131,7 @@ export async function generateMetadata({
       site: '@AirQoProject',
       title,
       description,
-      images: [{ url: imageUrl, alt: title }],
+      images: [{ url: imageUrl, alt: title, width: 1200, height: 630 }],
     },
     robots: {
       index: true,

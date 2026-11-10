@@ -42,7 +42,13 @@ export function getApiCacheResponseHeaders(
     return { 'Cache-Control': 'no-store' };
   }
 
-  return cachePolicy ? DEFAULT_CACHE_RESPONSE_HEADERS : {};
+  if (cachePolicy) {
+    return DEFAULT_CACHE_RESPONSE_HEADERS;
+  }
+
+  // Explicit default for GETs outside the allowlist (and for POST/PUT):
+  // unknown or user-specific responses must never be cached.
+  return { 'Cache-Control': 'no-store' };
 }
 
 const API_CACHE_POLICIES: Array<{

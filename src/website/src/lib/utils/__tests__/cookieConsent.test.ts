@@ -2,6 +2,8 @@ import {
   acceptAllCookies,
   acceptNecessaryCookies,
   clearConsentPreferences,
+  CONSENT_EXPIRY_MS,
+  CONSENT_VERSION,
   deleteCookie,
   dismissConsentBanner,
   getConsentPreferences,
@@ -59,15 +61,44 @@ describe('cookieConsent', () => {
     });
 
     it('returns parsed preferences when stored', () => {
+      const now = Date.now();
       const prefs = {
         necessary: true,
         analytics: true,
         marketing: false,
-        timestamp: 12345,
+        timestamp: now,
+        version: CONSENT_VERSION,
+        expiresAt: now + CONSENT_EXPIRY_MS,
       };
       localStorageMock._getStore()['airqo_cookie_consent'] =
         JSON.stringify(prefs);
       expect(getConsentPreferences()).toEqual(prefs);
+    });
+
+    it('returns null when the consent version does not match', () => {
+      localStorageMock._getStore()['airqo_cookie_consent'] = JSON.stringify({
+        necessary: true,
+        analytics: true,
+        marketing: false,
+        timestamp: Date.now(),
+        version: CONSENT_VERSION - 1,
+        expiresAt: Date.now() + CONSENT_EXPIRY_MS,
+      });
+      expect(getConsentPreferences()).toBeNull();
+    });
+
+    it('returns null when the consent has expired', () => {
+      localStorageMock._getStore()['airqo_cookie_consent'] = JSON.stringify({
+        necessary: true,
+        analytics: true,
+        marketing: false,
+        timestamp: Date.now() - CONSENT_EXPIRY_MS - 1,
+        version: CONSENT_VERSION,
+        expiresAt: Date.now() - 1,
+      });
+      expect(getConsentPreferences()).toBeNull();
+      expect(hasConsent()).toBe(false);
+      expect(hasAnalyticsConsent()).toBe(false);
     });
 
     it('returns null for invalid JSON', () => {
@@ -108,6 +139,23 @@ describe('cookieConsent', () => {
       expect(stored.analytics).toBe(true);
       expect(stored.marketing).toBe(false);
       expect(typeof stored.timestamp).toBe('number');
+    });
+
+    it('stamps the consent version and a 6-month expiry', () => {
+      const now = 1_700_000_000_000;
+      jest.spyOn(Date, 'now').mockReturnValue(now);
+      setConsentPreferences({
+        necessary: true,
+        analytics: true,
+        marketing: false,
+      });
+      const call = localStorageMock.setItem.mock.calls.find(
+        (call: any[]) => call[0] === 'airqo_cookie_consent',
+      );
+      const stored = JSON.parse(call![1]);
+      expect(stored.version).toBe(CONSENT_VERSION);
+      expect(stored.expiresAt - stored.timestamp).toBe(CONSENT_EXPIRY_MS);
+      expect(getConsentPreferences()).not.toBeNull();
     });
 
     it('always sets necessary to true', () => {

@@ -1,7 +1,8 @@
 import Image from 'next/image';
+import Link from 'next/link';
 import React from 'react';
+import { FiArrowRight } from 'react-icons/fi';
 
-import mainConfig from '@/config/site.config';
 import { optimizeCloudinaryUrl } from '@/services/external/cloudinary.service';
 
 const STORE_BADGE_WIDTH = 320;
@@ -39,23 +40,24 @@ const AppDownloadSection: React.FC<AppDownloadSectionProps> = ({
   mockupImage = defaultMockupImage,
 }) => {
   return (
-    <section className="w-full ">
-      <div
-        className={`${mainConfig.containerClass} relative px-4 sm:px-6 lg:px-8 py-16 lg:py-24`}
-      >
-        <div className="flex flex-col-reverse lg:flex-row items-center justify-between gap-12 lg:gap-24">
-          {/* Left Content */}
-          <div className="flex flex-col items-center lg:items-start text-center lg:text-left space-y-8 lg:w-1/2">
-            <h2 className="text-2xl sm:text-3xl lg:text-[40px] font-bold text-blue-600">
+    <section className="bg-white px-4 py-14 sm:px-6 sm:py-16 lg:px-8">
+      <div className="mx-auto max-w-7xl">
+        <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-14">
+          <div className="min-w-0">
+            <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-slate-600">
+              AirQo mobile app
+            </p>
+            <h2 className="mt-3 text-3xl font-bold tracking-tight text-ink sm:text-4xl">
               {title}
             </h2>
-            <p className="text-base sm:text-[20px] text-blue-600 max-w-md">
+            <p className="mt-4 max-w-xl text-lg leading-7 text-gray-600">
               {description}
             </p>
-            <div className="flex flex-col sm:flex-row w-full sm:w-auto gap-4 pt-4">
+
+            <div className="mt-8 flex flex-wrap items-center gap-4">
               <a
                 href={appStoreLink}
-                className="w-full sm:w-auto transition-transform hover:scale-105"
+                className="transition-transform hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -64,13 +66,13 @@ const AppDownloadSection: React.FC<AppDownloadSectionProps> = ({
                   alt="Download on the App Store"
                   width={140}
                   height={45}
-                  className="w-full sm:w-[140px] h-auto object-contain"
+                  className="h-auto w-[140px] object-contain"
                   loading="lazy"
                 />
               </a>
               <a
                 href={googlePlayLink}
-                className="w-full sm:w-auto transition-transform hover:scale-105"
+                className="transition-transform hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -79,31 +81,38 @@ const AppDownloadSection: React.FC<AppDownloadSectionProps> = ({
                   alt="Get it on Google Play"
                   width={140}
                   height={45}
-                  className="w-full sm:w-[140px] h-auto object-contain"
+                  className="h-auto w-[140px] object-contain"
                   loading="lazy"
                 />
               </a>
             </div>
+
+            <Link
+              href="/products/mobile-app"
+              className="mt-6 inline-flex items-center justify-center gap-2 rounded-md bg-brand px-6 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
+            >
+              Explore the app
+              <FiArrowRight aria-hidden="true" className="h-4 w-4" />
+            </Link>
           </div>
 
-          {/* Right Content - Phone Mockup */}
-          <div className="lg:w-1/2 flex justify-center lg:justify-end">
-            <div className="relative w-[280px] sm:w-[320px] lg:w-[380px]">
-              <div className="relative z-10">
-                <Image
-                  src={mockupImage}
-                  alt="App Interface Preview"
-                  width={380}
-                  height={760}
-                  className="w-full h-auto"
-                  loading="lazy"
-                />
+          <div className="min-w-0">
+            <div className="rounded-md border border-line bg-brand-50 px-6 py-10 sm:px-10">
+              <div className="relative mx-auto w-[240px] sm:w-[280px]">
+                <div className="relative aspect-[1/2]">
+                  <Image
+                    src={mockupImage}
+                    alt="AirQo app interface preview"
+                    fill
+                    sizes="(max-width: 1024px) 60vw, 280px"
+                    className="object-contain"
+                    loading="lazy"
+                  />
+                </div>
               </div>
             </div>
           </div>
         </div>
-        {/* Background Decoration */}
-        <div className="absolute top-[66%] lg:top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-[60%] lg:h-[350px] lg:rounded-xl bg-[#f0f4fa] -z-10" />
       </div>
     </section>
   );

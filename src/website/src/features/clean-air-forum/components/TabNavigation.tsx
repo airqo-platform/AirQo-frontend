@@ -53,7 +53,7 @@ const TabNavigation: React.FC = () => {
   return (
     <div className="w-full py-10">
       <div className="w-full bg-gray-50 py-4 overflow-x-auto">
-        <div className="max-w-5xl mx-auto flex flex-nowrap items-center space-x-6 px-4 lg:px-0">
+        <div className="max-w-5xl mx-auto flex flex-nowrap items-center space-x-6 px-4 sm:px-6 lg:px-8">
           {tabs.map((link, index) => (
             <button
               key={index}

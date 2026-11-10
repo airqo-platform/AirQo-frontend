@@ -11,7 +11,7 @@ export default function IconsDocsPage() {
       <div className="min-h-screen bg-gray-50/50">
         {/* Hero Section with Back Button */}
         <div className="bg-gradient-to-r from-[#1651C6] to-[#0D388E] text-white py-16">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="mb-6">
               <Link
                 href="/packages/icons"
@@ -43,7 +43,7 @@ export default function IconsDocsPage() {
                 </p>
               </div>
               <Link href="/packages/icons" prefetch={false}>
-                <CustomButton className="text-sm py-2 px-4 bg-white/10 text-white hover:bg-white/20">
+                <CustomButton className="text-sm py-2 px-4 bg-white/10 text-white hover:bg-white/20 active:bg-white/30">
                   Browse Icons
                 </CustomButton>
               </Link>

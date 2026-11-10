@@ -60,8 +60,9 @@ describe('Header Navigation', function () {
     expect(aboutLinkVisible).to.be.true;
   });
 
-  it('should expose only one main landmark on the Explore page', async function () {
+  it('should redirect the removed Explore page to Products with one main landmark', async function () {
     await basePage.navigateTo('/explore-data');
+    expect(await basePage.waitForUrlContains('/products')).to.be.true;
     const landmarkCount = await basePage.getMainLandmarkCount();
     expect(landmarkCount).to.equal(1);
   });
