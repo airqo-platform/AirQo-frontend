@@ -411,11 +411,13 @@ Returns monitoring sites near a given point, sorted by distance (closest first).
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `token` | string | — | Required |
-| `latitude` | number | — | Required. Must have at least 5 decimal places of precision |
-| `longitude` | number | — | Required. Must have at least 5 decimal places of precision |
+| `latitude` | number | — | Required. Any precision is accepted (e.g. `0.247000`, `0.3`) |
+| `longitude` | number | — | Required. Any precision is accepted |
 | `radius` | number | — | Required. Search radius in kilometres |
 | `online_status` | string | — | Optional. Filter to `online` or `offline` sites only |
-| `limit` | integer | 30 | Max results to return (max: 80) |
+| `active_within_days` | integer | — | Optional (1–365). Only return sites that have reported within the last N days, based on `lastRawData` or `lastActive`. Unlike `online_status`, this stays accurate during data-processing delays |
+| `summary` | boolean | `false` | Optional. When `true`, returns a lightweight row per site with only `_id`, `name`, `distance_km`, `lastRawData`, `lastActive`, `isOnline` and `rawOnlineStatus` |
+| `limit` | integer | 30 | Max number of sites to return (max: 80). Each site appears once |
 
 **Example — sites within 5 km, online only**
 
@@ -440,6 +442,30 @@ curl "https://api.airqo.net/api/v2/devices/sites/nearest?latitude=0.34760&longit
       "network": "airqo",
       "isOnline": true,
       "distance_km": 0.42
+    }
+  ]
+}
+```
+
+**Example — lightweight check for sites that reported in the last 7 days**
+
+```bash
+curl "https://api.airqo.net/api/v2/devices/sites/nearest?latitude=0.247&longitude=32.5825&radius=10&active_within_days=7&summary=true&token={SECRET_TOKEN}"
+```
+
+```json
+{
+  "success": true,
+  "message": "successfully retrieved the nearest sites",
+  "sites": [
+    {
+      "_id": "64f7b3e8c9d25a0013f2d456",
+      "name": "kampala_road",
+      "distance_km": 0.42,
+      "lastRawData": "2026-11-08T09:00:00.000Z",
+      "lastActive": "2026-11-07T21:00:00.000Z",
+      "isOnline": false,
+      "rawOnlineStatus": true
     }
   ]
 }
