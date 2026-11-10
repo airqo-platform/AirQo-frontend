@@ -16,7 +16,12 @@ mochawesome-report/
 # next.js
 /.next/
 /.next-manual/
+/.next-verify/
 /out/
+
+# local dev artifacts
+/.dev-server.log
+/.playwright-mcp/
 
 # production
 /build
