@@ -41,7 +41,7 @@ const ForumDetailSkeleton: React.FC = () => {
 
       {/* Navigation Tabs Skeleton */}
       <div className="py-4">
-        <div className="max-w-5xl mx-auto px-6 lg:px-0">
+        <div className="max-w-5xl mx-auto px-6 lg:px-8">
           <div className="flex space-x-8 overflow-x-auto">
             {[1, 2, 3, 4, 5, 6].map((item) => (
               <div
@@ -54,7 +54,7 @@ const ForumDetailSkeleton: React.FC = () => {
       </div>
 
       {/* Main Content Skeleton */}
-      <div className="max-w-5xl mx-auto px-6 lg:px-0 py-12">
+      <div className="max-w-5xl mx-auto px-6 lg:px-8 py-12">
         <div className="space-y-8">
           {/* Section title */}
           <div className="h-8 bg-gray-300 rounded-lg w-64"></div>

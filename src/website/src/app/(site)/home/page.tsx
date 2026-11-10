@@ -12,7 +12,7 @@ export const viewport = generateViewport();
 
 const page = () => {
   return (
-    <MainLayout>
+    <MainLayout showNewsletter>
       <HomePage />
     </MainLayout>
   );

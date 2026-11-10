@@ -113,7 +113,7 @@ const AboutPage = () => {
     });
 
     return (
-      <div className="w-full px-6 lg:px-0 bg-white">
+      <div className="w-full px-6 lg:px-8 bg-white">
         <Divider className="bg-black p-0 m-0 h-[1px] w-full max-w-5xl mx-auto" />
 
         <div className="max-w-5xl mx-auto space-y-12 py-8">
@@ -186,7 +186,7 @@ const AboutPage = () => {
     });
 
     return (
-      <div className="w-full px-6 lg:px-0 bg-white">
+      <div className="w-full px-6 lg:px-8 bg-white">
         <div className="max-w-5xl mx-auto py-8">
           <NoData message="Error loading about information. Please try again later." />
         </div>

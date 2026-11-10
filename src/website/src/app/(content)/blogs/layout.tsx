@@ -7,11 +7,7 @@ type BlogsLayoutProps = {
 };
 
 const BlogsLayout: React.FC<BlogsLayoutProps> = ({ children }) => {
-  return (
-    <MainLayout showMarketingSections={false} showNewsletter={false}>
-      {children}
-    </MainLayout>
-  );
+  return <MainLayout showNewsletter={false}>{children}</MainLayout>;
 };
 
 export default BlogsLayout;

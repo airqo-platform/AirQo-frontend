@@ -152,7 +152,7 @@ const SideEventsCarousel: React.FC<{
 
   return (
     <section
-      className="px-4 lg:px-0 py-8 border-t border-gray-200"
+      className="px-4 sm:px-6 lg:px-8 py-8 border-t border-gray-200"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
@@ -657,7 +657,7 @@ const SingleEvent: React.FC<{ slug: string }> = ({ slug }) => {
           }`}
         ></div>
         <div
-          className={`relative z-10 ${mainConfig.containerClass} w-full space-y-4 sm:space-y-6 text-start px-4 pt-8 sm:pt-0`}
+          className={`relative z-10 ${mainConfig.containerClass} w-full space-y-4 sm:space-y-6 text-start px-4 pt-8 sm:px-6 sm:pt-0 lg:px-8`}
         >
           <nav className="hidden sm:flex items-start text-sm">
             <button
@@ -720,7 +720,7 @@ const SingleEvent: React.FC<{ slug: string }> = ({ slug }) => {
       )}
 
       <div className={`${mainConfig.containerClass}`}>
-        <div className="flex flex-col lg:flex-row gap-8 px-4 lg:px-0 py-8">
+        <div className="flex flex-col lg:flex-row gap-8 px-4 sm:px-6 lg:px-8 py-8">
           {/* Main Content */}
           <div className="flex-1">
             {/* Event Details Section */}

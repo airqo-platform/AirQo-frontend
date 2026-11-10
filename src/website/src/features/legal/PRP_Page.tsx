@@ -26,8 +26,8 @@ const PRP_Page = () => {
       content: (
         <>
           <p>
-            Payments for AirQo API subscriptions are non-refundable. Once a
-            subscription is purchased, the fees are considered final.
+            Payments for Air Quality API subscriptions are non-refundable. Once
+            a subscription is purchased, the fees are considered final.
           </p>
           <p className="mt-4">
             If you believe there is an error in the billing, you must contact
@@ -118,7 +118,9 @@ const PRP_Page = () => {
 
       {/* Main Content */}
       <main className="w-full md:w-3/4 p-4">
-        <h1 className="text-3xl font-bold mb-6">Terms of Service</h1>
+        <h1 className="text-3xl font-bold mb-6">
+          Payment Terms &amp; Refund Policy
+        </h1>
         {sections.map((section: any) => (
           <section
             key={section.id}

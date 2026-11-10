@@ -7,7 +7,7 @@ import { FiBookOpen, FiCode, FiPlayCircle } from 'react-icons/fi';
 const IconsDocsContent = dynamic(() => import('./IconsDocsContent'), {
   ssr: false,
   loading: () => (
-    <div className="max-w-6xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
+    <div className="max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
       <div className="flex flex-col gap-12 lg:flex-row">
         <div className="hidden w-64 flex-shrink-0 lg:block">
           <div className="space-y-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
@@ -52,7 +52,7 @@ export default function IconsDocsContentLoader() {
 
   if (!isDocsEnabled) {
     return (
-      <div className="max-w-6xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
         <div className="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
           <div className="mx-auto max-w-3xl text-center space-y-4">
             <div className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-4 py-2 text-sm font-medium text-blue-700">

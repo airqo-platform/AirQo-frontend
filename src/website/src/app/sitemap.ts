@@ -612,6 +612,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.95,
     },
     { path: '/about-us', changeFrequency: 'monthly', priority: 0.8 },
+    { path: '/products', changeFrequency: 'monthly', priority: 0.95 },
     { path: '/products/monitor', changeFrequency: 'monthly', priority: 0.9 },
     { path: '/products/vertex', changeFrequency: 'monthly', priority: 0.9 },
     { path: '/products/beacon', changeFrequency: 'monthly', priority: 0.9 },
@@ -636,6 +637,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'monthly',
       priority: 0.65,
     },
+    { path: '/solutions', changeFrequency: 'monthly', priority: 0.8 },
     {
       path: '/solutions/african-cities',
       changeFrequency: 'monthly',
@@ -668,12 +670,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { path: '/resources', changeFrequency: 'weekly', priority: 0.6 },
     { path: '/faqs', changeFrequency: 'weekly', priority: 0.75 },
     { path: '/contact', changeFrequency: 'yearly', priority: 0.8 },
-    { path: '/explore-data', changeFrequency: 'hourly', priority: 0.95 },
-    {
-      path: '/explore-data/mobile-app',
-      changeFrequency: 'weekly',
-      priority: 0.85,
-    },
     {
       path: '/legal/terms-of-service',
       changeFrequency: 'yearly',

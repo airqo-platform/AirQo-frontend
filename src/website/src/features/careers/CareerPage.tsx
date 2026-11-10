@@ -78,13 +78,13 @@ const CareerPage: React.FC = () => {
     <div className="flex flex-col w-full bg-[#F2F1F6]">
       {/* Header Section */}
       <header
-        className="relative h-[300px] lg:h-[400px] mb-16 w-full bg-cover bg-center"
+        className="relative min-h-[300px] lg:min-h-[400px] mb-16 w-full bg-cover bg-center"
         style={{
           backgroundImage: `url("${careerHeaderImage}")`,
         }}
       >
         <div className="absolute inset-0 bg-black opacity-40"></div>
-        <div className="relative max-w-5xl mx-auto w-full space-y-6 px-4 lg:px-8 pt-20 text-white">
+        <div className="relative max-w-7xl mx-auto w-full space-y-6 px-4 sm:px-6 lg:px-8 pt-20 text-white">
           <p className="text-sm">Careers &gt; Welcome to AirQo</p>
           <h1 className="text-4xl lg:text-5xl font-bold mt-2">Join our team</h1>
           <p className="text-sm lg:text-xl mt-4">
@@ -97,7 +97,7 @@ const CareerPage: React.FC = () => {
 
       <div className={`space-y-16 w-full ${mainConfig.containerClass}`}>
         {/* Categories Section */}
-        <section className="px-4 lg:px-8">
+        <section className="px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl font-normal mb-8">Categories</h2>
           <div className="flex flex-wrap gap-4">
             {isLoading
@@ -125,7 +125,7 @@ const CareerPage: React.FC = () => {
 
         {/* Loading Skeleton for Job Listings */}
         {isLoading && (
-          <section className="w-full px-4 lg:px-8 space-y-12">
+          <section className="w-full px-4 sm:px-6 lg:px-8 space-y-12">
             <div className="space-y-4">
               {[...Array(3)].map((_, idx) => (
                 <div
@@ -143,7 +143,7 @@ const CareerPage: React.FC = () => {
 
         {/* Job Listings Section */}
         {!isLoading && (
-          <section className="w-full px-4 lg:px-8 space-y-12">
+          <section className="w-full px-4 sm:px-6 lg:px-8 space-y-12">
             {careersError || departmentsError ? (
               <NoData message="Failed to load careers or departments. Please try again later." />
             ) : Object.keys(groupedJobsByDepartment || {}).length === 0 ? (
@@ -164,7 +164,7 @@ const CareerPage: React.FC = () => {
                             onClick={() =>
                               router.push(`careers/${job.public_identifier}`)
                             }
-                            className="flex items-center justify-between p-4 lg:p-6 text-black w-full bg-[#FFFFFF80] rounded-lg shadow-sm hover:shadow-md"
+                            className="flex items-center justify-between p-4 lg:p-6 text-black w-full bg-[#FFFFFF80] rounded-lg shadow-sm hover:bg-white active:bg-white hover:shadow-md"
                           >
                             <div className="text-left">
                               <h4 className="text-lg font-semibold">

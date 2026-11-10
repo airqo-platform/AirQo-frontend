@@ -4,11 +4,12 @@ import { optimizeCloudinaryUrl } from '@/services/external/cloudinary.service';
 
 import AppDownloadSection from './AppDownloadSection';
 import EarthshotFinalistSection from './EarthshotFinalistSection';
-import HomeDeferredSections from './HomeDeferredSections';
+import HomeCTA from './HomeCTA';
 import HomeNetworkCoverageDeferred from './HomeNetworkCoverageDeferred';
 import HomePlayerSection from './HomePlayerSection';
 import HomePublicationsSection from './HomePublicationsSection';
-import ProductsShowcase from './ProductsShowcase';
+import HomeStatsSection from './HomeStatsSection';
+import ProductEcosystem from './ProductEcosystem';
 
 const images = {
   mobileAppMockup: optimizeCloudinaryUrl(
@@ -19,21 +20,21 @@ const images = {
 
 const HomePage = () => {
   return (
-    <div className="space-y-12">
-      {/* Home Player Section */}
+    <div>
+      {/* Editorial hero */}
       <HomePlayerSection />
 
       {/* Earthshot Finalist Announcement – top-level recognition */}
       <EarthshotFinalistSection />
 
+      {/* Product ecosystem: Measure / Understand / Act */}
+      <ProductEcosystem />
+
       {/* Live network coverage */}
       <HomeNetworkCoverageDeferred />
 
-      {/* Platform products showcase */}
-      <ProductsShowcase />
-
-      {/* Deferred sections: stats, billboard, featured carousel */}
-      <HomeDeferredSections />
+      {/* Impact evidence */}
+      <HomeStatsSection />
 
       {/* App Download Section */}
       <AppDownloadSection
@@ -46,6 +47,9 @@ const HomePage = () => {
 
       {/* Latest curated and live research publications */}
       <HomePublicationsSection />
+
+      {/* Closing CTA */}
+      <HomeCTA />
     </div>
   );
 };

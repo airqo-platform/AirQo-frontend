@@ -71,6 +71,11 @@ export default function FloatingMiniBillboard({
     AIR_QUALITY_INFO[level as keyof typeof AIR_QUALITY_INFO]?.label ||
     'Unknown';
   const categoryColor = getAirQualityColor(category);
+  // Solid badges need dark ink for 'unhealthy'/'very-unhealthy' (white text
+  // fails contrast on #F7453C); 'hazardous' and 'no-value' keep white text.
+  const status = getAirQualityColor(category) ? level : 'no-value';
+  const categoryTextColor =
+    status === 'hazardous' || status === 'no-value' ? '#FFFFFF' : '#0B1220';
   const badgeStyle = (() => {
     // Emphasize high-risk levels with strong contrast. Treat 'unhealthy',
     // 'very-unhealthy' and 'hazardous' the same so users clearly see danger.
@@ -78,7 +83,7 @@ export default function FloatingMiniBillboard({
     if (highContrastLevels.includes(level)) {
       return {
         backgroundColor: categoryColor,
-        color: '#ffffff',
+        color: categoryTextColor,
         border: `1px solid ${hexToRgba(categoryColor, 0.9)}`,
         boxShadow: 'inset 0 -2px 0 rgba(0,0,0,0.06)',
         fontFamily: '"Inter", system-ui, -apple-system, sans-serif',
@@ -89,7 +94,7 @@ export default function FloatingMiniBillboard({
     if (level === 'no-value') {
       return {
         backgroundColor: categoryColor,
-        color: '#ffffff',
+        color: categoryTextColor,
         border: `1px solid ${hexToRgba(categoryColor, 0.9)}`,
         boxShadow: 'inset 0 -2px 0 rgba(0,0,0,0.06)',
         fontFamily: '"Inter", system-ui, -apple-system, sans-serif',
@@ -219,7 +224,7 @@ export default function FloatingMiniBillboard({
             e.stopPropagation();
             setIsMinimized(true);
           }}
-          className="absolute -top-1 -right-1 w-5 h-5 flex items-center justify-center bg-blue-800/90 backdrop-blur-sm rounded-full shadow-md z-10 touch-manipulation"
+          className="absolute -top-1 -right-1 flex h-9 w-9 items-center justify-center rounded-full bg-blue-800/90 backdrop-blur-sm shadow-md z-10 touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2"
           aria-label="Minimize widget"
         >
           <span className="text-white text-sm leading-none">&times;</span>
@@ -268,7 +273,7 @@ export default function FloatingMiniBillboard({
           e.stopPropagation();
           setIsMinimized(true);
         }}
-        className="absolute top-2 right-2 p-1 hover:bg-white/20 active:bg-white/30 rounded-full transition-colors z-10 touch-manipulation"
+        className="absolute top-2 right-2 flex h-9 w-9 items-center justify-center rounded-full hover:bg-white/20 active:bg-white/30 transition-colors z-10 touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2"
         aria-label="Minimize widget"
       >
         <span className="text-white text-xl leading-none">&times;</span>

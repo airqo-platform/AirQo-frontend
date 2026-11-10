@@ -6,7 +6,8 @@ import path from 'path';
 let driver: WebDriver;
 
 export async function createDriver(): Promise<WebDriver> {
-  const options = new (require('selenium-webdriver/chrome').Options)();
+  const chrome = require('selenium-webdriver/chrome');
+  const options = new chrome.Options();
 
   if (config.HEADLESS) {
     options.addArguments('--headless');
@@ -16,10 +17,23 @@ export async function createDriver(): Promise<WebDriver> {
   options.addArguments('--disable-dev-shm-usage');
   options.addArguments('--disable-gpu');
 
-  driver = await new Builder()
+  const builder = new Builder()
     .forBrowser(config.BROWSER)
-    .setChromeOptions(options)
-    .build();
+    .setChromeOptions(options);
+  const driverPath = process.env.CHROMEDRIVER_PATH;
+
+  if (driverPath && config.BROWSER === 'chrome') {
+    builder.setChromeService(new chrome.ServiceBuilder(driverPath));
+  }
+
+  driver = await builder.build();
+
+  await driver.manage().window().setRect({
+    width: 1440,
+    height: 1000,
+    x: 0,
+    y: 0,
+  });
 
   await driver.manage().setTimeouts({
     implicit: config.IMPLICIT_WAIT,

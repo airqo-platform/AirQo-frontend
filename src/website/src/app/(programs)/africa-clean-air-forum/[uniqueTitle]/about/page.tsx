@@ -2,7 +2,7 @@ import dynamic from 'next/dynamic';
 
 import {
   generateMetadata as createMetadata,
-  METADATA_CONFIGS,
+  getForumPageMetadata,
 } from '@/lib/metadata';
 
 const AboutPage = dynamic(
@@ -15,11 +15,9 @@ export function generateMetadata({
 }: {
   params: { uniqueTitle: string };
 }) {
-  const encodedTitle = encodeURIComponent(params.uniqueTitle);
-  return createMetadata({
-    ...METADATA_CONFIGS.cleanAirForum,
-    url: `/africa-clean-air-forum/${encodedTitle}/about`,
-  });
+  return createMetadata(
+    getForumPageMetadata(params.uniqueTitle, 'About', 'about'),
+  );
 }
 
 const Page = () => {

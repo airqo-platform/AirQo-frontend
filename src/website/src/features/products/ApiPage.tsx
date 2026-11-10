@@ -43,13 +43,13 @@ const ApiPage = () => {
     <ProductMarketingPage
       theme={apiTheme}
       hero={{
-        breadcrumb: 'Our Products / AirQo API',
+        breadcrumb: 'Our Products / Air Quality API',
         title: 'Build with air quality data.',
         description:
           'Build with real-time, historical, and forecast air quality data from African cities.',
         image: {
           src: images.hero,
-          alt: 'AirQo API - African air quality data API for developers',
+          alt: 'Air Quality API - African air quality data API for developers',
         },
         actions: [
           {
@@ -71,7 +71,7 @@ const ApiPage = () => {
           </>
         ),
         description:
-          'The AirQo API provides open access to a vast repository of over 10 million records of raw and calibrated real-time, historical, and forecast air quality data.',
+          'The Air Quality API provides open access to a vast repository of over 10 million records of raw and calibrated real-time, historical, and forecast air quality data.',
       }}
       primarySection={{
         eyebrow: 'Data access',
@@ -82,7 +82,7 @@ const ApiPage = () => {
         ],
         image: {
           src: images.dataAccess,
-          alt: 'AirQo API data access interface for African air quality developers',
+          alt: 'Air Quality API data access interface for African air quality developers',
         },
         cardBackgroundClassName: 'bg-gray-100',
       }}
@@ -90,7 +90,9 @@ const ApiPage = () => {
         title: (
           <>
             What you can do with the{' '}
-            <span className={apiTheme.accentTextClassName}>AirQo API</span>
+            <span className={apiTheme.accentTextClassName}>
+              Air Quality API
+            </span>
           </>
         ),
         description:
@@ -129,11 +131,14 @@ const ApiPage = () => {
         ],
       }}
       ctaSection={{
-        eyebrow: 'AirQo API',
+        eyebrow: 'Air Quality API',
         title: (
           <>
             Ready to build with{' '}
-            <span className={apiTheme.accentTextClassName}>AirQo API</span>?
+            <span className={apiTheme.accentTextClassName}>
+              Air Quality API
+            </span>
+            ?
           </>
         ),
         description:

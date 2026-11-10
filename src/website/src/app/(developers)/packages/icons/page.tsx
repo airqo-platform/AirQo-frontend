@@ -6,11 +6,11 @@ import { optimizeCloudinaryUrl } from '@/services/external/cloudinary.service';
 
 const iconsOgImage = optimizeCloudinaryUrl(
   'https://res.cloudinary.com/dbibjvyhm/image/upload/v1729071534/website/photos/wrapper_zpnvdw.png',
-  { width: 1200, height: 630, crop: 'fill' },
+  { width: 1200, height: 630, crop: 'fill', format: 'jpg' },
 );
 
 export const metadata: Metadata = {
-  title: 'AirQo Icons',
+  title: { absolute: 'AirQo Icons | Icon Library' },
   description:
     'Beautiful multi-framework icon library for modern applications. 1,384+ icons across 22 categories for React, Vue, and Flutter with TypeScript support.',
   keywords: [
@@ -27,6 +27,8 @@ export const metadata: Metadata = {
     title: 'AirQo Icons - Multi-Framework Icon Library',
     description:
       '1,384+ beautiful icons for React, Vue, and Flutter. Fully customizable with TypeScript support and tree-shakable imports.',
+    url: '/packages/icons',
+    siteName: 'AirQo',
     images: [
       {
         url: iconsOgImage,
@@ -41,7 +43,9 @@ export const metadata: Metadata = {
     title: 'AirQo Icons - Multi-Framework Icon Library',
     description:
       '1,384+ icons for React, Vue, and Flutter with TypeScript support.',
+    images: [iconsOgImage],
   },
+  alternates: { canonical: '/packages/icons' },
 };
 
 export default function Page() {

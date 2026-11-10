@@ -18,7 +18,7 @@ const ForumLoading: React.FC<ForumLoadingProps> = ({
     <div className={cn('min-h-screen w-full', className)}>
       {/* Hero Section Skeleton */}
       <section className="bg-gradient-to-r from-blue-600 to-blue-800 text-white py-20">
-        <div className={`${mainConfig.containerClass} px-4 lg:px-0`}>
+        <div className={`${mainConfig.containerClass} px-4 sm:px-6 lg:px-8`}>
           <div className="max-w-4xl mx-auto text-center">
             <div className="h-12 bg-white/20 rounded-lg w-3/4 mx-auto mb-6 animate-pulse"></div>
             <div className="h-6 bg-white/20 rounded-lg w-1/2 mx-auto animate-pulse"></div>
@@ -27,7 +27,9 @@ const ForumLoading: React.FC<ForumLoadingProps> = ({
       </section>
 
       {/* Content Section Skeleton */}
-      <section className={`${mainConfig.containerClass} px-4 lg:px-0 py-16`}>
+      <section
+        className={`${mainConfig.containerClass} px-4 sm:px-6 lg:px-8 py-16`}
+      >
         <div className="text-center mb-12">
           <div className="h-8 bg-gray-300 rounded-lg w-1/3 mx-auto mb-4 animate-pulse"></div>
           <div className="h-4 bg-gray-300 rounded-lg w-1/2 mx-auto animate-pulse"></div>
