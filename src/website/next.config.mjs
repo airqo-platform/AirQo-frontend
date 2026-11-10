@@ -77,7 +77,7 @@ const nextConfig = {
   // Essential redirects only
   async redirects() {
     return [
-      { source: '/', destination: '/home', permanent: false },
+      { source: '/', destination: '/home', permanent: true },
       {
         source: '/clean-air-network',
         destination: '/clean-air-network/about',
@@ -101,6 +101,16 @@ const nextConfig = {
       {
         source: '/faces-of-clean-air',
         destination: '/africa-clean-air-forum-2026/faces-of-clean-air',
+        permanent: true,
+      },
+      {
+        source: '/explore-data/mobile-app',
+        destination: '/products/mobile-app',
+        permanent: true,
+      },
+      {
+        source: '/explore-data',
+        destination: '/products',
         permanent: true,
       },
     ];
