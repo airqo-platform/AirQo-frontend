@@ -6,6 +6,7 @@ import { setUserDetails, setActiveGroup } from '../redux/slices/userSlice';
 import { useAppSelector } from '../redux/hooks';
 import logger from '@/lib/logger';
 import { getApiErrorMessage } from '../utils/getApiErrorMessage';
+import { trackEvent } from '@/lib/track';
 
 export const useOnboarding = () => {
   const dispatch = useDispatch();
@@ -42,6 +43,14 @@ export const useOnboarding = () => {
     async (patch: { action?: 'mark_step_complete' | 'dismiss_checklist'; step_id?: string }) => {
       if (!patch.action) return;
 
+      const trackChecklistUpdate = () => {
+        if (patch.action === 'dismiss_checklist') {
+          trackEvent('onboarding_checklist_dismissed', { scope: userScope });
+        } else {
+          trackEvent('onboarding_step_completed', { step: patch.step_id, scope: userScope });
+        }
+      };
+
       if (userScope === 'personal' && user) {
         try {
           const res = await updateUserOnboarding({ action: patch.action, step_id: patch.step_id });
@@ -49,6 +58,7 @@ export const useOnboarding = () => {
             res.data?.onboarding_checklist || res.user?.onboarding_checklist || res.onboarding_checklist;
 
           if (res.success && updatedChecklist) {
+            trackChecklistUpdate();
             dispatch(
               setUserDetails({
                 ...user,
@@ -72,6 +82,7 @@ export const useOnboarding = () => {
             res.data?.onboarding_checklist || res.group?.onboarding_checklist || res.onboarding_checklist;
 
           if (res.success && updatedChecklist) {
+            trackChecklistUpdate();
             dispatch(
               setActiveGroup({
                 ...activeGroup,

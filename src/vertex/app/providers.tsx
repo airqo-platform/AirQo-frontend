@@ -11,6 +11,7 @@ import SessionLoadingState from "@/components/layout/loading/session-loading";
 import { QueryProvider } from "@/core/providers/query-provider";
 import { runClientCacheMaintenance } from "@/core/utils/clientCache";
 import { BannerProvider } from "@/context/banner-context";
+import { AnalyticsProvider } from "@/core/providers/analytics-provider";
 
 const NetworkStatusBanner = dynamic(
   () => import('@/components/features/network-status-banner'),
@@ -42,6 +43,7 @@ export default function Providers({ children, session }: { children: React.React
         <QueryProvider scopeKey={cacheScope}>
           <BannerProvider>
             <AuthProvider session={session}>
+              <AnalyticsProvider />
               <ThemeProvider>
                 {children}
               </ThemeProvider>

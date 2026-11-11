@@ -13,6 +13,7 @@ import {
     AqBarChartSquarePlus,
 } from '@airqo/icons-react';
 import { Smartphone } from 'lucide-react';
+import { trackEvent } from '@/lib/track';
 import {
     DropdownMenu,
     DropdownMenuTrigger,
@@ -82,6 +83,10 @@ const AppDropdown: React.FC<AppDropdownProps> = ({ className = '' }) => {
     ];
 
     const handleAppClick = (app: App): void => {
+        trackEvent('app_link_opened', {
+            destination: app.name.toLowerCase().replace(/\s+/g, '_'),
+            source: 'app_menu',
+        });
         if (app.type === 'qr') {
             setShowQRCode(true);
         } else if (app.href) {
@@ -94,6 +99,11 @@ const AppDropdown: React.FC<AppDropdownProps> = ({ className = '' }) => {
     };
 
     const openAppStore = (url: string): void => {
+        trackEvent('app_link_opened', {
+            destination: 'mobile_app_store',
+            source: 'app_menu',
+            store: url.includes('apple.com') ? 'app_store' : 'google_play',
+        });
         window.open(url, '_blank', 'noopener,noreferrer');
     };
 

@@ -15,6 +15,7 @@ import { useUserContext } from "@/core/hooks/useUserContext";
 import { useAppSelector } from "@/core/redux/hooks";
 import { getStatusExplanation } from "@/core/utils/status";
 import { StatCard } from "./stat-card";
+import { trackEvent } from "@/lib/track";
 
 export const DashboardStatsCards = () => {
   const { data: session } = useSession();
@@ -66,6 +67,10 @@ export const DashboardStatsCards = () => {
   const router = useRouter();
 
   const handleNavigation = (queryString: string) => {
+    trackEvent("home_action_selected", {
+      action: "status_card",
+      status: new URLSearchParams(queryString).get("status") || "all",
+    });
     const basePath = isPersonalScope ? "/devices/my-devices" : "/devices/overview";
     router.push(`${basePath}${queryString}`);
   };

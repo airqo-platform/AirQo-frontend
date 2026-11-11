@@ -13,6 +13,7 @@ import {
 import { useDetectedPlatform } from '@/core/hooks/useDetectedPlatform';
 import { getMacArchitecture } from '@/core/utils/platform';
 import { vertexConfig } from '@/vertex.config';
+import { trackEvent } from '@/lib/track';
 
 const WindowsIcon = ({ className }: { className?: string }) => (
   <svg className={className} viewBox="0 0 24 24" fill="currentColor">
@@ -145,6 +146,14 @@ export default function DownloadHero() {
                 path={primary.href ?? '#releases'}
                 target={primary.href?.startsWith('http') ? '_blank' : undefined}
                 rel="noopener noreferrer"
+                onClick={() =>
+                  trackEvent('desktop_app_download_clicked', {
+                    source: 'primary_button',
+                    platform,
+                    arch: platform === 'mac' ? macArch : undefined,
+                    has_release: Boolean(primary.href),
+                  })
+                }
                 variant="filled"
                 Icon={primary.Icon}
                 iconClassName="h-5 w-5"
@@ -241,6 +250,14 @@ export default function DownloadHero() {
                           href={href}
                           className="flex items-center justify-between rounded-md border border-border px-3 py-2 text-sm hover:bg-muted/50 hover:border-primary/30 transition-colors group"
                           download
+                          onClick={() =>
+                            trackEvent('desktop_app_download_clicked', {
+                              source: 'platform_card',
+                              platform: id,
+                              package: suffix || linkLabel,
+                              matches_detected_platform: isDetected,
+                            })
+                          }
                         >
                           <span className="text-foreground">
                             {linkLabel}

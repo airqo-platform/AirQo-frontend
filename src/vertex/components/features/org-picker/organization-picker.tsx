@@ -18,6 +18,7 @@ import { AqGrid01 } from "@airqo/icons-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRouter, usePathname } from "next/navigation";
 import { useBannerWithDelay } from "@/core/hooks/useBannerWithDelay";
+import { trackEvent } from "@/lib/track";
 
 export const formatTitle = (title: string) => {
   if (!title) return "";
@@ -88,6 +89,12 @@ const OrganizationPicker: React.FC = () => {
       // Start shimmer just before navigation fires
       dispatch(setOrganizationSwitching({ isSwitching: true, switchingTo: group.grp_title }));
 
+      if (group._id !== activeGroup?._id) {
+        trackEvent("organization_switched", {
+          member_organization_count: validUserGroups.length,
+          to_context: newContext,
+        });
+      }
       dispatch(setActiveGroup(group));
       dispatch(setUserContext(newContext));
 

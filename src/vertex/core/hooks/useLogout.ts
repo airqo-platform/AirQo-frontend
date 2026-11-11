@@ -11,6 +11,7 @@ import logger from '@/lib/logger';
 import { useAppSelector, useAppDispatch } from '../redux/hooks';
 import { persistor } from '../redux/store';
 import { setBackendOAuthSignedOutFlag } from '../auth/oauth-session';
+import { resetAnalytics } from '@/lib/track';
 
 let sharedLogoutPromise: Promise<void> | null = null;
 let sharedIsLoggingOut = false;
@@ -62,6 +63,8 @@ export const useLogout = (callbackUrl?: string) => {
         
         dispatch(setLoggingOut(true));
         dispatch(clearUser());
+        // Every logout, automatic ones included: the next person on this browser starts fresh
+        resetAnalytics();
 
         clearSessionData();
         clearTokenCache();

@@ -28,6 +28,7 @@ import type { UserDetails } from '@/app/types/users';
 import { useTheme } from "@/components/theme-provider";
 import { vertexConfig } from '@/vertex.config';
 import { profileSettingsUrl } from '@/core/urls';
+import { trackEvent } from '@/lib/track';
 
 interface TopbarProps {
   onMenuClick: () => void;
@@ -62,6 +63,7 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
   }, [router]);
 
   const handleSettingsClick = useCallback(() => {
+    trackEvent('app_link_opened', { destination: 'nexus', source: 'profile_settings' });
     window.open(profileSettingsUrl, '_blank', 'noopener,noreferrer');
   }, []);
 
@@ -229,7 +231,11 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
               size="md"
               primaryAction={{
                 label: "Log out",
-                onClick: () => { setShowLogoutConfirm(false); logout(); },
+                onClick: () => {
+                  setShowLogoutConfirm(false);
+                  trackEvent('user_signed_out', {}, { sendNow: true });
+                  logout();
+                },
                 className: "bg-red-600 hover:bg-red-700 border-red-600",
               }}
               secondaryAction={{

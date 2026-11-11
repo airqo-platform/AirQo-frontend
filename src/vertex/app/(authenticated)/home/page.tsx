@@ -24,6 +24,7 @@ import { Device } from "@/app/types/devices";
 import { useGroupDetails } from "@/core/hooks/useGroups";
 import { useOnboarding } from "@/core/hooks/useOnboarding";
 import ReusableToast from "@/components/shared/toast/ReusableToast";
+import { trackEvent } from "@/lib/track";
 
 // ─── Skeletons ────────────────────────────────────────────────────────────────
 
@@ -188,7 +189,13 @@ const WelcomePage = () => {
   const showChecklist = !allStepsComplete && !activeChecklistState.dismissed && !isLoadingGroupDetailsSafe && !activeChecklistState.isMissing;
 
   const openAddDeviceChoice = React.useCallback(() => {
+    trackEvent("home_action_selected", { action: "add_device", source: "checklist" });
     setIsAddDeviceChoiceOpen(true);
+  }, []);
+
+  const openAssignCohort = React.useCallback(() => {
+    trackEvent("home_action_selected", { action: "assign_cohort", source: "checklist" });
+    setIsAssignCohortModalOpen(true);
   }, []);
 
   const handleGoToVisibility = React.useCallback(() => {
@@ -205,13 +212,20 @@ const WelcomePage = () => {
     });
   }, []);
 
+  const goToVisibilityFromChecklist = React.useCallback(() => {
+    trackEvent("home_action_selected", { action: "set_visibility", source: "checklist" });
+    handleGoToVisibility();
+  }, [handleGoToVisibility]);
+
   const openClaimModal = React.useCallback(() => {
     if (justCompletedClaim) return;
+    trackEvent("home_action_selected", { action: "claim_device", source: "add_device_choice" });
     setIsAddDeviceChoiceOpen(false);
     setIsClaimModalOpen(true);
   }, [justCompletedClaim]);
 
   const openImportModal = React.useCallback(() => {
+    trackEvent("home_action_selected", { action: "register_device", source: "add_device_choice" });
     setIsAddDeviceChoiceOpen(false);
     setIsImportModalOpen(true);
   }, []);
@@ -402,8 +416,8 @@ const WelcomePage = () => {
             <OnboardingChecklistWrapper
               autoCompletedSteps={autoSteps}
               onAddDevice={openAddDeviceChoice}
-              onGoToCohorts={() => setIsAssignCohortModalOpen(true)}
-              onGoToVisibility={handleGoToVisibility}
+              onGoToCohorts={openAssignCohort}
+              onGoToVisibility={goToVisibilityFromChecklist}
               canClaimDevice={canClaimDevice}
               isLoadingGroupDetailsSafe={isLoadingGroupDetailsSafe}
               missingPermission={PERMISSIONS.DEVICE.CLAIM}
@@ -422,8 +436,8 @@ const WelcomePage = () => {
         <OnboardingChecklistWrapper
           autoCompletedSteps={autoSteps}
           onAddDevice={openAddDeviceChoice}
-          onGoToCohorts={() => setIsAssignCohortModalOpen(true)}
-          onGoToVisibility={handleGoToVisibility}
+          onGoToCohorts={openAssignCohort}
+          onGoToVisibility={goToVisibilityFromChecklist}
           canClaimDevice={canClaimDevice}
           isLoadingGroupDetailsSafe={isLoadingGroupDetailsSafe}
           missingPermission={PERMISSIONS.DEVICE.CLAIM}
@@ -438,14 +452,20 @@ const WelcomePage = () => {
                 variant="filled"
                 disabled={!canClaimDevice}
                 permission={PERMISSIONS.DEVICE.CLAIM}
-                onClick={() => setIsClaimModalOpen(true)}
+                onClick={() => {
+                  trackEvent("home_action_selected", { action: "claim_device", source: "header" });
+                  setIsClaimModalOpen(true);
+                }}
                 Icon={Plus}
               >
                 Claim AirQo Device
               </ReusableButton>
               <ReusableButton
                 variant="outlined"
-                onClick={() => setIsImportModalOpen(true)}
+                onClick={() => {
+                  trackEvent("home_action_selected", { action: "register_device", source: "header" });
+                  setIsImportModalOpen(true);
+                }}
                 Icon={Upload}
               >
                 Register Non-AirQo Device

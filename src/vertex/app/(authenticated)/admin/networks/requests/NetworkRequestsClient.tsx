@@ -13,6 +13,7 @@ import ReusableInputField from "@/components/shared/inputfield/ReusableInputFiel
 import ReusableButton from "@/components/shared/button/ReusableButton";
 import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
 import { useBanner } from "@/context/banner-context";
+import { trackEvent } from "@/lib/track";
 
 type TabStatus = "all" | "pending" | "under_review" | "approved" | "denied";
 
@@ -65,6 +66,11 @@ export default function NetworkRequestsClient({ initialRequests }: NetworkReques
     try {
       const response = await axios.put(`/api/devices/network-creation-requests/${selectedRequest._id}/${actionType}`, {
         reviewer_notes: notes
+      });
+      trackEvent('network_request_reviewed', {
+        action: actionType,
+        previous_status: selectedRequest.status,
+        has_notes: Boolean(notes.trim()),
       });
 
       showBanner({ 

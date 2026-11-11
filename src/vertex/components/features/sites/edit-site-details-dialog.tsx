@@ -12,6 +12,7 @@ import { useBannerWithDelay } from "@/core/hooks/useBannerWithDelay";
 import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
 import { useEffect } from "react";
 import { Site } from "@/app/types/sites";
+import { trackEvent } from "@/lib/track";
 
 const siteFormSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -131,6 +132,7 @@ export function EditSiteDetailsDialog({
       { siteId: site._id, data: transformedData },
       {
         onSuccess: () => {
+          trackEvent("site_updated", { section, fields: Object.keys(transformedData) });
           onOpenChange(false);
         },
       }

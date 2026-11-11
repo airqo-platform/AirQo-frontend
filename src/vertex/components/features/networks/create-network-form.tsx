@@ -13,6 +13,7 @@ import { AqPlus } from "@airqo/icons-react";
 import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
 import ReusableSelectInput from "@/components/shared/select/ReusableSelectInput";
 import { useBanner } from "@/context/banner-context";
+import { trackEvent } from "@/lib/track";
 import { useBannerWithDelay } from "@/core/hooks/useBannerWithDelay";
 import { networkFormSchema, NetworkFormValues } from "./schema";
 
@@ -50,6 +51,7 @@ export function CreateNetworkForm() {
                 await axios.post('/api/network', values, {
                     headers: { 'Content-Type': 'application/json' },
                 });                         
+                trackEvent("network_created", { network_category: values.net_category });
                 queryClient.invalidateQueries({ queryKey: ["networks"] });
                 handleClose();
                 showBannerWithDelay({ severity: 'success', message: 'Sensor Manufacturer created successfully!', scoped: false });

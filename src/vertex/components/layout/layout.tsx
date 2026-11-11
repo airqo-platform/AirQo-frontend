@@ -15,6 +15,7 @@ import { PageSatisfactionBanner } from '../features/feedback/page-satisfaction-b
 import { GlobalBannerContainer } from '@/context/banner-context';
 
 import { setLastActiveModule } from '@/core/utils/userPreferences';
+import { trackEvent } from '@/lib/track';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -94,6 +95,7 @@ export default function Layout({ children }: LayoutProps) {
     };
 
     const nextPath = targetPath || defaultRoutes[module] || '/home';
+    if (targetModule !== activeModule) trackEvent('module_switched', { to: targetModule });
     setIsNavigating(true);
     router.prefetch(nextPath);
     router.push(nextPath);

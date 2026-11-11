@@ -1,7 +1,7 @@
 // ClaimDeviceModal.tsx
 'use client';
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -41,6 +41,7 @@ const MethodSelectStep = dynamic(() => import('./steps/MethodSelectStep'), { loa
 const BulkInputStep = dynamic(() => import('./steps/BulkInputStep'), { loading: StepLoader });
 
 import { getClaimErrorMessage, parseQRCode } from './utils';
+import { trackEvent } from '@/lib/track';
 
 // ============================================================
 // MODES
@@ -227,6 +228,8 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
   // Tracks which step the user came from before confirmation,
   // so the Cancel/Back button returns to the right place.
   const [previousStep, setPreviousStep] = useState<FlowStep>('method-select');
+  // Whether the bulk list came from an uploaded file rather than typed rows
+  const bulkFromFileRef = useRef(false);
 
   const [isImportingCohort, setIsImportingCohort] = useState(false);
   const [isCohortAssignmentSuccess, setIsCohortAssignmentSuccess] =
@@ -391,14 +394,29 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
       return;
     }
 
+    // Recorded here, not in the success effect, which can run twice
+    const trackClaim = {
+      onSuccess: () =>
+        trackEvent('device_claimed', {
+          method: previousStep === 'qr-scan' ? 'qr' : 'manual',
+          mode,
+          device_count: 1,
+          context: isPersonalContext ? 'personal' : 'organization',
+          has_default_cohort: Boolean(defaultCohort),
+        }),
+    };
+
     // GUIDED MODE — claim only, no cohort assignment
     if (isGuidedMode) {
       setError(null);
-      claimDevice({
-        device_name: deviceId,
-        user_id: userId,
-        claim_token: claimToken,
-      });
+      claimDevice(
+        {
+          device_name: deviceId,
+          user_id: userId,
+          claim_token: claimToken,
+        },
+        trackClaim,
+      );
       return;
     }
 
@@ -409,12 +427,15 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
     }
 
     setError(null);
-    claimDevice({
-      device_name: deviceId,
-      user_id: userId,
-      claim_token: claimToken,
-      ...(defaultCohort && { cohort_id: defaultCohort }),
-    });
+    claimDevice(
+      {
+        device_name: deviceId,
+        user_id: userId,
+        claim_token: claimToken,
+        ...(defaultCohort && { cohort_id: defaultCohort }),
+      },
+      trackClaim,
+    );
   };
 
   const onManualSubmit = (data: ClaimDeviceFormData) => {
@@ -489,10 +510,12 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
   const handleBulkFileImport = (devices: BulkDevice[]) => {
     setError(null);
     setBulkDevices(devices);
+    bulkFromFileRef.current = true;
   };
 
   /** Clear all device rows from the bulk list. */
   const handleBulkClear = () => {
+    bulkFromFileRef.current = false;
     setBulkDevices([]);
     setError(null);
   };
@@ -523,11 +546,25 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
       d => d.device_name.trim() && d.claim_token.trim(),
     );
 
-    bulkClaimDevices({
-      user_id: userId,
-      devices: valid,
-      ...(defaultCohort && { cohort_id: defaultCohort }),
-    });
+    bulkClaimDevices(
+      {
+        user_id: userId,
+        devices: valid,
+        ...(defaultCohort && { cohort_id: defaultCohort }),
+      },
+      {
+        onSuccess: data =>
+          trackEvent('device_claimed', {
+            method: 'bulk',
+            mode,
+            input: bulkFromFileRef.current ? 'file' : 'typed',
+            device_count: valid.length,
+            successful_count: data?.data?.successful_claims?.length ?? 0,
+            failed_count: data?.data?.failed_claims?.length ?? 0,
+            context: isPersonalContext ? 'personal' : 'organization',
+          }),
+      },
+    );
   };
 
   // ==========================================================
@@ -582,6 +619,7 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
         { groupId: activeGroup._id, cohortIds: [verifiedCohort.id] },
         {
           onSuccess: () => {
+            trackEvent('device_claimed', { method: 'cohort', mode, context: 'organization' });
             invalidateGroupCaches();
             if (onSuccess) {
               onSuccess({
@@ -610,6 +648,7 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
         { userId, cohortIds: [verifiedCohort.id] },
         {
           onSuccess: () => {
+            trackEvent('device_claimed', { method: 'cohort', mode, context: 'personal' });
             invalidatePersonalCaches();
             if (onSuccess) {
               onSuccess({

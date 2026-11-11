@@ -16,6 +16,7 @@ import ShippingLabelPrintModal from '@/components/features/shipping/ShippingLabe
 import { useQueryClient } from '@tanstack/react-query';
 import { useState, useCallback } from 'react';
 import { usePageTitle } from '@/context/page-title-context';
+import { trackEvent } from '@/lib/track';
 
 type BatchDevice = ShippingStatusDevice & {
     id: string | number;
@@ -62,7 +63,13 @@ const BatchDetailsPage = () => {
             return;
         }
 
-        generateLabels(selectedDeviceNames);
+        generateLabels(selectedDeviceNames, {
+            onSuccess: (result) =>
+                trackEvent('shipping_labels_generated', {
+                    scope: 'selected',
+                    label_count: result.shipping_labels?.total_labels ?? selectedDeviceNames.length,
+                }),
+        });
     }, [generateLabels, data?.batch?.devices, showBanner]);
 
     const handleGenerateAllLabels = useCallback(() => {
@@ -76,7 +83,13 @@ const BatchDetailsPage = () => {
             return;
         }
 
-        generateLabels(allDeviceNames);
+        generateLabels(allDeviceNames, {
+            onSuccess: (result) =>
+                trackEvent('shipping_labels_generated', {
+                    scope: 'all',
+                    label_count: result.shipping_labels?.total_labels ?? allDeviceNames.length,
+                }),
+        });
     }, [generateLabels, data?.batch?.devices, showBanner]);
 
     const handleCloseModal = useCallback(() => {

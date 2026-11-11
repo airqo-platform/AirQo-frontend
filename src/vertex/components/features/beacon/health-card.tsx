@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { AqLinkExternal01 } from "@airqo/icons-react";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { trackEvent } from "@/lib/track";
 import type {
   BeaconDiagnosticsSummary,
   BeaconHealthDevice,
@@ -274,8 +275,12 @@ export const HealthMessage = ({ title, children }: { title: string; children: Re
   </div>
 );
 
+/** Which page's card this is, so links to Beacon can be told apart in analytics. */
+export type HealthCardKind = "device" | "site" | "cohort";
+
 interface HealthCardProps {
   title: string;
+  kind?: HealthCardKind;
   badge?: ReactNode;
   diagnosedOn?: string | null;
   beaconHref?: string;
@@ -288,6 +293,7 @@ const FOOTER_ACTION_CLASSES =
 
 export const HealthCard = ({
   title,
+  kind,
   badge,
   diagnosedOn,
   beaconHref,
@@ -312,7 +318,19 @@ export const HealthCard = ({
           </span>
         )}
         {beaconHref && (
-          <a href={beaconHref} target="_blank" rel="noopener noreferrer" className={FOOTER_ACTION_CLASSES}>
+          <a
+            href={beaconHref}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={FOOTER_ACTION_CLASSES}
+            onClick={() =>
+              trackEvent("app_link_opened", {
+                destination: "beacon",
+                source: kind ? `${kind}_health_card` : "health_card",
+                card_state: onRetry ? "error" : "loaded",
+              })
+            }
+          >
             Open in Beacon
             <AqLinkExternal01 aria-hidden="true" className="h-4 w-4" />
             <span className="sr-only">(opens in a new tab)</span>
@@ -337,14 +355,16 @@ export const HealthCardSkeleton = ({ title }: { title: string }) => (
 
 export const HealthCardError = ({
   title,
+  kind,
   beaconHref,
   onRetry,
 }: {
   title: string;
+  kind?: HealthCardKind;
   beaconHref: string;
   onRetry: () => void;
 }) => (
-  <HealthCard title={title} beaconHref={beaconHref} onRetry={onRetry}>
+  <HealthCard title={title} kind={kind} beaconHref={beaconHref} onRetry={onRetry}>
     <HealthMessage title="Couldn't load health from Beacon">
       The rest of this page isn&apos;t affected.
     </HealthMessage>

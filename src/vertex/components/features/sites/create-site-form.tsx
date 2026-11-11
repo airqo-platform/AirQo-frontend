@@ -21,6 +21,7 @@ import LocationAutocomplete from "@/components/features/location-autocomplete/Lo
 import { Label } from "@/components/ui/label";
 import { useNetworks } from "@/core/hooks/useNetworks";
 import ReusableSelectInput from "@/components/shared/select/ReusableSelectInput";
+import { trackEvent } from "@/lib/track";
 
 // Lazy load MiniMap to reduce initial bundle size
 const MiniMap = dynamic(() => import("@/components/features/mini-map/mini-map"), {
@@ -113,6 +114,7 @@ export function CreateSiteForm({ disabled = false, basePath = "/admin/sites" }: 
       },
       {
         onSuccess: (data) => {
+          trackEvent("site_created", { input_mode: inputMode });
           handleClose();
           if (data?.site?._id) {
             router.push(`${basePath}/${data.site._id}`);
@@ -120,7 +122,7 @@ export function CreateSiteForm({ disabled = false, basePath = "/admin/sites" }: 
         },
       }
     );
-  }, [createSite, activeGroup?.grp_title, handleClose, router, basePath]);
+  }, [createSite, activeGroup?.grp_title, handleClose, router, basePath, inputMode]);
 
   const handleCoordinateChange = useCallback((lat: string, lng: string) => {
     form.setValue("latitude", lat, { shouldValidate: true });
