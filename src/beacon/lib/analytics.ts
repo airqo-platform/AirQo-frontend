@@ -298,7 +298,11 @@ function scheduleInit() {
   }
 }
 
-function withClient(task: Task) {
+/**
+ * Runs `task` now, or queues it until PostHog loads. Events are capped at MAX_QUEUED_TASKS;
+ * identity calls (`essential`) are always kept, since the provider won't repeat them.
+ */
+function withClient(task: Task, { essential = false } = {}) {
   if (!isAnalyticsEnabled()) return
   if (client) {
     try {
@@ -308,7 +312,7 @@ function withClient(task: Task) {
     }
     return
   }
-  if (queue.length < MAX_QUEUED_TASKS) queue.push(task)
+  if (essential || queue.length < MAX_QUEUED_TASKS) queue.push(task)
   scheduleInit()
 }
 
@@ -360,7 +364,7 @@ export function identifyUser({ id, role }: AnalyticsPerson): void {
     // person. (A sign-out reloads the page, so this is how a second account is noticed.)
     if (posthog.get_property("$user_state") === "identified") posthog.reset()
     posthog.identify(id, personProperties)
-  })
+  }, { essential: true })
 }
 
 export interface AnalyticsOrganization {
@@ -384,10 +388,10 @@ export function setActiveOrganization(organization: AnalyticsOrganization | null
       name: organization.title,
       ...(organization.slug ? { slug: organization.slug } : {}),
     })
-  })
+  }, { essential: true })
 }
 
 /** Forgets the signed-in user on sign-out, so the next person on this browser starts fresh. */
 export function resetAnalytics(): void {
-  withClient((posthog) => posthog.reset())
+  withClient((posthog) => posthog.reset(), { essential: true })
 }
