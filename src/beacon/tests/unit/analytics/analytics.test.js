@@ -150,3 +150,19 @@ test("without NEXT_PUBLIC_POSTHOG_KEY nothing is loaded or sent", () => {
   assert.doesNotThrow(() => trackEvent("report_exported", { format: "pdf" }))
   assert.doesNotThrow(() => trackPageview("/dashboard/home"))
 })
+
+test("a sign-in records its method once, and a failed one leaves nothing behind", async () => {
+  const { clearLoginStarted, consumeLoginMethod, consumeLoginStartedAt, markLoginStarted } = await import(
+    "@/lib/feedback-preferences"
+  )
+
+  markLoginStarted("google")
+  assert.equal(consumeLoginMethod(), "google")
+  assert.equal(consumeLoginMethod(), null)
+  assert.ok(consumeLoginStartedAt() > 0)
+
+  markLoginStarted("password")
+  clearLoginStarted()
+  assert.equal(consumeLoginStartedAt(), null)
+  assert.equal(consumeLoginMethod(), null)
+})

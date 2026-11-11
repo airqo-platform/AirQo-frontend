@@ -157,7 +157,7 @@ export default function ReportsPage() {
         loadReportLogo().catch(() => null),
       ])
       downloadDeviceReportPdf(report, sections, { map: map.image, logo })
-      trackEvent("report_exported", { format: "pdf", sections, has_map: Boolean(map.image) })
+      trackEvent("report_exported", { format: "pdf", sections, has_map: sections.map && Boolean(map.image) })
       toast(
         sections.map && !map.image
           ? {

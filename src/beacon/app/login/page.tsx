@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Loader2, AlertCircle, Eye, EyeOff } from "lucide-react"
 import authService from "@/services/api-service"
-import { markLoginStarted } from "@/lib/feedback-preferences"
+import { clearLoginStarted, markLoginStarted } from "@/lib/feedback-preferences"
 import { trackEvent } from "@/lib/analytics"
 import { getSafeReturnPath } from "@/lib/navigation"
 import { signIn, useSession } from "next-auth/react"
@@ -136,6 +136,7 @@ export default function LoginPage() {
           method: "password",
           reason: errorMessage === response.error ? "error" : "invalid_credentials",
         })
+        clearLoginStarted()
         setError(errorMessage)
         return
       }
@@ -162,9 +163,11 @@ export default function LoginPage() {
         window.location.href = returnPath ?? redirectTarget
         return
       } else {
+        clearLoginStarted()
         setError("Unexpected response. Please try again.")
       }
     } catch (err: any) {
+      clearLoginStarted()
       if (err.status === 401) {
         setError("Invalid email or password")
       } else if (err.status === 500) {

@@ -12,7 +12,7 @@ Beacon sends product analytics to PostHog so we can see which parts of Beacon pe
 Both are read when the image is built, so they go in the env secret the deploy writes to `src/beacon/.env` (`sta-env-beacon` for staging, the production secret for production), not in the Kubernetes runtime config. Rebuild after changing them.
 
 - **Same project as Nexus and Vertex, or separate?** Using one project lets you follow a person and an organisation across AirQo apps: PostHog's cookie is set on `.airqo.net`, so the same browser keeps one id across Beacon, Vertex and Nexus. Every event carries `app_name` (`beacon`) and `environment` (`development`, `staging`, `production`, from the hostname), so you can filter to one app or keep staging out of production charts.
-- **Content Security Policy.** Beacon only sends a CSP header when `ENABLE_CSP=true`. If that's on, `CSP_HEADER` must allow the PostHog hosts in `connect-src` and `script-src` (`https://us.i.posthog.com https://us-assets.i.posthog.com`, or your region's).
+- **Content Security Policy.** Beacon only sends a CSP header when `ENABLE_CSP=true`. If that's on and `CSP_HEADER` is unset, the default policy (`default-src 'self'`) blocks PostHog's scripts and requests, and nothing reaches PostHog without any visible error. Set `CSP_HEADER` to allow the PostHog hosts in `connect-src` and `script-src` (`https://us.i.posthog.com https://us-assets.i.posthog.com`, or your region's).
 
 ## What is and isn't collected
 
@@ -39,7 +39,8 @@ All events also carry `app_name`, `environment`, `route` and `page_title`.
 | `user_signed_out` | The user signs out from the top bar | — | Session ends (expired sessions don't send this) |
 | `organization_switched` | The user picks a different organisation in the switcher | `member_organization_count`, `used_search` | Do people work across organisations? |
 | `group_link_opened` | Beacon opened with `?group=`, e.g. from Vertex's device health cards | `matched` (whether the user belongs to that group) | Traffic arriving from Vertex, and broken links |
-| `app_link_opened` | A link to another AirQo app is clicked | `destination` (`vertex`, `nexus`, `calibrate`, `ai_platform`, `mobile_app`, …), `source` (`home_first_device`, `empty_device_list`, `apps_menu`, `organisation_switcher_join`, …) | Which prompts send people to Vertex or Nexus |
+| `app_link_opened` | A link to another AirQo app is clicked | `destination` (`vertex`, `nexus`, `calibrate`, `ai_platform`, `mobile_app`, …), `source` (`home_first_device`, `empty_device_list`, `apps_menu`, `apps_menu_qr`, `organisation_switcher_join`, …), `store` (`google_play`, `app_store`) for the mobile app | Which prompts send people to Vertex or Nexus |
+| `mobile_app_qr_viewed` | The mobile app QR code is shown from the apps menu | `source` | Interest in the mobile app |
 
 ### Home and onboarding
 
@@ -48,7 +49,7 @@ All events also carry `app_name`, `environment`, `route` and `page_title`.
 | `home_action_selected` | A Home card or link is used | `action` (`feature_card`, `view_all_devices`, `continue_recent`), `feature` (card id), `page`, `position` | What people go to from Home |
 | `tour_started` | A page tour starts | `tour_id`, `trigger` (`automatic`, `home`, `help_menu`), `step_count` | Which tours run, and who replays them |
 | `tour_completed` | Done on the last step | `tour_id`, `trigger`, `step_count`, `steps_viewed` | Tour completion |
-| `tour_dismissed` | Closed early, or the user left the page | `tour_id`, `trigger`, `step_count`, `steps_viewed`, `reason` (`closed`, `left_page`) | The step where people give up |
+| `tour_dismissed` | Closed early, or the user left the page | `tour_id`, `trigger`, `step_count`, `steps_viewed` (up to the furthest step reached), `reason` (`closed`, `left_page`) | The step where people give up |
 
 ### Devices, sites and the map
 

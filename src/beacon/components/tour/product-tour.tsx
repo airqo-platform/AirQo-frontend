@@ -33,13 +33,19 @@ export type TourOutcome = "completed" | "dismissed"
 interface ProductTourProps {
   steps: TourStep[]
   title: string
-  /** `stepIndex` is the step on screen when the tour ended. */
-  onClose: (outcome: TourOutcome, stepIndex: number) => void
+  /** `stepsViewed` counts up to the furthest step reached, even if the user went back. */
+  onClose: (outcome: TourOutcome, stepsViewed: number) => void
 }
 
 /** Spotlights one thing at a time with a card explaining it. Adapted from Nexus's ProductTour. */
 export function ProductTour({ steps, title, onClose }: Readonly<ProductTourProps>) {
   const [index, setIndex] = useState(0)
+  // The furthest step reached, so going back before closing doesn't shrink what was seen
+  const furthestIndexRef = useRef(0)
+  useEffect(() => {
+    furthestIndexRef.current = Math.max(furthestIndexRef.current, index)
+  }, [index])
+  const stepsViewed = () => Math.max(furthestIndexRef.current, index) + 1
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null)
   const [cardPosition, setCardPosition] = useState({ top: 16, left: 16 })
   // document.body only exists after hydration
@@ -111,7 +117,7 @@ export function ProductTour({ steps, title, onClose }: Readonly<ProductTourProps
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose("dismissed", index)
+      if (event.key === "Escape") onClose("dismissed", Math.max(furthestIndexRef.current, index) + 1)
       if (event.key === "ArrowRight" && index < steps.length - 1) setIndex((value) => value + 1)
       if (event.key === "ArrowLeft" && index > 0) setIndex((value) => value - 1)
       if (event.key !== "Tab" || !cardRef.current) return
@@ -173,7 +179,7 @@ export function ProductTour({ steps, title, onClose }: Readonly<ProductTourProps
           <button
             type="button"
             aria-label="Close tour"
-            onClick={() => onClose("dismissed", index)}
+            onClick={() => onClose("dismissed", stepsViewed())}
             className="rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <AqXClose className="h-4 w-4" />
@@ -204,7 +210,7 @@ export function ProductTour({ steps, title, onClose }: Readonly<ProductTourProps
                 <AqArrowRight className="h-4 w-4" aria-hidden="true" />
               </Button>
             ) : (
-              <Button ref={nextButtonRef} size="sm" onClick={() => onClose("completed", index)}>
+              <Button ref={nextButtonRef} size="sm" onClick={() => onClose("completed", stepsViewed())}>
                 Done
               </Button>
             )}

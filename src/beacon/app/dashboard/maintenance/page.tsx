@@ -793,7 +793,7 @@ function MaintenancePageClient() {
       format: "csv",
       row_count: targetDevices.length,
       selection: devicesToExport ? "polygon" : polygonSelectedDevices.length > 0 ? "polygon" : "filtered",
-      view: itemNoun,
+      view: mapView,
     })
     toast({
       title: "CSV Exported",
@@ -948,7 +948,7 @@ function MaintenancePageClient() {
                   onCohortChange={(val) => {
                     setSelectedAirQloud(val)
                     clearRoute()
-                    trackMapFilter("cohort", { is_set: Boolean(val) })
+                    trackMapFilter("cohort", { is_set: val !== "all" })
                   }}
                   cohorts={cohorts}
                   loadingCohorts={loadingAirQlouds}
@@ -958,7 +958,7 @@ function MaintenancePageClient() {
                   onGridChange={(val) => {
                     setSelectedGrid(val)
                     clearRoute()
-                    trackMapFilter("grid", { is_set: Boolean(val) })
+                    trackMapFilter("grid", { is_set: val !== "all" })
                   }}
                   grids={grids}
                   loadingGrids={loadingGrids}

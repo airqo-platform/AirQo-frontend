@@ -89,6 +89,17 @@ export const consumeLoginStartedAt = (): number | null => {
   }
 }
 
+/** Forgets a sign-in that didn't go through, so a later dashboard load doesn't report it. */
+export const clearLoginStarted = (): void => {
+  if (!isBrowser()) return
+  try {
+    sessionStorage.removeItem(LOGIN_STARTED_AT_KEY)
+    sessionStorage.removeItem(LOGIN_METHOD_KEY)
+  } catch {
+    // Storage blocked — nothing was stored
+  }
+}
+
 /** How the sign-in that just finished was made ("password", "google", …), forgotten once read. */
 export const consumeLoginMethod = (): string | null => {
   if (!isBrowser()) return null

@@ -79,6 +79,8 @@ export function TourProvider({ children }: Readonly<{ children: React.ReactNode 
     const startWhenReady = () => {
       if (!findVisibleTarget(tour.readyTarget)) return false
       settleTimer = setTimeout(() => {
+        // The user may have started (or finished) it from the help menu in the meantime
+        if (runningTourRef.current || hasSeenTour(personId, tour.id)) return
         const steps = getVisibleSteps(tour)
         if (steps.length > 0) showTour(tour.id, steps, "automatic")
       }, SETTLE_BEFORE_STARTING_MS)
@@ -104,12 +106,12 @@ export function TourProvider({ children }: Readonly<{ children: React.ReactNode 
     return () => releaseFeedbackPromptSlot(TOUR_PROMPT_SLOT)
   }, [activeSteps])
 
-  const closeTour = useCallback((outcome: TourOutcome, stepIndex: number) => {
+  const closeTour = useCallback((outcome: TourOutcome, stepsViewed: number) => {
     if (runningTourRef.current) {
       trackEvent(outcome === "completed" ? "tour_completed" : "tour_dismissed", {
         ...runningTourRef.current,
         reason: outcome === "completed" ? undefined : "closed",
-        steps_viewed: stepIndex + 1,
+        steps_viewed: stepsViewed,
       })
       runningTourRef.current = null
     }

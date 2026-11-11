@@ -412,7 +412,11 @@ export default function DevicesView({ scope }: Readonly<{ scope: DeviceScope }>)
 
   // One event per search once its results are in, so empty searches show up; the term isn't sent
   const lastTrackedSearch = useRef("")
-  const searchResultsReady = deviceScope === "my" ? !myDevicesLoading : answeredOrgListQuery === orgListQuery
+  // Personal devices filter in memory on the live term, so wait for a loaded list and a settled term
+  const searchResultsReady =
+    deviceScope === "my"
+      ? myDevicesLoaded && !myDevicesLoading && searchTerm.trim() === debouncedSearchTerm.trim()
+      : answeredOrgListQuery === orgListQuery
   const searchResultCount = deviceScope === "my" ? displayedDevices.length : totalDevices
   useEffect(() => {
     const term = debouncedSearchTerm.trim()

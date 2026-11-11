@@ -203,6 +203,7 @@ export function getPageContext(pathname: string) {
 type Task = (client: PostHog) => void
 
 const MAX_QUEUED_TASKS = 100
+const MAX_LOAD_ATTEMPTS = 3
 const CREDENTIAL_RETRY_MS = 1000
 const MAX_CREDENTIAL_RETRIES = 60
 
@@ -212,8 +213,10 @@ let queue: Task[] = []
 let credentialRetries = 0
 let credentialTimer: ReturnType<typeof setTimeout> | null = null
 let initScheduled = false
+let failedLoads = 0
 
-export const isAnalyticsEnabled = () => Boolean(POSTHOG_KEY) && typeof window !== "undefined"
+export const isAnalyticsEnabled = () =>
+  Boolean(POSTHOG_KEY) && typeof window !== "undefined" && failedLoads < MAX_LOAD_ATTEMPTS
 
 // Sign-in hand-offs and reset links carry a token in the URL. PostHog starts once the app has
 // consumed it, so neither an event nor a replay can pick it up.
@@ -274,9 +277,12 @@ export function initAnalytics(): void {
       return posthog
     })
     .catch((error) => {
-      // Blocked by an extension or offline: drop what was waiting and carry on without analytics.
+      // Offline or blocked. Keep what was waiting, the user's identify included, and let the next
+      // call try again; after a few failures, drop it and carry on without analytics.
       console.warn("Analytics failed to load:", error)
-      queue = []
+      loading = null
+      initScheduled = false
+      if (++failedLoads >= MAX_LOAD_ATTEMPTS) queue = []
       return null
     })
 }
@@ -373,6 +379,7 @@ export function setActiveOrganization(organization: AnalyticsOrganization | null
       posthog.resetGroups()
       return
     }
+    // Group properties don't pass through sanitizeProperties(): it would drop `name` (see BLOCKED_KEY)
     posthog.group("organization", organization.id, {
       name: organization.title,
       ...(organization.slug ? { slug: organization.slug } : {}),
