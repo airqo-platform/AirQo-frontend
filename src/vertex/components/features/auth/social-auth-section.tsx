@@ -13,6 +13,7 @@ import {
   type SupportedSocialAuthProvider,
 } from '@/core/auth/oauth-session';
 import { cn } from '@/lib/utils';
+import { startSignIn } from '@/lib/track';
 import { useBanner } from '@/context/banner-context';
 import { getLastActiveModule } from '@/core/utils/userPreferences';
 import { useDetectedPlatform } from '@/core/hooks/useDetectedPlatform';
@@ -108,6 +109,7 @@ export default function SocialAuthSection({
       try {
         setLastUsedOAuthProvider(provider);
         clearBackendOAuthSignedOutFlag();
+        startSignIn(provider);
         const authUrl = buildOAuthInitiationUrl(provider, queryParams);
         if (isElectron) {
           window.open(authUrl, '_blank');

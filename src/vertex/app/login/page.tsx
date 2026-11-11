@@ -26,6 +26,7 @@ import { CROSS_TAB_LOGIN_KEY } from "@/core/hooks/useLogout";
 import { ROUTE_LINKS } from "@/core/routes";
 import SocialAuthSection from "@/components/features/auth/social-auth-section";
 import { waitForSession } from "@/core/auth/waitForSession";
+import { clearPendingSignIn, startSignIn, trackEvent } from "@/lib/track";
 import { motion, AnimatePresence } from "framer-motion";
 import { vertexConfig } from "@/vertex.config";
 import { useDetectedPlatform } from "@/core/hooks/useDetectedPlatform";
@@ -147,6 +148,7 @@ export default function LoginPage() {
     if (typeof window !== 'undefined') {
       sessionStorage.setItem('vertex_login_start_ts', String(Date.now()));
     }
+    startSignIn('password');
 
     // Read preference BEFORE authentication to avoid timing issues
     const lastModule = getLastActiveModule(values.userName);
@@ -195,9 +197,21 @@ export default function LoginPage() {
             message = result.error;
           }
         }
+        // A category, not the error text, which can repeat what was typed
+        trackEvent('user_sign_in_failed', {
+          method: 'password',
+          reason:
+            result?.error === 'CredentialsSignin'
+              ? 'invalid_credentials'
+              : result?.error?.toLowerCase().includes('fetch')
+                ? 'network'
+                : 'error',
+        });
         throw new Error(message);
       }
     } catch (error) {
+      // A failed attempt mustn't be reported as a sign-in later
+      clearPendingSignIn();
       if (!isMounted.current) return;
       const message = getApiErrorMessage(error);
       logger.error("Sign-in failed", { error: message });
@@ -230,6 +244,7 @@ export default function LoginPage() {
                 href={ROUTE_LINKS.DOWNLOAD}
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={() => trackEvent('app_link_opened', { destination: 'desktop_download', source: 'login' })}
                 className="inline-flex items-center gap-2 rounded-md border border-border bg-primary px-4 py-2 text-sm font-medium text-white transition-all hover:bg-primary/80 hover:border-foreground/20 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
               >
                 Get Desktop app
@@ -347,7 +362,7 @@ export default function LoginPage() {
                             <div>
                               <div className="flex items-center justify-between mb-1.5">
                                 <label htmlFor="password" className="text-sm font-medium text-foreground">Password</label>
-                                <Link href={forgotPasswordUrl} target="_blank" className="text-xs font-medium text-primary hover:text-primary/80 transition-colors">
+                                <Link href={forgotPasswordUrl} target="_blank" onClick={() => trackEvent('app_link_opened', { destination: 'nexus', source: 'login_forgot_password' })} className="text-xs font-medium text-primary hover:text-primary/80 transition-colors">
                                   Forgot password?
                                 </Link>
                               </div>
@@ -388,7 +403,7 @@ export default function LoginPage() {
 
               <div className="text-sm text-center text-muted-foreground mt-4">
                 Don&apos;t have an account?{" "}
-                <Link href={signUpUrl} className="font-semibold text-primary hover:text-primary/80 transition-colors">
+                <Link href={signUpUrl} onClick={() => trackEvent('app_link_opened', { destination: 'nexus', source: 'login_sign_up' }, { sendNow: true })} className="font-semibold text-primary hover:text-primary/80 transition-colors">
                   Sign up
                 </Link>
               </div>

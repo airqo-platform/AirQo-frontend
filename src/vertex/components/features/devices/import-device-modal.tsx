@@ -23,6 +23,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/componen
 import { EXPECTED_FIELDS } from "./import-steps/types";
 import type { ImportDeviceFormData } from "./import-steps/types";
 import dynamic from "next/dynamic";
+import { trackEvent } from "@/lib/track";
 
 const StepLoader = () => (
   <div className="flex justify-center items-center py-12">
@@ -498,6 +499,15 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
       { type: 'json', payload },
       {
         onSuccess: (data) => {
+          trackEvent('device_imported', {
+            mode: 'bulk',
+            file_type: bulkFile?.name.split('.').pop()?.toLowerCase() || 'unknown',
+            device_count: data.total ?? transformedPreview.length,
+            imported_count: data.imported,
+            failed_count: data.failed,
+            flow: isGuidedMode ? 'guided' : 'fast',
+            has_cohort: Boolean(selectedCohortId),
+          });
           const notifyHomeImportSuccess = () => {
             onSuccess?.({
               cohortId: selectedCohortId,

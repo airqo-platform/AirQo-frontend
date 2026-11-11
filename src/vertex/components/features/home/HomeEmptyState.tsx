@@ -17,6 +17,7 @@ const ImportDeviceModal = dynamic(
 );
 
 import ContextHeader from './context-header';
+import { trackEvent } from '@/lib/track';
 
 const HomeEmptyState = () => {
     const [isClaimModalOpen, setIsClaimModalOpen] = useState(false);
@@ -40,13 +41,22 @@ const HomeEmptyState = () => {
                 </p>
 
                 <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
-                    <ReusableButton onClick={() => setIsClaimModalOpen(true)} Icon={Plus}>
+                    <ReusableButton
+                        onClick={() => {
+                            trackEvent('home_action_selected', { action: 'claim_device', source: 'empty_state' });
+                            setIsClaimModalOpen(true);
+                        }}
+                        Icon={Plus}
+                    >
                         Claim AirQo Device
                     </ReusableButton>
 
                     <ReusableButton
                         variant="outlined"
-                        onClick={() => setIsImportModalOpen(true)}
+                        onClick={() => {
+                            trackEvent('home_action_selected', { action: 'register_device', source: 'empty_state' });
+                            setIsImportModalOpen(true);
+                        }}
                         Icon={Upload}
                     >
                         Register Non-AirQo Device

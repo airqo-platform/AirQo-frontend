@@ -24,6 +24,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import ReusableButton from "@/components/shared/button/ReusableButton";
 import { TableExportModal } from "./TableExportModal";
 import { AqDownload01 } from "@airqo/icons-react";
+import { trackEvent } from "@/lib/track";
 
 // --- Type Definitions ---
 interface FilterOption {
@@ -791,6 +792,23 @@ const ReusableTable = <T extends TableItem>({
     onSearchChange,
   ]);
 
+  // One event per pause in typing, whichever way the table searches. The term itself isn't sent;
+  // the page the table is on comes with every event as `route`.
+  const lastTrackedSearchRef = useRef(searchInput);
+  useEffect(() => {
+    if (searchInput === lastTrackedSearchRef.current) return;
+    const t = setTimeout(() => {
+      lastTrackedSearchRef.current = searchInput;
+      const query = searchInput.trim();
+      trackEvent("list_searched", {
+        has_query: query.length > 0,
+        query_length: query.length,
+        server_side: Boolean(serverSidePagination),
+      });
+    }, 1000);
+    return () => clearTimeout(t);
+  }, [searchInput, serverSidePagination]);
+
   const handleClearSearch = useCallback(() => {
     setSearchInput("");
   }, []);
@@ -817,6 +835,12 @@ const ReusableTable = <T extends TableItem>({
   const handleExport = async (selectedColumns: string[], scope: 'current' | 'all') => {
     if (onExport && scope === 'all' && serverSidePagination) {
       await onExport('csv', selectedColumns);
+      trackEvent('data_exported', {
+        source: 'table',
+        format: 'csv',
+        scope,
+        column_count: selectedColumns.length,
+      });
       return;
     }
 
@@ -892,6 +916,13 @@ const ReusableTable = <T extends TableItem>({
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    trackEvent('data_exported', {
+      source: 'table',
+      format: 'csv',
+      scope,
+      row_count: dataToExport.length,
+      column_count: selectedColumns.length,
+    });
   };
 
   const filteredData = useMemo(() => {

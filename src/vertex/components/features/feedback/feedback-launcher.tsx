@@ -20,6 +20,7 @@ import { feedbackService } from '@/core/apis/feedback';
 import { uploadToCloudinary } from '@/core/apis/cloudinary';
 import { FEEDBACK_DIALOG_OPEN_EVENT, FeedbackDialogOpenDetail } from './feedback-dialog';
 import { getApiErrorMessage } from '@/core/utils/getApiErrorMessage';
+import { trackEvent } from '@/lib/track';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -689,6 +690,15 @@ export const FeedbackLauncher: React.FC = () => {
         metadata: sourceDialog
           ? { ...defaultMetadata, sourceDialog }
           : defaultMetadata,
+      });
+      // Presets only: the message and the dialog title it came from stay out of analytics
+      trackEvent('feedback_submitted', {
+        category: mainCategory,
+        issue_action: mainCategory === 'issue' ? issueAction : undefined,
+        rating,
+        contact_consent: contactConsent,
+        has_screenshot: Boolean(screenshot_url),
+        from_dialog: Boolean(sourceDialog),
       });
 
       setIsOpen(false);

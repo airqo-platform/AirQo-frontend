@@ -20,6 +20,7 @@ import {
   suppressPageSatisfactionForSession,
 } from '@/core/utils/userPreferences';
 import { useFeedbackPromptSlot } from './feedback-prompt-slot';
+import { trackEvent } from '@/lib/track';
 
 const NEGATIVE_REASONS = [
   'Confusing',
@@ -267,6 +268,19 @@ export const PageSatisfactionBanner: React.FC<PageSatisfactionBannerProps> = ({
             ...(isFollowUp ? { isFollowUp: true } : {}),
           },
         });
+        // The preset reason only: what was typed stays in the feedback inbox
+        trackEvent('page_rating_submitted', {
+          rating,
+          reason:
+            reason && [...NEGATIVE_REASONS, ...POSITIVE_REASONS].includes(reason)
+              ? reason
+              : reason
+                ? 'Other'
+                : undefined,
+          is_follow_up: isFollowUp,
+          has_detail: Boolean(detail?.trim()),
+          page_section: pageSection,
+        });
 
         return true;
       } catch (error) {
@@ -297,6 +311,7 @@ export const PageSatisfactionBanner: React.FC<PageSatisfactionBannerProps> = ({
   // Dismissing sends nothing. The page is already quiet for the cooldown; a
   // dismissal also silences every other page for the rest of the session.
   const handleDismiss = useCallback(() => {
+    trackEvent('page_rating_dismissed');
     suppressPageSatisfactionForSession();
     setVisibility('gone');
   }, []);

@@ -6,6 +6,7 @@ import ReusableDialog from '@/components/shared/dialog/ReusableDialog';
 import { Printer } from 'lucide-react';
 import Image from 'next/image';
 import { useBanner } from '@/context/banner-context';
+import { trackEvent } from '@/lib/track';
 
 interface ShippingLabelPrintModalProps {
     labels: ShippingLabel[];
@@ -182,6 +183,8 @@ const ShippingLabelPrintModal: React.FC<ShippingLabelPrintModalProps> = ({ label
             </body>
             </html>
         `;
+
+        trackEvent('shipping_labels_printed', { label_count: labels.length });
 
         // Write content to the new window
         printWindow.document.write(htmlContent);

@@ -78,13 +78,13 @@ export default function CohortHealthCard({ cohortId }: { cohortId: string }) {
   if (isLoading) return <HealthCardSkeleton title={TITLE} />;
   if (isNotInBeacon(error)) return <NotInBeaconCard title={TITLE} noun="cohort" />;
   if (!cohort) {
-    return <HealthCardError title={TITLE} beaconHref={beaconHref} onRetry={() => void refetch()} />;
+    return <HealthCardError kind="cohort" title={TITLE} beaconHref={beaconHref} onRetry={() => void refetch()} />;
   }
 
   const summary = cohort.diagnostics_summary;
   if (!summary || summary.devices_total === 0) {
     return (
-      <HealthCard title={TITLE} badge={<HealthBadge tone="gray">Not diagnosed</HealthBadge>} beaconHref={beaconHref}>
+      <HealthCard kind="cohort" title={TITLE} badge={<HealthBadge tone="gray">Not diagnosed</HealthBadge>} beaconHref={beaconHref}>
         <HealthMessage title="No devices to summarise">This cohort has no devices in Beacon yet.</HealthMessage>
       </HealthCard>
     );
@@ -94,7 +94,7 @@ export default function CohortHealthCard({ cohortId }: { cohortId: string }) {
   const asOf = getDiagnosisAsOf(summary.latest_diagnosis_date);
 
   return (
-    <HealthCard
+    <HealthCard kind="cohort"
       title={TITLE}
       badge={<SummaryBadge summary={summary} devices={cohort.devices} />}
       diagnosedOn={summary.latest_diagnosis_date}

@@ -10,6 +10,7 @@ import {
   ReusableSatisfactionFeedbackToast,
   SatisfactionToastDismissReason,
 } from "./reusable-satisfaction-feedback-toast";
+import { trackEvent } from "@/lib/track";
 
 const LOGIN_NEGATIVE_REASONS = [
   "It took too long to load",
@@ -58,6 +59,16 @@ const LoginFeedbackToast: React.FC<LoginFeedbackToastProps> = ({
       description,
       loginDurationMs: loginDurationRef.current,
       submittedAt: Date.now(),
+    });
+    // "Other: <typed text>" is reported as plain "Other"
+    trackEvent("login_rating_submitted", {
+      rating,
+      reason: description
+        ? LOGIN_NEGATIVE_REASONS.includes(description)
+          ? description
+          : "Other"
+        : undefined,
+      login_duration_ms: loginDurationRef.current || undefined,
     });
     setLoginFeedbackRecord(userId);
   };

@@ -4,6 +4,7 @@ import * as React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
+import { getAppDestination, trackEvent } from '@/lib/track';
 
 export interface NavItemType {
   href: string;
@@ -35,6 +36,16 @@ export const NavItem = React.memo<NavItemProps>(
     const externalLinkProps = item.external
       ? { target: '_blank', rel: 'noopener noreferrer' }
       : {};
+    const handleClick = (e: React.MouseEvent) => {
+      if (item.external) {
+        trackEvent('app_link_opened', {
+          destination: getAppDestination(item.href),
+          source: 'sidebar',
+          link: item.label,
+        });
+      }
+      onClick?.(e);
+    };
 
     const baseStyles = cn(
       'relative flex items-center transition-all duration-300 ease-in-out',
@@ -59,7 +70,7 @@ export const NavItem = React.memo<NavItemProps>(
           <Link
             href={item.href}
             {...externalLinkProps}
-            onClick={(e) => onClick && onClick(e)}
+            onClick={handleClick}
             className={cn(
               baseStyles,
               'w-10 h-10 rounded-lg justify-center',
@@ -90,7 +101,7 @@ export const NavItem = React.memo<NavItemProps>(
         <Link
           href={item.href}
           {...externalLinkProps}
-          onClick={(e) => onClick && onClick(e)}
+          onClick={handleClick}
           className={cn(
             baseStyles,
             'w-full gap-3 py-2.5 px-3 rounded-lg',
