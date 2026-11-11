@@ -207,7 +207,7 @@ export default function TopNav({
                       className="cursor-pointer rounded-lg"
                       onSelect={() => {
                         tourChosenRef.current = true
-                        startTour(helpButtonRef.current)
+                        startTour(helpButtonRef.current, "help_menu")
                       }}
                     >
                       Take a tour of this page

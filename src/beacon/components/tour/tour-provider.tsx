@@ -7,7 +7,8 @@ import {
   claimFeedbackPromptSlot,
   releaseFeedbackPromptSlot,
 } from "@/components/features/feedback/feedback-prompt-slot"
-import { ProductTour } from "@/components/tour/product-tour"
+import { ProductTour, type TourOutcome } from "@/components/tour/product-tour"
+import { trackEvent } from "@/lib/analytics"
 import { useNavigationAccess } from "@/hooks/use-navigation-access"
 import { useToast } from "@/hooks/use-toast"
 import {
@@ -27,8 +28,11 @@ const TOUR_PROMPT_SLOT = "product-tour"
 interface TourContextValue {
   /** Whether the page on screen has a tour to replay. */
   hasTour: boolean
-  /** Replays the tour. Focus returns to `returnFocusTo` afterwards, or else to whatever had it. */
-  startTour: (returnFocusTo?: HTMLElement | null) => void
+  /**
+   * Replays the tour. Focus returns to `returnFocusTo` afterwards, or else to whatever had it.
+   * `trigger` names where it was started from, for analytics.
+   */
+  startTour: (returnFocusTo?: HTMLElement | null, trigger?: string) => void
 }
 
 const TourContext = createContext<TourContextValue>({ hasTour: false, startTour: () => {} })
@@ -46,11 +50,24 @@ export function TourProvider({ children }: Readonly<{ children: React.ReactNode 
   const { toast } = useToast()
   const [activeSteps, setActiveSteps] = useState<TourStep[] | null>(null)
   const returnFocusRef = useRef<HTMLElement | null>(null)
+  // The tour on screen, for analytics: which one, how it started and how long it is
+  const runningTourRef = useRef<{ tour_id: string; trigger: string; step_count: number } | null>(null)
 
   const personId = session?.user?._id || session?.user?.email || ""
   const tour = pathname && !access.loading ? getTourForPath(pathname, access) : null
 
+  const showTour = useCallback((tourId: string, steps: TourStep[], trigger: string) => {
+    runningTourRef.current = { tour_id: tourId, trigger, step_count: steps.length }
+    trackEvent("tour_started", runningTourRef.current)
+    setActiveSteps(steps)
+  }, [])
+
   useEffect(() => {
+    // Leaving the page ends a tour without marking it seen
+    if (runningTourRef.current) {
+      trackEvent("tour_dismissed", { ...runningTourRef.current, reason: "left_page" })
+      runningTourRef.current = null
+    }
     setActiveSteps(null)
     returnFocusRef.current = null
   }, [pathname])
@@ -62,8 +79,10 @@ export function TourProvider({ children }: Readonly<{ children: React.ReactNode 
     const startWhenReady = () => {
       if (!findVisibleTarget(tour.readyTarget)) return false
       settleTimer = setTimeout(() => {
+        // The user may have started (or finished) it from the help menu in the meantime
+        if (runningTourRef.current || hasSeenTour(personId, tour.id)) return
         const steps = getVisibleSteps(tour)
-        if (steps.length > 0) setActiveSteps(steps)
+        if (steps.length > 0) showTour(tour.id, steps, "automatic")
       }, SETTLE_BEFORE_STARTING_MS)
       return true
     }
@@ -78,7 +97,7 @@ export function TourProvider({ children }: Readonly<{ children: React.ReactNode 
       observer.disconnect()
       clearTimeout(settleTimer)
     }
-  }, [tour, personId])
+  }, [tour, personId, showTour])
 
   // The satisfaction prompts wait until the tour is over
   useEffect(() => {
@@ -87,7 +106,15 @@ export function TourProvider({ children }: Readonly<{ children: React.ReactNode 
     return () => releaseFeedbackPromptSlot(TOUR_PROMPT_SLOT)
   }, [activeSteps])
 
-  const closeTour = useCallback(() => {
+  const closeTour = useCallback((outcome: TourOutcome, stepsViewed: number) => {
+    if (runningTourRef.current) {
+      trackEvent(outcome === "completed" ? "tour_completed" : "tour_dismissed", {
+        ...runningTourRef.current,
+        reason: outcome === "completed" ? undefined : "closed",
+        steps_viewed: stepsViewed,
+      })
+      runningTourRef.current = null
+    }
     if (tour && personId) markTourSeen(personId, tour.id)
     setActiveSteps(null)
     returnFocusRef.current?.focus()
@@ -95,7 +122,7 @@ export function TourProvider({ children }: Readonly<{ children: React.ReactNode 
   }, [tour, personId])
 
   const startTour = useCallback(
-    (returnFocusTo?: HTMLElement | null) => {
+    (returnFocusTo?: HTMLElement | null, trigger = "manual") => {
       if (!tour) return
       const steps = getVisibleSteps(tour)
       if (steps.length === 0) {
@@ -107,9 +134,9 @@ export function TourProvider({ children }: Readonly<{ children: React.ReactNode 
       }
       const focused = document.activeElement
       returnFocusRef.current = returnFocusTo ?? (focused instanceof HTMLElement ? focused : null)
-      setActiveSteps(steps)
+      showTour(tour.id, steps, trigger)
     },
-    [tour, toast]
+    [tour, toast, showTour]
   )
 
   const value = useMemo(() => ({ hasTour: Boolean(tour), startTour }), [tour, startTour])

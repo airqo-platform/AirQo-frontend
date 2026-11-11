@@ -62,6 +62,7 @@ import {
 import stockService from '@/services/stock.service';
 import { ItemsStock, ItemsStockCreate, ItemsStockUpdate, ItemsStockResponse } from '@/types/stock.types';
 import { useGroup } from '@/lib/group-context';
+import { trackEvent } from '@/lib/analytics';
 
 const StockPage = () => {
   const { toast } = useToast();
@@ -337,6 +338,7 @@ const StockPage = () => {
       const workbook = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(workbook, worksheet, "Inventory");
       XLSX.writeFile(workbook, `inventory_export_${new Date().toISOString().split('T')[0]}.xlsx`);
+      trackEvent("data_exported", { source: "stock", format: "xlsx", row_count: items.length });
 
       toast({
         title: "Export Successful",
@@ -396,6 +398,7 @@ const StockPage = () => {
       });
 
       doc.save(`inventory_report_${new Date().toISOString().split('T')[0]}.pdf`);
+      trackEvent("data_exported", { source: "stock", format: "pdf", row_count: items.length });
 
       toast({
         title: "Export Successful",

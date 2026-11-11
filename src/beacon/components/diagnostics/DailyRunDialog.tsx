@@ -16,6 +16,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "@/components/ui/use-toast";
 import { Loader2, PlayCircle } from "lucide-react";
 import { diagnosticsService } from "@/services/diagnosticsService";
+import { trackEvent } from "@/lib/analytics";
 
 // Raw readings are only retained for this many days, so older days cannot be (re)diagnosed.
 const RAW_RETENTION_DAYS = 14;
@@ -62,6 +63,12 @@ export const DailyRunDialog: React.FC<DailyRunDialogProps> = ({ open, onOpenChan
           ? { lookback_days: lookbackDays }
           : { start_date: startDate || undefined, end_date: endDate || undefined }),
         device_ids: ids,
+        force,
+      });
+      trackEvent("fleet_diagnosis_run_started", {
+        mode,
+        lookback_days: mode === "lookback" ? lookbackDays : undefined,
+        device_count: ids.length,
         force,
       });
       toast({

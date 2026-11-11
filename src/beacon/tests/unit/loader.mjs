@@ -1,7 +1,8 @@
 // Node ESM loader hooks for the unit tests:
 // - `@/...` resolves to the beacon app root, like tsconfig's `paths`
 // - `.ts` / `.tsx` sources are transpiled with the project's TypeScript (no type checking)
-// - Next.js runtime-only modules are swapped for small stubs so components render with react-dom/server
+// - Next.js runtime-only modules are swapped for small stubs so components render with react-dom/server,
+//   and posthog-js for a recorder so the analytics client can be tested
 import { existsSync, statSync } from "node:fs"
 import { readFile } from "node:fs/promises"
 import path from "node:path"
@@ -16,6 +17,7 @@ const STUBS = {
   "next/dynamic": path.join(HERE, "stubs/next-dynamic.mjs"),
   "next/link": path.join(HERE, "stubs/next-link.mjs"),
   "next/server": path.join(HERE, "stubs/next-server.mjs"),
+  "posthog-js": path.join(HERE, "stubs/posthog-js.mjs"),
 }
 
 const isFile = (candidate) => existsSync(candidate) && statSync(candidate).isFile()

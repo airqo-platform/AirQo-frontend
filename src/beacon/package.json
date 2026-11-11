@@ -10,7 +10,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "node --import ./tests/unit/register.mjs --test tests/unit/auth/*.test.js tests/unit/manufacturers/*.test.js tests/unit/maintenance/*.test.js tests/unit/diagnostics/*.test.js tests/unit/onboarding/*.test.js tests/unit/reports/*.test.js"
+    "test": "node --import ./tests/unit/register.mjs --test tests/unit/auth/*.test.js tests/unit/manufacturers/*.test.js tests/unit/maintenance/*.test.js tests/unit/diagnostics/*.test.js tests/unit/onboarding/*.test.js tests/unit/reports/*.test.js tests/unit/analytics/*.test.js"
   },
   "dependencies": {
     "@airqo/icons-react": "^0.2.9",
@@ -70,6 +70,7 @@
     "next-auth": "^4.24.14",
     "next-themes": "^0.4.4",
     "pg": "^8.14.1",
+    "posthog-js": "1.369.0",
     "react": "^18.3.1",
     "react-day-picker": "8.10.1",
     "react-dom": "^18.3.1",

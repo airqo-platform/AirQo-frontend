@@ -12,6 +12,7 @@ import { TourProvider } from "@/components/tour/tour-provider"
 import { GroupProvider, useGroup } from "@/lib/group-context"
 import { useNavigationAccess } from "@/hooks/use-navigation-access"
 import { getDevicesHome, getModuleForPath, isRouteAccessible } from "@/lib/navigation"
+import { resetAnalytics, trackEvent } from "@/lib/analytics"
 import { cn } from "@/lib/utils"
 import { LoadingState } from "@/components/ui/loading-state"
 import { GroupLinkError } from "@/components/group-link-error"
@@ -19,6 +20,7 @@ import { NetworkStatusBanner } from "@/components/network-status-banner"
 import { useConnectionRecoveryKey } from "@/hooks/use-network-status"
 import { PageSatisfactionBanner } from "@/components/features/feedback/page-satisfaction-banner"
 import LoginFeedbackToast from "@/components/features/feedback/login-feedback-toast"
+import { AnalyticsGroupSync } from "@/components/providers/analytics-group-sync"
 
 type User = {
   id?: number
@@ -90,6 +92,8 @@ export default function DashboardLayout({
   // Handle logout
   const handleLogout = async () => {
     setIsLoggingOut(true)
+    trackEvent("user_signed_out", {}, { sendNow: true })
+    resetAnalytics()
     try {
       await signOut({ callbackUrl: "/login?action=logout" })
     } catch (error) {
@@ -112,6 +116,7 @@ export default function DashboardLayout({
 
   return (
     <GroupProvider>
+      <AnalyticsGroupSync />
       <TourProvider>
       <NetworkStatusBanner />
       <div className="flex flex-col h-screen gap-2 px-1.5 pt-1.5 pb-0.5 overflow-hidden bg-background">

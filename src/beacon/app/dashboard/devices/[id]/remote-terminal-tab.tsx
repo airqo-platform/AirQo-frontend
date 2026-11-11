@@ -70,6 +70,7 @@ import {
   Wind,
   Battery
 } from "lucide-react"
+import { trackEvent } from "@/lib/analytics"
 
 interface CommandParamSchema {
   type: string
@@ -471,11 +472,21 @@ export default function RemoteTerminalTab({
     if (!selectedCloudCmdId) return
     const cmdText = `${selectedCloudCmd?.name} ${JSON.stringify(cloudCmdParams)}`
 
+    let sent = true
     if (collabStore.role === "host") {
-      await deviceGateway.executeCommand(cmdText, collabStore.userId || "host", currentUsername)
+      sent = (await deviceGateway.executeCommand(cmdText, collabStore.userId || "host", currentUsername)) !== false
     } else {
       deviceGateway.sendParticipantCommand(cmdText)
     }
+    // The command is one of the predefined ones; its parameter values are left out
+    trackEvent("remote_command_sent", {
+      mode: "cloud",
+      command: selectedCloudCmd?.name,
+      dangerous: Boolean(selectedCloudCmd?.dangerous),
+      role: collabStore.role,
+      parameter_count: Object.keys(cloudCmdParams ?? {}).length,
+      sent,
+    })
     setCloudCmdConfirmed(false)
   }
 
@@ -615,7 +626,7 @@ export default function RemoteTerminalTab({
   // ----------------------------------------------------
   // LOCAL USB SERVICES METHODS
   // ----------------------------------------------------
-  const handleLocalSend = async (cmdText: string) => {
+  const handleLocalSend = async (cmdText: string, source: "typed" | "quick" | "history" = "typed") => {
     if (!cmdText.trim()) return
 
     if (localXtermRef.current) {
@@ -631,6 +642,12 @@ export default function RemoteTerminalTab({
       try {
         const payload = cmdText + (localLineEnding === "none" ? "" : localLineEnding)
         await localStore.adapter.write(payload)
+        // Only the built-in quick commands are named; typed text can hold config values
+        trackEvent("remote_command_sent", {
+          mode: "local",
+          source,
+          command: source === "quick" ? cmdText : undefined,
+        })
       } catch (e: any) {
         if (localXtermRef.current) {
           localXtermRef.current.write(`\x1b[31m\r\n[Error] Failed to send: ${e.message}\x1b[0m\r\n`)
@@ -1278,7 +1295,7 @@ export default function RemoteTerminalTab({
                   {QUICK_COMMANDS.map((qCmd) => (
                     <button
                       key={qCmd.value}
-                      onClick={() => handleLocalSend(qCmd.value)}
+                      onClick={() => handleLocalSend(qCmd.value, "quick")}
                       disabled={localStore.status !== "connected"}
                       title={qCmd.description}
                       className="px-2.5 py-1 text-xs bg-[#242424] hover:bg-[#2d2d2d] border border-gray-800 hover:border-gray-700 text-gray-300 rounded font-medium disabled:opacity-40 disabled:hover:bg-[#242424] transition-colors font-mono"
@@ -1289,7 +1306,7 @@ export default function RemoteTerminalTab({
                   {localHistory.slice(-4).map((histCmd, i) => (
                     <button
                       key={i}
-                      onClick={() => handleLocalSend(histCmd)}
+                      onClick={() => handleLocalSend(histCmd, "history")}
                       disabled={localStore.status !== "connected"}
                       className="px-2.5 py-1 text-xs bg-[#1f2824] hover:bg-[#25322c] border border-teal-950/80 hover:border-teal-900/80 text-teal-300 rounded font-mono transition-colors"
                     >

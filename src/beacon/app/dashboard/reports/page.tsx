@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react"
 import { useToast } from "@/components/ui/use-toast"
 import { useGroup } from "@/lib/group-context"
+import { trackEvent } from "@/lib/analytics"
 import AnalyticsFilters, {
   FILTER_ITEM_LABELS,
   FilterState,
@@ -120,12 +121,22 @@ export default function ReportsPage() {
         })
       )
 
+      trackEvent("report_generated", {
+        item_type: filterState.filterType,
+        item_count: filterState.selectedItems.length,
+        result_count: results.length,
+        days: Math.max(1, Math.round((endDate.getTime() - startDate.getTime()) / 86_400_000)),
+      })
       toast({
         title: "Preview Loaded",
         description: "Data has been loaded into the preview section.",
       })
     } catch (error) {
       if (previewId !== latestPreview.current) return
+      trackEvent("report_failed", {
+        item_type: filterState.filterType,
+        item_count: filterState.selectedItems.length,
+      })
       toast({
         title: "Failed to load data",
         description: error instanceof Error ? error.message : "An error occurred",
@@ -146,6 +157,7 @@ export default function ReportsPage() {
         loadReportLogo().catch(() => null),
       ])
       downloadDeviceReportPdf(report, sections, { map: map.image, logo })
+      trackEvent("report_exported", { format: "pdf", sections, has_map: sections.map && Boolean(map.image) })
       toast(
         sections.map && !map.image
           ? {
@@ -179,6 +191,7 @@ export default function ReportsPage() {
       link.download = `${filename}-${new Date().toISOString().slice(0, 10)}.png`
       link.href = canvas.toDataURL("image/png")
       link.click()
+      trackEvent("report_exported", { format: "png", section: elementId })
 
       toast({ title: "Success", description: "Image downloaded successfully." })
     } catch (err) {

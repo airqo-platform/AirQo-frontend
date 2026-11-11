@@ -2,7 +2,7 @@
 
 import { SessionProvider, signIn, useSession } from 'next-auth/react';
 import { useEffect, useState, ReactNode } from 'react';
-import { consumeOAuthTokenHandoffFromUrl } from '@/lib/oauth-session';
+import { consumeOAuthTokenHandoffFromUrl, isSupportedSocialAuthProvider } from '@/lib/oauth-session';
 import { markLoginStarted } from '@/lib/feedback-preferences';
 import authService from '@/services/api-service';
 import { LoadingOverlay } from '@/components/ui/loading-overlay';
@@ -56,7 +56,8 @@ function AuthEffect({ children }: { children: ReactNode }) {
       
       const callbackUrl = handoff.callbackUrl || '/dashboard/home';
       // Lets the dashboard follow this sign-in with the login experience prompt
-      markLoginStarted();
+      // The provider comes from the URL: anything unrecognised is recorded as plain 'oauth'
+      markLoginStarted(isSupportedSocialAuthProvider(handoff.provider) ? handoff.provider : 'oauth');
       
       signIn('credentials', {
         oauthToken: handoff.token,

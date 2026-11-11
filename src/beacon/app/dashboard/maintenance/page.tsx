@@ -57,6 +57,7 @@ import {
   KAMPALA_SAMPLE_GATEWAYS,
 } from "@/utils/lorawan-utils"
 import { CheckCircle2, ArrowRight, X, PanelLeftOpen, PanelLeftClose, Map as MapIcon, List, ChevronUp, ChevronDown, Navigation } from "lucide-react"
+import { trackEvent } from "@/lib/analytics"
 
 // Dynamically import Map component to avoid SSR issues with Leaflet
 const MaintenanceMap = dynamic(() => import("@/components/maintenance/maintenance-map"), {
@@ -140,8 +141,14 @@ function MaintenancePageClient() {
     : getDefaultMaintenanceMapView(activeGroup)
   const itemNoun = MAP_ITEM_NOUNS[mapView]
   const handleMapViewChange = (view: MaintenanceMapView) => {
-    if (view !== mapView) router.replace(`${ROUTES.MAINTENANCE}?view=${view}`, { scroll: false })
+    if (view === mapView) return
+    trackEvent("map_view_changed", { to: view })
+    router.replace(`${ROUTES.MAINTENANCE}?view=${view}`, { scroll: false })
   }
+
+  /** Records a filter change. Cohort and grid picks are recorded as set or cleared, not by id. */
+  const trackMapFilter = (filter: string, properties: Record<string, unknown> = {}) =>
+    trackEvent("map_filter_changed", { filter, view: mapView, ...properties })
 
   // --- FILTER STATE ---
   const [selectedDays, setSelectedDays] = useState(14)
@@ -166,6 +173,15 @@ function MaintenancePageClient() {
   const [mapData, setMapData] = useState<MaintenanceMapItem[] | null>(null)
   const [loadingMap, setLoadingMap] = useState(false)
   const [selectedDevice, setSelectedDevice] = useState<MaintenanceMapItem | null>(null)
+  // Picking a device or site, on the map or in the side list
+  const selectFromMap = (item: MaintenanceMapItem | null) => {
+    setSelectedDevice(item)
+    if (item) trackEvent("map_item_selected", { source: "map", view: mapView })
+  }
+  const selectFromList = (item: MaintenanceMapItem | null) => {
+    setSelectedDevice(item)
+    if (item) trackEvent("map_item_selected", { source: "list", view: mapView })
+  }
   const [selectedDeviceIds, setSelectedDeviceIds] = useState<string[]>([])
   const [flyToLocation, setFlyToLocation] = useState<{ latitude: number; longitude: number; zoom?: number } | null>(null)
 
@@ -509,6 +525,12 @@ function MaintenancePageClient() {
       setRoutePath(trip.order as unknown as MaintenanceMapItem[])
       setRouteGeometry(null)
       setRouteSummary({ distanceKm: trip.distanceKm, legs: trip.legs, byRoad: false, mode: ROUTE_MODE_LABELS.straightLine })
+      trackEvent("maintenance_route_planned", {
+        stop_count: trip.order.length,
+        by_road: false,
+        road_routing_failed: Boolean(reason),
+        distance_km: Math.round(trip.distanceKm),
+      })
       toast({
         title: "Route Optimized",
         description: `${reason ? `${reason} ` : ""}${trip.order.length} stops, ordered to keep the trip short. Open it in Google Maps for directions.`,
@@ -533,6 +555,12 @@ function MaintenancePageClient() {
         legs: road.legs,
         byRoad: true,
         mode: ROUTE_MODE_LABELS[road.planner],
+      })
+      trackEvent("maintenance_route_planned", {
+        stop_count: road.order.length,
+        by_road: true,
+        planner: road.planner,
+        distance_km: Math.round(road.distanceKm),
       })
       toast({
         title: "Route Optimized",
@@ -760,6 +788,13 @@ function MaintenancePageClient() {
       a.remove()
     }, 0)
 
+    trackEvent("data_exported", {
+      source: "maintenance_map",
+      format: "csv",
+      row_count: targetDevices.length,
+      selection: devicesToExport ? "polygon" : polygonSelectedDevices.length > 0 ? "polygon" : "filtered",
+      view: mapView,
+    })
     toast({
       title: "CSV Exported",
       description: `Exported ${countLabel(targetDevices.length, itemNoun)} to CSV.`,
@@ -818,7 +853,7 @@ function MaintenancePageClient() {
             itemNoun={itemNoun}
             loading={loadingMap}
             selectedDevice={selectedDevice}
-            onSelectDevice={setSelectedDevice}
+            onSelectDevice={selectFromList}
             coverageStats={coverageStats}
             showLoRaWAN={showGateways}
             polygonDevices={polygonSelectedDevices}
@@ -840,7 +875,7 @@ function MaintenancePageClient() {
             data={filteredMapData}
             loading={loadingMap}
             selectedDevice={selectedDevice}
-            onDeviceSelect={setSelectedDevice}
+            onDeviceSelect={selectFromMap}
             selectedDeviceIds={selectedDeviceIds}
             routePath={routePath}
             routeGeometry={routeGeometry}
@@ -888,23 +923,32 @@ function MaintenancePageClient() {
                 {/* Top Filter Toolbar */}
                 <MapTopFilters
                   selectedDays={selectedDays}
-                  onDaysChange={setSelectedDays}
+                  onDaysChange={(val) => {
+                    setSelectedDays(val)
+                    trackMapFilter("days", { value: val })
+                  }}
                   offlineDaysFilter={offlineDaysFilter}
-                  onOfflineDaysChange={setOfflineDaysFilter}
+                  onOfflineDaysChange={(val) => {
+                    setOfflineDaysFilter(val)
+                    trackMapFilter("offline_days", { value: val })
+                  }}
                   uptimeFilter={uptimeFilter}
                   onUptimeChange={(val) => {
                     setUptimeFilter(val)
                     clearRoute()
+                    trackMapFilter("uptime", { value: val })
                   }}
                   errorMarginFilter={errorMarginFilter}
                   onErrorMarginChange={(val) => {
                     setErrorMarginFilter(val)
                     clearRoute()
+                    trackMapFilter("error_margin", { value: val })
                   }}
                   selectedCohort={selectedAirQloud}
                   onCohortChange={(val) => {
                     setSelectedAirQloud(val)
                     clearRoute()
+                    trackMapFilter("cohort", { is_set: val !== "all" })
                   }}
                   cohorts={cohorts}
                   loadingCohorts={loadingAirQlouds}
@@ -914,18 +958,31 @@ function MaintenancePageClient() {
                   onGridChange={(val) => {
                     setSelectedGrid(val)
                     clearRoute()
+                    trackMapFilter("grid", { is_set: val !== "all" })
                   }}
                   grids={grids}
                   loadingGrids={loadingGrids}
                   gridSearch={gridSearch}
                   onGridSearchChange={setGridSearch}
                   gridAdminLevelFilter={gridAdminLevelFilter}
-                  onGridAdminLevelChange={setGridAdminLevelFilter}
+                  onGridAdminLevelChange={(val) => {
+                    setGridAdminLevelFilter(val)
+                    trackMapFilter("grid_admin_level", { value: val })
+                  }}
                   selectedTags={selectedTags}
-                  onToggleTag={toggleTag}
-                  onClearTags={() => setSelectedTags([])}
+                  onToggleTag={(tag) => {
+                    toggleTag(tag)
+                    trackMapFilter("tag", { is_set: !selectedTags.includes(tag) })
+                  }}
+                  onClearTags={() => {
+                    setSelectedTags([])
+                    trackMapFilter("tag", { cleared: true })
+                  }}
                   coverageFilter={coverageFilter}
-                  onCoverageFilterChange={setCoverageFilter}
+                  onCoverageFilterChange={(val) => {
+                    setCoverageFilter(val)
+                    trackMapFilter("coverage", { value: val })
+                  }}
                   totalCount={mapData?.length}
                   filteredCount={filteredMapData.length}
                   hasGateways={gateways.length > 0}
@@ -1108,7 +1165,7 @@ function MaintenancePageClient() {
             data={filteredMapData}
             loading={loadingMap}
             selectedDevice={selectedDevice}
-            onDeviceSelect={setSelectedDevice}
+            onDeviceSelect={selectFromMap}
             selectedDeviceIds={selectedDeviceIds}
             routePath={routePath}
             routeGeometry={routeGeometry}
@@ -1207,7 +1264,7 @@ function MaintenancePageClient() {
             itemNoun={itemNoun}
             loading={loadingMap}
             selectedDevice={selectedDevice}
-            onSelectDevice={setSelectedDevice}
+            onSelectDevice={selectFromList}
             coverageStats={coverageStats}
             showLoRaWAN={showGateways}
             polygonDevices={polygonSelectedDevices}

@@ -51,7 +51,7 @@ export function NoDevicesPrompt({ scope, onRefresh, isRefreshing = false }: Read
         <p className="text-sm text-muted-foreground">{description}</p>
       </div>
       <div className="flex flex-wrap items-center justify-center gap-3">
-        <ExternalAppLink href={href} size="lg">
+        <ExternalAppLink href={href} destination="vertex" source="empty_device_list" size="lg">
           Add a device in Vertex
         </ExternalAppLink>
         <Button variant="outline" size="lg" onClick={onRefresh} disabled={isRefreshing}>

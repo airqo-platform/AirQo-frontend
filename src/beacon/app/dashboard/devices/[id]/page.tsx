@@ -36,6 +36,7 @@ import dynamic from "next/dynamic"
 import { useGroup } from "@/lib/group-context"
 import { resolveDeviceDataSource } from "@/lib/manufacturers"
 import type { DeviceDataSource } from "@/types/network.types"
+import { trackEvent } from "@/lib/analytics"
 
 const RemoteTerminalTab = dynamic(() => import("./remote-terminal-tab"), {
   ssr: false,
@@ -370,7 +371,11 @@ export default function DeviceDetailPage() {
       </Button>
 
       {/* Tabs for Device Information */}
-      <Tabs defaultValue={initialTab} className="mt-2">
+      <Tabs
+        defaultValue={initialTab}
+        onValueChange={(tab) => trackEvent("device_tab_opened", { tab, initial_tab: initialTab })}
+        className="mt-2"
+      >
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
           <TabsList data-tour="device-tabs" className="grid w-full max-w-4xl grid-cols-7">
             <TabsTrigger value="device-details" className="flex items-center">
