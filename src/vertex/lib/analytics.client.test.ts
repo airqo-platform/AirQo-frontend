@@ -268,4 +268,53 @@ describe('analytics client with NEXT_PUBLIC_POSTHOG_KEY set', () => {
     vi.advanceTimersByTime(11 * 60 * 1000);
     expect(analytics.consumePendingSignIn()).toBeNull();
   });
+  it('keeps queued calls when loading fails and retries on the next call', async () => {
+    const analytics = await loadAnalytics();
+    posthog.init.mockImplementationOnce(() => {
+      throw new Error('blocked');
+    });
+
+    analytics.identifyUser({ id: 'user-1', privilege: 'user' });
+    analytics.trackEvent('before_failure');
+    await settleLoad();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(posthog.capture).not.toHaveBeenCalled();
+    expect(posthog.identify).not.toHaveBeenCalled();
+
+    analytics.trackEvent('after_failure');
+    await vi.advanceTimersByTimeAsync(1000);
+    await vi.waitFor(() => expect(eventNames()).toEqual(['before_failure', 'after_failure']));
+    expect(posthog.init).toHaveBeenCalledTimes(2);
+    expect(posthog.identify).toHaveBeenCalledWith('user-1', expect.anything());
+  });
+
+  it('turns analytics off for the page after three failed loads', async () => {
+    const analytics = await loadAnalytics();
+    posthog.init.mockImplementation(() => {
+      throw new Error('blocked');
+    });
+
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      analytics.trackEvent(`attempt_${attempt}`);
+      await vi.advanceTimersByTimeAsync(1000);
+      await vi.waitFor(() => expect(posthog.init).toHaveBeenCalledTimes(attempt));
+      await vi.advanceTimersByTimeAsync(0);
+    }
+
+    expect(analytics.isAnalyticsEnabled()).toBe(false);
+    analytics.trackEvent('after_giving_up');
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(posthog.init).toHaveBeenCalledTimes(3);
+    posthog.init.mockReset();
+  });
+  it('keeps identify when the queue is already full of events', async () => {
+    const analytics = await loadAnalytics();
+    for (let index = 0; index < 120; index++) analytics.trackEvent(`event_${index}`);
+    analytics.identifyUser({ id: 'user-1', privilege: 'user' });
+
+    await settleLoad();
+
+    expect(posthog.capture).toHaveBeenCalledTimes(100);
+    expect(posthog.identify).toHaveBeenCalledWith('user-1', expect.anything());
+  });
 });

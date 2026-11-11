@@ -40,6 +40,7 @@ import {
   verifyBackendOAuthSession,
   shouldSkipBackendOAuthBootstrap,
   clearBackendOAuthSignedOutFlag,
+  isSupportedSocialAuthProvider,
 } from './oauth-session';
 import { ACCESS_TOKEN_REFRESH_ERROR } from './accessTokenRefresh';
 import { waitForSession } from './waitForSession';
@@ -811,7 +812,8 @@ function TokenHandoffHandler({ children }: { children: React.ReactNode }) {
           clearBackendOAuthSignedOutFlag();
           logger.info('[TokenHandoffHandler] OAuth token detected, signing in...');
           // Noted first: the session can appear before signIn() resolves
-          completeSignIn(handoff.provider || 'google');
+          // The provider comes from the URL: anything unrecognised is recorded as plain 'oauth'
+          completeSignIn(isSupportedSocialAuthProvider(handoff.provider) ? handoff.provider : 'oauth');
 
           const result = await signIn('credentials', {
             redirect: false,

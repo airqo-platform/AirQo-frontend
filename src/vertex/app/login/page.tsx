@@ -26,7 +26,7 @@ import { CROSS_TAB_LOGIN_KEY } from "@/core/hooks/useLogout";
 import { ROUTE_LINKS } from "@/core/routes";
 import SocialAuthSection from "@/components/features/auth/social-auth-section";
 import { waitForSession } from "@/core/auth/waitForSession";
-import { startSignIn, trackEvent } from "@/lib/track";
+import { clearPendingSignIn, startSignIn, trackEvent } from "@/lib/track";
 import { motion, AnimatePresence } from "framer-motion";
 import { vertexConfig } from "@/vertex.config";
 import { useDetectedPlatform } from "@/core/hooks/useDetectedPlatform";
@@ -210,6 +210,8 @@ export default function LoginPage() {
         throw new Error(message);
       }
     } catch (error) {
+      // A failed attempt mustn't be reported as a sign-in later
+      clearPendingSignIn();
       if (!isMounted.current) return;
       const message = getApiErrorMessage(error);
       logger.error("Sign-in failed", { error: message });

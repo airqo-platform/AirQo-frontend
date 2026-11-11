@@ -69,7 +69,8 @@ Shared with Beacon (same names, same meaning):
 | `user_sign_in_failed` | Password or OAuth sign-in rejected | `method`, `reason` (`invalid_credentials`, `network`, `error`) | Where sign-in breaks |
 | `user_signed_out` | User confirms "Log out" in the top bar | — | Deliberate sign-outs (automatic ones reset without an event) |
 | `organization_switched` | User picks a different organisation | `member_organization_count`, `to_context` | How often multi-org users switch |
-| `app_link_opened` | Link to another AirQo app | `destination` (`beacon`, `nexus`, `calibrate`, `website`, `api_docs`, `mobile_app`, `mobile_app_store`, `ai_platform`, `desktop_download`), `source`, plus `link`, `card_state` or `store` | Cross-app journeys, including Vertex → Beacon |
+| `app_link_opened` | Link to another AirQo app | `destination` (`beacon`, `nexus`, `calibrate`, `website`, `api_docs`, `mobile_app`, `ai_platform`, `desktop_download`), `source`, plus `link`, `card_state` or `store` (`google_play`, `app_store`) | Cross-app journeys, including Vertex → Beacon |
+| `mobile_app_qr_viewed` | The mobile app QR code is shown from the apps menu | `source` | Interest in the mobile app |
 | `data_exported` | Table exported to CSV (`ReusableTable`) | `source: 'table'`, `format`, `scope`, `row_count`, `column_count` | Which lists people take data out of (by `route`) |
 | `list_searched` | Pause after typing in a table's search box | `has_query`, `query_length`, `server_side` | Whether people rely on search, per list (`route`) |
 | `home_action_selected` | Action on Home | `action` (`claim_device`, `register_device`, `add_device`, `assign_cohort`, `set_visibility`, `status_card`), `source` (`header`, `empty_state`, `checklist`, `add_device_choice`), `status` for status cards | Which Home entry points work |

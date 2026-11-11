@@ -210,6 +210,7 @@ export function withAppProperties(event: CaptureResult | null): CaptureResult | 
 type Task = (client: PostHog) => void;
 
 const MAX_QUEUED_TASKS = 100;
+const MAX_LOAD_ATTEMPTS = 3;
 const CREDENTIAL_RETRY_MS = 1000;
 const MAX_CREDENTIAL_RETRIES = 60;
 
@@ -219,8 +220,10 @@ let queue: Task[] = [];
 let credentialRetries = 0;
 let credentialTimer: ReturnType<typeof setTimeout> | null = null;
 let initScheduled = false;
+let failedLoads = 0;
 
-export const isAnalyticsEnabled = () => Boolean(POSTHOG_KEY) && typeof window !== 'undefined';
+export const isAnalyticsEnabled = () =>
+  Boolean(POSTHOG_KEY) && typeof window !== 'undefined' && failedLoads < MAX_LOAD_ATTEMPTS;
 
 // Sign-in hand-offs and reset links carry a token in the URL. PostHog starts once the app has
 // consumed it, so neither an event nor a replay can pick it up.
@@ -281,9 +284,12 @@ export function initAnalytics(): void {
       return posthog;
     })
     .catch(error => {
-      // Blocked by an extension or offline: drop what was waiting and carry on without analytics.
+      // Offline or blocked. Keep what was waiting, the user's identify included, and let the next
+      // call try again; after a few failures, drop it and carry on without analytics.
       console.warn('Analytics failed to load:', error);
-      queue = [];
+      loading = null;
+      initScheduled = false;
+      if (++failedLoads >= MAX_LOAD_ATTEMPTS) queue = [];
       return null;
     });
 }
@@ -299,7 +305,11 @@ function scheduleInit() {
   }
 }
 
-function withClient(task: Task) {
+/**
+ * Runs `task` now, or queues it until PostHog loads. Events are capped at MAX_QUEUED_TASKS;
+ * identity calls (`essential`) are always kept, since the provider won't repeat them.
+ */
+function withClient(task: Task, { essential = false } = {}) {
   if (!isAnalyticsEnabled()) return;
   if (client) {
     try {
@@ -309,7 +319,7 @@ function withClient(task: Task) {
     }
     return;
   }
-  if (queue.length < MAX_QUEUED_TASKS) queue.push(task);
+  if (essential || queue.length < MAX_QUEUED_TASKS) queue.push(task);
   scheduleInit();
 }
 
@@ -360,7 +370,7 @@ export function identifyUser({ id, privilege, country }: AnalyticsPerson): void 
     // person. (Signing out reloads the page, so this is how a second account is noticed.)
     if (posthog.get_property('$user_state') === 'identified') posthog.reset();
     posthog.identify(id, personProperties);
-  });
+  }, { essential: true });
 }
 
 export interface AnalyticsOrganization {
@@ -384,16 +394,17 @@ export function setActiveOrganization(
       posthog.resetGroups();
       return;
     }
+    // Group properties don't pass through sanitizeProperties(): it would drop `name` (see BLOCKED_KEY)
     posthog.group('organization', organization.id, {
       name: organization.title,
       ...(organization.slug ? { slug: organization.slug } : {}),
     });
-  });
+  }, { essential: true });
 }
 
 /** Forgets the signed-in user on sign-out, so the next person on this browser starts fresh. */
 export function resetAnalytics(): void {
-  withClient(posthog => posthog.reset());
+  withClient(posthog => posthog.reset(), { essential: true });
 }
 
 // ─── Sign-in ───────────────────────────────────────────────────────────────
