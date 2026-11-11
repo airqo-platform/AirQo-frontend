@@ -59,6 +59,7 @@ import { SyncMenu } from "@/components/dashboard/sync-menu"
 
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
+import { trackEvent } from "@/lib/analytics"
 
 export type DeviceScope = "org" | "my"
 
@@ -409,6 +410,27 @@ export default function DevicesView({ scope }: Readonly<{ scope: DeviceScope }>)
     return sorted
   }, [deviceScope, sortedDevices, myDevices, searchTerm, networkFilter])
 
+  // One event per search once its results are in, so empty searches show up; the term isn't sent
+  const lastTrackedSearch = useRef("")
+  const searchResultsReady = deviceScope === "my" ? !myDevicesLoading : answeredOrgListQuery === orgListQuery
+  const searchResultCount = deviceScope === "my" ? displayedDevices.length : totalDevices
+  useEffect(() => {
+    const term = debouncedSearchTerm.trim()
+    if (!term) {
+      lastTrackedSearch.current = ""
+      return
+    }
+    const searchKey = `${deviceScope}:${term}`
+    if (!searchResultsReady || searchKey === lastTrackedSearch.current) return
+    lastTrackedSearch.current = searchKey
+    trackEvent("list_searched", {
+      list: "devices",
+      scope: deviceScope,
+      query_length: term.length,
+      result_count: searchResultCount,
+    })
+  }, [debouncedSearchTerm, deviceScope, searchResultsReady, searchResultCount])
+
   const currentTotalItems = useMemo(() => {
     return deviceScope === "org" ? totalDevices : displayedDevices.length
   }, [deviceScope, totalDevices, displayedDevices])
@@ -460,7 +482,14 @@ export default function DevicesView({ scope }: Readonly<{ scope: DeviceScope }>)
   const handleManufacturerChange = useCallback((selected: string[]) => {
     setNetworkFilter(selected)
     setCurrentPage(1) // The result set changes, so start from the first page
-  }, [])
+    trackEvent("list_filtered", {
+      list: "devices",
+      scope: deviceScope,
+      filter: "manufacturer",
+      selected_count: selected.length,
+      manufacturers: selected,
+    })
+  }, [deviceScope])
 
   // After an organisation switch, drop manufacturers the new organisation doesn't have, so a
   // stale selection can't filter the list down to nothing

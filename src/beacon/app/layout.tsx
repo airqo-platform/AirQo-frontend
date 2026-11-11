@@ -7,6 +7,7 @@ import { QueryProvider } from "@/components/providers/query-provider"
 import { Toaster } from "@/components/ui/toaster"
 import ChunkErrorHandler from "@/components/chunk-error-handler"
 import { AuthProvider } from "@/components/providers/auth-provider"
+import { AnalyticsProvider } from "@/components/providers/analytics-provider"
 import { ThemeProvider } from "@/components/theme-provider"
 import { getThemeScript } from "@/lib/theme-utils"
 
@@ -35,6 +36,7 @@ export default function RootLayout({
       </head>
       <body className={inter.className} suppressHydrationWarning={true}>
         <AuthProvider>
+          <AnalyticsProvider />
           <ThemeProvider>
             <QueryProvider>
               <ChunkErrorHandler />

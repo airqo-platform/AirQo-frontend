@@ -4,7 +4,9 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { feedbackService } from "@/services/feedback.service";
+import { trackEvent } from "@/lib/analytics";
 import {
+  consumeLoginMethod,
   consumeLoginStartedAt,
   getLoginFeedbackRecord,
   setLoginFeedbackRecord,
@@ -42,6 +44,12 @@ const LoginFeedbackToast: React.FC = () => {
 
     const loginStartedAt = consumeLoginStartedAt();
     if (!loginStartedAt) return;
+
+    // The one place both password and Google sign-ins reach, once each
+    trackEvent("user_signed_in", {
+      method: consumeLoginMethod() || "unknown",
+      login_duration_ms: Date.now() - loginStartedAt,
+    });
     if (getLoginFeedbackRecord(personId)) return;
 
     loginDurationRef.current = Date.now() - loginStartedAt;
@@ -62,6 +70,12 @@ const LoginFeedbackToast: React.FC = () => {
       landingPage: landingPageRef.current || pathname || "",
       submittedAt: Date.now(),
     });
+    // "Other" carries typed text after it, so only the preset is sent
+    trackEvent("login_rating_submitted", {
+      rating,
+      reason: !description ? undefined : LOGIN_NEGATIVE_REASONS.includes(description) ? description : "Other",
+      login_duration_ms: loginDurationRef.current,
+    });
     setLoginFeedbackRecord(personId);
   };
 
@@ -71,6 +85,7 @@ const LoginFeedbackToast: React.FC = () => {
       // cooldown a rating earns. The auto-hide is not a decision: we may ask
       // again on the next sign-in.
       if (reason === "close") {
+        trackEvent("login_rating_dismissed");
         setLoginFeedbackRecord(personId);
       }
       setShouldAskForFeedback(false);

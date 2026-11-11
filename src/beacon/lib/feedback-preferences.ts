@@ -16,6 +16,7 @@ const isBrowser = (): boolean => typeof window !== "undefined"
 // ===========================================================
 const LOGIN_FEEDBACK_KEY = "beacon_login_feedback"
 const LOGIN_STARTED_AT_KEY = "beacon_login_started_at"
+const LOGIN_METHOD_KEY = "beacon_login_method"
 
 /** How long the post-login prompt stays away after it was answered or closed. */
 export const LOGIN_FEEDBACK_COOLDOWN_MS = 30 * DAY_MS
@@ -61,10 +62,11 @@ export const setLoginFeedbackRecord = (personId: string): void => {
  * Notes that a sign-in has just been submitted. sessionStorage survives the
  * redirect into the dashboard, where the post-login prompt picks it up.
  */
-export const markLoginStarted = (): void => {
+export const markLoginStarted = (method = "password"): void => {
   if (!isBrowser()) return
   try {
     sessionStorage.setItem(LOGIN_STARTED_AT_KEY, String(Date.now()))
+    sessionStorage.setItem(LOGIN_METHOD_KEY, method)
   } catch {
     // Storage blocked — this sign-in just won't be followed by the prompt.
   }
@@ -82,6 +84,18 @@ export const consumeLoginStartedAt = (): number | null => {
     sessionStorage.removeItem(LOGIN_STARTED_AT_KEY)
     const startedAt = Number(raw)
     return raw && Number.isFinite(startedAt) && startedAt > 0 ? startedAt : null
+  } catch {
+    return null
+  }
+}
+
+/** How the sign-in that just finished was made ("password", "google", …), forgotten once read. */
+export const consumeLoginMethod = (): string | null => {
+  if (!isBrowser()) return null
+  try {
+    const method = sessionStorage.getItem(LOGIN_METHOD_KEY)
+    sessionStorage.removeItem(LOGIN_METHOD_KEY)
+    return method
   } catch {
     return null
   }

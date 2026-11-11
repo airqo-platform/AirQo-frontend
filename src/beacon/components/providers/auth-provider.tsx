@@ -56,7 +56,7 @@ function AuthEffect({ children }: { children: ReactNode }) {
       
       const callbackUrl = handoff.callbackUrl || '/dashboard/home';
       // Lets the dashboard follow this sign-in with the login experience prompt
-      markLoginStarted();
+      markLoginStarted(handoff.provider || 'oauth');
       
       signIn('credentials', {
         oauthToken: handoff.token,

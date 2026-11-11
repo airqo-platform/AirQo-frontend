@@ -20,6 +20,7 @@ import { DiagnosisResult, DiagnosticFeedbackCreate } from "@/types/diagnostics";
 import { diagnosticsService } from "@/services/diagnosticsService";
 import { toast } from "@/components/ui/use-toast";
 import { MessageSquarePlus, CheckCircle2, XCircle, Wrench, ShieldCheck, Loader2, User } from "lucide-react";
+import { trackEvent } from "@/lib/analytics";
 
 interface TechnicianFeedbackModalProps {
   open: boolean;
@@ -100,6 +101,11 @@ export const TechnicianFeedbackModal: React.FC<TechnicianFeedbackModalProps> = (
 
       const res = await diagnosticsService.submitFeedback(payload);
       if (res.success) {
+        // Whether the diagnosis was right, and the confirmed cause code; notes stay out
+        trackEvent("diagnosis_feedback_submitted", {
+          was_prediction_accurate: payload.was_prediction_accurate,
+          confirmed_cause_code: confirmedCause,
+        });
         toast({
           title: "Diagnostic Ground Truth Recorded",
           description: "Thank you! Field feedback has been logged to retrain the evidential weighting engine.",

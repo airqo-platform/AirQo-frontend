@@ -19,6 +19,7 @@ import {
     DropdownMenuTrigger,
     DropdownMenuContent,
 } from '@/components/ui/dropdown-menu';
+import { trackEvent } from '@/lib/analytics';
 
 interface App {
     name: string;
@@ -93,6 +94,10 @@ const AppDropdown: React.FC<AppDropdownProps> = ({ className = '' }) => {
     ];
 
     const handleAppClick = (app: App): void => {
+        trackEvent('app_link_opened', {
+            destination: app.type === 'qr' ? 'mobile_app' : app.name.toLowerCase().replace(/\s+/g, '_'),
+            source: 'apps_menu',
+        });
         if (app.type === 'qr') {
             setShowQRCode(true);
         } else if (app.href) {

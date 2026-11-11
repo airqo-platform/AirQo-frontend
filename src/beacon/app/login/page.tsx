@@ -8,6 +8,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Loader2, AlertCircle, Eye, EyeOff } from "lucide-react"
 import authService from "@/services/api-service"
 import { markLoginStarted } from "@/lib/feedback-preferences"
+import { trackEvent } from "@/lib/analytics"
 import { getSafeReturnPath } from "@/lib/navigation"
 import { signIn, useSession } from "next-auth/react"
 import SocialAuthSection from "@/components/auth/social-auth-section"
@@ -113,7 +114,7 @@ export default function LoginPage() {
     try {
       authService.clearAllAuthData()
       // Lets the dashboard follow this sign-in with the login experience prompt
-      markLoginStarted()
+      markLoginStarted("password")
       
       const response = await signIn('credentials', {
         redirect: false,
@@ -130,6 +131,11 @@ export default function LoginPage() {
         } else if (response.error !== "CredentialsSignin") {
           errorMessage = response.error
         }
+        // The reason is reduced to a category: the error text can repeat what was typed
+        trackEvent("user_sign_in_failed", {
+          method: "password",
+          reason: errorMessage === response.error ? "error" : "invalid_credentials",
+        })
         setError(errorMessage)
         return
       }
