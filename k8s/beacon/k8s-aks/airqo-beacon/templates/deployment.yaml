@@ -3,6 +3,10 @@
 {{- if hasKey $rollingUpdate "maxSurge" }}
 {{- $maxSurge = $rollingUpdate.maxSurge }}
 {{- end }}
+{{- $maxUnavailable := 1 }}
+{{- if hasKey $rollingUpdate "maxUnavailable" }}
+{{- $maxUnavailable = $rollingUpdate.maxUnavailable }}
+{{- end }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -19,7 +23,7 @@ spec:
     type: RollingUpdate
     rollingUpdate:
       maxSurge: {{ $maxSurge }}
-      maxUnavailable: {{ default 1 $rollingUpdate.maxUnavailable }}
+      maxUnavailable: {{ $maxUnavailable }}
   minReadySeconds: 5
   template:
     metadata:
