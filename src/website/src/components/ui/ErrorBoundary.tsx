@@ -323,13 +323,13 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <CustomButton
-                className="bg-blue-600 text-white px-6 py-3 rounded-lg shadow-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-colors"
+                className="bg-blue-600 text-white px-6 py-3 rounded-lg shadow-lg hover:bg-blue-700 active:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-colors"
                 onClick={this.handleRetry}
               >
                 Try Again
               </CustomButton>
               <CustomButton
-                className="bg-gray-600 text-white px-6 py-3 rounded-lg shadow-lg hover:bg-gray-700 focus:ring-2 focus:ring-gray-500 focus:outline-none transition-colors"
+                className="bg-gray-600 text-white px-6 py-3 rounded-lg shadow-lg hover:bg-gray-700 active:bg-gray-700 focus:ring-2 focus:ring-gray-500 focus:outline-none transition-colors"
                 onClick={this.handleReload}
               >
                 Reload Page

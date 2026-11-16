@@ -17,7 +17,6 @@ export interface ApiCachePolicy {
 }
 
 export const API_CACHE_TTLS = {
-  networkCoverage: 5 * 60 * 1000,
   billboardReadings: 15 * 60 * 1000,
   gridsSummary: 15 * 60 * 1000,
   dailyForecast: 60 * 60 * 1000,
@@ -25,16 +24,38 @@ export const API_CACHE_TTLS = {
 
 export const API_CACHE_MAX = 100;
 
+const NETWORK_COVERAGE_PATH = /^devices\/network-coverage(?:\/|$)/;
+
+const DEFAULT_CACHE_RESPONSE_HEADERS = {
+  'Cache-Control': 'private, max-age=60, stale-while-revalidate=600',
+};
+
+export function isNetworkCoveragePath(cleanPath: string): boolean {
+  return NETWORK_COVERAGE_PATH.test(cleanPath);
+}
+
+export function getApiCacheResponseHeaders(
+  cleanPath: string,
+  cachePolicy?: ApiCachePolicy,
+): Record<string, string> {
+  if (isNetworkCoveragePath(cleanPath)) {
+    return { 'Cache-Control': 'no-store' };
+  }
+
+  if (cachePolicy) {
+    return DEFAULT_CACHE_RESPONSE_HEADERS;
+  }
+
+  // Explicit default for GETs outside the allowlist (and for POST/PUT):
+  // unknown or user-specific responses must never be cached.
+  return { 'Cache-Control': 'no-store' };
+}
+
 const API_CACHE_POLICIES: Array<{
   name: string;
   pattern: RegExp;
   ttlMs: number;
 }> = [
-  {
-    name: 'networkCoverage',
-    pattern: /^devices\/network-coverage(?:\/|$)/,
-    ttlMs: API_CACHE_TTLS.networkCoverage,
-  },
   {
     name: 'gridRepresentativeReading',
     pattern: /^devices\/readings\/grids\/[^/]+\/representative\/?$/,
@@ -121,22 +142,5 @@ export function setApiCache(
     const oldest = apiCache.keys().next().value;
     if (oldest === undefined) break;
     apiCache.delete(oldest);
-  }
-}
-
-/**
- * Remove cached GETs that may have been changed by a mutation on the same
- * resource family. Query parameters are part of the cache key, so a prefix
- * invalidation is required for summary, country, and detail variants.
- */
-export function invalidateApiCacheByPathPrefix(pathPrefix: string): void {
-  for (const key of apiCache.keys()) {
-    if (
-      key === pathPrefix ||
-      key.startsWith(`${pathPrefix}?`) ||
-      key.startsWith(`${pathPrefix}/`)
-    ) {
-      apiCache.delete(key);
-    }
   }
 }

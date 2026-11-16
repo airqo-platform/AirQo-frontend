@@ -75,7 +75,7 @@ const BannerSection = ({ data }: { data: any }) => {
 
   return (
     <div className="w-full pt-10 relative">
-      <div className="max-w-5xl mx-auto flex flex-col-reverse md:flex-row items-center px-4 lg:px-0 justify-between gap-6">
+      <div className="max-w-5xl mx-auto flex flex-col-reverse md:flex-row items-center px-4 sm:px-6 lg:px-8 justify-between gap-6">
         {/* Text Section */}
         <div className="md:w-[40%] prose max-w-none h-full">
           {/* Back button for detail pages */}
@@ -115,12 +115,12 @@ const BannerSection = ({ data }: { data: any }) => {
       </div>
 
       {/* Navigation Links */}
-      <div className="max-w-5xl mx-auto px-4 lg:px-0">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <TabNavigation />
       </div>
 
       {/* Data Date, Time, and Location */}
-      <div className="max-w-5xl mx-auto space-y-4 pb-4 px-4 lg:px-0">
+      <div className="max-w-5xl mx-auto space-y-4 pb-4 px-4 sm:px-6 lg:px-8">
         <div className="flex flex-wrap items-center space-x-4 text-gray-700 text-sm">
           <div className="flex items-center space-x-2">
             <FaCalendarAlt />

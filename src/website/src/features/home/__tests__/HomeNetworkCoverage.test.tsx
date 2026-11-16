@@ -76,7 +76,7 @@ describe('HomeNetworkCoverage', () => {
     ).toBeInTheDocument();
 
     const cta = screen.getByRole('link', {
-      name: /View full network coverage/i,
+      name: /Discover network coverage/i,
     });
     expect(cta).toHaveAttribute('href', '/solutions/network-coverage');
   });

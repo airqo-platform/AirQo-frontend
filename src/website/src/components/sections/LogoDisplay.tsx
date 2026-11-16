@@ -39,9 +39,9 @@ const LogoDisplay: React.FC<LogoDisplayProps> = ({
   return (
     // add top padding to ensure logos don't touch separators/dividers
     <div className={`${gridClass} pt-6`}>
-      {logos.map((logo) => (
+      {logos.map((logo, index) => (
         <div
-          key={logo.id}
+          key={logo.id ?? `logo-${index}`}
           className={`flex items-center justify-center p-6 border border-gray-200 ${
             logo.onClick
               ? 'cursor-pointer hover:bg-gray-50 transition-colors'

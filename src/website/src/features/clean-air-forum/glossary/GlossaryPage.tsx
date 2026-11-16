@@ -45,7 +45,7 @@ const GlossaryPage = () => {
 
   return (
     <div className="w-full">
-      <div className="max-w-5xl mx-auto px-4 lg:px-0">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="prose max-w-none flex flex-col gap-6">
           <Divider className="bg-black p-0 m-0 h-[1px] w-full" />
 

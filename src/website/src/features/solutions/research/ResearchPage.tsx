@@ -1,7 +1,6 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { useRouter } from 'next/navigation';
 import React from 'react';
 import { LuChartBar, LuShield, LuUsers, LuZap } from 'react-icons/lu';
 
@@ -80,11 +79,9 @@ const CONTENT = {
 };
 
 const ResearchPage = () => {
-  const router = useRouter();
-
   const MotionSection = ({ className = '', children, ...props }: any) => (
     <motion.section
-      className={`max-w-5xl mx-auto px-4 ${className}`}
+      className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ${className}`}
       initial="hidden"
       whileInView="visible"
       viewport={{ once: true, amount: 0.2 }}
@@ -128,7 +125,7 @@ const ResearchPage = () => {
 
       {/* Benefits Section */}
       <motion.div
-        className="max-w-5xl mx-auto px-4 lg:px-0"
+        className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, amount: 0.2 }}
@@ -210,7 +207,7 @@ const ResearchPage = () => {
                   '_blank',
                 );
               }}
-              className="flex items-center bg-transparent text-black justify-center w-full max-w-[200px] border border-black px-4 py-3 bg-none mt-4"
+              className="flex items-center bg-transparent text-black justify-center w-full max-w-[200px] border border-black px-4 py-3 bg-none mt-4 hover:bg-gray-100 active:bg-gray-100"
             >
               Read Report &rarr;
             </CustomButton>
@@ -224,15 +221,20 @@ const ResearchPage = () => {
         viewport={{ once: true, amount: 0.2 }}
         className="flex justify-center px-4"
       >
-        <CustomButton
-          onClick={() => router.push('/explore-data')}
-          className="bg-[#0CE87E] text-black rounded-lg max-w-5xl mx-auto w-full py-16 text-center"
+        <a
+          href="https://ai.airqo.net/map"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Open live air quality map"
+          className="block max-w-5xl mx-auto w-full py-16 text-center bg-[#0CE87E] text-black rounded-lg"
         >
           <h3 className="text-3xl font-bold mb-4">
             Explore our digital air quality tools.
           </h3>
-          <span className="px-6 py-3 bg-none mt-4">Explore data &rarr;</span>
-        </CustomButton>
+          <span className="px-6 py-3 bg-none mt-4">
+            Open live air quality map &rarr;
+          </span>
+        </a>
       </motion.div>
     </div>
   );

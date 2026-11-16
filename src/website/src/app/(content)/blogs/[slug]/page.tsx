@@ -3,23 +3,23 @@ import { headers } from 'next/headers';
 import { notFound } from 'next/navigation';
 
 import BlogDetailPage from '@/features/blogs/BlogDetailPage';
-import { generateViewport, METADATA_CONFIGS } from '@/lib/metadata';
-import { buildSiteUrl } from '@/lib/siteUrl';
+import {
+  cleanMetadataText,
+  generateViewport,
+  METADATA_CONFIGS,
+  resolveMetadataImage,
+} from '@/lib/metadata';
+import { buildSiteUrl, getPrimarySiteUrl } from '@/lib/siteUrl';
 import { blogService } from '@/services/website';
 import type { BlogPost } from '@/types/api';
 
 export const viewport = generateViewport();
 
-const getAbsoluteUrl = (url: string, requestHost: string | null) =>
-  buildSiteUrl(url, requestHost);
-
-const resolveBlogImageUrl = (url: string, requestHost: string | null) => {
-  if (/^https?:\/\//i.test(url) || url.startsWith('//')) {
-    return url;
-  }
-
-  return getAbsoluteUrl(url, requestHost);
-};
+const getAbsoluteUrl = (
+  url: string,
+  requestHost: string | null,
+  requestProtocol: string,
+) => buildSiteUrl(url, undefined, requestHost, requestProtocol);
 
 const blogCache = new Map<string, Promise<BlogPost | null>>();
 
@@ -50,15 +50,27 @@ export async function generateMetadata({
   const requestHeaders = await headers();
   const requestHost =
     requestHeaders.get('x-forwarded-host') ?? requestHeaders.get('host');
+  const requestProtocol =
+    requestHeaders.get('x-forwarded-proto') ??
+    (process.env.NODE_ENV === 'development' ? 'http' : 'https');
   const slug = params.slug;
-  const blog = await getCachedBlog(slug);
+  let blog: BlogPost | null = null;
+  try {
+    blog = await getCachedBlog(slug);
+  } catch {
+    // Keep a useful, non-indexable fallback when the content API is unavailable.
+  }
 
   if (!blog) {
     return {
-      title: METADATA_CONFIGS.blogs.title,
+      title: { absolute: METADATA_CONFIGS.blogs.title },
       description: METADATA_CONFIGS.blogs.description,
       alternates: {
-        canonical: getAbsoluteUrl('/blogs', requestHost),
+        canonical: getAbsoluteUrl('/blogs', requestHost, requestProtocol),
+      },
+      robots: {
+        index: false,
+        follow: true,
       },
     };
   }
@@ -68,15 +80,24 @@ export async function generateMetadata({
   const canonicalUrl = getAbsoluteUrl(
     `/blogs/${encodeURIComponent(canonicalSlug)}`,
     requestHost,
+    requestProtocol,
   );
-  const imageUrl = blog.cover_image_url
-    ? resolveBlogImageUrl(blog.cover_image_url, requestHost)
-    : METADATA_CONFIGS.blogs.image?.url ||
-      getAbsoluteUrl('/icon.png', requestHost);
+  const title =
+    blog.meta_title?.trim() ||
+    blog.title?.trim() ||
+    METADATA_CONFIGS.blogs.title;
+  const description = cleanMetadataText(
+    blog.meta_description || blog.summary,
+    METADATA_CONFIGS.blogs.description,
+  );
+  const imageUrl = resolveMetadataImage(
+    blog.cover_image_url,
+    getPrimarySiteUrl(requestHost, requestProtocol),
+  );
 
   return {
-    title: blog.meta_title || blog.title,
-    description: blog.meta_description || blog.summary,
+    title: { absolute: title },
+    description,
     keywords: [
       blog.title,
       blog.author_name,
@@ -90,14 +111,14 @@ export async function generateMetadata({
     openGraph: {
       type: 'article',
       url: canonicalUrl,
-      title: blog.meta_title || blog.title,
-      description: blog.meta_description || blog.summary,
+      title,
+      description,
       images: [
         {
           url: imageUrl,
+          alt: title,
           width: 1200,
           height: 630,
-          alt: blog.title,
         },
       ],
       siteName: 'AirQo',
@@ -108,9 +129,9 @@ export async function generateMetadata({
     twitter: {
       card: 'summary_large_image',
       site: '@AirQoProject',
-      title: blog.meta_title || blog.title,
-      description: blog.meta_description || blog.summary,
-      images: [imageUrl],
+      title,
+      description,
+      images: [{ url: imageUrl, alt: title, width: 1200, height: 630 }],
     },
     robots: {
       index: true,

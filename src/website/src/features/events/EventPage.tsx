@@ -91,7 +91,7 @@ const EventPage: React.FC = () => {
       {isHeaderLoading ? (
         <div className="mb-12 bg-[#F2F1F6] py-4 lg:py-16">
           <div
-            className={`${mainConfig.containerClass} w-full px-4 lg:px-0 flex flex-col-reverse lg:flex-row lg:space-x-12 items-center`}
+            className={`${mainConfig.containerClass} w-full px-4 sm:px-6 lg:px-8 flex flex-col-reverse lg:flex-row lg:space-x-12 items-center`}
           >
             <div className="flex-1 mb-8 lg:mb-0">
               <div className="h-6 bg-gray-300 w-1/2 rounded mb-4 animate-pulse"></div>
@@ -110,7 +110,7 @@ const EventPage: React.FC = () => {
       ) : hasHeaderError ? (
         <div className="mb-12 bg-[#F2F1F6] py-4 lg:py-16">
           <div
-            className={`${mainConfig.containerClass} w-full px-4 lg:px-0 text-center`}
+            className={`${mainConfig.containerClass} w-full px-4 sm:px-6 lg:px-8 text-center`}
           >
             <h1 className="text-4xl font-bold mb-4">Error Loading Events</h1>
             <p className="text-lg text-gray-600">
@@ -123,7 +123,7 @@ const EventPage: React.FC = () => {
         firstFeaturedEvent && (
           <section className="mb-12 bg-[#F2F1F6] py-4 lg:py-16">
             <div
-              className={`${mainConfig.containerClass} w-full px-4 lg:px-0 flex flex-col-reverse lg:flex-row lg:space-x-12 items-center`}
+              className={`${mainConfig.containerClass} w-full px-4 sm:px-6 lg:px-8 flex flex-col-reverse lg:flex-row lg:space-x-12 items-center`}
             >
               <div className="flex-1 mb-8 lg:mb-0">
                 <h1 className="text-4xl font-bold mb-4">
@@ -174,7 +174,7 @@ const EventPage: React.FC = () => {
                       `/events/${getEventRouteSlug(firstFeaturedEvent)}`,
                     )
                   }
-                  className="bg-blue-100 text-blue-700 px-6 py-4"
+                  className="bg-blue-100 text-blue-700 px-6 py-4 hover:bg-blue-200 hover:text-blue-800 active:bg-blue-200"
                 >
                   Read more
                 </CustomButton>
@@ -200,7 +200,7 @@ const EventPage: React.FC = () => {
 
       {/* Tabs Section */}
       <section
-        className={`${mainConfig.containerClass} w-full px-4 lg:px-0 mb-8 mt-8 lg:mt-16`}
+        className={`${mainConfig.containerClass} w-full px-4 sm:px-6 lg:px-8 mb-8 mt-8 lg:mt-16`}
       >
         <div className="flex space-x-8 border-b border-gray-300">
           <button
@@ -229,7 +229,7 @@ const EventPage: React.FC = () => {
       {/* Event Cards Section */}
       {isLoadingEvents ? (
         <div
-          className={`${mainConfig.containerClass} w-full px-4 lg:px-0 mb-8`}
+          className={`${mainConfig.containerClass} w-full px-4 sm:px-6 lg:px-8 mb-8`}
         >
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[...Array(6)].map((_, idx) => (
@@ -256,7 +256,7 @@ const EventPage: React.FC = () => {
 
       {/* Pagination controls */}
       <div
-        className={`${mainConfig.containerClass} w-full px-4 lg:px-0 mb-8 mt-6`}
+        className={`${mainConfig.containerClass} w-full px-4 sm:px-6 lg:px-8 mb-8 mt-6`}
       >
         {eventsData && eventsData.total_pages > 1 && (
           <Pagination

@@ -34,9 +34,9 @@ const TabSection: React.FC = () => {
   };
 
   return (
-    <div className="w-full bg-[#F2F1F6] pt-16 h-[250px] px-4 lg:px-0">
+    <div className="w-full bg-[#F2F1F6] pt-16 min-h-[250px] px-4 sm:px-6 lg:px-8 flex">
       <div
-        className={`w-full h-full flex flex-col justify-between items-start ${mainConfig.containerClass}`}
+        className={`w-full flex flex-col justify-between items-start ${mainConfig.containerClass}`}
       >
         <div></div>
 

@@ -26,90 +26,92 @@ export default function ApiReferenceSection() {
       </div>
 
       <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-        <table className="w-full">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Prop
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Type
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Default
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Description
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
-            <tr>
-              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                size
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                <code className="bg-gray-100 px-1.5 py-0.5 rounded text-xs">
-                  number | string
-                </code>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                24
-              </td>
-              <td className="px-6 py-4 text-sm text-gray-600">
-                Sets the width and height of the icon.
-              </td>
-            </tr>
-            <tr>
-              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                color
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                <code className="bg-gray-100 px-1.5 py-0.5 rounded text-xs">
-                  string
-                </code>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                currentColor
-              </td>
-              <td className="px-6 py-4 text-sm text-gray-600">
-                Sets the fill/stroke color of the icon.
-              </td>
-            </tr>
-            <tr>
-              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                className
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                <code className="bg-gray-100 px-1.5 py-0.5 rounded text-xs">
-                  string
-                </code>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                -
-              </td>
-              <td className="px-6 py-4 text-sm text-gray-600">
-                Applies custom CSS classes.
-              </td>
-            </tr>
-            <tr>
-              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                ...props
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                <code className="bg-gray-100 px-1.5 py-0.5 rounded text-xs">
-                  SVGProps
-                </code>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                -
-              </td>
-              <td className="px-6 py-4 text-sm text-gray-600">
-                All standard SVG attributes are supported.
-              </td>
-            </tr>
-          </tbody>
-        </table>
+        <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
+          <table className="w-full">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Prop
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Type
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Default
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Description
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              <tr>
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                  size
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                  <code className="bg-gray-100 px-1.5 py-0.5 rounded text-xs">
+                    number | string
+                  </code>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                  24
+                </td>
+                <td className="px-6 py-4 text-sm text-gray-600">
+                  Sets the width and height of the icon.
+                </td>
+              </tr>
+              <tr>
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                  color
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                  <code className="bg-gray-100 px-1.5 py-0.5 rounded text-xs">
+                    string
+                  </code>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                  currentColor
+                </td>
+                <td className="px-6 py-4 text-sm text-gray-600">
+                  Sets the fill/stroke color of the icon.
+                </td>
+              </tr>
+              <tr>
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                  className
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                  <code className="bg-gray-100 px-1.5 py-0.5 rounded text-xs">
+                    string
+                  </code>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                  -
+                </td>
+                <td className="px-6 py-4 text-sm text-gray-600">
+                  Applies custom CSS classes.
+                </td>
+              </tr>
+              <tr>
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                  ...props
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                  <code className="bg-gray-100 px-1.5 py-0.5 rounded text-xs">
+                    SVGProps
+                  </code>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                  -
+                </td>
+                <td className="px-6 py-4 text-sm text-gray-600">
+                  All standard SVG attributes are supported.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
 
       <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-100 flex gap-3">

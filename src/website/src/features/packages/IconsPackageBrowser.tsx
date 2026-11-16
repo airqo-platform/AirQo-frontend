@@ -74,7 +74,7 @@ export default function IconsPackageBrowser() {
     <>
       <Toaster position="bottom-right" containerStyle={{ zIndex: 40000 }} />
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-4">
           <SearchBar
             value={query}
@@ -89,7 +89,7 @@ export default function IconsPackageBrowser() {
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
         {iconsLoadError ? (
           <div className="rounded-xl border bg-white p-6 text-center">
             <p className="mb-4 text-sm text-red-600">

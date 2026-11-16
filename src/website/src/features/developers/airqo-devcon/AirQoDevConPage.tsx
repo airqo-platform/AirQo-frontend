@@ -19,8 +19,6 @@ import { CustomButton } from '@/components/ui';
 import mainConfig from '@/config/site.config';
 import { DEVCON_IMAGE_SRC } from '@/lib/devcon';
 
-// import CountdownTimer from './CountdownTimer'; // TEMPORARILY HIDDEN with countdown section below (restore together)
-
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
@@ -91,7 +89,9 @@ const AirQoDevConPage = () => {
   return (
     <div className="flex w-full flex-col space-y-16 pb-12">
       <section className="border-b border-[#e4e4e7] bg-[#FAFBFC]">
-        <div className={`${mainConfig.containerClass} py-12 lg:py-16 px-4`}>
+        <div
+          className={`${mainConfig.containerClass} py-12 lg:py-16 px-4 sm:px-6 lg:px-8`}
+        >
           <div className="grid grid-cols-1 items-center gap-10 lg:grid-cols-[1.1fr_0.9fr]">
             <div>
               <div className="flex items-center gap-2.5 mb-4">
@@ -124,7 +124,7 @@ const AirQoDevConPage = () => {
               </p>
               <div className="flex flex-col gap-3 sm:flex-row">
                 <Link href="#devcon-tracks">
-                  <CustomButton className="px-5 py-3 text-[13px] bg-white text-[#18181b] border border-[#e4e4e7] hover:bg-[#f4f4f5]">
+                  <CustomButton className="px-5 py-3 text-[13px] bg-white text-[#18181b] border border-[#e4e4e7] hover:bg-[#f4f4f5] active:bg-[#e4e4e7]">
                     Explore tracks
                   </CustomButton>
                 </Link>
@@ -145,40 +145,6 @@ const AirQoDevConPage = () => {
         </div>
       </section>
 
-      {/*
-        TEMPORARILY HIDDEN (2026-09-15): countdown disabled until the next cohort
-        dates are confirmed. Restore this section together with the
-        CountdownTimer and DEVCON_COUNTDOWN_TARGET imports.
-      <motion.section
-        className="px-4"
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, amount: 0.2 }}
-        variants={containerVariants}
-      >
-        <div
-          className={`${mainConfig.containerClass} grid grid-cols-1 gap-8 lg:grid-cols-[0.85fr_1.15fr] lg:items-center`}
-        >
-          <motion.div variants={itemVariants}>
-            <p className="mb-2 text-[11px] font-medium uppercase tracking-[0.06em] text-blue-600">
-              Countdown
-            </p>
-            <h2 className="text-[20px] md:text-[24px] font-semibold tracking-[-0.015em] text-[#18181b] mb-3">
-              June 17, 2026 build window starts in.
-            </h2>
-            <p className="text-[15px] text-[#71717a] leading-[1.6]">
-              AirQo DevCon runs on 17&ndash;18 June 2026 at Makerere University.
-              Register your interest now and we will share joining details and
-              preparation notes with registered students.
-            </p>
-          </motion.div>
-          <motion.div variants={itemVariants}>
-            <CountdownTimer targetDate={DEVCON_COUNTDOWN_TARGET} />
-          </motion.div>
-        </div>
-      </motion.section>
-      */}
-
       <motion.section
         className="bg-blue-50"
         initial="hidden"
@@ -186,7 +152,9 @@ const AirQoDevConPage = () => {
         viewport={{ once: true, amount: 0.2 }}
         variants={containerVariants}
       >
-        <div className={`${mainConfig.containerClass} py-10 px-4`}>
+        <div
+          className={`${mainConfig.containerClass} py-10 px-4 sm:px-6 lg:px-8`}
+        >
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
             {devconStats.map((stat) => {
               const Icon = stat.icon;
@@ -211,7 +179,7 @@ const AirQoDevConPage = () => {
       </motion.section>
 
       <motion.section
-        className={`${mainConfig.containerClass} px-4`}
+        className={`${mainConfig.containerClass} px-4 sm:px-6 lg:px-8`}
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, amount: 0.2 }}
@@ -272,7 +240,9 @@ const AirQoDevConPage = () => {
         viewport={{ once: true, amount: 0.2 }}
         variants={containerVariants}
       >
-        <div className={`${mainConfig.containerClass} py-12 px-4`}>
+        <div
+          className={`${mainConfig.containerClass} py-12 px-4 sm:px-6 lg:px-8`}
+        >
           <motion.div className="mb-8" variants={itemVariants}>
             <p className="text-[11px] font-medium uppercase tracking-[0.06em] text-blue-600 mb-2">
               Your track
@@ -321,7 +291,9 @@ const AirQoDevConPage = () => {
         viewport={{ once: true, amount: 0.2 }}
         variants={containerVariants}
       >
-        <div className={`${mainConfig.containerClass} py-12 px-4`}>
+        <div
+          className={`${mainConfig.containerClass} py-12 px-4 sm:px-6 lg:px-8`}
+        >
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_0.8fr]">
             <motion.div variants={itemVariants}>
               <p className="text-[11px] font-medium uppercase tracking-[0.06em] text-blue-600 mb-2">
@@ -361,7 +333,9 @@ const AirQoDevConPage = () => {
         viewport={{ once: true, amount: 0.2 }}
         variants={containerVariants}
       >
-        <div className={`${mainConfig.containerClass} py-12 px-4`}>
+        <div
+          className={`${mainConfig.containerClass} py-12 px-4 sm:px-6 lg:px-8`}
+        >
           <motion.div
             variants={itemVariants}
             className="bg-blue-600 rounded-lg p-6 lg:p-8 text-white"

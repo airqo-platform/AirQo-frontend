@@ -10,7 +10,7 @@ export default function IconsPackagePage() {
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
       <section className="bg-blue-600">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
           <div className="mb-4">
             <BackButton
               fallbackUrl="/packages"
@@ -31,7 +31,7 @@ export default function IconsPackagePage() {
       </section>
 
       {/* Stats Section */}
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <StatCard
             icon={<FiBox className="w-5 h-5" />}

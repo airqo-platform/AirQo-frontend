@@ -66,7 +66,7 @@ const DetailsPage: React.FC<{ id: string }> = ({ id }) => {
         {' '}
         <CustomButton
           onClick={() => router.back()}
-          className="text-black bg-transparent p-0 m-0 flex items-center"
+          className="text-black bg-transparent p-0 m-0 flex items-center hover:bg-transparent hover:text-brand-700 active:bg-transparent"
         >
           {' '}
           <FiArrowLeft className="mr-2" size={20} /> Back{' '}
@@ -159,7 +159,7 @@ const DetailsPage: React.FC<{ id: string }> = ({ id }) => {
           <CustomButton
             onClick={() => window.open(careerDetails.apply_url, '_blank')}
             rel="noopener noreferrer"
-            className="bg-green-500 hover:bg-green-600 text-white font-semibold"
+            className="bg-green-500 hover:bg-green-600 active:bg-green-700 text-white font-semibold"
           >
             {' '}
             Apply Now{' '}

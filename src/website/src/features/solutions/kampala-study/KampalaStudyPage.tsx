@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import Image from 'next/image';
+import Link from 'next/link';
 import React, { useState } from 'react';
 import { FiChevronDown, FiChevronUp } from 'react-icons/fi';
 import {
@@ -148,7 +149,7 @@ const KampalaStudyPage = () => {
 
   const MotionSection = ({ className = '', children, ...props }: any) => (
     <motion.section
-      className={`max-w-5xl mx-auto px-4 ${className}`}
+      className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ${className}`}
       initial="hidden"
       whileInView="visible"
       viewport={{ once: true, amount: 0.2 }}
@@ -162,9 +163,9 @@ const KampalaStudyPage = () => {
   return (
     <div className="flex flex-col w-full space-y-20 overflow-hidden bg-white">
       {/* Hero Section */}
-      <section className="bg-[#DFF5E8] py-16 px-4 h-full">
+      <section className="bg-[#DFF5E8] py-16 px-4 sm:px-6 lg:px-8 h-full">
         <motion.div
-          className="max-w-5xl mx-auto text-center"
+          className="max-w-7xl mx-auto text-center"
           initial="hidden"
           animate="visible"
           variants={animations.container}
@@ -295,7 +296,7 @@ const KampalaStudyPage = () => {
       {/* Infographic Section */}
       <section className="bg-[#F9FAFB] py-20">
         <motion.div
-          className="max-w-5xl mx-auto px-4"
+          className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, amount: 0.2 }}
@@ -409,7 +410,7 @@ const KampalaStudyPage = () => {
       {/* Video Section */}
       <section className="bg-[#F9FAFB] py-20">
         <motion.div
-          className="max-w-5xl mx-auto px-4"
+          className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, amount: 0.2 }}
@@ -493,6 +494,43 @@ const KampalaStudyPage = () => {
             );
           })}
         </div>
+      </MotionSection>
+
+      {/* Closing CTA */}
+      <MotionSection aria-labelledby="kampala-study-cta-heading">
+        <motion.div
+          variants={animations.item}
+          className="rounded-md border border-brand-100 bg-brand-50 px-6 py-10 sm:px-8 sm:py-12"
+        >
+          <div className="max-w-2xl">
+            <h2
+              id="kampala-study-cta-heading"
+              className="text-2xl font-bold tracking-tight text-ink sm:text-3xl"
+            >
+              Take part in the Kampala study
+            </h2>
+            <p className="mt-3 text-base leading-6 text-gray-700 sm:text-lg sm:leading-7">
+              Have a question about the study, or ready to start? Reach the
+              study team, or grab the AirQo app to follow air quality in your
+              neighbourhood.
+            </p>
+          </div>
+
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+            <Link
+              href="/contact"
+              className="inline-flex items-center justify-center gap-2 whitespace-normal rounded-md bg-brand px-6 py-3.5 text-center text-sm font-semibold text-white transition-colors hover:bg-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
+            >
+              Contact the study team
+            </Link>
+            <Link
+              href="/products/mobile-app"
+              className="inline-flex items-center justify-center gap-2 whitespace-normal rounded-md border border-ink bg-white px-6 py-3.5 text-center text-sm font-semibold text-ink transition-colors hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
+            >
+              Get the AirQo app
+            </Link>
+          </div>
+        </motion.div>
       </MotionSection>
     </div>
   );

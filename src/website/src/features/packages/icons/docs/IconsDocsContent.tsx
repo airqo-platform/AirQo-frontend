@@ -57,7 +57,7 @@ export default function IconsDocsContent() {
   return (
     <>
       <Toaster position="bottom-right" containerStyle={{ zIndex: 40000 }} />
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="flex flex-col lg:flex-row gap-12">
           <div className="lg:w-64 flex-shrink-0">
             <div className="sticky top-8 space-y-8 max-h-[calc(100vh-4rem)] overflow-y-auto pr-4 custom-scrollbar">

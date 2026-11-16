@@ -14,15 +14,11 @@ import { ReduxDataProvider } from '@/components/providers/ReduxProvider';
 import { QueryProvider } from '@/components/providers/QueryProvider';
 import { generateViewport } from '@/lib/metadata';
 import { getPrimarySiteUrl } from '@/lib/siteUrl';
-import { optimizeCloudinaryUrl } from '@/services/external/cloudinary.service';
 
 const GOOGLE_ANALYTICS_MEASUREMENT_ID =
   process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
 
-const DEFAULT_OG_IMAGE = optimizeCloudinaryUrl(
-  'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132435/website/photos/AirQuality_meyioj.webp',
-  { width: 1200 },
-);
+const DEFAULT_OG_IMAGE = '/assets/images/seo/airqo-social-fallback.jpg';
 
 const interFont = localFont({
   src: [
@@ -62,62 +58,8 @@ export const metadata: Metadata = {
     template: '%s | AirQo',
   },
   description:
-    'AirQo empowers African communities with accurate, hyperlocal, and timely air quality data to drive pollution mitigation actions. Real-time monitoring in Uganda (Kampala), Kenya (Nairobi), Nigeria (Lagos), Ghana (Accra) and 16+ African cities. We deploy low-cost sensors and provide real-time insights where 9 out of 10 people breathe polluted air.',
-  keywords: [
-    'AirQo',
-    'air quality Uganda',
-    'air pollution Kenya',
-    'Nigeria air quality',
-    'Ghana air monitoring',
-    'Rwanda air quality',
-    'Tanzania pollution data',
-    'Kampala air quality',
-    'Nairobi pollution',
-    'Lagos air quality',
-    'Accra PM2.5',
-    'Kigali air monitoring',
-    'Dar es Salaam pollution',
-    'Jinja air quality',
-    'Mombasa pollution',
-    'Kisumu air quality',
-    'Entebbe air monitoring',
-    'Gulu air quality',
-    'Mbarara pollution',
-    'Nakuru air quality',
-    'Eldoret pollution',
-    'Port Harcourt air quality',
-    'Abuja pollution',
-    'Kano air quality',
-    'Ibadan air monitoring',
-    'Kumasi air quality',
-    'Takoradi pollution',
-    'East Africa air quality',
-    'West Africa pollution',
-    'Uganda environmental monitoring',
-    'Kenya air sensors',
-    'Nigeria pollution data',
-    'air quality monitoring Africa',
-    'air pollution data',
-    'hyperlocal air quality',
-    'African cities air quality',
-    'real-time pollution data',
-    'low-cost air sensors',
-    'clean air Africa',
-    'AirQo Nexus',
-    'pollution mitigation',
-    'environmental monitoring Africa',
-    'PM2.5 Africa',
-    'air quality index',
-    'Makerere University air quality',
-    'Google.org Africa',
-    'World Bank air quality',
-    'Africa Clean Air Forum',
-    'CLEAN-Air Network',
-    'Binos Monitor',
-    'AirQalibrate',
-    'mobile air quality app',
-    'air quality API',
-  ],
+    'AirQo works with African communities to measure air quality and make local data available for research, public awareness, and action.',
+
   authors: [{ name: 'AirQo' }],
   robots: {
     index: true,
@@ -130,25 +72,20 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
-  alternates: {
-    canonical: getPrimarySiteUrl(),
-  },
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: getPrimarySiteUrl(),
     siteName: 'AirQo',
-    title:
-      'AirQo | Air Quality Monitoring Uganda, Kenya, Nigeria - Real-time Data',
+    title: 'AirQo | Air quality data and research across Africa',
     description:
-      'AirQo empowers African communities with accurate, hyperlocal, and timely air quality data to drive pollution mitigation actions. Real-time monitoring in Uganda (Kampala), Kenya (Nairobi), Nigeria (Lagos), Ghana (Accra). We deploy low-cost sensors and provide real-time insights where 9 out of 10 people breathe polluted air.',
+      'AirQo works with African communities to measure air quality and make local data available for research, public awareness, and action.',
     images: [
       {
         url: DEFAULT_OG_IMAGE,
         width: 1200,
         height: 630,
-        alt: 'AirQo - Clean Air for Uganda, Kenya, Nigeria, Ghana - African Cities Air Quality',
-        type: 'image/webp',
+        alt: 'AirQo team members working with air quality monitoring equipment',
+        type: 'image/jpeg',
       },
     ],
   },
@@ -156,13 +93,13 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     site: '@AirQoProject',
     creator: '@AirQoProject',
-    title: 'AirQo | Air Quality Uganda, Kenya, Nigeria - Real-time Monitoring',
+    title: 'AirQo | Air quality data and research across Africa',
     description:
-      'Track air quality in Kampala, Nairobi, Lagos, Accra. Real-time PM2.5 data from 200+ monitors across Uganda, Kenya, Nigeria, Ghana. Free mobile app.',
+      'AirQo works with African communities to measure air quality and make local data available for research, public awareness, and action.',
     images: [
       {
         url: DEFAULT_OG_IMAGE,
-        alt: 'AirQo - Air Quality Monitoring Across African Cities',
+        alt: 'AirQo team members working with air quality monitoring equipment',
         width: 1200,
         height: 630,
       },
@@ -171,7 +108,7 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       {
-        url: '/assets/images/white-logo.png',
+        url: '/web-app-manifest-192x192.png',
         sizes: 'any',
         type: 'image/png',
       },
@@ -203,8 +140,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     name: 'AirQo',
     alternateName: 'Air Quality and Pollution Monitoring Organization',
     description:
-      'AirQo empowers African communities with accurate, hyperlocal, and timely air quality data to drive pollution mitigation actions. Operating in Uganda, Kenya, Nigeria, Ghana, Rwanda, Tanzania with 200+ monitors across 16+ cities including Kampala, Nairobi, Lagos, and Accra.',
-    logo: `${siteUrl}icon.png`,
+      'AirQo works with African communities to measure air quality and make local data available for research, public awareness, and action.',
+    logo: `${siteUrl}web-app-manifest-512x512.png`,
     sameAs: [
       'https://www.facebook.com/AirQo',
       'https://www.youtube.com/channel/UCx7YtV55TcqKGeKsDdT5_XQ',
@@ -252,11 +189,6 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       'Low-cost Sensors',
       'Real-time Air Data',
     ],
-    potentialAction: {
-      '@type': 'SearchAction',
-      target: `${siteUrl}explore-data?q={search_term_string}`,
-      'query-input': 'required name=search_term_string',
-    },
   };
 
   return (

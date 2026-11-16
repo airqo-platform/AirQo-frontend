@@ -40,17 +40,17 @@ const ContactPage: React.FC = () => {
   return (
     <div
       className="flex flex-col lg:flex-row w-full bg-[#F9FAFB]"
-      style={{ height: 'calc(100vh - 132px)' }}
+      style={{ minHeight: 'calc(100vh - 132px)' }}
     >
       {/* Contact Information Section */}
-      <section className="flex-1 flex items-center justify-center bg-yellow-50 p-8 mb-8 lg:mb-0 lg:h-auto h-full">
+      <section className="flex-1 flex items-center justify-center bg-yellow-50 p-8 mb-8 lg:mb-0">
         <motion.div
           className="max-w-md"
           variants={itemVariants}
           initial="hidden"
           animate="visible"
         >
-          <h2 className="text-3xl font-bold mb-4">Get in touch</h2>
+          <h1 className="text-3xl font-bold mb-4">Get in touch</h1>
           <p className="text-lg font-semibold mb-4">Makerere University</p>
           <p className="text-gray-600 mb-2">
             Software Systems Centre, Block B, Level 3, College of Computing and

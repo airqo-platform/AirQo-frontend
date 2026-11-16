@@ -1,6 +1,7 @@
 'use client';
 
 import DOMPurify from 'dompurify';
+import Link from 'next/link';
 import React, { useEffect, useState } from 'react';
 import { FiSearch, FiX } from 'react-icons/fi';
 
@@ -338,9 +339,9 @@ const FAQPage: React.FC = () => {
   return (
     <div className="flex flex-col w-full h-full">
       {/* Header Section */}
-      <section className="mb-12 bg-[#F2F1F6] px-4 lg:px-0 py-16">
+      <section className="mb-12 bg-surface-muted px-4 sm:px-6 lg:px-8 py-16">
         <div className={`${mainConfig.containerClass} w-full`}>
-          <h1 className="text-4xl font-bold mb-2">
+          <h1 className="mb-2 text-3xl font-semibold tracking-tight text-ink sm:text-4xl lg:text-5xl">
             Frequently Asked Questions
           </h1>
           <p className="text-lg text-gray-600">
@@ -350,7 +351,9 @@ const FAQPage: React.FC = () => {
       </section>
 
       {/* FAQs Section */}
-      <section className={`${mainConfig.containerClass} px-4 lg:px-0 mb-16`}>
+      <section
+        className={`${mainConfig.containerClass} px-4 sm:px-6 lg:px-8 mb-16`}
+      >
         <div className="w-full">
           {/* Search Bar */}
           <div className="mb-8">
@@ -363,7 +366,7 @@ const FAQPage: React.FC = () => {
                 placeholder="Search FAQs..."
                 value={searchQuery}
                 onChange={handleSearchChange}
-                className="pl-10 pr-10 py-3 text-base border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="pl-10 pr-10 py-3 text-base border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
               {searchQuery && (
                 <button
@@ -389,7 +392,7 @@ const FAQPage: React.FC = () => {
 
           {/* Category Tabs */}
           {!isLoading && categories.length > 1 && (
-            <div className="mb-8 overflow-x-auto">
+            <div className="mb-8 -mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
               <div className="flex space-x-6 border-b border-gray-200 min-w-max">
                 {categories.map((category) => (
                   <button
@@ -458,6 +461,32 @@ const FAQPage: React.FC = () => {
               }
             />
           )}
+        </div>
+      </section>
+
+      {/* Closing CTA */}
+      <section className="px-4 sm:px-6 pb-16 lg:px-8">
+        <div
+          className={`${mainConfig.containerClass} rounded-md border border-brand-100 bg-brand-50 px-6 py-10 sm:px-8 sm:py-12`}
+        >
+          <div className="max-w-2xl">
+            <h2 className="text-2xl font-bold tracking-tight text-ink sm:text-3xl">
+              Still have questions?
+            </h2>
+            <p className="mt-3 text-base leading-6 text-gray-700 sm:text-lg sm:leading-7">
+              Can&apos;t find the answer you&apos;re looking for? The AirQo team
+              is happy to help.
+            </p>
+          </div>
+
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+            <Link
+              href="/contact"
+              className="inline-flex items-center justify-center gap-2 whitespace-normal rounded-md bg-brand px-6 py-3.5 text-center text-sm font-semibold text-white transition-colors hover:bg-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
+            >
+              Contact AirQo
+            </Link>
+          </div>
         </div>
       </section>
     </div>

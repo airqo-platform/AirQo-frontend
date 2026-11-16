@@ -12,7 +12,7 @@ import { getAllPackages, Package } from '@/config/packages.config';
 import { cn } from '@/lib/utils';
 
 const packageActionClassName =
-  'inline-flex items-center px-6 py-4 text-sm font-medium transition-transform duration-300 active:scale-95 bg-blue-600 text-white shadow-none focus:outline-none';
+  'inline-flex items-center px-6 py-4 text-sm font-medium transition-transform duration-300 active:scale-95 bg-blue-600 text-white hover:bg-blue-700 shadow-none focus:outline-none';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -87,7 +87,7 @@ export default function PackagesPage() {
 
       <div className="min-h-screen bg-white">
         <section className="bg-blue-600">
-          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
             <div className="max-w-2xl">
               <span className="text-[11px] font-medium uppercase tracking-[0.06em] text-blue-200 mb-3 block">
                 Open Source
@@ -106,7 +106,7 @@ export default function PackagesPage() {
                     prefetch={false}
                     className={cn(
                       packageActionClassName,
-                      'px-5 py-3 text-[13px] bg-white text-blue-600 hover:bg-blue-50',
+                      'px-5 py-3 text-[13px] bg-white text-blue-600 hover:bg-brand-100 hover:text-brand-700',
                     )}
                   >
                     Explore {activePackage.displayName}
@@ -118,7 +118,7 @@ export default function PackagesPage() {
                     rel="noopener noreferrer"
                     className={cn(
                       packageActionClassName,
-                      'px-5 py-3 text-[13px] bg-white text-blue-600 hover:bg-blue-50',
+                      'px-5 py-3 text-[13px] bg-white text-blue-600 hover:bg-brand-100 hover:text-brand-700',
                     )}
                   >
                     View {activePackage.displayName} on npm
@@ -143,7 +143,7 @@ export default function PackagesPage() {
         </section>
 
         <motion.div
-          className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8"
+          className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8"
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, amount: 0.2 }}
@@ -188,7 +188,7 @@ export default function PackagesPage() {
         </motion.div>
 
         <motion.section
-          className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-8"
+          className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8"
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, amount: 0.2 }}
@@ -249,7 +249,7 @@ export default function PackagesPage() {
         </motion.section>
 
         <motion.div
-          className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-12"
+          className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12"
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, amount: 0.2 }}
@@ -399,7 +399,7 @@ export default function PackagesPage() {
         </motion.div>
 
         <motion.div
-          className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-16"
+          className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16"
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, amount: 0.2 }}

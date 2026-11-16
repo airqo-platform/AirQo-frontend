@@ -68,7 +68,7 @@ const CommitteePage = () => {
 
   return (
     <div className="w-full">
-      <div className="max-w-5xl mx-auto px-4 lg:px-0">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="prose max-w-none">
           {/* Program Committee Text Section */}
           {showCommitteeMain && (

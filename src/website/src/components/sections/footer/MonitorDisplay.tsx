@@ -21,13 +21,13 @@ const MonitorDisplay: React.FC = () => {
         {formattedNumber.map((digit, index) => (
           <span
             key={index}
-            className="bg-blue-600 text-white px-2 py-1 rounded"
+            className="bg-brand text-white px-2 py-1 rounded-md"
           >
             {digit}
           </span>
         ))}
       </div>
-      <p className="text-gray-800">
+      <p className="text-ink">
         Monitors in {countryData?.long_name.replace('_', ' ') || 'Country'}
       </p>
     </div>

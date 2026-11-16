@@ -56,8 +56,8 @@ const PublicationCard = ({
       : undefined;
 
   return (
-    <article className="group flex h-56 flex-col rounded-lg bg-card-custom-gradient p-5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
-      <div className="flex h-5 min-w-0 items-center gap-2 text-xs text-slate-500">
+    <article className="group flex flex-col rounded-md border border-line bg-white p-5">
+      <div className="flex h-5 min-w-0 items-center gap-2 text-xs text-slate-600">
         {publicationDate && <span className="shrink-0">{publicationDate}</span>}
         {publicationDate && publication.journal && (
           <span aria-hidden="true">&middot;</span>
@@ -69,12 +69,12 @@ const PublicationCard = ({
         )}
       </div>
 
-      <h3 className="mt-4 h-14 line-clamp-2 text-lg font-semibold leading-7 text-slate-900">
+      <h3 className="mt-4 min-h-[3.5rem] line-clamp-2 text-lg font-semibold leading-7 text-ink">
         {publicationUrl ? (
           <a
             href={publicationUrl}
             {...getExternalLinkProps(publicationUrl)}
-            className="rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 group-hover:text-blue-700"
+            className="rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 group-hover:text-brand"
           >
             {publication.title}
           </a>
@@ -84,18 +84,18 @@ const PublicationCard = ({
       </h3>
 
       <p
-        className="mt-3 h-5 truncate text-sm text-slate-600"
+        className="mt-3 line-clamp-1 text-sm text-slate-600"
         title={publication.authors.join(', ')}
       >
         {publication.authors.join(', ')}
       </p>
 
       {separateOpenAccessUrl && (
-        <div className="mt-auto flex justify-end border-t border-slate-100 pt-4">
+        <div className="mt-auto flex justify-end border-t border-line pt-4">
           <a
             href={separateOpenAccessUrl}
             {...getExternalLinkProps(separateOpenAccessUrl)}
-            className="shrink-0 rounded-sm text-xs font-semibold text-blue-700 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2"
+            className="shrink-0 rounded-sm text-xs font-semibold text-brand hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
           >
             Open access
           </a>
@@ -111,9 +111,13 @@ const HomePublicationsSection = () => {
     page: 1,
     page_size: PAGE_SIZE,
   });
+
+  // Only fall back to the live external feed once the curated query has
+  // settled and returned nothing, so we never fire both requests at once.
+  const curatedResults = curatedQuery.data?.results ?? [];
   const liveQuery = useLivePublications(
     { page: 1, page_size: PAGE_SIZE },
-    { enabled: true },
+    { enabled: !curatedQuery.isLoading && curatedResults.length === 0 },
   );
 
   const publications = useMemo(
@@ -138,17 +142,17 @@ const HomePublicationsSection = () => {
     <section
       aria-labelledby="home-publications-heading"
       aria-busy={isLoading}
-      className="w-full border-t border-slate-200 bg-[#F7FAFF] px-4 py-10 md:py-12"
+      className="w-full border-t border-line bg-white px-4 py-10 sm:px-6 md:py-12 lg:px-8"
     >
       <div className="mx-auto w-full max-w-7xl space-y-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div className="space-y-2">
-            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-blue-700">
+            <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-brand-700">
               Latest research
             </p>
             <h2
               id="home-publications-heading"
-              className="text-2xl font-bold text-slate-900 md:text-3xl"
+              className="text-2xl font-bold tracking-tight text-ink md:text-3xl"
             >
               Research &amp; publications
             </h2>
@@ -159,7 +163,7 @@ const HomePublicationsSection = () => {
 
           <Link
             href="/resources?tab=research"
-            className="inline-flex w-fit items-center gap-2 rounded-sm text-sm font-semibold text-blue-700 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2"
+            className="inline-flex w-fit items-center gap-2 rounded-sm text-sm font-semibold text-brand hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
           >
             Browse all publications <span aria-hidden="true">&rarr;</span>
           </Link>
@@ -174,7 +178,7 @@ const HomePublicationsSection = () => {
             {Array.from({ length: HOMEPAGE_PUBLICATION_LIMIT }, (_, index) => (
               <div
                 key={index}
-                className="h-56 animate-pulse rounded-lg bg-card-custom-gradient p-5 shadow-sm"
+                className="animate-pulse rounded-md border border-line bg-surface-muted p-5"
               >
                 <div className="mb-5 h-4 w-2/3 rounded bg-slate-200" />
                 <div className="mb-2 h-5 w-full rounded bg-slate-200" />

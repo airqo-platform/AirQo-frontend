@@ -7,14 +7,13 @@ import { optimizeCloudinaryUrl } from '@/services/external/cloudinary.service';
 
 const billboardOgImage = optimizeCloudinaryUrl(
   'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132435/website/photos/AirQuality_meyioj.webp',
-  { width: 1200, height: 630, crop: 'fill' },
+  { width: 1200, height: 630, crop: 'fill', format: 'jpg' },
 );
 
 export const metadata: Metadata = {
-  title:
-    'Live Air Quality Billboard Uganda, Kenya, Nigeria | Interactive Monitor - AirQo',
+  title: { absolute: 'Live Air Quality Billboard | AirQo' },
   description:
-    'Real-time interactive air quality billboard displaying live PM2.5 data from Kampala, Nairobi, Lagos, Accra and 16+ African cities. Watch pollution levels update live across Uganda, Kenya, Nigeria, Ghana, Rwanda, Tanzania, Senegal, South Africa, Zambia, Burundi, Cameroon, Ethiopia, Gambia. Free interactive tool.',
+    'Explore the AirQo interactive billboard for air quality readings across locations covered by its monitoring network.',
   keywords: [
     'air quality billboard',
     'live air quality display',
@@ -42,12 +41,16 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
+  alternates: {
+    canonical: '/billboard/interactive',
+  },
   openGraph: {
-    title:
-      "Live Air Quality Billboard - Watch Africa's Air Quality in Real-time",
+    title: 'Live Air Quality Billboard | AirQo',
     description:
-      'Interactive billboard showing live PM2.5 data from 16+ African cities including Kampala, Nairobi, Lagos, Accra',
+      'Explore air quality readings across locations covered by the AirQo monitoring network.',
     type: 'website',
+    url: '/billboard/interactive',
+    siteName: 'AirQo',
     images: [
       {
         url: billboardOgImage,
@@ -56,6 +59,14 @@ export const metadata: Metadata = {
         alt: 'Live Air Quality Billboard - Real-time PM2.5 Data Across African Cities',
       },
     ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    site: '@AirQoProject',
+    title: 'Live Air Quality Billboard | AirQo',
+    description:
+      'Explore air quality readings across locations covered by the AirQo monitoring network.',
+    images: [billboardOgImage],
   },
 };
 

@@ -226,33 +226,32 @@ const MonitorPage = () => {
       }}
     >
       {/* Impact stats section – rendered via children slot */}
-      <section className="py-16 px-4 bg-[#EDF3FF]">
+      <section className="bg-surface-muted py-16">
         <div
-          className={`flex flex-col ${mainConfig.containerClass} lg:flex-row items-center lg:items-start relative`}
+          className={`${mainConfig.containerClass} grid items-center gap-8 px-4 sm:px-6 lg:grid-cols-12 lg:gap-12 lg:px-8`}
         >
-          <div className="mt-12 lg:mt-0 lg:mr-[300px] w-full">
+          <div className="min-w-0 lg:col-span-7">
             <Image
               src={images.coverage}
               alt="Air Quality Monitors"
               width={600}
               height={400}
-              style={{ objectFit: 'cover' }}
-              className="rounded-lg w-full md:w-full"
+              className="aspect-[4/3] w-full rounded-md border border-line object-cover"
             />
           </div>
 
-          <div className="bg-green-50 relative p-6 rounded-lg shadow-md md:w-[630px] md:-top-10 lg:max-w-md lg:absolute lg:right-0 lg:top-24 z-10">
-            <h3 className="font-bold text-2xl mb-4">
-              {impactNumbers?.deployed_monitors ?? 350}+ Air quality monitors
-              installed in {impactNumbers?.african_cities ?? 8} major African
+          <div className="min-w-0 rounded-md border border-line bg-white p-6 lg:col-span-5">
+            <h3 className="mb-4 text-2xl font-semibold tracking-tight text-ink">
+              {impactNumbers?.deployed_monitors ?? 500}+ Air quality monitors
+              installed in {impactNumbers?.african_cities ?? 16} major African
               cities
             </h3>
-            <p className="text-lg text-gray-700 mb-4">
+            <p className="mb-4 text-base leading-7 text-gray-600">
               To effectively tackle air pollution, access to data and contextual
               evidence is important to show the scale and magnitude of air
               pollution.
             </p>
-            <p className="text-lg text-gray-700 mt-4">
+            <p className="mt-4 text-base leading-7 text-gray-600">
               We&apos;re providing an end-to-end air quality solution in major
               African cities leveraging the locally built low-cost monitors and
               existing expertise to advance air quality management, and

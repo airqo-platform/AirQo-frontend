@@ -271,7 +271,7 @@ export const useLivePublications = (
     apiQueryKeys.livePublications(params),
     () => livePublicationsService.getLivePublications(params || {}),
     {
-      staleTime: 60 * 1000,
+      staleTime: 10 * 60 * 1000,
       ...queryOptions,
     },
   );

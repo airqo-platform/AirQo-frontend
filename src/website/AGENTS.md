@@ -40,13 +40,13 @@ src/
 ├── __mocks__/          # Jest mocks (fileMock, mapbox-gl, recharts)
 ├── app/                # Next.js App Router routes and layouts
 │   ├── (site)/         # Main site pages (home, about, careers, contact, events, etc.)
-│   ├── (products)/     # Product pages (8 routes)
-│   ├── (solutions)/    # Solution pages (5 routes)
+│   ├── (products)/     # /products hub + product pages (8 routes)
+│   ├── (solutions)/    # /solutions hub + solution pages (5 routes)
 │   ├── (programs)/     # Program pages (africa-clean-air-forum, faces-of-clean-air)
 │   ├── (content)/      # Content pages (blogs)
 │   ├── (developers)/   # Developer pages (devcon, packages)
 │   ├── (legal)/        # Legal pages (terms, privacy, cookies)
-│   ├── (utility)/      # Utility pages (explore-data, billboard)
+│   ├── (utility)/      # Utility pages (billboard, console)
 │   └── api/            # API routes (proxy, geocode, translate, log)
 ├── components/         # Reusable UI components
 │   ├── ui/             # shadcn/ui primitives (18 components)
@@ -58,9 +58,7 @@ src/
 ├── config/             # Static configuration data
 │   ├── cleanAirForumConfig.ts  # Clean Air Forum constants
 │   ├── env.config.ts           # Environment variable validation
-│   ├── navigation.config.ts    # Navigation structure
 │   ├── packages.config.ts      # Package listings
-│   ├── routes.config.ts        # Route definitions
 │   ├── seo.config.ts           # SEO defaults
 │   └── site.config.ts          # Site metadata
 ├── features/           # Feature modules (page-level UI logic)
@@ -72,7 +70,6 @@ src/
 │   ├── contact/        # Contact form
 │   ├── developers/     # Developer pages (DevCon)
 │   ├── events/         # Event listing and detail
-│   ├── explore-data/   # Data exploration
 │   ├── faces-of-clean-air/ # Faces of Clean Air carousel page
 │   ├── faqs/           # FAQ page
 │   ├── home/           # Home page with deferred sections
@@ -234,6 +231,7 @@ Requires `.env` file in the website directory.
 ## Key Conventions
 
 - Root `/` redirects to `/home` (via `next.config.mjs` redirect).
+- `/products` and `/solutions` are hub pages linking to their product and solution detail pages (product families anchor at `#measure`, `#understand`, `#act`).
 - Pages use the features pattern: `app/[route]/page.tsx` delegates to `features/[route]/[Name]Page.tsx`.
 - MainLayout wraps most pages (navbar + footer). Exceptions: contact (custom layout), faces-of-clean-air (no layout wrapper).
 - `cn()` from `@/lib/utils` for conditional Tailwind classes.

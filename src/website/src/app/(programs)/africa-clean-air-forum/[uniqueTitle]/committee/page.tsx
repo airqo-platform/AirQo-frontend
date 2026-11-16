@@ -1,12 +1,18 @@
 import CommitteePage from '@/features/clean-air-forum/program-committee/CommitteePage';
 import {
   generateMetadata as createMetadata,
-  METADATA_CONFIGS,
+  getForumPageMetadata,
 } from '@/lib/metadata';
 
-export const metadata = createMetadata(
-  METADATA_CONFIGS.cleanAirForumProgramCommittee,
-);
+export function generateMetadata({
+  params,
+}: {
+  params: { uniqueTitle: string };
+}) {
+  return createMetadata(
+    getForumPageMetadata(params.uniqueTitle, 'Program committee', 'committee'),
+  );
+}
 
 const Page = () => {
   return <CommitteePage />;

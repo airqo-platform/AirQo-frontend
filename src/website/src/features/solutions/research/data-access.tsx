@@ -43,7 +43,7 @@ const CONTENT = {
 
 export default function DataAccessSection() {
   return (
-    <section className="max-w-5xl mx-auto px-4 lg:px-0">
+    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <motion.div
         className="grid lg:grid-cols-2 gap-12 items-center min-h-[600px]"
         variants={animations.container}
@@ -99,7 +99,7 @@ export default function DataAccessSection() {
           variants={animations.item}
         >
           <motion.div
-            className="relative w-full h-[600px] rounded-xl overflow-hidden shadow-lg"
+            className="relative w-full min-h-[600px] aspect-[4/3] rounded-xl overflow-hidden shadow-lg"
             variants={animations.item}
           >
             <Image

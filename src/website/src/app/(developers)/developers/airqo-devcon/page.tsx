@@ -11,7 +11,7 @@ export const viewport = generateViewport();
 
 const page = () => {
   return (
-    <MainLayout showMarketingSections={false} showNewsletter={false}>
+    <MainLayout showNewsletter={false}>
       <AirQoDevConPage />
     </MainLayout>
   );

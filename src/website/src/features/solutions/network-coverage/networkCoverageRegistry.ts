@@ -47,32 +47,57 @@ const readField = (response: unknown, keys: string[]): string | null => {
 export const extractNetworkCoverageMonitorId = (
   response: unknown,
 ): string | null => {
-  const visited = new Set<object>();
+  const identifierWrappers = ['registry', 'monitor', 'data', 'result', 'item'];
 
-  const read = (value: unknown): string | null => {
+  const readCandidate = (value: unknown): string | null => {
     if (typeof value === 'string' && value.trim()) return value.trim();
     if (!value || typeof value !== 'object') return null;
-    if (visited.has(value)) return null;
-    visited.add(value);
 
-    const record = value as Record<string, unknown>;
-    const objectId = record.$oid;
-    if (typeof objectId === 'string' && objectId.trim()) return objectId.trim();
-
-    for (const key of ['monitorId', 'monitor_id', 'site_id', 'id', '_id']) {
-      const id = read(record[key]);
-      if (id) return id;
-    }
-
-    for (const key of ['registry', 'monitor', 'data', 'result', 'item']) {
-      const id = read(record[key]);
-      if (id) return id;
-    }
-
-    return null;
+    const objectId = (value as Record<string, unknown>).$oid;
+    return typeof objectId === 'string' && objectId.trim()
+      ? objectId.trim()
+      : null;
   };
 
-  return read(response);
+  const findIdentifier = (keys: string[]): string | null => {
+    const visited = new Set<object>();
+
+    const find = (value: unknown): string | null => {
+      if (!value || typeof value !== 'object') return null;
+      if (visited.has(value)) return null;
+      visited.add(value);
+
+      if (Array.isArray(value)) {
+        for (const item of value) {
+          const identifier = find(item);
+          if (identifier) return identifier;
+        }
+        return null;
+      }
+
+      const record = value as Record<string, unknown>;
+      for (const key of keys) {
+        const identifier = readCandidate(record[key]);
+        if (identifier) return identifier;
+      }
+
+      for (const key of identifierWrappers) {
+        const identifier = find(record[key]);
+        if (identifier) return identifier;
+      }
+
+      return null;
+    };
+
+    return find(response);
+  };
+
+  // Search the entire response envelope for the stable monitor/site ID before
+  // falling back to the registry record's own database ID.
+  return (
+    findIdentifier(['monitorId', 'monitor_id', 'site_id']) ??
+    findIdentifier(['id', '_id'])
+  );
 };
 
 export const extractNetworkCoverageRegistration = (
@@ -92,3 +117,10 @@ export const extractNetworkCoverageRegistration = (
         : null,
   };
 };
+
+export const getNetworkCoverageRegistrationNotice = (
+  availability: NetworkCoverageRegistrationAvailability,
+): string | null =>
+  availability === 'pending'
+    ? 'Monitor saved. It will appear in coverage once a device is active.'
+    : null;

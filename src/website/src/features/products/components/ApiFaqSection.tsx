@@ -50,19 +50,24 @@ const ApiFaqSection = () => {
 
   return (
     <section
-      className="bg-slate-50 px-4 py-16"
+      className="bg-surface-muted py-12 sm:py-16"
       aria-labelledby="api-faq-heading"
       id="api-faq"
     >
-      <div className={cn(mainConfig.containerClass, 'space-y-8')}>
+      <div
+        className={cn(
+          mainConfig.containerClass,
+          'px-4 sm:px-6 lg:px-8 space-y-8',
+        )}
+      >
         <div className="max-w-2xl">
           <h2
             id="api-faq-heading"
-            className="text-[32px] leading-tight font-semibold text-gray-900 lg:text-[40px]"
+            className="text-2xl font-semibold tracking-tight text-ink sm:text-3xl lg:text-4xl"
           >
             Frequently asked questions
           </h2>
-          <p className="mt-4 text-lg text-gray-700">
+          <p className="mt-4 text-lg leading-7 text-gray-600">
             Answers about limits, plans, and access.
           </p>
         </div>
@@ -75,21 +80,21 @@ const ApiFaqSection = () => {
             return (
               <div
                 key={faq.question}
-                className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition-colors hover:border-blue-200"
+                className="overflow-hidden rounded-md border border-line bg-white transition-colors hover:border-brand"
               >
                 <button
                   type="button"
                   onClick={() => toggleFaq(faq.question)}
                   aria-expanded={isOpen}
                   aria-controls={answerId}
-                  className="flex w-full items-center justify-between gap-4 p-6 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-600"
+                  className="flex w-full items-center justify-between gap-4 p-6 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand"
                 >
-                  <span className="text-lg font-semibold text-gray-900">
+                  <span className="text-lg font-semibold text-ink">
                     {faq.question}
                   </span>
                   {isOpen ? (
                     <FiChevronUp
-                      className="h-5 w-5 flex-shrink-0 text-blue-700"
+                      className="h-5 w-5 flex-shrink-0 text-brand"
                       aria-hidden="true"
                     />
                   ) : (
@@ -107,7 +112,7 @@ const ApiFaqSection = () => {
                   style={{ gridTemplateRows: isOpen ? '1fr' : '0fr' }}
                 >
                   <div className="overflow-hidden">
-                    <p className="px-6 pb-6 text-base leading-7 text-gray-700">
+                    <p className="px-6 pb-6 text-base leading-7 text-gray-600">
                       {faq.answer}
                     </p>
                   </div>

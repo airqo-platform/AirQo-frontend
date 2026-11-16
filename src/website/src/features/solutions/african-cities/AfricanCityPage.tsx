@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import dynamic from 'next/dynamic';
+import Link from 'next/link';
 import React from 'react';
 
 import CardWrapper from '@/components/sections/solutions/CardWrapper';
@@ -70,7 +71,7 @@ const AfricanCityPage = () => {
 
       {/* Challenge Statement */}
       <motion.section
-        className={`${mainConfig.containerClass} px-4 text-center py-16`}
+        className={`${mainConfig.containerClass} px-4 sm:px-6 lg:px-8 text-center py-16`}
         initial={false}
         animate="visible"
         variants={containerVariants}
@@ -89,7 +90,7 @@ const AfricanCityPage = () => {
 
       {/* Approach Section */}
       <motion.section
-        className={`${mainConfig.containerClass} px-4`}
+        className={`${mainConfig.containerClass} px-4 sm:px-6 lg:px-8`}
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, amount: 0.2 }}
@@ -170,7 +171,7 @@ const AfricanCityPage = () => {
       {/* Grid Air Quality Monitor Section */}
       <motion.section
         id="grids-section"
-        className={`${mainConfig.containerClass} px-4`}
+        className={`${mainConfig.containerClass} px-4 sm:px-6 lg:px-8`}
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, amount: 0.1 }}
@@ -214,13 +215,50 @@ const AfricanCityPage = () => {
                   '_blank',
                 )
               }
-              className="flex items-center bg-transparent px-4 w-full max-w-[200px] py-3 border text-gray-700 border-gray-700 hover:bg-gray-200"
+              className="flex items-center bg-transparent px-4 w-full max-w-[200px] py-3 border text-gray-700 border-gray-700 hover:bg-gray-200 active:bg-gray-200"
             >
               Read More →
             </CustomButton>
           </motion.div>
         </CardWrapper>
       </motion.section>
+
+      {/* Closing CTA */}
+      <section
+        className={`${mainConfig.containerClass} px-4 sm:px-6 lg:px-8`}
+        aria-labelledby="african-cities-cta-heading"
+      >
+        <div className="rounded-md border border-brand-100 bg-brand-50 px-6 py-10 sm:px-8 sm:py-12">
+          <div className="max-w-2xl">
+            <h2
+              id="african-cities-cta-heading"
+              className="text-2xl font-bold tracking-tight text-ink sm:text-3xl"
+            >
+              Bring air quality monitoring to your city
+            </h2>
+            <p className="mt-3 text-base leading-6 text-gray-700 sm:text-lg sm:leading-7">
+              Talk to the AirQo team about building a high-resolution monitoring
+              network, or see where monitors are already live across the
+              continent.
+            </p>
+          </div>
+
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+            <Link
+              href="/contact"
+              className="inline-flex items-center justify-center gap-2 whitespace-normal rounded-md bg-brand px-6 py-3.5 text-center text-sm font-semibold text-white transition-colors hover:bg-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
+            >
+              Talk to AirQo
+            </Link>
+            <Link
+              href="/solutions/network-coverage"
+              className="inline-flex items-center justify-center gap-2 whitespace-normal rounded-md border border-ink bg-white px-6 py-3.5 text-center text-sm font-semibold text-ink transition-colors hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
+            >
+              Explore network coverage
+            </Link>
+          </div>
+        </div>
+      </section>
     </div>
   );
 };

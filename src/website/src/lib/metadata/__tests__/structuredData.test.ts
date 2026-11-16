@@ -25,8 +25,8 @@ describe('structuredData', () => {
     });
 
     it('trims surrounding whitespace from the name', () => {
-      expect(getProductDisplayName('  AirQo API  | Free Tier ')).toBe(
-        'AirQo API',
+      expect(getProductDisplayName('  Air Quality API  | Free Tier ')).toBe(
+        'Air Quality API',
       );
     });
   });
@@ -59,22 +59,17 @@ describe('structuredData', () => {
       );
     });
 
-    it('offers the product for free in USD and in stock', () => {
+    it('does not invent product pricing or stock availability', () => {
       const schema = generateProductSchema(
         {
-          title: 'AirQo API | Open Data Access',
+          title: 'Air Quality API | Open Data Access',
           description: 'Free air quality API.',
           url: '/products/api',
         },
         siteUrl,
       );
 
-      expect(schema.offers).toEqual({
-        '@type': 'Offer',
-        price: '0',
-        priceCurrency: 'USD',
-        availability: 'https://schema.org/InStock',
-      });
+      expect(schema).not.toHaveProperty('offers');
     });
 
     it('brands every product as AirQo', () => {
@@ -119,8 +114,9 @@ describe('structuredData', () => {
         siteUrl,
       );
 
-      expect(schema.image).toBeTruthy();
-      expect(typeof schema.image).toBe('string');
+      expect(schema.image).toBe(
+        'https://airqo.net/assets/images/seo/airqo-social-fallback.jpg',
+      );
     });
   });
 
@@ -130,7 +126,10 @@ describe('structuredData', () => {
     it('produces a BreadcrumbList with sequential positions starting at 1', () => {
       const schema = generateBreadcrumbSchema(
         [
-          { name: 'Our Products', url: 'https://airqo.net/products' },
+          {
+            name: 'Explore AirQo products',
+            url: 'https://airqo.net/products',
+          },
           { name: 'AirQo Monitor', url: 'https://airqo.net/products/monitor' },
         ],
         siteUrl,
@@ -146,7 +145,10 @@ describe('structuredData', () => {
     it('preserves item names and urls', () => {
       const schema = generateBreadcrumbSchema(
         [
-          { name: 'Our Products', url: 'https://airqo.net/products' },
+          {
+            name: 'Explore AirQo products',
+            url: 'https://airqo.net/products',
+          },
           { name: 'AirQo Monitor', url: 'https://airqo.net/products/monitor' },
         ],
         siteUrl,
@@ -156,7 +158,7 @@ describe('structuredData', () => {
         {
           '@type': 'ListItem',
           position: 1,
-          name: 'Our Products',
+          name: 'Explore AirQo products',
           item: 'https://airqo.net/products',
         },
         {
@@ -171,7 +173,7 @@ describe('structuredData', () => {
     it('absolutizes relative item urls against the site URL', () => {
       const schema = generateBreadcrumbSchema(
         [
-          { name: 'Our Products', url: '/products' },
+          { name: 'Explore AirQo products', url: '/products' },
           { name: 'AirQo Nexus', url: '/products/nexus' },
         ],
         siteUrl,
@@ -185,7 +187,7 @@ describe('structuredData', () => {
 
     it('strips trailing slashes from the site URL base', () => {
       const schema = generateBreadcrumbSchema(
-        [{ name: 'Our Products', url: '/products' }],
+        [{ name: 'Explore AirQo products', url: '/products' }],
         'https://airqo.net///',
       );
 

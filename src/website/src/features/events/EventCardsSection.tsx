@@ -45,7 +45,7 @@ const EventCardsSection: React.FC<{
 
   return (
     <section
-      className={`${mainConfig.containerClass} w-full mb-8 px-4 lg:px-0`}
+      className={`${mainConfig.containerClass} w-full mb-8 px-4 sm:px-6 lg:px-8`}
     >
       {/* If there are no events to display */}
       {eventsToShow.length === 0 ? (
@@ -125,7 +125,7 @@ const EventCardsSection: React.FC<{
                         )}`,
                       )
                     }
-                    className="text-blue-600 text-left p-0 bg-transparent mt-4"
+                    className="text-blue-600 text-left p-0 bg-transparent mt-4 hover:bg-transparent hover:text-blue-700 active:bg-transparent"
                   >
                     Read more →
                   </CustomButton>

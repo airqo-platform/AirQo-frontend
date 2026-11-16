@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { FiChevronDown, FiX } from 'react-icons/fi';
 import { HiOutlineArrowTopRightOnSquare } from 'react-icons/hi2';
 
@@ -42,14 +43,14 @@ const NetworkCoverageNavDrawer: React.FC<NetworkCoverageNavDrawerProps> = ({
     setExpandedSection((prev) => (prev === title ? null : title));
   };
 
-  if (!isOpen) return null;
+  if (!isOpen || typeof document === 'undefined') return null;
 
-  return (
+  return createPortal(
     <>
       {/* Backdrop */}
       <div
         aria-hidden="true"
-        className={`fixed inset-0 z-[9990] bg-black/40 backdrop-blur-sm transition-opacity duration-300 ${
+        className={`fixed inset-0 z-[100000] bg-black/40 backdrop-blur-sm transition-opacity duration-300 ${
           isOpen
             ? 'pointer-events-auto opacity-100'
             : 'pointer-events-none opacity-0'
@@ -63,7 +64,7 @@ const NetworkCoverageNavDrawer: React.FC<NetworkCoverageNavDrawerProps> = ({
         aria-modal="true"
         aria-label="Site navigation"
         onKeyDown={handleKeyDown}
-        className={`fixed inset-y-0 left-0 z-[9995] flex w-[300px] max-w-[88vw] flex-col bg-white shadow-2xl transition-transform duration-300 ease-in-out ${
+        className={`fixed inset-y-0 left-0 z-[100001] flex w-[300px] max-w-[88vw] flex-col bg-white shadow-2xl transition-transform duration-300 ease-in-out ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
@@ -118,10 +119,10 @@ const NetworkCoverageNavDrawer: React.FC<NetworkCoverageNavDrawerProps> = ({
                 {/* Sub-items */}
                 <div
                   id={`nav-section-${sectionTitle}`}
-                  className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                  className={`transition-all duration-300 ease-in-out ${
                     isExpanded
-                      ? 'max-h-[600px] opacity-100'
-                      : 'max-h-0 opacity-0'
+                      ? 'max-h-[70vh] overflow-y-auto opacity-100'
+                      : 'max-h-0 overflow-hidden opacity-0'
                   }`}
                 >
                   <ul className="space-y-0.5 px-3 pb-3">
@@ -148,7 +149,7 @@ const NetworkCoverageNavDrawer: React.FC<NetworkCoverageNavDrawerProps> = ({
                       );
 
                       const sharedClass =
-                        'group flex w-full rounded-lg px-3 py-2 transition-colors hover:bg-blue-50';
+                        'group flex w-full rounded-lg px-3 py-2 transition-colors hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500';
 
                       return (
                         <li key={item.href}>
@@ -183,23 +184,26 @@ const NetworkCoverageNavDrawer: React.FC<NetworkCoverageNavDrawerProps> = ({
 
         {/* Footer CTAs */}
         <div className="flex flex-shrink-0 flex-col gap-2 border-t border-slate-200 bg-slate-50 px-4 py-4">
-          <Link
-            href="/explore-data"
-            onClick={onClose}
+          <a
+            href="https://ai.airqo.net/map"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Open live map (opens in a new tab)"
             className="flex w-full items-center justify-center rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
           >
-            Explore Data
-          </Link>
+            Open live map
+          </a>
           <Link
-            href="/home"
+            href="/products"
             onClick={onClose}
             className="flex w-full items-center justify-center rounded-lg border border-blue-200 bg-white px-4 py-2.5 text-sm font-semibold text-blue-700 transition-colors hover:bg-blue-50"
           >
-            Back to Main Site
+            Explore products
           </Link>
         </div>
       </div>
-    </>
+    </>,
+    document.body,
   );
 };
 

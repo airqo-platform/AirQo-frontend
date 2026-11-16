@@ -55,6 +55,11 @@ type EventListApiResponse = {
   results: EventV2[];
 };
 
+export interface EventDetailsResult {
+  event: EventV2 | null;
+  notFound: boolean;
+}
+
 const normalizeEventItems = (data: unknown): EventV2[] => {
   if (!data) return [];
 
@@ -173,50 +178,47 @@ class EventsService extends BaseApiService {
     slug: string,
     options: ServiceOptions = {},
   ): Promise<EventV2 | null> {
-    const candidates = [slug, decodeURIComponent(slug)].filter(Boolean);
+    const result = await this.getEventDetailsResult(slug, options);
+    return result.event;
+  }
+
+  /**
+   * Resolve an event and distinguish a confirmed missing record from a
+   * transient API failure across the supported lookup endpoints.
+   */
+  async getEventDetailsResult(
+    slug: string,
+    options: ServiceOptions = {},
+  ): Promise<EventDetailsResult> {
+    const candidates = Array.from(
+      new Set([slug, decodeURIComponent(slug)].filter(Boolean)),
+    );
+    let allLookupsNotFound = candidates.length > 0;
 
     for (const candidate of candidates) {
-      const bySlugResponse = await this.get<EventV2>(
+      const endpoints = [
         EVENTS_ENDPOINTS.EVENT_BY_SLUG(candidate),
-        undefined,
-        {
-          ...options,
-          throwOnError: false,
-        },
-      );
-
-      if (bySlugResponse.success) {
-        return bySlugResponse.data;
-      }
-
-      const detailResponse = await this.get<EventV2>(
         `${EVENTS_ENDPOINTS.EVENTS}${encodeURIComponent(candidate)}/`,
-        undefined,
-        {
-          ...options,
-          throwOnError: false,
-        },
-      );
-
-      if (detailResponse.success) {
-        return detailResponse.data;
-      }
-
-      const identifierResponse = await this.get<EventV2>(
         EVENTS_ENDPOINTS.EVENT_IDENTIFIERS(candidate),
-        undefined,
-        {
+      ];
+
+      for (const endpoint of endpoints) {
+        const response = await this.get<EventV2>(endpoint, undefined, {
           ...options,
           throwOnError: false,
-        },
-      );
+        });
 
-      if (identifierResponse.success) {
-        return identifierResponse.data;
+        if (response.success) {
+          return { event: response.data, notFound: false };
+        }
+
+        if (response.statusCode !== 404) {
+          allLookupsNotFound = false;
+        }
       }
     }
 
-    return null;
+    return { event: null, notFound: allLookupsNotFound };
   }
 
   /**

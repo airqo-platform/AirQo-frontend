@@ -165,8 +165,10 @@ const BlogsPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-white">
       <section className="border-b border-gray-200 bg-[#FAFBFC]">
-        <div className={`${mainConfig.containerClass} py-12 lg:py-16`}>
-          <h1 className="text-[40px] font-semibold tracking-[-0.02em] text-[#111827] leading-[1.15]">
+        <div
+          className={`${mainConfig.containerClass} px-4 sm:px-6 lg:px-8 py-12 lg:py-16`}
+        >
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-[-0.02em] text-[#111827] leading-[1.15]">
             Blog
           </h1>
           <p className="mt-2 text-[17px] leading-[1.5] text-[#6b7280] max-w-[520px]">
@@ -176,14 +178,14 @@ const BlogsPage: React.FC = () => {
         </div>
       </section>
 
-      <div className={`${mainConfig.containerClass} py-4`}>
+      <div className={`${mainConfig.containerClass} px-4 sm:px-6 lg:px-8 py-4`}>
         <div className="max-w-[800px] mx-auto flex items-center gap-4">
           <input
             type="text"
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             placeholder="Search articles..."
-            className="flex-1 h-10 px-4 text-[14px] border border-gray-200 rounded-lg bg-white focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600/20 transition-colors"
+            className="flex-1 min-w-0 h-10 px-4 text-[14px] border border-gray-200 rounded-lg bg-white focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600/20 transition-colors"
           />
           <select
             value={ordering}
@@ -211,7 +213,7 @@ const BlogsPage: React.FC = () => {
         </div>
       </div>
 
-      <div className={`${mainConfig.containerClass} py-4`}>
+      <div className={`${mainConfig.containerClass} px-4 sm:px-6 lg:px-8 py-4`}>
         <div className="max-w-[800px] mx-auto flex items-center justify-between rounded-lg border border-gray-200 bg-[#F9FAFB] px-5 py-3.5">
           <span className="text-[14px] text-[#374151]">
             Looking for older posts? Browse the{' '}
@@ -242,7 +244,7 @@ const BlogsPage: React.FC = () => {
         </div>
       </div>
 
-      <div className={`${mainConfig.containerClass} py-4`}>
+      <div className={`${mainConfig.containerClass} px-4 sm:px-6 lg:px-8 py-4`}>
         <div className="max-w-[800px] mx-auto">
           <div className="flex items-center justify-between">
             <h2 className="text-[20px] font-semibold text-[#111827]">
@@ -257,7 +259,9 @@ const BlogsPage: React.FC = () => {
         </div>
       </div>
 
-      <div className={`${mainConfig.containerClass} pb-16`}>
+      <div
+        className={`${mainConfig.containerClass} px-4 sm:px-6 lg:px-8 pb-16`}
+      >
         <div className="max-w-[800px] mx-auto">
           {isInitialLoading ? (
             <div className="divide-y divide-gray-200">

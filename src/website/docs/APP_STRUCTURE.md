@@ -32,17 +32,18 @@ src/app/
 │   ├── billboard/            # Air quality billboard displays
 │   ├── clean-air-forum/      # Forum events and content
 │   ├── contact/              # Contact forms
-│   ├── explore-data/         # Data visualization
 │   ├── home/                 # Homepage
 │   ├── legal/                # Legal pages
 │   ├── partners/             # Partner pages
-│   ├── products/             # Product showcase
+│   ├── products/             # /products hub + product showcase
+│   │   ├── page.tsx          # Hub page (families: measure, understand, act)
 │   │   ├── analytics/
 │   │   ├── api/
 │   │   ├── calibrate/
 │   │   ├── mobile-app/
 │   │   └── monitor/
-│   └── solutions/            # Solution pages
+│   └── solutions/            # /solutions hub + solution pages
+│       ├── page.tsx          # Hub page
 │       ├── african-cities/
 │       ├── communities/
 │       ├── kampala-study/
@@ -193,7 +194,7 @@ blog/
 - Navbar
 - Page transition animations
 - Footer
-- ActionButtons, Newsletter, Highlight sections
+- Newsletter section (optional, via `showNewsletter` prop)
 
 **Used by:** Almost all pages (main, packages, blog)
 

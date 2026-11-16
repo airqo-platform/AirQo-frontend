@@ -1,7 +1,7 @@
 import LogisticsPage from '@/features/clean-air-forum/logistics/LogisticsPage';
 import {
   generateMetadata as createMetadata,
-  METADATA_CONFIGS,
+  getForumPageMetadata,
 } from '@/lib/metadata';
 
 export function generateMetadata({
@@ -9,11 +9,9 @@ export function generateMetadata({
 }: {
   params: { uniqueTitle: string };
 }) {
-  const encodedTitle = encodeURIComponent(params.uniqueTitle);
-  return createMetadata({
-    ...METADATA_CONFIGS.cleanAirForumLogistics,
-    url: `/africa-clean-air-forum/${encodedTitle}/logistics`,
-  });
+  return createMetadata(
+    getForumPageMetadata(params.uniqueTitle, 'Venue and travel', 'logistics'),
+  );
 }
 
 const Page = () => {

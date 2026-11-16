@@ -82,7 +82,10 @@ const countryResponseMatchesSelection = (
   return false;
 };
 import { type ExportData, generatePdf, generateCsv } from './utils/exportUtils';
-import { extractNetworkCoverageRegistration } from './networkCoverageRegistry';
+import {
+  extractNetworkCoverageRegistration,
+  getNetworkCoverageRegistrationNotice,
+} from './networkCoverageRegistry';
 
 const DEFAULT_TENANT = 'airqo';
 const NETWORK_COVERAGE_SEARCH_DEBOUNCE_MS = 450;
@@ -132,6 +135,9 @@ const NetworkCoveragePage = () => {
     null,
   );
   const [cityFocusNotice, setCityFocusNotice] = useState<string | null>(null);
+  const [registrationNotice, setRegistrationNotice] = useState<string | null>(
+    null,
+  );
 
   // Initialize selection state from URL deep links (?country &monitor &view).
   const [selectedCountryId, setSelectedCountryId] = useState<string | null>(
@@ -193,6 +199,16 @@ const NetworkCoveragePage = () => {
 
     return () => window.clearTimeout(timeout);
   }, [query]);
+
+  useEffect(() => {
+    if (!registrationNotice) return;
+
+    const timeout = window.setTimeout(() => {
+      setRegistrationNotice(null);
+    }, 8000);
+
+    return () => window.clearTimeout(timeout);
+  }, [registrationNotice]);
 
   useEffect(() => {
     return () => {
@@ -645,6 +661,9 @@ const NetworkCoveragePage = () => {
 
   const handleAddSaved = (response: any) => {
     const registration = extractNetworkCoverageRegistration(response);
+    setRegistrationNotice(
+      getNetworkCoverageRegistrationNotice(registration.availability),
+    );
     setIsRefreshingAfterRegistration(true);
     const refreshId = ++registrationRefreshIdRef.current;
 
@@ -1295,13 +1314,13 @@ const NetworkCoveragePage = () => {
                 </option>
               </select>
             </div>
-            {cityFocusNotice ? (
+            {registrationNotice || cityFocusNotice ? (
               <div
                 role="status"
                 aria-live="polite"
                 className="absolute left-3 top-3 z-20 max-w-[calc(100%-7rem)] rounded-xl border border-blue-200 bg-white/95 px-3 py-2 text-xs font-medium text-blue-900 shadow-md backdrop-blur-sm sm:left-4 sm:max-w-none"
               >
-                {cityFocusNotice}
+                {registrationNotice || cityFocusNotice}
               </div>
             ) : null}
             <div className="absolute bottom-4 left-4 z-20">

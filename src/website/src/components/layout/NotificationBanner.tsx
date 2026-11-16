@@ -23,7 +23,7 @@ const NotificationBanner: React.FC = () => {
   return (
     <div className="bg-blue-50 text-[14px] text-gray-700">
       <div
-        className={`py-[11px] px-4 lg:px-0 flex justify-end items-center ${mainConfig.containerClass}`}
+        className={`py-[11px] px-4 sm:px-6 lg:px-8 flex justify-end items-center ${mainConfig.containerClass}`}
       >
         {/* Language Selector */}
         {/* <div className="flex items-center space-x-2">

@@ -1,5 +1,16 @@
 import { DEFAULT_METADATA, MetadataConfig } from './metadata.config';
 
+const absoluteHttpUrl = (candidate: string, baseUrl: string): string => {
+  try {
+    const resolved = new URL(candidate, baseUrl);
+    return /^https?:$/.test(resolved.protocol)
+      ? resolved.toString()
+      : new URL(DEFAULT_METADATA.defaultImage.url, baseUrl).toString();
+  } catch {
+    return new URL(DEFAULT_METADATA.defaultImage.url, baseUrl).toString();
+  }
+};
+
 interface StructuredData {
   '@context': string;
   '@type': string;
@@ -25,13 +36,13 @@ export function generateOrganizationSchema(siteUrl: string): StructuredData {
     name: 'AirQo',
     description: 'Air Quality Monitoring Network Africa',
     url: base,
-    image: DEFAULT_METADATA.defaultImage.url,
+    image: absoluteHttpUrl(DEFAULT_METADATA.defaultImage.url, base),
     publisher: {
       '@type': 'Organization',
       name: 'AirQo',
       logo: {
         '@type': 'ImageObject',
-        url: `${base}/apple-touch-icon.png`,
+        url: `${base}/web-app-manifest-512x512.png`,
       },
     },
   };
@@ -42,9 +53,7 @@ export function generateWebPageSchema(
   siteUrl: string,
 ): StructuredData {
   const base = siteUrl.replace(/\/+$/, '');
-  const url = config.url.startsWith('http')
-    ? config.url
-    : `${base}${config.url}`;
+  const url = absoluteHttpUrl(config.url, base);
 
   const image = config.image || DEFAULT_METADATA.defaultImage;
 
@@ -54,13 +63,13 @@ export function generateWebPageSchema(
     name: config.title,
     description: config.description,
     url,
-    image: image.url,
+    image: absoluteHttpUrl(image.url, base),
     publisher: {
       '@type': 'Organization',
       name: 'AirQo',
       logo: {
         '@type': 'ImageObject',
-        url: `${base}/apple-touch-icon.png`,
+        url: `${base}/web-app-manifest-512x512.png`,
       },
     },
   };
@@ -72,9 +81,9 @@ export function generateWebsiteSchema(siteUrl: string): StructuredData {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
     name: DEFAULT_METADATA.siteName,
-    description: 'Leading air quality monitoring network across Africa',
+    description: DEFAULT_METADATA.defaultDescription,
     url: base,
-    image: DEFAULT_METADATA.defaultImage.url,
+    image: absoluteHttpUrl(DEFAULT_METADATA.defaultImage.url, base),
   };
 }
 
@@ -87,12 +96,6 @@ interface ProductStructuredData {
   brand: {
     '@type': string;
     name: string;
-  };
-  offers: {
-    '@type': string;
-    price: string;
-    priceCurrency: string;
-    availability: string;
   };
 }
 
@@ -111,9 +114,7 @@ export function generateProductSchema(
 ): ProductStructuredData {
   const base = siteUrl.replace(/\/+$/, '');
   const image = config.image || DEFAULT_METADATA.defaultImage;
-  const imageUrl = image.url.startsWith('http')
-    ? image.url
-    : `${base}${image.url}`;
+  const imageUrl = absoluteHttpUrl(image.url, base);
 
   return {
     '@context': 'https://schema.org',
@@ -124,12 +125,6 @@ export function generateProductSchema(
     brand: {
       '@type': 'Brand',
       name: 'AirQo',
-    },
-    offers: {
-      '@type': 'Offer',
-      price: '0',
-      priceCurrency: 'USD',
-      availability: 'https://schema.org/InStock',
     },
   };
 }
@@ -162,7 +157,7 @@ export function generateBreadcrumbSchema(
       '@type': 'ListItem',
       position: index + 1,
       name: item.name,
-      item: item.url.startsWith('http') ? item.url : `${base}${item.url}`,
+      item: absoluteHttpUrl(item.url, base),
     })),
   };
 }

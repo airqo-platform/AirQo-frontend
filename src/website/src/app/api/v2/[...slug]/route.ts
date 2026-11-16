@@ -4,7 +4,8 @@ import {
   buildApiCacheKey,
   getApiCache,
   getApiCachePolicy,
-  invalidateApiCacheByPathPrefix,
+  getApiCacheResponseHeaders,
+  isNetworkCoveragePath,
   setApiCache,
 } from './apiCache';
 
@@ -44,15 +45,6 @@ function removeTokenFromUrl(url: string): string {
     return url;
   }
 }
-
-const API_CACHE_RESPONSE_HEADERS: Record<string, string> = {
-  'Cache-Control': 'private, max-age=60, stale-while-revalidate=600',
-};
-
-const getCacheResponseHeaders = (cachePolicy?: { name: string }) =>
-  cachePolicy?.name === 'networkCoverage'
-    ? { 'Cache-Control': 'no-store' }
-    : API_CACHE_RESPONSE_HEADERS;
 
 // Add dynamic force for better production debugging
 export const dynamic = 'force-dynamic';
@@ -115,7 +107,7 @@ async function handleRequest(
       console.error('API_TOKEN environment variable is required but not found');
       return NextResponse.json(
         { error: 'Server configuration error' },
-        { status: 500 },
+        { status: 500, headers: { 'Cache-Control': 'no-store' } },
       );
     }
 
@@ -172,7 +164,7 @@ async function handleRequest(
           headers: {
             'Content-Type': 'application/json',
             'X-Cache': 'HIT',
-            ...getCacheResponseHeaders(cachePolicy),
+            ...getApiCacheResponseHeaders(cleanPath, cachePolicy),
           },
         });
       }
@@ -195,19 +187,15 @@ async function handleRequest(
       method,
       headers,
       body,
+      ...(isNetworkCoveragePath(cleanPath)
+        ? { cache: 'no-store' as RequestCache }
+        : {}),
       // Add timeout
       signal: AbortSignal.timeout(60000), // 60 seconds
     });
 
     // Get response data
     const responseData = await response.json().catch(() => null);
-
-    // Registry writes change the summary, country, and monitor GETs. Clear
-    // every cached variant before the browser refetches after a successful
-    // mutation so the UI cannot select data from a stale five-minute cache.
-    if (method !== 'GET' && response.ok) {
-      invalidateApiCacheByPathPrefix('api/v2/devices/network-coverage');
-    }
 
     // Sanitize response data to remove token from pagination URLs
     const sanitizedData = sanitizeResponseData(responseData);
@@ -226,9 +214,9 @@ async function handleRequest(
         ...(cachePolicy
           ? {
               'X-Cache': 'MISS',
-              ...getCacheResponseHeaders(cachePolicy),
             }
           : {}),
+        ...getApiCacheResponseHeaders(cleanPath, cachePolicy),
       },
     });
   } catch (_error) {
@@ -240,12 +228,15 @@ async function handleRequest(
     });
 
     if (error instanceof Error && error.name === 'AbortError') {
-      return NextResponse.json({ error: 'Request timeout' }, { status: 408 });
+      return NextResponse.json(
+        { error: 'Request timeout' },
+        { status: 408, headers: { 'Cache-Control': 'no-store' } },
+      );
     }
 
     return NextResponse.json(
       { error: 'Internal server error' },
-      { status: 500 },
+      { status: 500, headers: { 'Cache-Control': 'no-store' } },
     );
   }
 }

@@ -11,7 +11,7 @@ export type SiteConfig = {
 const siteConfig: SiteConfig = {
   templateName: 'AirQo Website',
   homePageUrl: '/home',
-  containerClass: 'max-w-5xl mx-auto w-full',
+  containerClass: 'max-w-7xl mx-auto w-full',
   name: 'AirQo',
   title: 'AirQo - Air Quality Monitoring and Analytics',
   description:
