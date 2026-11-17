@@ -1,12 +1,25 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { AqWifiOff, AqSignal02, AqXClose } from '@airqo/icons-react';
+import { AqLoading01, AqWifiOff, AqSignal02, AqXClose } from '@airqo/icons-react';
+import { useConnectionRecovery, type ConnectionPhase } from '@/core/hooks/useConnectionRecovery';
 
 const DEBOUNCE_DELAY = 300;
 const AUTO_HIDE_DELAY = 5000;
 const API_DEGRADED_EVENT = 'vertex-network-degraded';
 const API_RECOVERED_EVENT = 'vertex-network-recovered';
+
+const PROGRESS_BANNERS: Partial<
+  Record<ConnectionPhase, { message: string; bgClass: string; busy: boolean }>
+> = {
+  reconnecting: { message: 'Reconnecting…', bgClass: 'bg-blue-600', busy: true },
+  refreshing: { message: 'Refreshing data…', bgClass: 'bg-blue-600', busy: true },
+  restored: {
+    message: "You're back online. Connection restored.",
+    bgClass: 'bg-green-600',
+    busy: false,
+  },
+};
 
 function useDebounce<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState<T>(value);
@@ -23,32 +36,8 @@ function useMounted() {
   return mounted;
 }
 
-interface NetworkStatus {
-  isOnline: boolean;
-}
-
 interface ApiHealthStatus {
   hasConnectivityIssue: boolean;
-}
-
-function useNetworkStatus(): NetworkStatus {
-  const initialOnline = typeof navigator !== 'undefined' ? navigator.onLine : true;
-  const [isOnline, setIsOnline] = useState<boolean>(initialOnline);
-
-  useEffect(() => {
-    const handleOnline = () => setIsOnline(true);
-    const handleOffline = () => setIsOnline(false);
-
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
-
-    return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
-    };
-  }, []);
-
-  return { isOnline };
 }
 
 function useApiHealthStatus(): ApiHealthStatus {
@@ -100,22 +89,26 @@ export default function NetworkStatusBanner({
 }: NetworkStatusBannerProps) {
   const isMounted = useMounted();
   const [dismissed, setDismissed] = useState(false);
-  const [showBackOnline, setShowBackOnline] = useState(false);
-  const { isOnline } = useNetworkStatus();
+  const { phase, retry, clearRestored } = useConnectionRecovery();
   const { hasConnectivityIssue } = useApiHealthStatus();
 
-  const hasIssue = !isOnline || hasConnectivityIssue;
+  const isOffline = phase === 'offline';
+  const isUnstable =
+    phase === 'unreachable' ||
+    phase === 'unstable' ||
+    (hasConnectivityIssue && (phase === 'idle' || phase === 'restored'));
+  const hasIssue = isOffline || isUnstable;
   const shouldShow = useDebounce(hasIssue && !dismissed, DEBOUNCE_DELAY);
 
   const config = useMemo(() => {
-    if (!isOnline) {
+    if (isOffline) {
       return {
         message: 'You are offline. Check your internet connection.',
         bgClass: 'bg-red-600',
         Icon: AqWifiOff,
       };
     }
-    if (hasConnectivityIssue) {
+    if (isUnstable) {
       return {
         message: 'Connection is unstable. Some data may be temporarily unavailable.',
         bgClass: 'bg-amber-600',
@@ -123,88 +116,82 @@ export default function NetworkStatusBanner({
       };
     }
     return null;
-  }, [isOnline, hasConnectivityIssue]);
+  }, [isOffline, isUnstable]);
 
-  const prevOnlineRef = useRef<boolean>(isOnline);
   useEffect(() => {
-    if (prevOnlineRef.current === false && isOnline === true) {
-      setShowBackOnline(true);
-      setDismissed(false);
-    }
-    prevOnlineRef.current = isOnline;
-  }, [isOnline]);
+    setDismissed(false);
+  }, [phase]);
 
   useEffect(() => {
     if (!hasIssue) setDismissed(false);
   }, [hasIssue]);
 
   useEffect(() => {
-    if (!autoHide || !showBackOnline) return;
-    const t = setTimeout(() => setShowBackOnline(false), autoHideDelay);
+    if (!autoHide || phase !== 'restored') return;
+    const t = setTimeout(clearRestored, autoHideDelay);
     return () => clearTimeout(t);
-  }, [autoHide, showBackOnline, autoHideDelay]);
+  }, [autoHide, phase, autoHideDelay, clearRestored]);
 
   const handleDismiss = useCallback(() => setDismissed(true), []);
 
   if (!isMounted) return null;
 
-  if (showBackOnline && isOnline && !hasConnectivityIssue) {
-    return (
-      <div
-        role="status"
-        aria-live="polite"
-        className={`fixed left-1/2 transform -translate-x-1/2 z-[2000] ${
-          position === 'top' ? 'top-4' : 'bottom-6'
-        } max-w-md mx-4 min-w-[320px] bg-green-600 text-white rounded-lg shadow-lg backdrop-blur-sm transition-all duration-300 ease-out ${className}`}
-      >
-        <div className="flex items-center gap-3 px-4 py-3">
-          <AqSignal02 className="w-5 h-5" aria-hidden="true" />
-          <p className="text-sm font-medium leading-tight">
-            You&apos;re back online. Connection restored.
-          </p>
-        </div>
-      </div>
-    );
-  }
+  const progress = isUnstable ? undefined : PROGRESS_BANNERS[phase];
+  const toastClasses = `fixed left-1/2 transform -translate-x-1/2 z-[2000] ${
+    position === 'top' ? 'top-4' : 'bottom-6'
+  } max-w-md mx-4 min-w-[320px] text-white rounded-lg shadow-lg backdrop-blur-sm transition-all duration-300 ease-out ${className}`;
 
-  if (!shouldShow || !config) return null;
-
-  const positionClasses = position === 'top' ? 'top-4' : 'bottom-6';
-
+  // Both live regions stay mounted so screen readers announce each change to their content.
   return (
-    <div
-      role="alert"
-      aria-live="assertive"
-      aria-atomic="true"
-      className={`
-        fixed left-1/2 transform -translate-x-1/2 z-[2000]
-        ${positionClasses}
-        max-w-md mx-4 min-w-[320px]
-        ${config.bgClass} text-white
-        rounded-lg shadow-lg backdrop-blur-sm
-        transition-all duration-300 ease-out
-        opacity-100 translate-y-0 scale-100
-        ${className}
-      `}
-    >
-      <div className="flex items-center gap-3 px-4 py-3">
-        <config.Icon className="w-5 h-5" aria-hidden="true" />
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium leading-tight">{config.message}</p>
-          {showDetailedInfo && (
-            <div className="mt-1 text-xs text-white/80">
-              Network: {isOnline ? 'Online' : 'Offline'}
+    <>
+      <div role="status" aria-live="polite" aria-atomic="true">
+        {progress && (
+          <div className={`${toastClasses} ${progress.bgClass}`}>
+            <div className="flex items-center gap-3 px-4 py-3">
+              {progress.busy ? (
+                <AqLoading01 className="w-5 h-5 motion-safe:animate-spin" aria-hidden="true" />
+              ) : (
+                <AqSignal02 className="w-5 h-5" aria-hidden="true" />
+              )}
+              <p className="text-sm font-medium leading-tight">{progress.message}</p>
             </div>
-          )}
-        </div>
-        <button
-          onClick={handleDismiss}
-          className="flex-shrink-0 text-white/80 hover:text-white focus:text-white focus:outline-none transition-colors duration-200"
-          aria-label="Dismiss network status notification"
-        >
-          <AqXClose className="w-4 h-4" />
-        </button>
+          </div>
+        )}
       </div>
-    </div>
+
+      <div role="alert" aria-live="assertive" aria-atomic="true">
+        {shouldShow && config && (
+          <div className={`${toastClasses} ${config.bgClass}`}>
+            <div className="flex items-center gap-3 px-4 py-3">
+              <config.Icon className="w-5 h-5" aria-hidden="true" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium leading-tight">{config.message}</p>
+                {showDetailedInfo && (
+                  <div className="mt-1 text-xs text-white/80">
+                    Network: {isOffline ? 'Offline' : 'Online'}
+                  </div>
+                )}
+              </div>
+              {isUnstable && (
+                <button
+                  type="button"
+                  onClick={retry}
+                  className="flex-shrink-0 rounded-md bg-white px-3 py-1 text-xs font-semibold text-amber-800 hover:bg-amber-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-amber-600 transition-colors duration-200"
+                >
+                  Retry
+                </button>
+              )}
+              <button
+                onClick={handleDismiss}
+                className="flex-shrink-0 text-white/80 hover:text-white focus:text-white focus:outline-none transition-colors duration-200"
+                aria-label="Dismiss network status notification"
+              >
+                <AqXClose className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </>
   );
 }
