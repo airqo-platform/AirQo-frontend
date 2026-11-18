@@ -47,6 +47,7 @@ import {
   ENVIRONMENT_PROFILES,
 } from "@/utils/lorawan-utils"
 import { useToast } from "@/hooks/use-toast"
+import { trackEvent } from "@/lib/analytics"
 
 interface LoRaWANGatewayDialogProps {
   open: boolean
@@ -304,6 +305,7 @@ export function LoRaWANGatewayDialog({
     a.download = `airqo-lorawan-gateways-${new Date().toISOString().split("T")[0]}.json`
     a.click()
     URL.revokeObjectURL(url)
+    trackEvent("data_exported", { source: "lorawan_gateways", format: "json", row_count: gateways.length })
   }
 
   const activeCount = gateways.filter(g => g.enabled !== false).length

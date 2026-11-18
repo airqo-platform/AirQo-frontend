@@ -70,6 +70,7 @@ import {
   issuePresence,
   latestCausePattern,
 } from "@/lib/device-diagnosis";
+import { trackEvent } from "@/lib/analytics";
 
 const DAY_RANGES = [7, 13, 30, 90];
 const EVALUATION_WINDOWS = [
@@ -203,6 +204,12 @@ export function DeviceDiagnosticsPanel({ deviceId, deviceName, readOnly = false 
       const result = await diagnosticsService.evaluateDevice(deviceId, { window_hours: hours });
       if (!isCurrent()) return;
       setLastEvaluation(result);
+      trackEvent("device_diagnosis_run", {
+        window_hours: hours,
+        lifecycle_state: result.lifecycle_state,
+        health_score: result.overall_health_score,
+        diagnosis_count: result.top_diagnoses?.length ?? 0,
+      });
 
       // The evaluation saved a snapshot; reload it so feedback references its real id.
       const saved = await diagnosticsService.getDeviceHealth(deviceId).catch(() => null);

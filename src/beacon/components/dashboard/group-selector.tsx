@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button"
 import { ExternalAppLink } from "@/components/onboarding/external-app-link"
 import { useDiscoverOrganisations } from "@/hooks/use-discover-organisations"
 import { APP_LINKS } from "@/lib/app-links"
+import { trackEvent } from "@/lib/analytics"
 import { mergeOrganisationOptions, type OrganisationOption } from "@/lib/organisations"
 import { Loader2 } from "lucide-react"
 import { AqLinkExternal01, AqSearchMd } from "@airqo/icons-react"
@@ -57,6 +58,12 @@ export default function GroupSelector() {
   }
 
   const handleSelect = (option: OrganisationOption) => {
+    if (option.title !== activeGroup) {
+      trackEvent("organization_switched", {
+        member_organization_count: availableGroups.length,
+        used_search: Boolean(searchTerm),
+      })
+    }
     setActiveGroup(option.title)
     handleOpenChange(false)
   }
@@ -151,6 +158,9 @@ export default function GroupSelector() {
                       href={APP_LINKS.nexus}
                       target="_blank"
                       rel="noopener noreferrer"
+                      onClick={() =>
+                        trackEvent("app_link_opened", { destination: "nexus", source: "organisation_switcher_join" })
+                      }
                       className="flex-shrink-0 inline-flex items-center gap-1.5 rounded-md border border-primary/40 px-2.5 py-1.5 text-xs font-semibold text-primary transition-colors hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     >
                       Request in Nexus
@@ -222,6 +232,9 @@ export default function GroupSelector() {
                   href={APP_LINKS.nexus}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={() =>
+                    trackEvent("app_link_opened", { destination: "nexus", source: "organisation_switcher_error" })
+                  }
                   className="font-medium text-primary hover:underline"
                 >
                   Nexus
@@ -235,7 +248,13 @@ export default function GroupSelector() {
             <Button variant="outline" onClick={() => handleOpenChange(false)}>
               Close
             </Button>
-            <ExternalAppLink href={APP_LINKS.nexusRequestOrganisation}>Request a new organisation</ExternalAppLink>
+            <ExternalAppLink
+              href={APP_LINKS.nexusRequestOrganisation}
+              destination="nexus"
+              source="organisation_switcher_request_new"
+            >
+              Request a new organisation
+            </ExternalAppLink>
           </div>
         </DialogContent>
       </Dialog>

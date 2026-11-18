@@ -19,6 +19,7 @@ import {
     DropdownMenuTrigger,
     DropdownMenuContent,
 } from '@/components/ui/dropdown-menu';
+import { trackEvent } from '@/lib/analytics';
 
 interface App {
     name: string;
@@ -94,8 +95,13 @@ const AppDropdown: React.FC<AppDropdownProps> = ({ className = '' }) => {
 
     const handleAppClick = (app: App): void => {
         if (app.type === 'qr') {
+            trackEvent('mobile_app_qr_viewed', { source: 'apps_menu' });
             setShowQRCode(true);
         } else if (app.href) {
+            trackEvent('app_link_opened', {
+                destination: app.name.toLowerCase().replace(/\s+/g, '_'),
+                source: 'apps_menu',
+            });
             window.open(app.href, '_blank', 'noopener,noreferrer');
         }
     };
@@ -104,7 +110,8 @@ const AppDropdown: React.FC<AppDropdownProps> = ({ className = '' }) => {
         setShowQRCode(false);
     };
 
-    const openAppStore = (url: string): void => {
+    const openAppStore = (url: string, store: 'google_play' | 'app_store'): void => {
+        trackEvent('app_link_opened', { destination: 'mobile_app', store, source: 'apps_menu_qr' });
         window.open(url, '_blank', 'noopener,noreferrer');
     };
 
@@ -183,7 +190,8 @@ const AppDropdown: React.FC<AppDropdownProps> = ({ className = '' }) => {
                             <button
                                 onClick={() =>
                                     openAppStore(
-                                        'https://play.google.com/store/apps/details?id=com.airqo.app'
+                                        'https://play.google.com/store/apps/details?id=com.airqo.app',
+                                        'google_play'
                                     )
                                 }
                                 className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-black text-white text-xs font-medium rounded-lg hover:bg-gray-800 transition-colors focus:outline-none"
@@ -195,7 +203,8 @@ const AppDropdown: React.FC<AppDropdownProps> = ({ className = '' }) => {
                             <button
                                 onClick={() =>
                                     openAppStore(
-                                        'https://apps.apple.com/ug/app/airqo-air-quality/id1337573091'
+                                        'https://apps.apple.com/ug/app/airqo-air-quality/id1337573091',
+                                        'app_store'
                                     )
                                 }
                                 className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-black text-white text-xs font-medium rounded-lg hover:bg-gray-800 transition-colors focus:outline-none"

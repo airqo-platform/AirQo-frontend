@@ -43,6 +43,7 @@ import { useApiData } from "@/hooks/useApiData"
 import { getBatchDetail } from "@/services/inlab.service"
 import type { InlabBatchWithPerformance, InlabBatchDeviceWithPerformance, InlabDeviceDaily, InlabDeviceDataPoint } from "@/types/inlab.types"
 import { toast } from "@/hooks/use-toast"
+import { trackEvent } from "@/lib/analytics"
 
 // --- Helpers ---
 
@@ -974,6 +975,7 @@ const ReportTab = ({ data }: { data: InlabBatchWithPerformance }) => {
       }
 
       doc.save(`${data.name.replace(/\s+/g, "_")}_Report.pdf`)
+      trackEvent("data_exported", { source: "inlab_collocation", format: "pdf", row_count: data.devices?.length ?? 0 })
       setIsGenerating(false)
     } catch (error: any) {
       console.error("Failed to generate PDF:", error)

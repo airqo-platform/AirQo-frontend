@@ -41,6 +41,7 @@ import { formatSiteLocation } from "@/lib/maintenance-map"
 import { DEFAULT_COHORT_TAG, cohortTagsFor, withoutDefaultCohort } from "@/lib/cohort-tags"
 import { summarizeDailyPerformance } from "@/lib/performance-summary"
 import { formatCompactNumber } from "@/lib/utils"
+import { trackEvent } from "@/lib/analytics"
 
 type GridAdminLevelFilter = GridAdminLevel | "all"
 
@@ -812,6 +813,12 @@ export default function AirQloudsTable({
       a.download = `${isCohortMode ? 'airqlouds' : entityType}-analytics-${new Date().toISOString().split("T")[0]}.csv`
       a.click()
       window.URL.revokeObjectURL(url) // Clean up to prevent memory leak
+      trackEvent("data_exported", {
+        source: `${entityType}_table`,
+        format: "csv",
+        row_count: dataToExport.length,
+        days: performanceDays,
+      })
     } catch (err) {
       console.error("Failed to export CSV:", err)
     } finally {

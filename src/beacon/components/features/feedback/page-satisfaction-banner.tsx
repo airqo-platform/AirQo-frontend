@@ -23,6 +23,7 @@ import {
 } from '@/components/ui/dialog';
 import { toast } from '@/hooks/use-toast';
 import { useGroup } from '@/lib/group-context';
+import { trackEvent } from '@/lib/analytics';
 import { DEFAULT_PAGE_TITLE, getPageTitle } from '@/lib/navigation';
 import { cn } from '@/lib/utils';
 import {
@@ -50,6 +51,10 @@ const POSITIVE_REASONS = [
   'Ease of use',
   'Other',
 ];
+
+/** A preset reason as picked, so analytics never carries anything typed. */
+const toPresetReason = (reason?: string) =>
+  !reason ? undefined : [...NEGATIVE_REASONS, ...POSITIVE_REASONS].includes(reason) ? reason : 'Other';
 
 /** Time spent on a page before the banner asks anything. */
 const DWELL_BEFORE_ASKING_MS = 30 * 1000;
@@ -289,6 +294,12 @@ export const PageSatisfactionBanner: React.FC<PageSatisfactionBannerProps> = ({
             ...(isFollowUp ? { isFollowUp: true } : {}),
           },
         });
+        trackEvent('page_rating_submitted', {
+          rating,
+          reason: toPresetReason(reason),
+          is_follow_up: isFollowUp,
+          has_detail: Boolean(detail?.trim()),
+        });
 
         return null;
       } catch (error) {
@@ -315,6 +326,7 @@ export const PageSatisfactionBanner: React.FC<PageSatisfactionBannerProps> = ({
   // Dismissing sends nothing. The page is already quiet for the cooldown; a
   // dismissal also silences every other page for the rest of the session.
   const handleDismiss = useCallback(() => {
+    trackEvent('page_rating_dismissed');
     suppressPageSatisfactionForSession();
     setVisibility('gone');
   }, []);

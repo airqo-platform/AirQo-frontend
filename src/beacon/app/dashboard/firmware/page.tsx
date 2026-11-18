@@ -49,6 +49,7 @@ const Terminal = dynamic(() => import('@/components/iot/Terminal').then((mod) =>
 });
 import { FlashingPanel } from '@/components/iot/FlashingPanel';
 import { DeviceCards } from '@/components/iot/DeviceCards';
+import { trackEvent } from '@/lib/analytics';
 
 const FirmwarePage = () => {
   const { toast } = useToast();
@@ -237,6 +238,7 @@ const FirmwarePage = () => {
       });
 
       firmwareService.triggerDownload(blob, filename);
+      trackEvent("firmware_downloaded", { file_type: fileType, firmware_type: firmware.firmware_type });
 
       toast({
         title: "Download started",

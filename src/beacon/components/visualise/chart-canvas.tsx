@@ -47,6 +47,7 @@ import {
 } from "@/lib/visualise/data-parser"
 import type { ChartConfigState } from "./chart-controls"
 import { COLOR_PALETTES } from "./chart-controls"
+import { trackEvent } from "@/lib/analytics"
 
 interface ChartCanvasProps {
   dataset: ParsedDataset
@@ -169,6 +170,7 @@ export function ChartCanvas({ dataset, config, height = 480 }: ChartCanvasProps)
       link.download = `${(config.title || "airqo_visualisation").toLowerCase().replace(/\s+/g, "_")}_${Date.now()}.png`
       link.href = dataUrl
       link.click()
+      trackEvent("data_exported", { source: "device_data_chart", format: "png", chart_type: config.chartType })
       toast({ title: "Export Successful", description: "Chart exported as high-resolution PNG image." })
     } catch (err) {
       toast({ title: "Export Failed", description: "Failed to export chart image.", variant: "destructive" })
@@ -195,6 +197,7 @@ export function ChartCanvas({ dataset, config, height = 480 }: ChartCanvasProps)
       link.href = url
       link.click()
       setTimeout(() => URL.revokeObjectURL(url), 1000)
+      trackEvent("data_exported", { source: "device_data_chart", format: "svg", chart_type: config.chartType })
       toast({ title: "Export Successful", description: "Chart exported as SVG vector." })
     } catch (err) {
       toast({ title: "Export Failed", description: "Failed to export SVG.", variant: "destructive" })
