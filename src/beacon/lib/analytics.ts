@@ -34,6 +34,7 @@ const POSTHOG_HOST = getPublicEnv("NEXT_PUBLIC_POSTHOG_HOST") || "https://us.i.p
  */
 export const ROUTE_TEMPLATES = [
   "/",
+  "/auth-error",
   "/login",
   "/dashboard",
   "/dashboard/alerts",
