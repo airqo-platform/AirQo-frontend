@@ -5,11 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persister";
 import { shouldEnablePersistentClientCache } from "@/core/utils/clientCache";
-import {
-  getQueryRetryDelay,
-  shouldRefetchOnReconnect,
-  shouldRetryQuery,
-} from "@/core/utils/queryRecoveryPolicy";
+import { getQueryRetryDelay, shouldRetryQuery } from "@/core/utils/queryRecoveryPolicy";
 
 const QUERY_CACHE_KEY_PREFIX = "airqo:vertex:react-query:v1";
 const QUERY_CACHE_MAX_AGE_MS = 1000 * 60 * 30; // 30 minutes
@@ -33,7 +29,9 @@ export const createQueryClient = () =>
         staleTime: 1000 * 60,
         gcTime: QUERY_CACHE_MAX_AGE_MS,
         refetchOnWindowFocus: true,
-        refetchOnReconnect: shouldRefetchOnReconnect,
+        // Off so nothing refetches before the app is confirmed reachable: useConnectionRecovery
+        // re-runs stale and failed queries after its ping. Paused requests still resume on their own.
+        refetchOnReconnect: false,
         retry: shouldRetryQuery,
         retryDelay: getQueryRetryDelay,
       },

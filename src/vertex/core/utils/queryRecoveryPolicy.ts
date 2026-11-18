@@ -7,8 +7,8 @@ import type { Query, QueryClient } from "@tanstack/react-query";
  * - A request that got no answer is retried for about 20 seconds. A timeout and other failures keep
  *   the shorter budget: a timeout means the server is slow, and each retry waits out the timeout again.
  * - If the browser goes offline during those retries, they pause and carry on after the reconnect.
- * - After a reconnect, mounted queries that are stale or failed for a network or server reason run
- *   again, once. A 4xx would fail the same way, so it is left alone.
+ * - After a reconnect, once the app is confirmed reachable, mounted queries that are stale or failed
+ *   for a network or server reason run again, once. A 4xx would fail the same way, so it is left alone.
  */
 
 const PING_URL = "/api/ping";
@@ -93,24 +93,47 @@ export const getQueryRetryDelay = (attempt: number, error: unknown): number =>
     ? backoffWithJitter(attempt, NETWORK_RETRY_BASE_MS, NETWORK_RETRY_MAX_MS)
     : Math.min(1000 * 2 ** attempt, 10000);
 
-export const shouldRefetchOnReconnect = (query: Query): boolean =>
-  query.state.status !== "error" || isRecoverableFailure(query.state.error);
-
 const isRecoverablyFailed = (query: Query): boolean =>
   query.state.status === "error" && isRecoverableFailure(query.state.error);
 
+/** Failed for a network or server reason (even with fresh data still held), or holding stale data. */
+const needsReconnectRefetch = (query: Query): boolean =>
+  query.state.status === "error" ? isRecoverableFailure(query.state.error) : query.isStale();
+
 /**
- * Re-runs failed, mounted queries. This also reaches a failed query whose old data is still fresh,
- * which `refetchOnReconnect` skips. A query already fetching is left to finish.
+ * Re-runs the mounted queries a reconnect should repair, and returns them so the caller can wait
+ * for each to settle. The query client's own `refetchOnReconnect` is off, so this is the only
+ * reconnect refetch, and it runs once the app is confirmed reachable. A query already fetching,
+ * such as a paused request the reconnect resumed, is left to finish rather than started twice.
  */
-export const refetchFailedQueries = (client: QueryClient): Promise<void> =>
-  client.refetchQueries(
-    { type: "active", predicate: isRecoverablyFailed },
+export const refetchAfterReconnect = (client: QueryClient): Query[] => {
+  const queries = client.getQueryCache().findAll({ type: "active", predicate: needsReconnectRefetch });
+  void client.refetchQueries(
+    { predicate: (query) => queries.includes(query) },
     { cancelRefetch: false }
   );
+  return queries;
+};
 
-export const countFailedQueries = (client: QueryClient): number =>
-  client.getQueryCache().findAll({ type: "active", predicate: isRecoverablyFailed }).length;
+export const findFailedQueries = (client: QueryClient): Query[] =>
+  client.getQueryCache().findAll({ type: "active", predicate: isRecoverablyFailed });
+
+export const countFailedQueries = (client: QueryClient): number => findFailedQueries(client).length;
+
+/**
+ * True once nothing is waiting on the query: no request running or paused (a retry pauses while
+ * the tab is hidden), or nothing on screen uses it any more.
+ */
+export const isSettled = (query: Query): boolean =>
+  !query.isActive() || query.state.fetchStatus === "idle";
+
+/**
+ * True once a failed query no longer needs Retry: it settled without a recoverable failure, or
+ * nothing on screen uses it any more. A replacement request still running doesn't count, because
+ * it can fail again.
+ */
+export const isRepaired = (query: Query): boolean =>
+  !query.isActive() || (query.state.fetchStatus === "idle" && !isRecoverablyFailed(query));
 
 /** `navigator.onLine` only says a network interface is up, so confirm the app can really be reached. */
 export const checkApiReachable = async (): Promise<boolean> => {

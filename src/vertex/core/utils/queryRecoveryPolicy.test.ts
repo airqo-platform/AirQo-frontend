@@ -1,4 +1,4 @@
-import { QueryClient, QueryObserver, onlineManager } from "@tanstack/react-query";
+import { QueryClient, QueryObserver, focusManager, onlineManager } from "@tanstack/react-query";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createQueryClient } from "@/core/providers/query-provider";
 import {
@@ -7,7 +7,9 @@ import {
   countFailedQueries,
   getQueryRetryDelay,
   isNetworkLevelError,
-  refetchFailedQueries,
+  isRepaired,
+  isSettled,
+  refetchAfterReconnect,
   shouldRetryQuery,
 } from "./queryRecoveryPolicy";
 
@@ -18,6 +20,7 @@ const httpError = (status: number) => Object.assign(new Error("Request failed"),
 
 afterEach(() => {
   onlineManager.setOnline(true);
+  focusManager.setFocused(undefined);
   vi.unstubAllGlobals();
   vi.restoreAllMocks();
   vi.useRealTimers();
@@ -96,15 +99,23 @@ describe("retry delays", () => {
   });
 });
 
-describe("refetchFailedQueries", () => {
-  const mountFailedQuery = async (client: QueryClient, key: string, error: unknown) => {
-    const queryFn = vi.fn().mockRejectedValueOnce(error).mockResolvedValue("ok");
-    const observer = new QueryObserver(client, { queryKey: [key], queryFn, retry: false, staleTime: Infinity });
-    const unsubscribe = observer.subscribe(() => undefined);
-    await vi.waitFor(() => expect(client.getQueryState([key])?.status).toBe("error"));
-    return { queryFn, unsubscribe };
-  };
+const mountFailedQuery = async (client: QueryClient, key: string, error: unknown) => {
+  const queryFn = vi.fn().mockRejectedValueOnce(error).mockResolvedValue("ok");
+  const observer = new QueryObserver(client, { queryKey: [key], queryFn, retry: false, staleTime: Infinity });
+  const unsubscribe = observer.subscribe(() => undefined);
+  await vi.waitFor(() => expect(client.getQueryState([key])?.status).toBe("error"));
+  return { queryFn, unsubscribe, query: client.getQueryCache().find({ queryKey: [key] })! };
+};
 
+const mountLoadedQuery = async (client: QueryClient, key: string, staleTime: number) => {
+  const queryFn = vi.fn().mockResolvedValue("ok");
+  const observer = new QueryObserver(client, { queryKey: [key], queryFn, retry: false, staleTime });
+  const unsubscribe = observer.subscribe(() => undefined);
+  await vi.waitFor(() => expect(client.getQueryState([key])?.status).toBe("success"));
+  return { queryFn, unsubscribe };
+};
+
+describe("refetchAfterReconnect", () => {
   it("re-runs network and server failures but not 4xx rejections", async () => {
     const client = new QueryClient();
     const network = await mountFailedQuery(client, "network", networkError());
@@ -112,12 +123,24 @@ describe("refetchFailedQueries", () => {
     const forbidden = await mountFailedQuery(client, "forbidden", httpError(403));
 
     expect(countFailedQueries(client)).toBe(2);
-    await refetchFailedQueries(client);
+    const started = refetchAfterReconnect(client);
 
+    expect(started).toEqual([network.query, server.query]);
+    await vi.waitFor(() => expect(countFailedQueries(client)).toBe(0));
     expect(network.queryFn).toHaveBeenCalledTimes(2);
     expect(server.queryFn).toHaveBeenCalledTimes(2);
     expect(forbidden.queryFn).toHaveBeenCalledTimes(1);
-    expect(countFailedQueries(client)).toBe(0);
+  });
+
+  it("refreshes stale data and leaves fresh data alone", async () => {
+    const client = new QueryClient();
+    const stale = await mountLoadedQuery(client, "stale", 0);
+    const fresh = await mountLoadedQuery(client, "fresh", Infinity);
+
+    refetchAfterReconnect(client);
+
+    await vi.waitFor(() => expect(stale.queryFn).toHaveBeenCalledTimes(2));
+    expect(fresh.queryFn).toHaveBeenCalledTimes(1);
   });
 
   it("ignores queries with nothing mounted", async () => {
@@ -125,8 +148,7 @@ describe("refetchFailedQueries", () => {
     const { queryFn, unsubscribe } = await mountFailedQuery(client, "gone", networkError());
     unsubscribe();
 
-    await refetchFailedQueries(client);
-
+    expect(refetchAfterReconnect(client)).toEqual([]);
     expect(queryFn).toHaveBeenCalledTimes(1);
   });
 
@@ -139,9 +161,9 @@ describe("refetchFailedQueries", () => {
     await client.refetchQueries({ queryKey: ["fresh"] });
     expect(client.getQueryState(["fresh"])?.status).toBe("error");
 
-    await refetchFailedQueries(client);
+    refetchAfterReconnect(client);
 
-    expect(client.getQueryData(["fresh"])).toBe("ok");
+    await vi.waitFor(() => expect(client.getQueryData(["fresh"])).toBe("ok"));
     unsubscribe();
   });
 
@@ -151,10 +173,67 @@ describe("refetchFailedQueries", () => {
     queryFn.mockReset();
     queryFn.mockImplementation(() => new Promise((resolve) => setTimeout(() => resolve("ok"), 20)));
 
-    await Promise.all([refetchFailedQueries(client), refetchFailedQueries(client)]);
+    refetchAfterReconnect(client);
+    refetchAfterReconnect(client);
 
+    await vi.waitFor(() => expect(client.getQueryState(["busy"])?.status).toBe("success"));
     expect(queryFn).toHaveBeenCalledTimes(1);
     unsubscribe();
+  });
+});
+
+describe("isSettled and isRepaired", () => {
+  it("counts a retry paused in a hidden tab as unfinished, and as not yet repaired", async () => {
+    const client = new QueryClient();
+    client.mount();
+    focusManager.setFocused(false);
+    const queryFn = vi.fn().mockRejectedValueOnce(networkError()).mockResolvedValue("ok");
+    const observer = new QueryObserver(client, {
+      queryKey: ["paused"],
+      queryFn,
+      retry: 1,
+      retryDelay: 1,
+      refetchOnWindowFocus: false,
+    });
+    const unsubscribe = observer.subscribe(() => undefined);
+    const query = client.getQueryCache().find({ queryKey: ["paused"] })!;
+
+    await vi.waitFor(() => expect(query.state.fetchStatus).toBe("paused"));
+    expect(query.state.status).toBe("pending");
+    expect(countFailedQueries(client)).toBe(0);
+    expect(isSettled(query)).toBe(false);
+    expect(isRepaired(query)).toBe(false);
+
+    focusManager.setFocused(true);
+    await vi.waitFor(() => expect(query.state.status).toBe("success"));
+    expect(isSettled(query)).toBe(true);
+    expect(isRepaired(query)).toBe(true);
+    unsubscribe();
+    client.unmount();
+  });
+
+  it("does not count a failed query as repaired while its replacement request runs", async () => {
+    const client = new QueryClient();
+    const { query, queryFn, unsubscribe } = await mountFailedQuery(client, "replaced", networkError());
+    queryFn.mockReset();
+    queryFn.mockRejectedValue(httpError(503));
+
+    void query.fetch().catch(() => undefined);
+    expect(query.state.status).toBe("pending");
+    expect(isRepaired(query)).toBe(false);
+
+    await vi.waitFor(() => expect(query.state.status).toBe("error"));
+    expect(isRepaired(query)).toBe(false);
+    unsubscribe();
+  });
+
+  it("counts a query nothing shows any more as settled and repaired", async () => {
+    const client = new QueryClient();
+    const { query, unsubscribe } = await mountFailedQuery(client, "left", networkError());
+    unsubscribe();
+
+    expect(isSettled(query)).toBe(true);
+    expect(isRepaired(query)).toBe(true);
   });
 });
 

@@ -1,5 +1,5 @@
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
-import { QueryClientProvider, onlineManager, useQuery } from '@tanstack/react-query';
+import { QueryClientProvider, focusManager, onlineManager, useQuery } from '@tanstack/react-query';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createQueryClient } from '@/core/providers/query-provider';
 import { HIDDEN_RECOVERY_THRESHOLD_MS } from '@/core/utils/queryRecoveryPolicy';
@@ -75,6 +75,7 @@ describe('NetworkStatusBanner reconnect recovery', () => {
     delete (navigator as unknown as Record<string, unknown>).onLine;
     delete (document as unknown as Record<string, unknown>).visibilityState;
     onlineManager.setOnline(true);
+    focusManager.setFocused(undefined);
     vi.unstubAllGlobals();
     vi.restoreAllMocks();
   });
@@ -121,10 +122,50 @@ describe('NetworkStatusBanner reconnect recovery', () => {
     await screen.findByText(/Reconnecting/);
     expect(screen.queryByText(REFRESHING)).not.toBeInTheDocument();
     expect(screen.queryByText(RESTORED)).not.toBeInTheDocument();
+    // The query client's own reconnect refetch is off, so nothing runs before the ping answers.
+    await act(async () => new Promise((resolve) => setTimeout(resolve, 20)));
+    expect(queryFn).toHaveBeenCalledTimes(1);
 
     await act(async () => reachable.resolve({ ok: true }));
 
     await screen.findByText(RESTORED);
+    expect(queryFn).toHaveBeenCalledTimes(2);
+  });
+
+  it('keeps refreshing while a retry is paused in a hidden tab', async () => {
+    const client = createQueryClient();
+    const queryFn = vi
+      .fn()
+      .mockRejectedValueOnce(networkError())
+      .mockRejectedValueOnce(networkError())
+      .mockResolvedValue('ok');
+    function RetryingList() {
+      useQuery({ queryKey: ['list'], queryFn, retry: 1, retryDelay: 1, refetchOnWindowFocus: false });
+      return null;
+    }
+    render(
+      <QueryClientProvider client={client}>
+        <RetryingList />
+        <NetworkStatusBanner />
+      </QueryClientProvider>
+    );
+    await waitFor(() => expect(client.getQueryState(['list'])?.status).toBe('error'));
+    queryFn.mockReset();
+    queryFn.mockRejectedValueOnce(networkError()).mockResolvedValue('ok');
+
+    goOffline();
+    focusManager.setFocused(false);
+    goOnline();
+
+    await waitFor(() => expect(client.getQueryState(['list'])?.fetchStatus).toBe('paused'));
+    await act(async () => new Promise((resolve) => setTimeout(resolve, 20)));
+    expect(screen.getByText(REFRESHING)).toBeInTheDocument();
+    expect(screen.queryByText(RESTORED)).not.toBeInTheDocument();
+
+    act(() => focusManager.setFocused(true));
+
+    await screen.findByText(RESTORED);
+    expect(client.getQueryState(['list'])?.status).toBe('success');
   });
 
   it('shows unstable with Retry when the app cannot be reached, and recovers on Retry', async () => {
@@ -191,6 +232,29 @@ describe('NetworkStatusBanner reconnect recovery', () => {
     await waitFor(() => expect(screen.queryByText(UNSTABLE)).not.toBeInTheDocument());
   });
 
+  it('keeps Retry while a replacement request runs, and after it fails again', async () => {
+    const queryFn = vi.fn().mockRejectedValue(networkError());
+    const client = await renderWithFailedList(queryFn);
+
+    goOffline();
+    goOnline();
+    await screen.findByText(UNSTABLE);
+
+    const replacement = deferred<string>();
+    queryFn.mockReturnValue(replacement.promise);
+    await act(async () => {
+      void client.refetchQueries({ queryKey: ['list'] });
+    });
+    expect(client.getQueryState(['list'])?.status).toBe('pending');
+    await act(async () => new Promise((resolve) => setTimeout(resolve, 20)));
+    expect(screen.getByText(UNSTABLE)).toBeInTheDocument();
+
+    await act(async () => replacement.reject(httpError(503)));
+    await waitFor(() => expect(client.getQueryState(['list'])?.status).toBe('error'));
+    expect(screen.getByText(UNSTABLE)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Retry' })).toBeInTheDocument();
+  });
+
   it('does not re-run a query the server rejected with a 4xx', async () => {
     const queryFn = vi.fn().mockRejectedValue(httpError(403));
     await renderWithFailedList(queryFn);
@@ -202,18 +266,63 @@ describe('NetworkStatusBanner reconnect recovery', () => {
     expect(queryFn).toHaveBeenCalledTimes(1);
   });
 
-  it('refetches a failed query when the tab returns after a long absence', async () => {
-    const queryFn = vi.fn().mockRejectedValueOnce(networkError()).mockResolvedValue('ok');
-    const client = await renderWithFailedList(queryFn);
+  const returnAfterLongAbsence = () => {
     const now = Date.now();
     const clock = vi.spyOn(Date, 'now').mockReturnValue(now);
-
     setVisibility('hidden');
     clock.mockReturnValue(now + HIDDEN_RECOVERY_THRESHOLD_MS);
     setVisibility('visible');
+  };
 
-    await waitFor(() => expect(client.getQueryState(['list'])?.status).toBe('success'));
+  it('recovers a failed query through the reconnect flow when the tab returns after a long absence', async () => {
+    const reachable = deferred<{ ok: boolean }>();
+    ping.mockReturnValueOnce(reachable.promise);
+    const queryFn = vi.fn().mockRejectedValueOnce(networkError()).mockResolvedValue('ok');
+    const client = await renderWithFailedList(queryFn);
+
+    returnAfterLongAbsence();
+
+    await screen.findByText(/Reconnecting/);
+    expect(queryFn).toHaveBeenCalledTimes(1);
+
+    await act(async () => reachable.resolve({ ok: true }));
+
+    await screen.findByText(RESTORED);
+    expect(client.getQueryState(['list'])?.status).toBe('success');
     expect(queryFn).toHaveBeenCalledTimes(2);
+  });
+
+  it('keeps checking after a long absence while the app cannot be reached', async () => {
+    ping.mockResolvedValueOnce({ ok: false });
+    const queryFn = vi.fn().mockRejectedValueOnce(networkError()).mockResolvedValue('ok');
+    await renderWithFailedList(queryFn);
+
+    returnAfterLongAbsence();
+
+    await screen.findByText(UNSTABLE);
+    await screen.findByText(RESTORED, undefined, { timeout: 2000 });
+    expect(ping).toHaveBeenCalledTimes(2);
+  });
+
+  it('shows nothing after a long absence when no query failed', async () => {
+    const client = createQueryClient();
+    function LoadedList() {
+      useQuery({ queryKey: ['list'], queryFn: async () => 'ok', refetchOnWindowFocus: false });
+      return null;
+    }
+    render(
+      <QueryClientProvider client={client}>
+        <LoadedList />
+        <NetworkStatusBanner />
+      </QueryClientProvider>
+    );
+    await waitFor(() => expect(client.getQueryState(['list'])?.status).toBe('success'));
+
+    returnAfterLongAbsence();
+
+    await act(async () => undefined);
+    expect(ping).not.toHaveBeenCalled();
+    expect(screen.getByRole('status')).toBeEmptyDOMElement();
   });
 
   it('leaves a failed query alone after a quick tab switch', async () => {
