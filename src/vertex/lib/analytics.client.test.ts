@@ -353,4 +353,21 @@ describe('analytics client with NEXT_PUBLIC_POSTHOG_KEY set', () => {
     expect(localStorage.getItem('ph_phc_test_posthog')).toBeNull();
     expect(document.cookie).not.toContain('ph_phc_test_posthog=stored');
   });
+  it('still forgets the stored identity after PostHog gave up loading', async () => {
+    const analytics = await loadAnalytics();
+    posthog.init.mockImplementation(() => {
+      throw new Error('blocked');
+    });
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      analytics.trackEvent(`attempt_${attempt}`);
+      await vi.advanceTimersByTimeAsync(1000);
+      await vi.waitFor(() => expect(posthog.init).toHaveBeenCalledTimes(attempt));
+      await vi.advanceTimersByTimeAsync(0);
+    }
+    expect(analytics.isAnalyticsEnabled()).toBe(false);
+
+    localStorage.setItem('ph_phc_test_posthog', '{"distinct_id":"user-1"}');
+    analytics.resetAnalytics();
+    expect(localStorage.getItem('ph_phc_test_posthog')).toBeNull();
+  });
 });

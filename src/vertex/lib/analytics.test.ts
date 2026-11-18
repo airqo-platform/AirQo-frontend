@@ -196,6 +196,34 @@ describe('without NEXT_PUBLIC_POSTHOG_KEY', () => {
   });
 });
 
+describe('campaign parameters', () => {
+  it('are dropped in every form PostHog adds them, along with the query they came from', () => {
+    const sent = beforeSend(
+      event(
+        {
+          $current_url: 'https://vertex.airqo.net/download?utm_term=person%40example.com',
+          utm_term: 'person@example.com',
+          gclid: 'abc',
+          $session_entry_utm_term: 'person@example.com',
+          $session_entry_url: 'https://vertex.airqo.net/download?utm_term=person%40example.com',
+          route: '/download',
+        },
+        {
+          $set_once: { $initial_utm_term: 'person@example.com', $initial_fbclid: 'x', $initial_pathname: '/download' },
+          $set: { utm_source: 'newsletter' },
+        }
+      )
+    )!;
+    expect(sent.properties).toEqual({
+      $current_url: 'https://vertex.airqo.net/download',
+      $session_entry_url: 'https://vertex.airqo.net/download',
+      route: '/download',
+    });
+    expect(sent.$set_once).toEqual({ $initial_pathname: '/download' });
+    expect(sent.$set).toEqual({});
+  });
+});
+
 describe('flag and count exceptions', () => {
   it('only allow values of the right type', () => {
     expect(

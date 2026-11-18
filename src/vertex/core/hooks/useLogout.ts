@@ -88,7 +88,8 @@ export const useLogout = (callbackUrl?: string) => {
       } catch (error) {
         logger.error('Logout error:', { error });
         resetAnalytics();
-        dispatch(setLoggingOut(false));
+        // isLoggingOut stays set while the page navigates away, so nothing (analytics included)
+        // picks the still-signed-in user up again in the meantime
         window.location.href = callbackUrl || '/login';
       } finally {
         sharedIsLoggingOut = false;
