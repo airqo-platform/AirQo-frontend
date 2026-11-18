@@ -13,8 +13,9 @@ const posthog = {
     this.failingInits += 1
   },
 
-  init() {
+  init(key, config) {
     this.initCalls += 1
+    this.lastConfig = config
     if (this.failingInits > 0) {
       this.failingInits -= 1
       throw new Error("PostHog failed to load")

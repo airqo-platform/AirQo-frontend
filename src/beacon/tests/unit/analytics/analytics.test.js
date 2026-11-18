@@ -95,6 +95,19 @@ test("properties that could identify a person or carry typed text are dropped", 
   assert.deepEqual(clean, { format: "pdf", device_count: 12, has_query: true, query_length: 7, tab: "config" })
 })
 
+test("flags and counts are kept only with boolean and number values", () => {
+  assert.deepEqual(
+    sanitizeProperties({
+      has_query: true,
+      query_length: 7,
+      has_email: "someone@example.com",
+      email_count: "3",
+      nested: [{ has_name: "Someone", name_length: 7 }],
+    }),
+    { has_query: true, query_length: 7, nested: [{ name_length: 7 }] }
+  )
+})
+
 test("values are cut down to plain, bounded data", () => {
   const clean = sanitizeProperties({
     long: "x".repeat(500),

@@ -46,3 +46,21 @@ test("a full queue and a failed load still identify the user once PostHog loads"
   assert.equal(posthog.captured[0].properties.route, "/dashboard/home")
   assert.deepEqual(posthog.identified, [{ id: "user-1", properties: { beacon_role: "admin" } }])
 })
+
+test("starts PostHog without campaign parameters, with replay URLs stripped", () => {
+  const config = posthog.lastConfig
+  assert.equal(config.save_campaign_params, false)
+  assert.equal(config.autocapture, false)
+  assert.deepEqual(config.session_recording.maskCapturedNetworkRequestFn({ name: "https://beacon.airqo.net/dashboard?q=kampala#map" }), {
+    name: "https://beacon.airqo.net/dashboard",
+  })
+})
+
+test("sendNow skips the batch; other events don't", () => {
+  trackEvent("user_signed_out", {}, { sendNow: true })
+  trackEvent("report_exported", { format: "pdf" })
+  const [signedOut, exported] = posthog.captured.slice(-2)
+  assert.deepEqual(signedOut.options, { send_instantly: true })
+  assert.equal(exported.options, undefined)
+})
+

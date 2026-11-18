@@ -109,9 +109,17 @@ const DERIVED_KEY = /^(?:has|is)_|_(?:count|length)$/
 const toSnakeCase = (key: string) => key.replace(/([a-z0-9])([A-Z])/g, "$1_$2").toLowerCase()
 
 /** Whether a property key could hold personal details or free text, which events must not carry. */
-export const isBlockedPropertyKey = (key: string) => {
+/**
+ * Whether a property key could hold personal details or free text, which events must not carry.
+ * A flag (`has_query`) or count (`query_length`) is allowed only with a boolean or number value, so
+ * `has_email: "someone@example.com"` is still dropped.
+ */
+export const isBlockedPropertyKey = (key: string, value?: unknown) => {
   const snakeKey = toSnakeCase(key)
-  return !DERIVED_KEY.test(snakeKey) && BLOCKED_KEY.test(snakeKey)
+  if (!BLOCKED_KEY.test(snakeKey)) return false
+  if (!DERIVED_KEY.test(snakeKey)) return true
+  const isFlag = /^(?:has|is)_/.test(snakeKey)
+  return isFlag ? typeof value !== "boolean" : typeof value !== "number"
 }
 
 const sanitizeValue = (value: unknown, depth: number): unknown => {
@@ -141,7 +149,7 @@ export function sanitizeProperties(
   const sanitized: Record<string, unknown> = {}
   if (!properties) return sanitized
   for (const [key, value] of Object.entries(properties)) {
-    if (isBlockedPropertyKey(key)) continue
+    if (isBlockedPropertyKey(key, value)) continue
     const clean = sanitizeValue(value, depth)
     if (clean !== undefined) sanitized[key] = clean
   }
@@ -233,8 +241,15 @@ const posthogConfig = (): Partial<PostHogConfig> => ({
   persistence: "localStorage+cookie",
   person_profiles: "identified_only",
   // Replay is switched on and off in the PostHog project settings.
+  // UTM and click-id values come from the URL and can carry anything; they aren't used here
+  save_campaign_params: false,
+  // The recorder passes page URLs (and captured request URLs) through this hook, so replays lose
+  // query strings and hashes too
   disable_session_recording: false,
-  session_recording: { maskAllInputs: true },
+  session_recording: {
+    maskAllInputs: true,
+    maskCapturedNetworkRequestFn: (request) => ({ ...request, name: stripUrlDetails(request.name) }),
+  },
   internal_or_test_user_hostname: /^(localhost|127\.0\.0\.1|.+\.localhost)$/,
   before_send: [withAppProperties, beforeSend],
 })
@@ -317,7 +332,11 @@ function withClient(task: Task, { essential = false } = {}) {
 }
 
 export interface TrackOptions {
-  /** Send straight away by beacon, for an action that ends in a full page load or sign-out. */
+  /**
+   * Send straight away instead of with the next batch, for an action that ends in a full page load
+   * or sign-out. Only once PostHog has loaded: a call made while it's still loading waits in memory
+   * and is lost if the page unloads first.
+   */
   sendNow?: boolean
 }
 
@@ -334,7 +353,9 @@ export function trackEvent(
     posthog.capture(
       event,
       { ...sanitizeProperties(properties), ...page },
-      options.sendNow ? { transport: "sendBeacon" } : undefined
+      // posthog-js ignores `transport` on capture; send_instantly skips the batch, and its fetch
+      // keepalive request survives the page unloading
+      options.sendNow ? { send_instantly: true } : undefined
     )
   )
 }
@@ -391,7 +412,30 @@ export function setActiveOrganization(organization: AnalyticsOrganization | null
   }, { essential: true })
 }
 
+/**
+ * Removes PostHog's stored identity directly. Used when signing out before PostHog has loaded on
+ * this page: the queued reset would be lost with the page, and the next page would restore the
+ * previous user's id from PostHog's cookie.
+ */
+function forgetStoredIdentity(): void {
+  const name = `ph_${POSTHOG_KEY}_posthog`
+  try {
+    localStorage.removeItem(name)
+  } catch {
+    // Storage blocked: nothing stored there
+  }
+  if (typeof document === "undefined") return
+  // PostHog sets its cookie on the parent domain (.airqo.net) so it's shared across subdomains
+  const labels = window.location.hostname.split(".")
+  const domains = [""].concat(labels.slice(0, -1).map((_, index) => `; domain=.${labels.slice(index).join(".")}`))
+  for (const domain of domains) {
+    document.cookie = `${name}=; Max-Age=0; path=/${domain}`
+  }
+}
+
 /** Forgets the signed-in user on sign-out, so the next person on this browser starts fresh. */
 export function resetAnalytics(): void {
+  if (!isAnalyticsEnabled()) return
+  if (!client) forgetStoredIdentity()
   withClient((posthog) => posthog.reset(), { essential: true })
 }
