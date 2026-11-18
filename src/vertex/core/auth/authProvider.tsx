@@ -17,7 +17,7 @@ import {
   setUserContext,
   initializeUserData,
 } from '@/core/redux/slices/userSlice';
-import { users } from '@/core/apis/users';
+import { userDetailsQueryOptions } from './userDetailsQuery';
 import { getApiErrorMessage } from '@/core/utils/getApiErrorMessage';
 import { useBanner } from '@/context/banner-context';
 import SessionLoadingState from '@/components/layout/loading/session-loading';
@@ -29,7 +29,6 @@ import {
 import type {
   Network,
   Group,
-  UserDetailsResponse,
   UserDetails,
 } from '@/app/types/users';
 import { ExtendedSession } from '../utils/secureApiProxyClient';
@@ -159,19 +158,7 @@ function useOnlineStatus() {
  * Hook to fetch user details with React Query v5 offline-first pattern
  */
 function useUserDetails(userId: string | null) {
-  const isDevelopment = process.env.NODE_ENV === 'development';
-
-  return useQuery<UserDetailsResponse, Error>({
-    queryKey: ['userDetails', userId],
-    queryFn: () => users.getUserDetails(userId!),
-    enabled: !!userId,
-    networkMode: 'offlineFirst',
-    retry: isDevelopment ? 0 : 1,
-    staleTime: 5 * 60 * 1000,
-    gcTime: 10 * 60 * 1000,
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: true,
-  });
+  return useQuery(userDetailsQueryOptions(userId));
 }
 
 // --- Components ---

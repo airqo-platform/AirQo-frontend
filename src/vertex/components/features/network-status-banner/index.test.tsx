@@ -1,6 +1,7 @@
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { QueryClientProvider, focusManager, onlineManager, useQuery } from '@tanstack/react-query';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { userDetailsQueryOptions } from '@/core/auth/userDetailsQuery';
 import { createQueryClient } from '@/core/providers/query-provider';
 import { HIDDEN_RECOVERY_THRESHOLD_MS } from '@/core/utils/queryRecoveryPolicy';
 import NetworkStatusBanner from './index';
@@ -123,6 +124,37 @@ describe('NetworkStatusBanner reconnect recovery', () => {
     expect(screen.queryByText(REFRESHING)).not.toBeInTheDocument();
     expect(screen.queryByText(RESTORED)).not.toBeInTheDocument();
     // The query client's own reconnect refetch is off, so nothing runs before the ping answers.
+    await act(async () => new Promise((resolve) => setTimeout(resolve, 20)));
+    expect(queryFn).toHaveBeenCalledTimes(1);
+
+    await act(async () => reachable.resolve({ ok: true }));
+
+    await screen.findByText(RESTORED);
+    expect(queryFn).toHaveBeenCalledTimes(2);
+  });
+
+  it('refetches stale user details only once the app is confirmed reachable', async () => {
+    const reachable = deferred<{ ok: boolean }>();
+    ping.mockReturnValueOnce(reachable.promise);
+    const client = createQueryClient();
+    const queryFn = vi.fn().mockResolvedValue({ success: true, message: 'ok', users: [] });
+    function UserDetails() {
+      useQuery({ ...userDetailsQueryOptions('user-1'), queryFn });
+      return null;
+    }
+    render(
+      <QueryClientProvider client={client}>
+        <UserDetails />
+        <NetworkStatusBanner />
+      </QueryClientProvider>
+    );
+    await waitFor(() => expect(client.getQueryState(['userDetails', 'user-1'])?.status).toBe('success'));
+    await act(() => client.invalidateQueries({ queryKey: ['userDetails'], refetchType: 'none' }));
+
+    goOffline();
+    goOnline();
+
+    await screen.findByText(/Reconnecting/);
     await act(async () => new Promise((resolve) => setTimeout(resolve, 20)));
     expect(queryFn).toHaveBeenCalledTimes(1);
 
