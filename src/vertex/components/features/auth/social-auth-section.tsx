@@ -109,7 +109,7 @@ export default function SocialAuthSection({
       try {
         setLastUsedOAuthProvider(provider);
         clearBackendOAuthSignedOutFlag();
-        startSignIn(provider);
+        startSignIn(provider, { awaitingHandoff: true });
         const authUrl = buildOAuthInitiationUrl(provider, queryParams);
         if (isElectron) {
           window.open(authUrl, '_blank');

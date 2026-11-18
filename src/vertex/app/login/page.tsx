@@ -99,6 +99,8 @@ export default function LoginPage() {
 
     const authError = searchParams.get('error');
     if (authError === 'oauth_failed') {
+      // The cancelled social sign-in mustn't be reported if a session turns up later
+      clearPendingSignIn();
       showBanner({
         severity: 'error',
         message: 'Social sign-in failed or was cancelled. Please try again.',
@@ -160,6 +162,9 @@ export default function LoginPage() {
     const redirectUrl =
       callbackUrl && !isAuthRouteCallback ? callbackUrl : fallbackUrl;
 
+    // Reported once from the catch below. A rejected request (the network dropped) stays "network".
+    let failureReason = 'network';
+
     try {
       const result = await signIn("credentials", {
         redirect: false,
@@ -174,6 +179,7 @@ export default function LoginPage() {
       if (result?.ok) {
         const session = await waitForSession();
         if (!session?.user) {
+          failureReason = 'no_session';
           throw new Error("Could not confirm session. Please try again.");
         }
         showBanner({ severity: 'success', message: 'Welcome back!', scoped: true });
@@ -198,18 +204,16 @@ export default function LoginPage() {
           }
         }
         // A category, not the error text, which can repeat what was typed
-        trackEvent('user_sign_in_failed', {
-          method: 'password',
-          reason:
-            result?.error === 'CredentialsSignin'
-              ? 'invalid_credentials'
-              : result?.error?.toLowerCase().includes('fetch')
-                ? 'network'
-                : 'error',
-        });
+        failureReason =
+          result?.error === 'CredentialsSignin'
+            ? 'invalid_credentials'
+            : result?.error?.toLowerCase().includes('fetch')
+              ? 'network'
+              : 'error';
         throw new Error(message);
       }
     } catch (error) {
+      trackEvent('user_sign_in_failed', { method: 'password', reason: failureReason });
       // A failed attempt mustn't be reported as a sign-in later
       clearPendingSignIn();
       if (!isMounted.current) return;
@@ -334,7 +338,7 @@ export default function LoginPage() {
                             <span className="text-xs text-muted-foreground">
                               Signing in as
                             </span>
-                            <span className="text-sm font-semibold truncate">
+                            <span className="ph-mask text-sm font-semibold truncate">
                               {form.getValues('userName')}
                             </span>
                           </div>

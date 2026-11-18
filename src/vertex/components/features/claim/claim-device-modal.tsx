@@ -229,7 +229,8 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
   // so the Cancel/Back button returns to the right place.
   const [previousStep, setPreviousStep] = useState<FlowStep>('method-select');
   // Whether the bulk list came from an uploaded file rather than typed rows
-  const bulkFromFileRef = useRef(false);
+  // Rows that came from an imported file, so the claim can say how the list was made
+  const fileRowsRef = useRef(new WeakSet<BulkDevice>());
 
   const [isImportingCohort, setIsImportingCohort] = useState(false);
   const [isCohortAssignmentSuccess, setIsCohortAssignmentSuccess] =
@@ -496,9 +497,13 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
     value: string,
   ) => {
     setBulkDevices(prev =>
-      prev.map((device, i) =>
-        i === index ? { ...device, [field]: value } : device,
-      ),
+      prev.map((device, i) => {
+        if (i !== index) return device;
+        const edited = { ...device, [field]: value };
+        // An edited file row still came from the file
+        if (fileRowsRef.current.has(device)) fileRowsRef.current.add(edited);
+        return edited;
+      }),
     );
   };
 
@@ -510,12 +515,11 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
   const handleBulkFileImport = (devices: BulkDevice[]) => {
     setError(null);
     setBulkDevices(devices);
-    bulkFromFileRef.current = true;
+    devices.forEach(device => fileRowsRef.current.add(device));
   };
 
   /** Clear all device rows from the bulk list. */
   const handleBulkClear = () => {
-    bulkFromFileRef.current = false;
     setBulkDevices([]);
     setError(null);
   };
@@ -553,16 +557,21 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
         ...(defaultCohort && { cohort_id: defaultCohort }),
       },
       {
-        onSuccess: data =>
+        onSuccess: data => {
+          const successfulCount = data?.data?.successful_claims?.length ?? 0;
+          // A request where every claim failed isn't a claim
+          if (successfulCount === 0) return;
+          const fromFile = valid.filter(device => fileRowsRef.current.has(device)).length;
           trackEvent('device_claimed', {
             method: 'bulk',
             mode,
-            input: bulkFromFileRef.current ? 'file' : 'typed',
+            input: fromFile === valid.length ? 'file' : fromFile === 0 ? 'typed' : 'mixed',
             device_count: valid.length,
-            successful_count: data?.data?.successful_claims?.length ?? 0,
+            successful_count: successfulCount,
             failed_count: data?.data?.failed_claims?.length ?? 0,
             context: isPersonalContext ? 'personal' : 'organization',
-          }),
+          });
+        },
       },
     );
   };

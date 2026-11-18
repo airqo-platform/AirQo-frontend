@@ -18,7 +18,7 @@
 import type { CaptureResult, PostHog, PostHogConfig } from 'posthog-js';
 import { getEnvironment } from '@/lib/envConstants';
 import { getIsElectron } from '@/core/utils/platform';
-import { connectAnalytics, type TrackOptions } from '@/lib/track';
+import { connectAnalytics, type SignInOptions, type TrackOptions } from '@/lib/track';
 
 export const ANALYTICS_APP_NAME = 'vertex';
 
@@ -99,10 +99,17 @@ const MAX_DEPTH = 3;
 
 const toSnakeCase = (key: string) => key.replace(/([a-z0-9])([A-Z])/g, '$1_$2').toLowerCase();
 
-/** Whether a property key could hold personal details or free text, which events must not carry. */
-export const isBlockedPropertyKey = (key: string) => {
+/**
+ * Whether a property key could hold personal details or free text, which events must not carry.
+ * A flag (`has_query`) or count (`query_length`) is allowed only with a boolean or number value, so
+ * `has_email: "someone@example.com"` is still dropped.
+ */
+export const isBlockedPropertyKey = (key: string, value?: unknown) => {
   const snakeKey = toSnakeCase(key);
-  return !DERIVED_KEY.test(snakeKey) && BLOCKED_KEY.test(snakeKey);
+  if (!BLOCKED_KEY.test(snakeKey)) return false;
+  if (!DERIVED_KEY.test(snakeKey)) return true;
+  const isFlag = /^(?:has|is)_/.test(snakeKey);
+  return isFlag ? typeof value !== 'boolean' : typeof value !== 'number';
 };
 
 const sanitizeValue = (value: unknown, depth: number): unknown => {
@@ -132,7 +139,7 @@ export function sanitizeProperties(
   const sanitized: Record<string, unknown> = {};
   if (!properties) return sanitized;
   for (const [key, value] of Object.entries(properties)) {
-    if (isBlockedPropertyKey(key)) continue;
+    if (isBlockedPropertyKey(key, value)) continue;
     const clean = sanitizeValue(value, depth);
     if (clean !== undefined) sanitized[key] = clean;
   }
@@ -239,9 +246,15 @@ const posthogConfig = (): Partial<PostHogConfig> => ({
   capture_pageleave: true,
   persistence: 'localStorage+cookie',
   person_profiles: 'identified_only',
-  // Replay is switched on and off in the PostHog project settings.
+  // UTM and click-id values come from the URL and can carry anything; they aren't used here
+  save_campaign_params: false,
+  // Replay is switched on and off in the PostHog project settings. The recorder passes page URLs
+  // (and captured request URLs) through this hook, so replays lose query strings and hashes too.
   disable_session_recording: false,
-  session_recording: { maskAllInputs: true },
+  session_recording: {
+    maskAllInputs: true,
+    maskCapturedNetworkRequestFn: request => ({ ...request, name: stripUrlDetails(request.name) }),
+  },
   internal_or_test_user_hostname: /^(localhost|127\.0\.0\.1|.+\.localhost)$/,
   before_send: [withAppProperties, beforeSend],
 });
@@ -333,12 +346,14 @@ export function trackEvent(
 ): void {
   if (!isAnalyticsEnabled()) return;
   // Read the page now, not when a queued call finally runs.
-  const route = getRouteTemplate(window.location.pathname);
+  const route = getRouteTemplate(options.pathname ?? window.location.pathname);
   withClient(posthog =>
     posthog.capture(
       event,
       { ...sanitizeProperties(properties), route },
-      options.sendNow ? { transport: 'sendBeacon' } : undefined
+      // posthog-js ignores `transport` on capture; send_instantly skips the batch, and its
+      // fetch keepalive request survives the page unloading
+      options.sendNow ? { send_instantly: true } : undefined
     )
   );
 }
@@ -388,8 +403,9 @@ export function setActiveOrganization(
   organization: AnalyticsOrganization | null,
   context: string | null
 ): void {
-  userContext = context ?? 'unknown';
   withClient(posthog => {
+    // Set here, in queue order, so events queued before the switch keep the context they had
+    userContext = context ?? 'unknown';
     if (!organization) {
       posthog.resetGroups();
       return;
@@ -402,9 +418,39 @@ export function setActiveOrganization(
   }, { essential: true });
 }
 
+/**
+ * Removes PostHog's stored identity directly. Used when signing out before PostHog has loaded on
+ * this page: the queued reset would be lost with the page, and the next page would restore the
+ * previous user's id from PostHog's cookie.
+ */
+function forgetStoredIdentity(): void {
+  const name = `ph_${POSTHOG_KEY}_posthog`;
+  try {
+    localStorage.removeItem(name);
+  } catch {
+    // Storage blocked: nothing stored there
+  }
+  // PostHog sets its cookie on the parent domain (.airqo.net) so it's shared across subdomains
+  const labels = window.location.hostname.split('.');
+  const domains = [''].concat(
+    labels.slice(0, -1).map((_, index) => `; domain=.${labels.slice(index).join('.')}`)
+  );
+  for (const domain of domains) {
+    document.cookie = `${name}=; Max-Age=0; path=/${domain}`;
+  }
+}
+
 /** Forgets the signed-in user on sign-out, so the next person on this browser starts fresh. */
 export function resetAnalytics(): void {
-  withClient(posthog => posthog.reset(), { essential: true });
+  if (!isAnalyticsEnabled()) return;
+  if (!client) forgetStoredIdentity();
+  withClient(
+    posthog => {
+      userContext = 'unknown';
+      posthog.reset();
+    },
+    { essential: true }
+  );
 }
 
 // ─── Sign-in ───────────────────────────────────────────────────────────────
@@ -417,6 +463,8 @@ interface PendingSignIn {
   method: string;
   startedAt: number | null;
   markedAt: number;
+  /** False for an OAuth click until the hand-off completes; only confirmed sign-ins are reported. */
+  confirmed: boolean;
 }
 
 const readPendingSignIn = (): PendingSignIn | null => {
@@ -442,9 +490,14 @@ const writePendingSignIn = (signIn: PendingSignIn) => {
  * Notes that the user started signing in ("password", "google", …). sessionStorage survives the
  * redirect, and the first signed-in page reports `user_signed_in` once.
  */
-export function startSignIn(method: string): void {
+export function startSignIn(method: string, { awaitingHandoff = false }: SignInOptions = {}): void {
   if (typeof window === 'undefined') return;
-  writePendingSignIn({ method, startedAt: Date.now(), markedAt: Date.now() });
+  writePendingSignIn({
+    method,
+    startedAt: Date.now(),
+    markedAt: Date.now(),
+    confirmed: !awaitingHandoff,
+  });
 }
 
 /**
@@ -453,8 +506,14 @@ export function startSignIn(method: string): void {
  */
 export function completeSignIn(method: string): void {
   if (typeof window === 'undefined') return;
+  // Only a start from the same method times this sign-in (a Google click doesn't time an SSO pickup)
   const started = readPendingSignIn();
-  writePendingSignIn({ method, startedAt: started?.startedAt ?? null, markedAt: Date.now() });
+  writePendingSignIn({
+    method,
+    startedAt: started?.method === method ? started.startedAt : null,
+    markedAt: Date.now(),
+    confirmed: true,
+  });
 }
 
 /** Forgets a sign-in that didn't go through. */
@@ -471,10 +530,12 @@ export function consumePendingSignIn(): { method: string; duration_ms: number | 
   if (typeof window === 'undefined') return null;
   const signIn = readPendingSignIn();
   clearPendingSignIn();
-  if (!signIn) return null;
+  if (!signIn?.confirmed) return null;
+  const elapsed = signIn.startedAt ? Date.now() - signIn.startedAt : null;
   return {
     method: signIn.method,
-    duration_ms: signIn.startedAt ? Date.now() - signIn.startedAt : null,
+    // A start older than the window is from an abandoned attempt, not this sign-in
+    duration_ms: elapsed !== null && elapsed < SIGN_IN_MAX_AGE_MS ? elapsed : null,
   };
 }
 

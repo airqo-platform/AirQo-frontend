@@ -53,11 +53,13 @@ const LoginFeedbackToast: React.FC<LoginFeedbackToastProps> = ({
   }, [userId]);
 
   const submitLoginFeedback = async (rating: number, description?: string) => {
+    // Read once, so the feedback and analytics report the same sign-in
+    const loginDurationMs = loginDurationRef.current;
     await feedbackService.submitLoginFeedback({
       email,
       rating,
       description,
-      loginDurationMs: loginDurationRef.current,
+      loginDurationMs,
       submittedAt: Date.now(),
     });
     // "Other: <typed text>" is reported as plain "Other"
@@ -68,7 +70,7 @@ const LoginFeedbackToast: React.FC<LoginFeedbackToastProps> = ({
           ? description
           : "Other"
         : undefined,
-      login_duration_ms: loginDurationRef.current || undefined,
+      login_duration_ms: loginDurationMs || undefined,
     });
     setLoginFeedbackRecord(userId);
   };

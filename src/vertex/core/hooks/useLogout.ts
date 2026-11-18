@@ -11,7 +11,7 @@ import logger from '@/lib/logger';
 import { useAppSelector, useAppDispatch } from '../redux/hooks';
 import { persistor } from '../redux/store';
 import { setBackendOAuthSignedOutFlag } from '../auth/oauth-session';
-import { resetAnalytics } from '@/lib/track';
+import { resetAnalytics, trackEvent } from '@/lib/track';
 
 let sharedLogoutPromise: Promise<void> | null = null;
 let sharedIsLoggingOut = false;
@@ -31,7 +31,8 @@ export const useLogout = (callbackUrl?: string) => {
   const isLoggingOut = useAppSelector((state) => state.user.isLoggingOut);
   const userDetails = useAppSelector((state) => state.user.userDetails);
 
-  const logout = useCallback(async () => {
+  /** `userInitiated`: the person chose to sign out (the top bar), as opposed to an expired session. */
+  const logout = useCallback(async ({ userInitiated = false }: { userInitiated?: boolean } = {}) => {
     if (sharedLogoutPromise) {
       await sharedLogoutPromise;
       return;
@@ -63,8 +64,6 @@ export const useLogout = (callbackUrl?: string) => {
         
         dispatch(setLoggingOut(true));
         dispatch(clearUser());
-        // Every logout, automatic ones included: the next person on this browser starts fresh
-        resetAnalytics();
 
         clearSessionData();
         clearTokenCache();
@@ -81,9 +80,14 @@ export const useLogout = (callbackUrl?: string) => {
         }
 
         await signOut({ redirect: false });
+        // Reported only once the sign-out has gone through
+        if (userInitiated) trackEvent('user_signed_out', {}, { sendNow: true });
+        // Every logout, automatic ones included: the next person on this browser starts fresh
+        resetAnalytics();
         window.location.href = callbackUrl || '/login';
       } catch (error) {
         logger.error('Logout error:', { error });
+        resetAnalytics();
         dispatch(setLoggingOut(false));
         window.location.href = callbackUrl || '/login';
       } finally {

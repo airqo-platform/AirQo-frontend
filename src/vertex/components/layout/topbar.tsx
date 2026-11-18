@@ -233,8 +233,7 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
                 label: "Log out",
                 onClick: () => {
                   setShowLogoutConfirm(false);
-                  trackEvent('user_signed_out', {}, { sendNow: true });
-                  logout();
+                  logout({ userInitiated: true });
                 },
                 className: "bg-red-600 hover:bg-red-700 border-red-600",
               }}

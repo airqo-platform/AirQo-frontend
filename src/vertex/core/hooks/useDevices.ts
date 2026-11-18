@@ -503,7 +503,8 @@ export const useUpdateDeviceBulk = (options?: UseUpdateDeviceBulkOptions) => {
       trackEvent('device_updated', {
         scope: 'bulk',
         fields: Object.keys(variables.updateData ?? {}),
-        device_count: variables.deviceIds.length,
+        // The same ids the request sends: trimmed, blanks dropped
+        device_count: variables.deviceIds.map(id => id.trim()).filter(Boolean).length,
       });
       queryClient.invalidateQueries({ queryKey: ["devices"] });
       queryClient.invalidateQueries({ queryKey: ["myDevices"] });
@@ -639,6 +640,7 @@ export const useImportDevice = () => {
       trackEvent('device_imported', {
         mode: 'single',
         device_count: 1,
+        imported_count: 1,
         failed_count: 0,
         category: variables.category,
         auth_required: variables.authRequired,

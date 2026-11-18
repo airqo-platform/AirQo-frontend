@@ -813,7 +813,8 @@ function TokenHandoffHandler({ children }: { children: React.ReactNode }) {
           logger.info('[TokenHandoffHandler] OAuth token detected, signing in...');
           // Noted first: the session can appear before signIn() resolves
           // The provider comes from the URL: anything unrecognised is recorded as plain 'oauth'
-          completeSignIn(isSupportedSocialAuthProvider(handoff.provider) ? handoff.provider : 'oauth');
+          const analyticsMethod = isSupportedSocialAuthProvider(handoff.provider) ? handoff.provider : 'oauth';
+          completeSignIn(analyticsMethod);
 
           const result = await signIn('credentials', {
             redirect: false,
@@ -834,6 +835,8 @@ function TokenHandoffHandler({ children }: { children: React.ReactNode }) {
               // this guard we'd redirect to a protected page unauthenticated
               // and get bounced straight back — an endless login loop.
               logger.error('[TokenHandoffHandler] OAuth sign-in succeeded but no session was established');
+              clearPendingSignIn();
+              trackEvent('user_sign_in_failed', { method: analyticsMethod, reason: 'no_session' });
               isHandlingOAuthRef.current = false;
               router.push('/auth-error?error=SessionNotEstablished');
               return;
@@ -873,7 +876,7 @@ function TokenHandoffHandler({ children }: { children: React.ReactNode }) {
           } else {
             logger.error('[TokenHandoffHandler] OAuth sign-in failed', { error: result?.error });
             clearPendingSignIn();
-            trackEvent('user_sign_in_failed', { method: handoff.provider || 'google', reason: 'error' });
+            trackEvent('user_sign_in_failed', { method: analyticsMethod, reason: 'error' });
             isHandlingOAuthRef.current = false;
             router.push(`/auth-error?error=${encodeURIComponent(result?.error || 'OAuthSignin')}`);
           }
@@ -888,6 +891,8 @@ function TokenHandoffHandler({ children }: { children: React.ReactNode }) {
         }
       } catch (error) {
         logger.error('[TokenHandoffHandler] Error during bootstrap', { error });
+        // Whatever failed, it wasn't a completed sign-in
+        clearPendingSignIn();
         isHandlingOAuthRef.current = false;
       } finally {
         if (shouldUnblock) {

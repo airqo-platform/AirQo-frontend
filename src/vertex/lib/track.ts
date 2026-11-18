@@ -9,13 +9,25 @@
  */
 
 export interface TrackOptions {
-  /** Send straight away by beacon, for an action that ends in a full page load or sign-out. */
+  /**
+   * Send straight away instead of with the next batch, for an action that ends in a full page load
+   * or sign-out. The request uses fetch keepalive, so it survives the page unloading. Only once
+   * PostHog has loaded: a call made while it's still loading waits in memory and is lost if the
+   * page unloads first.
+   */
   sendNow?: boolean;
+  /** The page the action belongs to, when the user may have moved on before it finished. */
+  pathname?: string;
+}
+
+export interface SignInOptions {
+  /** An OAuth button click: it only counts as a sign-in once the hand-off completes. */
+  awaitingHandoff?: boolean;
 }
 
 export interface AnalyticsBridge {
   trackEvent: (event: string, properties?: Record<string, unknown>, options?: TrackOptions) => void;
-  startSignIn: (method: string) => void;
+  startSignIn: (method: string, options?: SignInOptions) => void;
   completeSignIn: (method: string) => void;
   clearPendingSignIn: () => void;
   resetAnalytics: () => void;
@@ -52,8 +64,8 @@ export function trackEvent(
 }
 
 /** Notes that the user started signing in ("password", "google", …). */
-export function startSignIn(method: string): void {
-  call(connected => connected.startSignIn(method));
+export function startSignIn(method: string, options?: SignInOptions): void {
+  call(connected => connected.startSignIn(method, options));
 }
 
 /** Notes a sign-in finishing without the login form (OAuth hand-off, platform session). */

@@ -64,11 +64,13 @@ const BatchDetailsPage = () => {
         }
 
         generateLabels(selectedDeviceNames, {
-            onSuccess: (result) =>
+            onSuccess: (result) => {
+                if (!result.success) return;
                 trackEvent('shipping_labels_generated', {
                     scope: 'selected',
                     label_count: result.shipping_labels?.total_labels ?? selectedDeviceNames.length,
-                }),
+                });
+            },
         });
     }, [generateLabels, data?.batch?.devices, showBanner]);
 
@@ -84,11 +86,13 @@ const BatchDetailsPage = () => {
         }
 
         generateLabels(allDeviceNames, {
-            onSuccess: (result) =>
+            onSuccess: (result) => {
+                if (!result.success) return;
                 trackEvent('shipping_labels_generated', {
                     scope: 'all',
                     label_count: result.shipping_labels?.total_labels ?? allDeviceNames.length,
-                }),
+                });
+            },
         });
     }, [generateLabels, data?.batch?.devices, showBanner]);
 
@@ -114,7 +118,8 @@ const BatchDetailsPage = () => {
         {
             key: 'claim_token',
             label: 'Claim Token',
-            render: (value) => <span className="text-sm text-gray-500 dark:text-gray-400 font-mono">{(value as string | null) || '-'}</span>
+            // ph-no-capture keeps claim tokens out of session replays (they stay visible here)
+            render: (value) => <span className="ph-no-capture text-sm text-gray-500 dark:text-gray-400 font-mono">{(value as string | null) || '-'}</span>
         },
         {
             key: 'claim_status',

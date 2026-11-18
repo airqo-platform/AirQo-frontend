@@ -254,12 +254,14 @@ export const PageSatisfactionBanner: React.FC<PageSatisfactionBannerProps> = ({
         const description =
           [reason, detail?.trim()].filter(Boolean).join(' — ') || undefined;
 
+        // The page that was rated, even if the user moves on before the request finishes
+        const ratedPath = page || window.location.pathname;
         await feedbackService.submitSatisfactionFeedback({
           email: userEmail,
           subject: `Page Satisfaction: ${pageName}`,
           rating,
           description,
-          page: page || window.location.pathname,
+          page: ratedPath,
           metadata: {
             pageTitle: pageName,
             pageSection,
@@ -280,7 +282,7 @@ export const PageSatisfactionBanner: React.FC<PageSatisfactionBannerProps> = ({
           is_follow_up: isFollowUp,
           has_detail: Boolean(detail?.trim()),
           page_section: pageSection,
-        });
+        }, { pathname: ratedPath });
 
         return true;
       } catch (error) {

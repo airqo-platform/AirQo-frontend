@@ -1,15 +1,31 @@
 import { readdirSync, statSync } from 'fs';
 import path from 'path';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterAll, afterEach, describe, expect, it, vi } from 'vitest';
+
+// These tests cover analytics switched off. analytics.ts reads the key when it loads, and the
+// import below is hoisted, so clear the key before it runs (a developer may have one exported).
+const originalKey = vi.hoisted(() => {
+  const key = process.env.NEXT_PUBLIC_POSTHOG_KEY;
+  process.env.NEXT_PUBLIC_POSTHOG_KEY = '';
+  return key;
+});
+afterAll(() => {
+  if (originalKey === undefined) delete process.env.NEXT_PUBLIC_POSTHOG_KEY;
+  else process.env.NEXT_PUBLIC_POSTHOG_KEY = originalKey;
+});
+
 import {
   ROUTE_TEMPLATES,
   beforeSend,
+  clearPendingSignIn,
+  completeSignIn,
+  consumePendingSignIn,
   getAnalyticsEnvironment,
   getPlatform,
   getRouteTemplate,
   isAnalyticsEnabled,
   sanitizeProperties,
-  setActiveOrganization,
+  startSignIn,
   stripUrlDetails,
   trackEvent,
   trackPageview,
@@ -132,13 +148,13 @@ describe('before an event is sent', () => {
   });
 
   it('every event says which app, environment, platform and context it came from', () => {
-    setActiveOrganization(null, 'external-org');
+    // The context is applied in queue order with the organisation (see analytics.client.test.ts)
     const sent = withAppProperties(event({ route: '/home', platform: 'custom' }))!;
     expect(sent.properties).toMatchObject({
       app_name: 'vertex',
       environment: 'development',
       platform: 'custom',
-      user_context: 'external-org',
+      user_context: 'unknown',
       route: '/home',
     });
     expect(withAppProperties(null)).toBeNull();
@@ -177,5 +193,60 @@ describe('without NEXT_PUBLIC_POSTHOG_KEY', () => {
     expect(isAnalyticsEnabled()).toBe(false);
     expect(() => trackEvent('device_claimed', { method: 'qr' })).not.toThrow();
     expect(() => trackPageview('/home')).not.toThrow();
+  });
+});
+
+describe('flag and count exceptions', () => {
+  it('only allow values of the right type', () => {
+    expect(
+      sanitizeProperties({
+        has_query: true,
+        query_length: 7,
+        has_email: 'someone@example.com',
+        email_count: '3',
+        nested: [{ has_name: 'Someone', name_length: 7 }],
+      })
+    ).toEqual({ has_query: true, query_length: 7, nested: [{ name_length: 7 }] });
+  });
+});
+
+describe('sign-in record', () => {
+  afterEach(() => {
+    clearPendingSignIn();
+    vi.useRealTimers();
+  });
+
+  it('reports a password sign-in with its duration', () => {
+    vi.useFakeTimers();
+    startSignIn('password');
+    vi.advanceTimersByTime(1500);
+    expect(consumePendingSignIn()).toEqual({ method: 'password', duration_ms: 1500 });
+    expect(consumePendingSignIn()).toBeNull();
+  });
+
+  it("doesn't report an OAuth click until its hand-off completes", () => {
+    startSignIn('google', { awaitingHandoff: true });
+    expect(consumePendingSignIn()).toBeNull();
+
+    vi.useFakeTimers();
+    startSignIn('google', { awaitingHandoff: true });
+    vi.advanceTimersByTime(2000);
+    completeSignIn('google');
+    expect(consumePendingSignIn()).toEqual({ method: 'google', duration_ms: 2000 });
+  });
+
+  it('times a completion only from a start with the same method', () => {
+    startSignIn('google', { awaitingHandoff: true });
+    completeSignIn('sso_session');
+    expect(consumePendingSignIn()).toEqual({ method: 'sso_session', duration_ms: null });
+  });
+
+  it('drops a duration whose start is older than the window', () => {
+    vi.useFakeTimers();
+    startSignIn('google', { awaitingHandoff: true });
+    vi.advanceTimersByTime(9 * 60 * 1000);
+    completeSignIn('google');
+    vi.advanceTimersByTime(2 * 60 * 1000);
+    expect(consumePendingSignIn()).toEqual({ method: 'google', duration_ms: null });
   });
 });

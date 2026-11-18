@@ -58,6 +58,8 @@ describe('analytics client with NEXT_PUBLIC_POSTHOG_KEY set', () => {
   });
 
   afterEach(() => {
+    // A test that makes init throw mustn't leave that behind if it fails before cleaning up
+    posthog.init.mockReset();
     vi.useRealTimers();
     vi.unstubAllEnvs();
     window.requestIdleCallback = originalIdleCallback;
@@ -94,7 +96,7 @@ describe('analytics client with NEXT_PUBLIC_POSTHOG_KEY set', () => {
     expect(posthog.capture).toHaveBeenCalledWith(
       'device_claimed',
       { method: 'manual', route: '/home' },
-      { transport: 'sendBeacon' }
+      { send_instantly: true }
     );
   });
 
@@ -114,6 +116,12 @@ describe('analytics client with NEXT_PUBLIC_POSTHOG_KEY set', () => {
       disable_session_recording: false,
       session_recording: { maskAllInputs: true },
       person_profiles: 'identified_only',
+      save_campaign_params: false,
+    });
+    // Replay runs page and request URLs through this hook
+    const mask = config.session_recording.maskCapturedNetworkRequestFn;
+    expect(mask({ name: 'https://vertex.airqo.net/home?search=kampala#map' })).toEqual({
+      name: 'https://vertex.airqo.net/home',
     });
     expect(config.before_send).toEqual([analytics.withAppProperties, analytics.beforeSend]);
   });
@@ -129,7 +137,7 @@ describe('analytics client with NEXT_PUBLIC_POSTHOG_KEY set', () => {
     });
   });
 
-  it('sends by beacon only when asked to', async () => {
+  it('sends straight away only when asked to', async () => {
     const analytics = await loadAnalytics();
     analytics.trackEvent('warm_up');
     await settleLoad();
@@ -139,7 +147,7 @@ describe('analytics client with NEXT_PUBLIC_POSTHOG_KEY set', () => {
 
     const signedOut = posthog.capture.mock.calls.find(call => call[0] === 'user_signed_out');
     const claimed = posthog.capture.mock.calls.find(call => call[0] === 'device_claimed');
-    expect(signedOut?.[2]).toEqual({ transport: 'sendBeacon' });
+    expect(signedOut?.[2]).toEqual({ send_instantly: true });
     expect(claimed?.[2]).toBeUndefined();
   });
 
@@ -305,7 +313,6 @@ describe('analytics client with NEXT_PUBLIC_POSTHOG_KEY set', () => {
     analytics.trackEvent('after_giving_up');
     await vi.advanceTimersByTimeAsync(1000);
     expect(posthog.init).toHaveBeenCalledTimes(3);
-    posthog.init.mockReset();
   });
   it('keeps identify when the queue is already full of events', async () => {
     const analytics = await loadAnalytics();
@@ -316,5 +323,34 @@ describe('analytics client with NEXT_PUBLIC_POSTHOG_KEY set', () => {
 
     expect(posthog.capture).toHaveBeenCalledTimes(100);
     expect(posthog.identify).toHaveBeenCalledWith('user-1', expect.anything());
+  });
+  it('keeps the context an event had when it was queued', async () => {
+    const analytics = await loadAnalytics();
+    analytics.setActiveOrganization({ id: 'org-1', title: 'City' }, 'external-org');
+    analytics.trackEvent('in_organization');
+    analytics.setActiveOrganization(null, 'personal');
+    analytics.trackEvent('in_personal');
+
+    // PostHog runs before_send (withAppProperties) as each event is captured
+    const contexts: unknown[] = [];
+    posthog.capture.mockImplementation((name: string, properties: Record<string, unknown>) => {
+      contexts.push(analytics.withAppProperties({ uuid: name, event: name, properties })!.properties.user_context);
+    });
+    await settleLoad();
+    posthog.capture.mockReset();
+
+    expect(contexts).toHaveLength(2);
+    expect(contexts).toEqual(['external-org', 'personal']);
+  });
+
+  it('forgets the stored identity when signing out before PostHog loads', async () => {
+    const analytics = await loadAnalytics();
+    localStorage.setItem('ph_phc_test_posthog', '{"distinct_id":"user-1"}');
+    document.cookie = 'ph_phc_test_posthog=stored; path=/';
+
+    analytics.resetAnalytics();
+
+    expect(localStorage.getItem('ph_phc_test_posthog')).toBeNull();
+    expect(document.cookie).not.toContain('ph_phc_test_posthog=stored');
   });
 });

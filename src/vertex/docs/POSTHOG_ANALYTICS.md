@@ -24,15 +24,16 @@ Code lives in:
 - The client is about 2 kB and lives in the root layout chunk.
 - Feature code must import `@/lib/track`, never `@/lib/analytics`. Importing the client from route code makes webpack give it a shared chunk. The device list routes are already at their initial-chunk limit, so webpack then copies other shared code into each of them. When this was tried, the total went from 203.0 kB to 217.8 kB; through `lib/track.ts` it is 198.5 kB.
 
-Calls made before PostHog loads wait in a queue of up to 100 and are replayed in order.
+Calls made before PostHog loads wait in a queue of up to 100 events and are replayed in order; identify, organisation and reset calls are always kept. If loading fails, the queue is kept and the next call retries, up to three times. Calls queued while PostHog is still loading are lost if the page unloads first, so an action that leaves the page in the first second or two (a sign-up link clicked straight away, say) may not be recorded. Once PostHog has loaded, `sendNow` events go out at once with a fetch keepalive request that survives navigation.
 
 ## Identity and context
 
 - **Anonymous until sign-in.** Visitors get PostHog's anonymous id. With `person_profiles: 'identified_only'`, no person profile is created until sign-in, when `identify()` joins the anonymous events (the login page, for example) to the user.
 - **The user id is the platform `_id`.** Person properties are limited to `vertex_privilege` and `country`. Emails, names, usernames and phone numbers are never sent.
-- **Sign-out resets.** Every logout calls `posthog.reset()`, including automatic ones (expired session, sign-out in another tab), so the next person on the browser starts fresh. If a different account signs in on a browser that is still identified, the client resets before identifying.
+- **Sign-out resets.** Every logout calls `posthog.reset()`, including automatic ones (expired session, sign-out in another tab), so the next person on the browser starts fresh. If PostHog hasn't loaded yet on that page, its stored id (local storage and the `.airqo.net` cookie) is removed directly. Nothing is identified again while a logout is in progress. If a different account signs in on a browser that is still identified, the client resets before identifying.
+- **The organisation is applied only once the Redux state belongs to the signed-in user**, so a persisted organisation from the previous account isn't attached to the next one's events.
 - **Organisations use PostHog's `organization` group type**, the same one Nexus uses. The group key is the group `_id`, with the group title as `name`.
-- **Every event carries** `app_name: "vertex"`, `environment`, `platform` (`web` or `desktop`), `user_context` (`personal` or `external-org`) and `route`.
+- **Every event carries** `app_name: "vertex"`, `environment`, `platform` (`web` or `desktop`) and `user_context` (`personal` or `external-org`; `unknown` before the organisation is known). Pageviews and Vertex's named events also carry `route`; PostHog's own events (`$pageleave`, `$identify`, `$groupidentify`) don't.
   - `environment` comes from the host: `localhost` → `development`, a host containing `stage`/`staging` → `staging`, anything else → `production`. NODE_ENV is `production` on staging too, so it can't be used.
   - `route` is the page's route template, for example `/devices/overview/[id]`. Use it to add up usage across devices, sites and cohorts.
 
@@ -48,13 +49,14 @@ Not collected:
 - **Autocapture, rage clicks and dead clicks are off.** They record the text of clicked elements, which in Vertex includes device names, site names and emails in tables.
 - **No free text.** Search terms, feedback messages, notes, error text and the "Other: …" text typed into reason prompts are never sent. Searches send only `has_query` and `query_length`.
 - **No entity names or user ids in event properties.** `sanitizeProperties()` drops any key that looks like an email, phone number, name, token, password, message, description or query, except `has_*`, `is_*`, `*_count` and `*_length` keys, which only describe a value. Strings are cut to 200 characters and arrays to 50 items.
-- **No query strings or hashes in URLs.** `before_send` strips them from `$current_url`, `$referrer` and the `$initial_*` person properties. OAuth hand-offs and reset links carry tokens there, so PostHog doesn't start while the URL holds a `token` parameter. It waits up to a minute, then retries from the next clean page.
+- **No query strings or hashes in URLs.** `before_send` strips them from `$current_url`, `$referrer` and the `$initial_*` person properties, and session replay gets the same treatment through `maskCapturedNetworkRequestFn`. Campaign parameters (`utm_*`, click ids) aren't saved (`save_campaign_params: false`), since they're copied from the URL as-is. OAuth hand-offs and reset links carry tokens there, so PostHog doesn't start while the URL holds a `token` parameter. It waits up to a minute, then retries from the next clean page.
 
 ## Session replay and surveys
 
 Session replay is allowed in code but follows the PostHog project setting (**Project settings → Session replay**), so it stays off until someone switches it on. When it is on:
 
-- Every input is masked (`maskAllInputs: true`).
+- Every input is masked (`maskAllInputs: true`), and page URLs in recordings lose their query strings and hashes.
+- Elements with the `ph-no-capture` class are left out of recordings, and text in `ph-mask` elements is masked. The claim tokens and QR codes on shipping pages use `ph-no-capture`, and the email shown on the sign-in password step uses `ph-mask`.
 - Other on-screen text is recorded, including device and site names, and member emails on organisation pages. Before turning replay on, consider adding `ph-no-capture` to tables that list people.
 
 In-app surveys are allowed as well: a survey created in PostHog shows in Vertex without a deploy. Surveys plus replay are the main tools for the "why" behind the numbers.
@@ -66,9 +68,9 @@ Shared with Beacon (same names, same meaning):
 | Event | When | Properties | Answers |
 | --- | --- | --- | --- |
 | `user_signed_in` | First signed-in page after a sign-in (`core/providers/analytics-provider.tsx`) | `method` (`password`, `google`, `github`, `linkedin`, `twitter`, `sso_session`), `login_duration_ms` | How people sign in, and how long it takes |
-| `user_sign_in_failed` | Password or OAuth sign-in rejected | `method`, `reason` (`invalid_credentials`, `network`, `error`) | Where sign-in breaks |
-| `user_signed_out` | User confirms "Log out" in the top bar | — | Deliberate sign-outs (automatic ones reset without an event) |
-| `organization_switched` | User picks a different organisation | `member_organization_count`, `to_context` | How often multi-org users switch |
+| `user_sign_in_failed` | Password or OAuth sign-in rejected, or its request failed | `method`, `reason` (`invalid_credentials`, `network`, `no_session`, `error`) | Where sign-in breaks |
+| `user_signed_out` | A sign-out the user confirmed in the top bar has gone through | — | Deliberate sign-outs (automatic ones reset without an event) |
+| `organization_switched` | User picks a different organisation. Sent before the switch, so it carries the organisation being **left**; `to_context` describes the one being entered | `member_organization_count`, `to_context` | How often multi-org users switch, and from where |
 | `app_link_opened` | Link to another AirQo app | `destination` (`beacon`, `nexus`, `calibrate`, `website`, `api_docs`, `mobile_app`, `ai_platform`, `desktop_download`), `source`, plus `link`, `card_state` or `store` (`google_play`, `app_store`) | Cross-app journeys, including Vertex → Beacon |
 | `mobile_app_qr_viewed` | The mobile app QR code is shown from the apps menu | `source` | Interest in the mobile app |
 | `data_exported` | Table exported to CSV (`ReusableTable`) | `source: 'table'`, `format`, `scope`, `row_count`, `column_count` | Which lists people take data out of (by `route`) |
@@ -83,7 +85,7 @@ Vertex only:
 
 | Event | When | Properties |
 | --- | --- | --- |
-| `device_claimed` | Claim succeeds (claim modal) | `method` (`qr`, `manual`, `bulk`, `cohort`), `mode` (`guided`, `fast`), `device_count`, `successful_count`, `failed_count`, `input` (`file`, `typed`; bulk only), `context`, `has_default_cohort` |
+| `device_claimed` | Claim succeeds (claim modal; a bulk request counts only if at least one claim succeeded) | `method` (`qr`, `manual`, `bulk`, `cohort`), `mode` (`guided`, `fast`), `device_count`, `successful_count`, `failed_count`, `input` (`file`, `typed`, `mixed`; bulk only, from the rows submitted), `context`, `has_default_cohort` |
 | `device_imported` | Non-AirQo device registered | `mode` (`single`, `bulk`), `device_count`, `imported_count`, `failed_count`, `file_type` (bulk), `flow` (bulk), `category`, `auth_required`, `has_cohort`, `area` (single) |
 | `import_template_downloaded` | Bulk import CSV template downloaded | `format` |
 | `device_created` | Device created on an admin network page | `category`, `tag_count` |
@@ -105,10 +107,10 @@ Vertex only:
 | `network_request_reviewed` | Admin approves, denies or reviews a request | `action`, `previous_status`, `has_notes` |
 | `shipping_batch_created` | Shipping batch prepared | `device_count`, `successful_count`, `failed_count`, `claim_code_format` |
 | `shipping_labels_generated` | Labels generated | `scope` (`selected`, `all`), `label_count` |
-| `shipping_labels_printed` | Print dialog opened | `label_count` |
-| `module_switched` | User moves between Devices and the Administrative Panel | `to` |
+| `shipping_labels_printed` | The print dialog opens for the labels | `label_count` |
+| `module_switched` | The page lands in the other module after the user asked to switch | `to` |
 | `onboarding_step_completed` / `onboarding_checklist_dismissed` | Checklist updated | `step`, `scope` |
-| `desktop_app_download_clicked` | Download on `/download` | `source` (`primary_button`, `platform_card`), `platform`, `arch`, `package`, `matches_detected_platform`, `has_release` |
+| `desktop_app_download_clicked` | Download on `/download` | `source` (`primary_button`, `platform_card`), `platform`, `arch`, `package` (`mac_arm64_dmg`, `mac_x64_dmg`, `win_exe`, `linux_appimage`, `linux_deb`), `matches_detected_platform`, `has_release` (false when the button only scrolls to the list) |
 
 Add new events through `trackEvent()` from `@/lib/track`: past-tense `object_action` names, snake_case properties, completed actions only (a mutation's `onSuccess`, not a button press that may fail). Update this table when you do.
 
@@ -133,3 +135,8 @@ Add new events through `trackEvent()` from `@/lib/track`: past-tense `object_act
 - **Staging and production:** If both use the same project key, keep insights filtered by `environment`. Separate keys (one per secret) keep them apart entirely.
 - **CSP:** Vertex sends no Content-Security-Policy header today. If one is added, allow the ingestion host (`connect-src`) and PostHog's asset host (`script-src` for the lazily loaded replay and survey code: `us-assets.i.posthog.com`).
 - **Ad blockers** block the default PostHog hosts for some users. A reverse proxy (a Next.js rewrite to `/ingest`) avoids that if the numbers look low.
+
+## Known gaps
+
+- Events recorded from a dialog's own success callback (claim, deploy, bulk import, shipping labels) aren't sent if the user leaves the page before the request finishes, because the callback no longer runs. The result still happens; only the event is missed.
+- Calls queued before PostHog loads are lost if the page unloads first (see the bundle note above).

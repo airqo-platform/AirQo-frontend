@@ -103,8 +103,8 @@ export default function DownloadHero() {
       label: 'macOS',
       Icon: AppleIcon,
       links: [
-        { label: 'Apple Silicon', suffix: '.dmg', href: release.mac.arm64Dmg },
-        { label: 'Intel', suffix: '.dmg', href: release.mac.intelDmg },
+        { id: 'mac_arm64_dmg', label: 'Apple Silicon', suffix: '.dmg', href: release.mac.arm64Dmg },
+        { id: 'mac_x64_dmg', label: 'Intel', suffix: '.dmg', href: release.mac.intelDmg },
       ],
     },
     {
@@ -112,7 +112,7 @@ export default function DownloadHero() {
       label: 'Windows',
       Icon: WindowsIcon,
       links: [
-        { label: 'Installer', suffix: '.exe', href: release.windows.exe },
+        { id: 'win_exe', label: 'Installer', suffix: '.exe', href: release.windows.exe },
       ],
     },
     {
@@ -120,8 +120,8 @@ export default function DownloadHero() {
       label: 'Linux',
       Icon: FaLinux,
       links: [
-        { label: 'AppImage', suffix: '', href: release.linux.appImage },
-        { label: 'Debian / Ubuntu', suffix: '.deb', href: release.linux.deb },
+        { id: 'linux_appimage', label: 'AppImage', suffix: '', href: release.linux.appImage },
+        { id: 'linux_deb', label: 'Debian / Ubuntu', suffix: '.deb', href: release.linux.deb },
       ],
       terminal: true,
     },
@@ -151,7 +151,8 @@ export default function DownloadHero() {
                     source: 'primary_button',
                     platform,
                     arch: platform === 'mac' ? macArch : undefined,
-                    has_release: Boolean(primary.href),
+                    // '#releases' only scrolls to the list below; it isn't an installer
+                    has_release: Boolean(primary.href) && primary.href !== '#releases',
                   })
                 }
                 variant="filled"
@@ -243,7 +244,7 @@ export default function DownloadHero() {
 
                   {/* Download links */}
                   <div className="flex flex-col gap-2">
-                    {links.map(({ label: linkLabel, suffix, href }) =>
+                    {links.map(({ id: packageId, label: linkLabel, suffix, href }) =>
                       href ? (
                         <a
                           key={linkLabel + suffix}
@@ -254,7 +255,7 @@ export default function DownloadHero() {
                             trackEvent('desktop_app_download_clicked', {
                               source: 'platform_card',
                               platform: id,
-                              package: suffix || linkLabel,
+                              package: packageId,
                               matches_detected_platform: isDetected,
                             })
                           }

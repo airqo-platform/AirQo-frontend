@@ -29,7 +29,12 @@ describe('lib/track', () => {
 
     expect(bridge.trackEvent).toHaveBeenNthCalledWith(1, 'first', { device_count: 1 }, undefined);
     expect(bridge.trackEvent).toHaveBeenNthCalledWith(2, 'second', {}, { sendNow: true });
-    expect(bridge.startSignIn).toHaveBeenCalledWith('password');
+    expect(bridge.startSignIn).toHaveBeenCalledWith('password', undefined);
+    // In the order they were made, across both methods
+    const [firstEvent, secondEvent] = vi.mocked(bridge.trackEvent).mock.invocationCallOrder;
+    const [signIn] = vi.mocked(bridge.startSignIn).mock.invocationCallOrder;
+    expect(firstEvent).toBeLessThan(signIn);
+    expect(signIn).toBeLessThan(secondEvent);
   });
 
   it('forwards straight away once connected', () => {
