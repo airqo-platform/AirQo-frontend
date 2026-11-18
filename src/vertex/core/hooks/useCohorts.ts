@@ -5,6 +5,7 @@ import {
   cohorts as cohortsApi,
 } from '../apis/cohorts';
 import { AxiosError } from 'axios';
+import { trackEvent } from '@/lib/track';
 import {
   Cohort,
   CohortSlugCheckResponse,
@@ -192,6 +193,13 @@ export const useUpdateCohortDetails = (options?: UseUpdateCohortDetailsOptions) 
       data: Partial<{ name: string; visibility: boolean; cohort_tags: string[] }>;
     }) => cohortsApi.updateCohortDetailsApi(cohortId, data),
     onSuccess: (_data, variables) => {
+      trackEvent('cohort_updated', { fields: Object.keys(variables.data) });
+      if (typeof variables.data.visibility === 'boolean') {
+        trackEvent('cohort_visibility_changed', {
+          visibility: variables.data.visibility ? 'public' : 'private',
+          source: 'cohort_details',
+        });
+      }
       queryClient.invalidateQueries({
         queryKey: ['cohort-details', variables.cohortId],
       });
@@ -229,6 +237,7 @@ export const useUpdateCohortName = (options?: UseUpdateCohortNameOptions) => {
         update_reason: updateReason,
       }),
     onSuccess: (_data, variables) => {
+      trackEvent('cohort_updated', { fields: ['name'] });
       queryClient.invalidateQueries({
         queryKey: ['cohort-details', variables.cohortId],
       });
@@ -347,7 +356,13 @@ export const useCreateCohortWithDevices = (options?: UseCreateCohortWithDevicesO
       
       return createResp;
     },
-    onSuccess: (data) => {
+    onSuccess: (data, variables) => {
+      trackEvent('cohort_created', {
+        device_count: variables.deviceIds?.length ?? 0,
+        scope: variables.groupId ? 'organization' : variables.userId ? 'personal' : 'none',
+        cohort_tags: variables.cohort_tags ?? [],
+        has_custom_slug: Boolean(variables.cohort_slug?.trim()),
+      });
       options?.onSuccess?.(data);
       if (options?.invalidateOnSuccess === false) return;
 
@@ -391,7 +406,12 @@ export const useCreateCohortFromCohorts = (options?: UseCreateCohortFromCohortsO
         network,
         cohort_tags,
       }),
-    onSuccess: (data) => {
+    onSuccess: (data, variables) => {
+      trackEvent('cohort_created', {
+        source_cohort_count: variables.cohort_ids.length,
+        scope: 'combined',
+        cohort_tags: variables.cohort_tags ?? [],
+      });
       queryClient.invalidateQueries({ queryKey: ['cohorts'] });
       queryClient.invalidateQueries({ queryKey: ['user-cohorts'] });
       queryClient.invalidateQueries({ queryKey: ['personalUserCohorts'] });
@@ -431,6 +451,11 @@ export const useAssignDevicesToCohort = (options?: UseAssignDevicesToCohortOptio
       return cohortsApi.assignDevicesToCohort(cohortId, deviceIds);
     },
     onSuccess: (data, variables) => {
+      trackEvent('cohort_devices_added', {
+        device_count: variables.deviceIds.length,
+        assigned_count: data?.updated_cohort?.assigned?.length,
+        already_assigned_count: data?.updated_cohort?.already_assigned?.length,
+      });
       queryClient.invalidateQueries({ queryKey: ['cohorts'] });
       queryClient.invalidateQueries({ queryKey: ['user-cohorts'] });
       queryClient.invalidateQueries({ queryKey: ['devices'], exact: false });
@@ -467,6 +492,7 @@ export const useUnassignDevicesFromCohort = (options?: UseUnassignDevicesFromCoh
       return cohortsApi.unassignDevicesFromCohort({ cohortId, device_ids });
     },
     onSuccess: (_data, variables) => {
+      trackEvent('cohort_devices_removed', { device_count: variables.device_ids.length });
       queryClient.invalidateQueries({ queryKey: ['cohorts'] });
       queryClient.invalidateQueries({ queryKey: ['user-cohorts'] });
       queryClient.invalidateQueries({ queryKey: ['devices'], exact: false });
@@ -505,7 +531,8 @@ export const useAssignCohortsToGroup = (options?: UseAssignCohortsToGroupOptions
       }
       return cohortsApi.assignCohortsToGroup(groupId, cohortIds);
     },
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
+      trackEvent('cohorts_assigned_to_organization', { cohort_count: variables.cohortIds.length });
       queryClient.invalidateQueries({ queryKey: ['cohorts'] });
       queryClient.invalidateQueries({ queryKey: ['groupCohorts'] });
       queryClient.invalidateQueries({ queryKey: ['deviceCount'] });

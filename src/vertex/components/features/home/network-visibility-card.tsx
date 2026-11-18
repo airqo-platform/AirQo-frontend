@@ -19,6 +19,7 @@ import { useUserContext } from '@/core/hooks/useUserContext';
 import { useSession } from 'next-auth/react';
 import { useAppSelector } from '@/core/redux/hooks';
 import { Cohort } from '@/app/types/cohorts';
+import { trackEvent } from '@/lib/track';
 
 interface NetworkVisibilityCardProps {
   onVisibilityChanged?: () => void;
@@ -113,6 +114,10 @@ const NetworkVisibilityCard = ({ onVisibilityChanged, showCoachMark }: NetworkVi
     try {
       await cohortsApi.updateCohortDetailsApi(pendingCohort._id, {
         visibility: targetVisibility,
+      });
+      trackEvent('cohort_visibility_changed', {
+        visibility: targetVisibility ? 'public' : 'private',
+        source: 'home',
       });
 
       setSuccessTooltip({

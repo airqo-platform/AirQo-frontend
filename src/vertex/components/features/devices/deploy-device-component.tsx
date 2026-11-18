@@ -33,6 +33,7 @@ import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
 import LocationAutocomplete from "@/components/features/location-autocomplete/LocationAutocomplete";
 import { useNetworks } from "@/core/hooks/useNetworks";
 import dynamic from "next/dynamic";
+import { trackEvent } from "@/lib/track";
 
 const MiniMap = React.lazy(() => import("../mini-map/mini-map"));
 const ClaimDeviceModal = dynamic(
@@ -857,6 +858,18 @@ const DeployDeviceComponent = ({
           },
       {
         onSuccess: () => {
+          trackEvent("device_deployed", {
+            deployment_type: deviceData.deploymentType,
+            // Mobile deployments are always vehicle-mounted, with no site
+            ...(deviceData.deploymentType === "static" && {
+              site_source: siteSource,
+              input_mode: siteSource === "new" ? inputMode : "previous_site",
+              mount_type: deviceData.mountType,
+              power_type: deviceData.powerType,
+              is_primary_in_location: Boolean(deviceData.isPrimarySite),
+            }),
+            from_device_page: Boolean(prefilledDevice?._id),
+          });
           if (prefilledDevice?._id) {
             queryClient.invalidateQueries({ queryKey: ["device-details", prefilledDevice._id] });
           }

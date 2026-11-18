@@ -74,7 +74,7 @@ export default function SiteHealthCard({ siteId, getDeviceHref }: SiteHealthCard
   if (query.isPending) return <HealthCardSkeleton title={TITLE} />;
   if (isNotInBeacon(query.error)) return <NotInBeaconCard title={TITLE} noun="site" />;
   if (!query.data) {
-    return <HealthCardError title={TITLE} beaconHref={beaconHref} onRetry={() => void query.refetch()} />;
+    return <HealthCardError kind="site" title={TITLE} beaconHref={beaconHref} onRetry={() => void query.refetch()} />;
   }
 
   const site = query.data;
@@ -84,7 +84,7 @@ export default function SiteHealthCard({ siteId, getDeviceHref }: SiteHealthCard
   // Asking for uptime narrows a site to AirQo network devices, so other manufacturers' sites land here
   if (!summary || devices.length === 0) {
     return (
-      <HealthCard title={TITLE} badge={<HealthBadge tone="gray">Not diagnosed</HealthBadge>} beaconHref={beaconHref}>
+      <HealthCard kind="site" title={TITLE} badge={<HealthBadge tone="gray">Not diagnosed</HealthBadge>} beaconHref={beaconHref}>
         <HealthMessage title="No devices to summarise">
           Beacon summarises AirQo network devices here, and this site has none.
         </HealthMessage>
@@ -96,7 +96,7 @@ export default function SiteHealthCard({ siteId, getDeviceHref }: SiteHealthCard
   const asOf = getDiagnosisAsOf(summary.latest_diagnosis_date);
 
   return (
-    <HealthCard
+    <HealthCard kind="site"
       title={TITLE}
       badge={<SummaryBadge summary={summary} devices={devices} />}
       diagnosedOn={summary.latest_diagnosis_date}

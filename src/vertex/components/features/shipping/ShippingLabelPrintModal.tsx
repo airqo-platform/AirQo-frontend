@@ -6,6 +6,7 @@ import ReusableDialog from '@/components/shared/dialog/ReusableDialog';
 import { Printer } from 'lucide-react';
 import Image from 'next/image';
 import { useBanner } from '@/context/banner-context';
+import { trackEvent } from '@/lib/track';
 
 interface ShippingLabelPrintModalProps {
     labels: ShippingLabel[];
@@ -190,6 +191,8 @@ const ShippingLabelPrintModal: React.FC<ShippingLabelPrintModalProps> = ({ label
         // Wait for images to load, then trigger print dialog
         printWindow.onload = () => {
             setTimeout(() => {
+                // Counted when the print dialog opens, not when the popup was asked for
+                trackEvent('shipping_labels_printed', { label_count: labels.length });
                 printWindow.print();
             }, 250);
         };
@@ -226,12 +229,13 @@ const ShippingLabelPrintModal: React.FC<ShippingLabelPrintModalProps> = ({ label
                             <h2 className="text-xl font-bold">AirQo Air Quality Monitor</h2>
                         </div>
 
-                        <div className="device-info my-4">
+                        {/* ph-no-capture: the claim token and QR code stay out of session replays */}
+                        <div className="device-info my-4 ph-no-capture">
                             <p><strong>Device ID:</strong> {label.device_id}</p>
                             <p><strong>Claim Token:</strong> {label.claim_token}</p>
                         </div>
 
-                        <div className="qr-code-section flex justify-center my-4">
+                        <div className="qr-code-section flex justify-center my-4 ph-no-capture">
                             <Image
                                 src={label.qr_code_image}
                                 alt="QR Code for device claiming"

@@ -1,5 +1,6 @@
 import { EXPECTED_FIELDS } from "./types";
 import type { ImportDeviceFormData } from "./types";
+import { trackEvent } from "@/lib/track";
 
 export const DEVICE_IMPORT_TEMPLATE_FILENAME = "vertex-device-import-template.csv";
 
@@ -39,6 +40,7 @@ export function buildDeviceImportCsvTemplate(): string {
 
 /** Triggers a browser download of the CSV template. */
 export function downloadDeviceImportCsvTemplate(): void {
+  trackEvent("import_template_downloaded", { format: "csv" });
   const blob = new Blob([buildDeviceImportCsvTemplate()], {
     type: "text/csv;charset=utf-8",
   });

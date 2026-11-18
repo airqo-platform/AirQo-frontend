@@ -24,6 +24,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import ReusableButton from "@/components/shared/button/ReusableButton";
 import { TableExportModal } from "./TableExportModal";
 import { AqDownload01 } from "@airqo/icons-react";
+import { trackEvent } from "@/lib/track";
 
 // --- Type Definitions ---
 interface FilterOption {
@@ -37,6 +38,10 @@ interface FilterConfig {
   placeholder: string;
   isMulti?: boolean;
 }
+
+
+// Block URLs and common invalid patterns that might trigger WAFs or router loops
+const validateSearchInput = (input: string) => !/https?:\/\/|www\./i.test(input);
 
 export type TableColumn<T, K extends keyof T = keyof T> = {
   key: K;
@@ -745,12 +750,6 @@ const ReusableTable = <T extends TableItem>({
     }
   }, [searchTerm]);
 
-  // Helper to validate search input
-  const validateSearchInput = (input: string) => {
-    // Block URLs and common invalid patterns that might trigger WAFs or router loops
-    if (/https?:\/\/|www\./i.test(input)) return false;
-    return true;
-  };
 
   useEffect(() => {
     if (searchInput !== searchTerm) {
@@ -791,7 +790,36 @@ const ReusableTable = <T extends TableItem>({
     onSearchChange,
   ]);
 
+  // One event per pause in typing, whichever way the table searches. The term itself isn't sent;
+  // the page the table is on comes with every event as `route`. Only the user's own edits count:
+  // a query restored by Back (synced from the URL) or rejected by validateSearchInput doesn't.
+  const lastTrackedSearchRef = useRef(searchInput);
+  const searchEditedRef = useRef(false);
+  const handleSearchInputChange = useCallback((value: string) => {
+    searchEditedRef.current = true;
+    setSearchInput(value);
+  }, []);
+  useEffect(() => {
+    if (searchInput === lastTrackedSearchRef.current) return;
+    if (!searchEditedRef.current || !validateSearchInput(searchInput)) {
+      lastTrackedSearchRef.current = searchInput;
+      return;
+    }
+    const t = setTimeout(() => {
+      lastTrackedSearchRef.current = searchInput;
+      searchEditedRef.current = false;
+      const query = searchInput.trim();
+      trackEvent("list_searched", {
+        has_query: query.length > 0,
+        query_length: query.length,
+        server_side: Boolean(serverSidePagination),
+      });
+    }, 1000);
+    return () => clearTimeout(t);
+  }, [searchInput, serverSidePagination]);
+
   const handleClearSearch = useCallback(() => {
+    searchEditedRef.current = true;
     setSearchInput("");
   }, []);
 
@@ -817,6 +845,12 @@ const ReusableTable = <T extends TableItem>({
   const handleExport = async (selectedColumns: string[], scope: 'current' | 'all') => {
     if (onExport && scope === 'all' && serverSidePagination) {
       await onExport('csv', selectedColumns);
+      trackEvent('data_exported', {
+        source: 'table',
+        format: 'csv',
+        scope,
+        column_count: selectedColumns.length,
+      });
       return;
     }
 
@@ -892,6 +926,13 @@ const ReusableTable = <T extends TableItem>({
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    trackEvent('data_exported', {
+      source: 'table',
+      format: 'csv',
+      scope,
+      row_count: dataToExport.length,
+      column_count: selectedColumns.length,
+    });
   };
 
   const filteredData = useMemo(() => {
@@ -1306,7 +1347,7 @@ const ReusableTable = <T extends TableItem>({
           title={title}
           searchable={searchable}
           searchTerm={searchInput}
-          onSearchChange={setSearchInput}
+          onSearchChange={handleSearchInputChange}
           onClearSearch={handleClearSearch}
           filterable={filterable}
           filters={filters}

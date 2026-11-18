@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAppSelector } from '@/core/redux/hooks';
 import { motion } from 'framer-motion';
@@ -15,6 +15,7 @@ import { PageSatisfactionBanner } from '../features/feedback/page-satisfaction-b
 import { GlobalBannerContainer } from '@/context/banner-context';
 
 import { setLastActiveModule } from '@/core/utils/userPreferences';
+import { trackEvent } from '@/lib/track';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -77,6 +78,16 @@ export default function Layout({ children }: LayoutProps) {
     });
   }, [router]);
 
+  // A module switch the user asked for, until the page lands in it (or goes somewhere else)
+  const requestedModuleRef = useRef<'devices' | 'admin' | null>(null);
+  useEffect(() => {
+    const requested = requestedModuleRef.current;
+    if (!pathname || !requested) return;
+    requestedModuleRef.current = null;
+    const landedModule = pathname.startsWith('/admin/') ? 'admin' : 'devices';
+    if (landedModule === requested) trackEvent('module_switched', { to: requested });
+  }, [pathname]);
+
   const handleModuleChange = (module: string, targetPath?: string) => {
     const targetModule = module as 'devices' | 'admin';
     if (targetModule === activeModule && !targetPath) {
@@ -94,6 +105,8 @@ export default function Layout({ children }: LayoutProps) {
     };
 
     const nextPath = targetPath || defaultRoutes[module] || '/home';
+    // Reported when the page actually lands in that module (the effect on pathname below)
+    requestedModuleRef.current = targetModule !== activeModule ? targetModule : null;
     setIsNavigating(true);
     router.prefetch(nextPath);
     router.push(nextPath);
