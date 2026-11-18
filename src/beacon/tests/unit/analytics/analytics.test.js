@@ -149,6 +149,25 @@ test("URLs lose their query string and hash before they are sent", () => {
   assert.equal(beforeSend(null), null)
 })
 
+test("campaign parameters are dropped in every form PostHog adds them", () => {
+  const event = beforeSend({
+    uuid: "1",
+    event: "$pageview",
+    properties: {
+      $current_url: "https://beacon.airqo.net/login?utm_term=person%40example.com",
+      utm_term: "person@example.com",
+      gclid: "abc",
+      $session_entry_utm_term: "person@example.com",
+      route: "/login",
+    },
+    $set_once: { $initial_utm_term: "person@example.com", $initial_fbclid: "x", $initial_pathname: "/login" },
+    $set: { utm_source: "newsletter" },
+  })
+  assert.deepEqual(event.properties, { $current_url: "https://beacon.airqo.net/login", route: "/login" })
+  assert.deepEqual(event.$set_once, { $initial_pathname: "/login" })
+  assert.deepEqual(event.$set, {})
+})
+
 test("every event says which app and environment it came from, without overriding its own values", () => {
   const event = withAppProperties({ uuid: "1", event: "$pageleave", properties: { environment: "custom", route: "/dashboard" } })
   assert.equal(event.properties.app_name, "beacon")

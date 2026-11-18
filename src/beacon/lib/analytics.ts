@@ -175,12 +175,28 @@ const stripUrlProperties = (properties: Record<string, unknown> | undefined) => 
   }
 }
 
-/** Last step before an event leaves the browser: no query strings or hashes in any URL. */
+// Campaign and click-id parameters PostHog copies out of URLs, also as `$initial_*` person
+// properties and `$session_entry_*` session properties. Their values are whatever the URL held.
+const CAMPAIGN_PROPERTY =
+  /^(?:\$initial_|\$session_entry_)?(?:utm_[a-z_]+|gad_source|mc_cid|gclid|gclsrc|dclid|gbraid|wbraid|fbclid|msclkid|twclid|li_fat_id|igshid|ttclid|rdt_cid|epik|qclid|sccid|irclid|_kx)$/i
+
+const dropCampaignProperties = (properties: Record<string, unknown> | undefined) => {
+  if (!properties) return
+  for (const key of Object.keys(properties)) {
+    if (CAMPAIGN_PROPERTY.test(key)) delete properties[key]
+  }
+}
+
+/**
+ * Last step before an event leaves the browser: no query strings or hashes in any URL, and no
+ * campaign parameters copied out of one.
+ */
 export function beforeSend(event: CaptureResult | null): CaptureResult | null {
   if (!event) return event
-  stripUrlProperties(event.properties)
-  stripUrlProperties(event.$set)
-  stripUrlProperties(event.$set_once)
+  for (const properties of [event.properties, event.$set, event.$set_once]) {
+    stripUrlProperties(properties)
+    dropCampaignProperties(properties)
+  }
   return event
 }
 
@@ -435,7 +451,8 @@ function forgetStoredIdentity(): void {
 
 /** Forgets the signed-in user on sign-out, so the next person on this browser starts fresh. */
 export function resetAnalytics(): void {
-  if (!isAnalyticsEnabled()) return
+  // Not isAnalyticsEnabled(): after three failed loads it's false, but the stored id must still go
+  if (!POSTHOG_KEY || typeof window === "undefined") return
   if (!client) forgetStoredIdentity()
   withClient((posthog) => posthog.reset(), { essential: true })
 }
