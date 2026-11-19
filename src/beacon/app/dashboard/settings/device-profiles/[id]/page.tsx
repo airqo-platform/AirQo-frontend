@@ -55,6 +55,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { useGroup } from "@/lib/group-context";
 import { ROUTES } from "@/lib/navigation";
+import { trackEvent } from "@/lib/analytics";
 
 export default function DeviceProfileDetailPage() {
   const params = useParams();
@@ -151,6 +152,7 @@ export default function DeviceProfileDetailPage() {
     a.download = `${profile.name.toLowerCase()}_profile_schema.json`;
     a.click();
     URL.revokeObjectURL(url);
+    trackEvent("data_exported", { source: "device_profile", format: "json", row_count: 1 });
   };
 
   const handleCopyJSON = async () => {

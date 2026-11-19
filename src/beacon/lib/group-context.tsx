@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from "react"
 import { useSession } from "next-auth/react"
 import { themeService } from "@/services/theme-service"
+import { trackEvent } from "@/lib/analytics"
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -175,7 +176,11 @@ export function GroupProvider({ children }: Readonly<{ children: React.ReactNode
               setAvailableGroups(cachedGroups)
 
               const linkedGroup = findGroupTitle(cachedGroups, groupLink)
-              if (linkedGroup) setActiveGroup(linkedGroup)
+              if (linkedGroup) {
+                setActiveGroup(linkedGroup)
+                // Arrived from a `?group=` link, such as Vertex's device health cards
+                trackEvent("group_link_opened", { matched: true })
+              }
 
               // A link the cache can't confirm waits for the profile: starting under the
               // persisted group would fetch for the wrong one, and the route guard could leave the page
@@ -255,6 +260,7 @@ export function GroupProvider({ children }: Readonly<{ children: React.ReactNode
         if (groupLinkPending.current) {
           const linkedGroup = findGroupTitle(groups, groupLink)
           if (linkedGroup) setActiveGroup(linkedGroup)
+          if (groupLink) trackEvent("group_link_opened", { matched: Boolean(linkedGroup) })
           groupLinkPending.current = false
         }
 

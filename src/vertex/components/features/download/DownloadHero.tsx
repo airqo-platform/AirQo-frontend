@@ -13,6 +13,7 @@ import {
 import { useDetectedPlatform } from '@/core/hooks/useDetectedPlatform';
 import { getMacArchitecture } from '@/core/utils/platform';
 import { vertexConfig } from '@/vertex.config';
+import { trackEvent } from '@/lib/track';
 
 const WindowsIcon = ({ className }: { className?: string }) => (
   <svg className={className} viewBox="0 0 24 24" fill="currentColor">
@@ -102,8 +103,8 @@ export default function DownloadHero() {
       label: 'macOS',
       Icon: AppleIcon,
       links: [
-        { label: 'Apple Silicon', suffix: '.dmg', href: release.mac.arm64Dmg },
-        { label: 'Intel', suffix: '.dmg', href: release.mac.intelDmg },
+        { id: 'mac_arm64_dmg', label: 'Apple Silicon', suffix: '.dmg', href: release.mac.arm64Dmg },
+        { id: 'mac_x64_dmg', label: 'Intel', suffix: '.dmg', href: release.mac.intelDmg },
       ],
     },
     {
@@ -111,7 +112,7 @@ export default function DownloadHero() {
       label: 'Windows',
       Icon: WindowsIcon,
       links: [
-        { label: 'Installer', suffix: '.exe', href: release.windows.exe },
+        { id: 'win_exe', label: 'Installer', suffix: '.exe', href: release.windows.exe },
       ],
     },
     {
@@ -119,8 +120,8 @@ export default function DownloadHero() {
       label: 'Linux',
       Icon: FaLinux,
       links: [
-        { label: 'AppImage', suffix: '', href: release.linux.appImage },
-        { label: 'Debian / Ubuntu', suffix: '.deb', href: release.linux.deb },
+        { id: 'linux_appimage', label: 'AppImage', suffix: '', href: release.linux.appImage },
+        { id: 'linux_deb', label: 'Debian / Ubuntu', suffix: '.deb', href: release.linux.deb },
       ],
       terminal: true,
     },
@@ -145,6 +146,15 @@ export default function DownloadHero() {
                 path={primary.href ?? '#releases'}
                 target={primary.href?.startsWith('http') ? '_blank' : undefined}
                 rel="noopener noreferrer"
+                onClick={() =>
+                  trackEvent('desktop_app_download_clicked', {
+                    source: 'primary_button',
+                    platform,
+                    arch: platform === 'mac' ? macArch : undefined,
+                    // '#releases' only scrolls to the list below; it isn't an installer
+                    has_release: Boolean(primary.href) && primary.href !== '#releases',
+                  })
+                }
                 variant="filled"
                 Icon={primary.Icon}
                 iconClassName="h-5 w-5"
@@ -234,13 +244,21 @@ export default function DownloadHero() {
 
                   {/* Download links */}
                   <div className="flex flex-col gap-2">
-                    {links.map(({ label: linkLabel, suffix, href }) =>
+                    {links.map(({ id: packageId, label: linkLabel, suffix, href }) =>
                       href ? (
                         <a
                           key={linkLabel + suffix}
                           href={href}
                           className="flex items-center justify-between rounded-md border border-border px-3 py-2 text-sm hover:bg-muted/50 hover:border-primary/30 transition-colors group"
                           download
+                          onClick={() =>
+                            trackEvent('desktop_app_download_clicked', {
+                              source: 'platform_card',
+                              platform: id,
+                              package: packageId,
+                              matches_detected_platform: isDetected,
+                            })
+                          }
                         >
                           <span className="text-foreground">
                             {linkLabel}

@@ -44,6 +44,7 @@ import {
   Wand2,
 } from "lucide-react";
 import { useGroup } from "@/lib/group-context";
+import { trackEvent } from "@/lib/analytics";
 
 const formatRecords = (records: Record<string, any>[]) =>
   records.length === 0 ? "[]" : `[\n${records.map((r) => `  ${JSON.stringify(r)}`).join(",\n")}\n]`;
@@ -243,6 +244,12 @@ function DiagnosticSimulatorContent() {
       });
 
       setResult(evalResult);
+      trackEvent("simulator_run", {
+        scenario,
+        window_hours: windowHours,
+        has_profile: Boolean(profileId),
+        lifecycle_state: evalResult.lifecycle_state,
+      });
       toast({
         title: "Evaluation Completed",
         description: `Score: ${evalResult.overall_health_score}/100 • State: ${evalResult.lifecycle_state}`,

@@ -20,6 +20,7 @@ import {
   suppressPageSatisfactionForSession,
 } from '@/core/utils/userPreferences';
 import { useFeedbackPromptSlot } from './feedback-prompt-slot';
+import { trackEvent } from '@/lib/track';
 
 const NEGATIVE_REASONS = [
   'Confusing',
@@ -253,12 +254,14 @@ export const PageSatisfactionBanner: React.FC<PageSatisfactionBannerProps> = ({
         const description =
           [reason, detail?.trim()].filter(Boolean).join(' — ') || undefined;
 
+        // The page that was rated, even if the user moves on before the request finishes
+        const ratedPath = page || window.location.pathname;
         await feedbackService.submitSatisfactionFeedback({
           email: userEmail,
           subject: `Page Satisfaction: ${pageName}`,
           rating,
           description,
-          page: page || window.location.pathname,
+          page: ratedPath,
           metadata: {
             pageTitle: pageName,
             pageSection,
@@ -267,6 +270,19 @@ export const PageSatisfactionBanner: React.FC<PageSatisfactionBannerProps> = ({
             ...(isFollowUp ? { isFollowUp: true } : {}),
           },
         });
+        // The preset reason only: what was typed stays in the feedback inbox
+        trackEvent('page_rating_submitted', {
+          rating,
+          reason:
+            reason && [...NEGATIVE_REASONS, ...POSITIVE_REASONS].includes(reason)
+              ? reason
+              : reason
+                ? 'Other'
+                : undefined,
+          is_follow_up: isFollowUp,
+          has_detail: Boolean(detail?.trim()),
+          page_section: pageSection,
+        }, { pathname: ratedPath });
 
         return true;
       } catch (error) {
@@ -297,6 +313,7 @@ export const PageSatisfactionBanner: React.FC<PageSatisfactionBannerProps> = ({
   // Dismissing sends nothing. The page is already quiet for the cooldown; a
   // dismissal also silences every other page for the rest of the session.
   const handleDismiss = useCallback(() => {
+    trackEvent('page_rating_dismissed');
     suppressPageSatisfactionForSession();
     setVisibility('gone');
   }, []);

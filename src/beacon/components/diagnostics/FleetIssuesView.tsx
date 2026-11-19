@@ -42,6 +42,7 @@ import {
 import type { DeviceSortOrder } from "@/lib/fleet-health";
 import { cn } from "@/lib/utils";
 import { IssueSeverity, SEVERITY_ORDER } from "@/types/diagnostics";
+import { trackEvent } from "@/lib/analytics";
 
 const PAGE_SIZE = 25;
 const ISSUES_SHOWN = 3;
@@ -115,7 +116,13 @@ export function FleetIssuesView({ group, parentTitle, basePath }: FleetIssuesVie
     setter(value);
     setPage(0);
   };
+  // The search box isn't tracked: it changes on every keystroke and holds typed text
+  const updateTracked = <T,>(setter: (value: T) => void, filter: string) => (value: T) => {
+    update(setter)(value);
+    trackEvent("fleet_issues_filtered", { filter, value: value as unknown });
+  };
   const clearFilters = () => {
+    trackEvent("fleet_issues_filtered", { filter: "clear_all" });
     setCheckType(null);
     setSeverity(null);
     setNewOnly(false);
@@ -224,7 +231,7 @@ export function FleetIssuesView({ group, parentTitle, basePath }: FleetIssuesVie
                 <select
                   id="issues-severity"
                   value={severity || ""}
-                  onChange={(e) => update(setSeverity)((e.target.value || null) as IssueSeverity | null)}
+                  onChange={(e) => updateTracked(setSeverity, "severity")((e.target.value || null) as IssueSeverity | null)}
                   className="h-9 rounded-md border border-input bg-background px-2.5 text-sm text-foreground"
                 >
                   <option value="">All severities</option>
@@ -242,7 +249,7 @@ export function FleetIssuesView({ group, parentTitle, basePath }: FleetIssuesVie
                     id="issues-new-only"
                     type="checkbox"
                     checked={newOnly}
-                    onChange={(e) => update(setNewOnly)(e.target.checked)}
+                    onChange={(e) => updateTracked(setNewOnly, "new_only")(e.target.checked)}
                     className="h-4 w-4 accent-primary"
                   />
                   New issues only
@@ -253,7 +260,7 @@ export function FleetIssuesView({ group, parentTitle, basePath }: FleetIssuesVie
                 <select
                   id="issues-sort"
                   value={sort}
-                  onChange={(e) => update(setSort)(e.target.value as DeviceSortOrder)}
+                  onChange={(e) => updateTracked(setSort, "sort")(e.target.value as DeviceSortOrder)}
                   className="h-9 rounded-md border border-input bg-background px-2.5 text-sm text-foreground"
                 >
                   {(Object.keys(DEVICE_SORT_LABELS) as DeviceSortOrder[]).map((value) => (
@@ -272,7 +279,7 @@ export function FleetIssuesView({ group, parentTitle, basePath }: FleetIssuesVie
                         key={check.checkType ?? "all"}
                         type="button"
                         aria-pressed={active}
-                        onClick={() => update(setCheckType)(check.checkType)}
+                        onClick={() => updateTracked(setCheckType, "check_type")(check.checkType)}
                         className={cn(
                           "flex h-8 items-center gap-1.5 rounded-full border px-3 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                           active

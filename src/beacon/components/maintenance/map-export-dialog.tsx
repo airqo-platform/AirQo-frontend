@@ -34,6 +34,7 @@ import { LoRaWANGateway, GatewayCoverageStats } from "@/types/lorawan.types"
 import { generateMapGeoJSON, computeGatewayCoverageStats } from "@/utils/lorawan-utils"
 import { useToast } from "@/hooks/use-toast"
 import { MAP_ITEM_NOUNS, countLabel, type MapItemNoun } from "@/lib/maintenance-map"
+import { trackEvent } from "@/lib/analytics"
 
 interface MapExportDialogProps {
   open: boolean
@@ -104,6 +105,7 @@ export function MapExportDialog({
       link.download = `airqo-maintenance-map-${timestamp}.${format}`
       link.href = imageStr
       link.click()
+      trackEvent("data_exported", { source: "maintenance_map_export", format, row_count: devices.length })
 
       toast({
         title: "Map Image Exported",
@@ -212,6 +214,7 @@ export function MapExportDialog({
 
       const timestamp = new Date().toISOString().slice(0, 10)
       pdf.save(`airqo-maintenance-report-${timestamp}.pdf`)
+      trackEvent("data_exported", { source: "maintenance_map_export", format: "pdf", row_count: devices.length })
 
       toast({
         title: "PDF Exported",
@@ -247,6 +250,7 @@ export function MapExportDialog({
       a.href = url
       a.click()
       URL.revokeObjectURL(url)
+      trackEvent("data_exported", { source: "maintenance_map_export", format: "geojson", row_count: devices.length })
 
       toast({
         title: "GeoJSON Exported",
@@ -329,6 +333,7 @@ export function MapExportDialog({
       a.href = url
       a.click()
       URL.revokeObjectURL(url)
+      trackEvent("data_exported", { source: "maintenance_map_export", format: "csv", row_count: devices.length })
 
       toast({
         title: "CSV Exported",

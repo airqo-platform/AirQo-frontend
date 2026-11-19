@@ -21,6 +21,7 @@ import { useDeviceOverview } from "@/hooks/use-device-overview"
 import { useNavigationAccess } from "@/hooks/use-navigation-access"
 import { useRecentlyVisited } from "@/hooks/use-recently-visited"
 import { APP_LINKS } from "@/lib/app-links"
+import { trackEvent } from "@/lib/analytics"
 import { useGroup } from "@/lib/group-context"
 import { getDevicesHome, isRouteAccessible } from "@/lib/navigation"
 
@@ -63,6 +64,7 @@ function FeatureCard({
     <Card className="transition-shadow hover:shadow-md">
       <Link
         href={feature.href}
+        onClick={() => trackEvent("home_action_selected", { action: "feature_card", feature: feature.id })}
         className="group flex h-full items-start gap-4 rounded-lg p-5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
@@ -126,7 +128,7 @@ function SetupLayout({
             <p className="flex-1 text-sm text-muted-foreground">
               Claim an AirQo device or import your own in Vertex. It then appears under {deviceListName} here.
             </p>
-            <ExternalAppLink href={deviceLink} className="self-start">
+            <ExternalAppLink href={deviceLink} destination="vertex" source="home_first_device" className="self-start">
               Add a device in Vertex
             </ExternalAppLink>
           </Card>
@@ -154,7 +156,13 @@ function SetupLayout({
                   Ask to join in Nexus, or request a new organisation. Once you&apos;re approved, switch to it here
                   to see its devices, sites and reports.
                 </p>
-                <ExternalAppLink href={APP_LINKS.nexus} variant="outline" className="self-start">
+                <ExternalAppLink
+                  href={APP_LINKS.nexus}
+                  destination="nexus"
+                  source="home_find_organisation"
+                  variant="outline"
+                  className="self-start"
+                >
                   Find it in Nexus
                 </ExternalAppLink>
               </>
@@ -210,7 +218,11 @@ function ReturningLayout({
       <section aria-labelledby="home-overview-title" className="space-y-3" data-tour="home-overview">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <SectionTitle id="home-overview-title">Your devices right now</SectionTitle>
-          <Link href={devicesHref} className="text-sm font-medium text-primary hover:underline">
+          <Link
+            href={devicesHref}
+            onClick={() => trackEvent("home_action_selected", { action: "view_all_devices" })}
+            className="text-sm font-medium text-primary hover:underline"
+          >
             View all devices
           </Link>
         </div>
@@ -238,6 +250,9 @@ function ReturningLayout({
               <Link
                 key={page.href}
                 href={page.href}
+                onClick={() =>
+                  trackEvent("home_action_selected", { action: "continue_recent", page: page.label, position: index })
+                }
                 className={`group flex items-center justify-between gap-3 p-4 text-sm font-medium text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring ${
                   index === 0 ? "bg-primary/[0.04] hover:bg-primary/[0.08]" : "hover:bg-muted"
                 }`}
@@ -267,13 +282,20 @@ function ReturningLayout({
           <AqPlayCircle className="h-4 w-4" aria-hidden="true" />
           Take the tour
         </Button>
-        <a href={vertexHref} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+        <a
+          href={vertexHref}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={() => trackEvent("app_link_opened", { destination: "vertex", source: "home_add_devices" })}
+          className="text-primary hover:underline"
+        >
           Add devices in Vertex
         </a>
         <a
           href={APP_LINKS.nexusRequestOrganisation}
           target="_blank"
           rel="noopener noreferrer"
+          onClick={() => trackEvent("app_link_opened", { destination: "nexus", source: "home_request_organisation" })}
           className="text-primary hover:underline"
         >
           Request a new organisation
@@ -333,7 +355,7 @@ export function HomePage() {
         deviceLink={deviceLink}
         features={features}
         lockedLabel={lockedLabel}
-        onStartTour={() => startTour()}
+        onStartTour={() => startTour(null, "home")}
       />
     )
   }
@@ -348,7 +370,7 @@ export function HomePage() {
         .slice(0, MAX_RECENT_PAGES)}
       features={features}
       lockedLabel={lockedLabel}
-      onStartTour={() => startTour()}
+      onStartTour={() => startTour(null, "home")}
       vertexHref={deviceLink}
     />
   )

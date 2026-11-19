@@ -130,7 +130,7 @@ export default function DeviceHealthCard({ deviceId, deviceName }: DeviceHealthC
 
   if (!issues.data) {
     return (
-      <HealthCardError
+      <HealthCardError kind="device"
         title={TITLE}
         beaconHref={beaconHref}
         onRetry={() => {
@@ -155,7 +155,7 @@ export default function DeviceHealthCard({ deviceId, deviceName }: DeviceHealthC
 
   if (summary.days_diagnosed === 0 || !summary.latest_diagnosis_date) {
     return (
-      <HealthCard title={TITLE} badge={<HealthBadge tone="gray">Not diagnosed</HealthBadge>} beaconHref={beaconHref}>
+      <HealthCard kind="device" title={TITLE} badge={<HealthBadge tone="gray">Not diagnosed</HealthBadge>} beaconHref={beaconHref}>
         {uptimeBlock}
         <HealthMessage title="No diagnosis in the last 14 days">
           Beacon only diagnoses a device on days it has readings from it.
@@ -166,7 +166,7 @@ export default function DeviceHealthCard({ deviceId, deviceName }: DeviceHealthC
 
   if (isDiagnosisStale(summary.latest_diagnosis_date)) {
     return (
-      <HealthCard
+      <HealthCard kind="device"
         title={TITLE}
         badge={<HealthBadge tone="gray">No recent diagnosis</HealthBadge>}
         diagnosedOn={summary.latest_diagnosis_date}
@@ -182,7 +182,7 @@ export default function DeviceHealthCard({ deviceId, deviceName }: DeviceHealthC
   const cause = getLikelyCause(summary.latest_headline);
 
   return (
-    <HealthCard
+    <HealthCard kind="device"
       title={TITLE}
       badge={summary.latest_lifecycle_state ? <StateBadge state={summary.latest_lifecycle_state} /> : undefined}
       diagnosedOn={summary.latest_diagnosis_date}

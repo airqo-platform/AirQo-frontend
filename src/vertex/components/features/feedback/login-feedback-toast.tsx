@@ -10,6 +10,7 @@ import {
   ReusableSatisfactionFeedbackToast,
   SatisfactionToastDismissReason,
 } from "./reusable-satisfaction-feedback-toast";
+import { trackEvent } from "@/lib/track";
 
 const LOGIN_NEGATIVE_REASONS = [
   "It took too long to load",
@@ -52,12 +53,24 @@ const LoginFeedbackToast: React.FC<LoginFeedbackToastProps> = ({
   }, [userId]);
 
   const submitLoginFeedback = async (rating: number, description?: string) => {
+    // Read once, so the feedback and analytics report the same sign-in
+    const loginDurationMs = loginDurationRef.current;
     await feedbackService.submitLoginFeedback({
       email,
       rating,
       description,
-      loginDurationMs: loginDurationRef.current,
+      loginDurationMs,
       submittedAt: Date.now(),
+    });
+    // "Other: <typed text>" is reported as plain "Other"
+    trackEvent("login_rating_submitted", {
+      rating,
+      reason: description
+        ? LOGIN_NEGATIVE_REASONS.includes(description)
+          ? description
+          : "Other"
+        : undefined,
+      login_duration_ms: loginDurationMs || undefined,
     });
     setLoginFeedbackRecord(userId);
   };

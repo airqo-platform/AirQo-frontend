@@ -13,6 +13,7 @@ import { useAppSelector } from "@/core/redux/hooks";
 import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
 import { useBanner } from "@/context/banner-context";
 import { useBannerWithDelay } from "@/core/hooks/useBannerWithDelay";
+import { trackEvent } from "@/lib/track";
 import { isHCaptchaEnabled } from "@/lib/envConstants";
 
 interface NetworkRequestDialogProps {
@@ -45,7 +46,8 @@ export function NetworkRequestDialog({ open, onOpenChange }: NetworkRequestDialo
             }
             return response.json();
         },
-        onSuccess: (resp) => {            
+        onSuccess: (resp, data) => {
+            trackEvent("network_access_requested", { network_category: data.net_category });
             queryClient.invalidateQueries({ queryKey: ["network-requests"] });
             showBannerWithDelay({ severity: 'success', message: resp.message || "Your request for a new Sensor Manufacturer has been submitted successfully!", scoped: true });
         },

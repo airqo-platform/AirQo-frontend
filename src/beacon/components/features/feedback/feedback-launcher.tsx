@@ -19,6 +19,7 @@ import { useGroup } from '@/lib/group-context';
 import { getPageTitle } from '@/lib/navigation';
 
 import { feedbackService, getAppVersion } from '@/services/feedback.service';
+import { trackEvent } from '@/lib/analytics';
 import { FEEDBACK_DIALOG_OPEN_EVENT, FeedbackDialogOpenDetail } from './feedback-dialog';
 import { ScreenshotAnnotator, ScreenshotPreview } from './screenshot-annotator';
 import {
@@ -318,6 +319,20 @@ export const FeedbackLauncher: React.FC = () => {
         },
       });
 
+      // The category, the preset "what were you trying to do" and the rating; never the message
+      trackEvent('feedback_submitted', {
+        category: mainCategory,
+        issue_action:
+          mainCategory === 'issue' ? (ISSUE_ACTIONS.includes(issueAction) ? issueAction : 'Other') : undefined,
+        rating,
+        contact_consent: contactConsent,
+        has_screenshot: Boolean(screenshot_url),
+        opened_from: !sourceDialog
+          ? 'help_menu'
+          : sourceDialog.startsWith('Page satisfaction')
+            ? 'page_rating'
+            : 'dialog',
+      });
       setIsOpen(false);
 
       const thankYou = contactConsent ? THANK_YOU_WITH_CONSENT : THANK_YOU_WITHOUT_CONSENT;

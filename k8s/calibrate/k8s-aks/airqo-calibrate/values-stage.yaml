@@ -1,4 +1,7 @@
 replicaCount: 1
+rollingUpdate:
+  maxSurge: 0
+  maxUnavailable: 1
 image:
   repository: airqoacr.azurecr.io/airqo-stage-calibrate-app
   tag: latest
@@ -22,8 +25,9 @@ resources:
     cpu: 100m
     memory: 100Mi
 autoscaling:
+  enabled: false
   minReplicas: 1
-  maxReplicas: 2
+  maxReplicas: 1
   targetMemoryUtilizationPercentage: 80
 
 app:

@@ -12,6 +12,7 @@ import React from "react";
 
 
 import { adapter } from '../adapters';
+import { trackEvent } from '@/lib/track';
 
 interface ErrorResponse {
   message: string;
@@ -135,7 +136,11 @@ export const useCreateGrid = (options?: UseCreateGridOptions) => {
   const { mutate: createGrid, isPending: isLoading, error } = useMutation<Grid, AxiosError<ErrorResponse>, CreateGrid>({
     mutationFn: async (newGrid: CreateGrid) =>
       await adapter.createGridApi(newGrid),
-    onSuccess: (data) => {
+    onSuccess: (data, variables) => {
+      trackEvent('grid_created', {
+        admin_level: variables.admin_level,
+        shape_type: variables.shape?.type,
+      });
       queryClient.invalidateQueries({ queryKey: ["grids"] });
       options?.onSuccess?.(data);
     },

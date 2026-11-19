@@ -18,6 +18,7 @@ import { useGroupCohorts, usePersonalUserCohorts } from './useCohorts';
 import { useAppSelector } from '../redux/hooks';
 import { isSameMyDevicesResultSet } from "./myDevicesQueryKey";
 import { useMemo } from 'react';
+import { trackEvent } from '@/lib/track';
 import type {
   DevicesSummaryResponse,
   DeviceAvailabilityResponse,
@@ -377,6 +378,7 @@ export const useAssignDeviceToOrganization = () => {
   >({
     mutationFn: adapter.assignDeviceToOrganization,
     onSuccess: () => {
+      trackEvent('device_assigned_to_organization');
       queryClient.invalidateQueries({ queryKey: ['myDevices'] });
       queryClient.invalidateQueries({ queryKey: ['devices'] });
     },
@@ -429,6 +431,11 @@ export const useUpdateDeviceLocal = () => {
       deviceData: Partial<Device>;
     }) => adapter.updateDevice(deviceId, deviceData),
     onSuccess: (data, variables) => {
+      trackEvent('device_updated', {
+        scope: 'local',
+        fields: Object.keys(variables.deviceData),
+        device_count: 1,
+      });
       queryClient.invalidateQueries({
         queryKey: ['device-details', variables.deviceId],
       });
@@ -449,6 +456,11 @@ export const useUpdateDeviceGlobal = () => {
       deviceData: Partial<Device>;
     }) => adapter.updateDeviceGlobal(deviceId, deviceData),
     onSuccess: (data, variables) => {
+      trackEvent('device_updated', {
+        scope: 'global',
+        fields: Object.keys(variables.deviceData),
+        device_count: 1,
+      });
       queryClient.invalidateQueries({
         queryKey: ['device-details', variables.deviceId],
       });
@@ -487,7 +499,13 @@ export const useUpdateDeviceBulk = (options?: UseUpdateDeviceBulkOptions) => {
     mutationFn: ({ deviceIds, updateData }) =>
       adapter.bulkUpdateDeviceDetails(deviceIds, updateData),
 
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
+      trackEvent('device_updated', {
+        scope: 'bulk',
+        fields: Object.keys(variables.updateData ?? {}),
+        // The same ids the request sends: trimmed, blanks dropped
+        device_count: variables.deviceIds.map(id => id.trim()).filter(Boolean).length,
+      });
       queryClient.invalidateQueries({ queryKey: ["devices"] });
       queryClient.invalidateQueries({ queryKey: ["myDevices"] });
       queryClient.invalidateQueries({ queryKey: ["network-devices"] });
@@ -558,7 +576,11 @@ export const useCreateDevice = () => {
       return adapter.createDevice(payload);
     },
 
-    onSuccess: async (data) => {
+    onSuccess: async (data, variables) => {
+      trackEvent('device_created', {
+        category: variables.category,
+        tag_count: variables.tags?.length ?? 0,
+      });
       try {
         const createdDeviceId = data.created_device?._id;
 
@@ -614,7 +636,17 @@ export const useImportDevice = () => {
       };
       return adapter.importDevice(payload);
     },
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
+      trackEvent('device_imported', {
+        mode: 'single',
+        device_count: 1,
+        imported_count: 1,
+        failed_count: 0,
+        category: variables.category,
+        auth_required: variables.authRequired,
+        has_cohort: Boolean(variables.cohort_id),
+        area: isAdminModule ? 'admin' : 'devices',
+      });
       // Refresh based on active module
       if (isAdminModule) {
         queryClient.invalidateQueries({ queryKey: ['network-devices'] });
@@ -736,6 +768,7 @@ export const useRecallDevice = () => {
       };
     }) => adapter.recallDevice(deviceName, recallData),
     onSuccess: (data, variables) => {
+      trackEvent('device_recalled', { recall_type: variables.recallData.recallType });
       queryClient.invalidateQueries({ queryKey: ['devices'] });
       queryClient.invalidateQueries({ queryKey: ['device-details'] });
       queryClient.invalidateQueries({ queryKey: ['myDevices'] });
@@ -763,7 +796,10 @@ export const useDecommissionDevice = () => {
         userName?: string;
       };
     }) => adapter.decommissionDevice(deviceName, decommissionData),
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
+      trackEvent('device_decommissioned', {
+        has_reason: Boolean(variables.decommissionData.reason?.trim()),
+      });
       queryClient.invalidateQueries({ queryKey: ['devices'] });
       queryClient.invalidateQueries({ queryKey: ['device-details'] });
       queryClient.invalidateQueries({ queryKey: ['myDevices'] });
@@ -784,6 +820,11 @@ export const useAddMaintenanceLog = () => {
       logData: MaintenanceLogData;
     }) => adapter.addMaintenanceLog(deviceName, logData),
     onSuccess: (data, variables) => {
+      trackEvent('maintenance_logged', {
+        maintenance_type: variables.logData.maintenanceType,
+        tag_count: variables.logData.tags?.length ?? 0,
+        has_notes: Boolean(variables.logData.description?.trim()),
+      });
       queryClient.invalidateQueries({ queryKey: ['devices'] });
       queryClient.invalidateQueries({ queryKey: ['device-details'] });
       queryClient.invalidateQueries({ queryKey: ['deviceStatus'] });
@@ -870,7 +911,14 @@ export const useCreateShippingBatch = (options?: UseCreateShippingBatchOptions) 
   >({
     mutationFn: ({ deviceNames, batchName, tokenType }) =>
       adapter.createShippingBatch(deviceNames, batchName, tokenType),
-    onSuccess: (data) => {
+    onSuccess: (data, variables) => {
+      const summary = data.batch_creation_results?.summary;
+      trackEvent('shipping_batch_created', {
+        device_count: variables.deviceNames.length,
+        successful_count: summary?.successful_count,
+        failed_count: summary?.failed_count,
+        claim_code_format: variables.tokenType ?? 'default',
+      });
       queryClient.invalidateQueries({ queryKey: ['shippingBatches'] });
       queryClient.invalidateQueries({ queryKey: ['shippingStatus'] });
       options?.onSuccess?.(data);

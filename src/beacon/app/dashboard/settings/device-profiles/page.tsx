@@ -42,6 +42,7 @@ import {
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useGroup } from "@/lib/group-context";
+import { trackEvent } from "@/lib/analytics";
 
 export default function DeviceProfilesCatalogPage() {
   const router = useRouter();
@@ -121,6 +122,7 @@ export default function DeviceProfilesCatalogPage() {
     a.download = `${prof.name.toLowerCase()}_profile_schema.json`;
     a.click();
     URL.revokeObjectURL(url);
+    trackEvent("data_exported", { source: "device_profile_list", format: "json", row_count: 1 });
   };
 
   const filteredProfiles = profiles.filter((p) => {

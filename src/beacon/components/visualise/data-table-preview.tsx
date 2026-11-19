@@ -37,6 +37,7 @@ import {
 import * as XLSX from "xlsx"
 import { toast } from "@/hooks/use-toast"
 import type { ParsedDataset, ColumnProfile } from "@/lib/visualise/data-parser"
+import { trackEvent } from "@/lib/analytics"
 
 interface DataTablePreviewProps {
   dataset: ParsedDataset
@@ -136,6 +137,7 @@ export function DataTablePreview({ dataset, records }: DataTablePreviewProps) {
       link.download = `${dataset.name}_export_${Date.now()}.csv`
       link.click()
       setTimeout(() => URL.revokeObjectURL(url), 1000)
+      trackEvent("data_exported", { source: "device_data_table", format: "csv", row_count: filteredData.length })
       toast({ title: "Export Successful", description: "Dataset exported to CSV." })
     } catch (err) {
       toast({ title: "Export Failed", description: "Failed to export CSV.", variant: "destructive" })
@@ -149,6 +151,7 @@ export function DataTablePreview({ dataset, records }: DataTablePreviewProps) {
       const workbook = XLSX.utils.book_new()
       XLSX.utils.book_append_sheet(workbook, worksheet, "Data")
       XLSX.writeFile(workbook, `${dataset.name}_export_${Date.now()}.xlsx`)
+      trackEvent("data_exported", { source: "device_data_table", format: "xlsx", row_count: filteredData.length })
       toast({ title: "Export Successful", description: "Dataset exported to Excel." })
     } catch (err) {
       toast({ title: "Export Failed", description: "Failed to export Excel.", variant: "destructive" })
