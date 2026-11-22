@@ -1,0 +1,274 @@
+import React, { useCallback } from 'react';
+import { cn } from '../lib/utils';
+import { MultiSelectTable } from './multi-select-table';
+
+/*
+ * MultiSelectTable plus a footer for pages the server paginates (rows per page,
+ * Prev / "n of m" / Next) and controlled search.
+ *
+ * Copied from nexus/src/shared/components/ui/server-side-table.tsx (imports only).
+ * Vertex does the same inside ReusableTable with `serverSidePagination`,
+ * `pageCount`, `pagination`/`onPaginationChange` and `sorting`/`onSortingChange`
+ * (TanStack-style state), and keeps its normal page-number footer.
+ */
+
+// Define the types locally since they're not exported from multi-select-table
+interface TableItem {
+  id: string | number;
+  [key: string]: unknown;
+}
+
+interface TableColumn<T = TableItem> {
+  key: string;
+  label: string | React.ReactNode;
+  sortable?: boolean;
+  filterable?: boolean;
+  render?: (value: unknown, item: T) => React.ReactNode;
+  headerClassName?: string;
+  cellClassName?: string;
+  width?: string;
+  minWidth?: string;
+  maxWidth?: string;
+}
+
+export interface ServerSideTableProps<T = TableItem> {
+  title?: string;
+  data: T[];
+  columns: TableColumn<T>[];
+  loading?: boolean;
+  isRefreshing?: boolean;
+  error?: string | null;
+  onRefresh?: () => void;
+  /** Custom empty state rendered when the table has no data (overrides the default) */
+  emptyComponent?: React.ReactNode;
+  className?: string;
+  multiSelect?: boolean;
+  selectedItems?: (string | number)[];
+  onSelectedItemsChange?: (selectedIds: (string | number)[]) => void;
+
+  // Server-side pagination props (optional for client-side)
+  currentPage?: number;
+  totalPages?: number;
+  pageSize?: number;
+  totalItems?: number;
+  onPageChange?: (page: number) => void;
+  onPageSizeChange?: (size: number) => void;
+  /** Observe the built-in client-side paginator without controlling it. */
+  onClientPageChange?: (page: number) => void;
+  /** Observe client-side column sorting without controlling it. */
+  onClientSortChange?: (sort: {
+    key: string;
+    direction: 'asc' | 'desc';
+  }) => void;
+
+  // Server-side search props (optional for client-side)
+  searchTerm?: string;
+  onSearchChange?: (search: string) => void;
+  /** Observe built-in search changes without controlling client-side filtering. */
+  onSearchTermChange?: (search: string) => void;
+  /** Restrict the built-in client-side search to these columns (null = all) */
+  searchableColumns?: string[] | null;
+  /**
+   * Show the built-in search box (default `true`). Set `false` when the
+   * parent owns no search but still passes `searchTerm`/`onSearchChange`:
+   * MultiSelectTable only skips client-side slicing while search is
+   * controlled, so those props keep the server's page intact.
+   */
+  searchable?: boolean;
+
+  // Custom header component
+  customHeader?: React.ReactNode;
+  /** Show a divider below the custom header (defaults to `true`). */
+  customHeaderDivider?: boolean;
+  /** Actions displayed beside the search field. */
+  searchActions?: React.ReactNode;
+  /** Human-readable row label used by the selection checkbox. */
+  selectionLabel?: (item: T) => string;
+
+  // Keep row content on one line for compact export-style tables
+  compactRows?: boolean;
+
+  // Whether to show client-side pagination from MultiSelectTable
+  showClientPagination?: boolean;
+
+  /** Page-size choices in the server-side pagination footer (defaults to the
+   *  built-in [6, 10, 20, 40, 80]) */
+  pageSizeOptions?: number[];
+
+  /** When provided, the entire row becomes clickable */
+  onRowClick?: (item: T) => void;
+}
+
+/**
+ * Server-side table wrapper that properly handles pagination and search
+ * by communicating with backend APIs instead of client-side filtering
+ */
+export function ServerSideTable<T extends TableItem>({
+  title,
+  data,
+  columns,
+  loading = false,
+  isRefreshing = false,
+  error,
+  onRefresh,
+  emptyComponent,
+  className,
+  multiSelect = false,
+  selectedItems,
+  onSelectedItemsChange,
+
+  currentPage,
+  totalPages,
+  pageSize,
+  totalItems,
+  onPageChange,
+  onPageSizeChange,
+  onClientPageChange,
+  onClientSortChange,
+
+  searchTerm,
+  onSearchChange,
+  onSearchTermChange,
+
+  searchableColumns,
+
+  searchable = true,
+
+  customHeader,
+  customHeaderDivider = true,
+  searchActions,
+  selectionLabel,
+
+  compactRows = false,
+
+  showClientPagination = false,
+
+  pageSizeOptions = [6, 10, 20, 40, 80],
+
+  onRowClick,
+}: ServerSideTableProps<T>) {
+  // Pagination controls (only when pagination props are provided)
+  const handlePreviousPage = useCallback(() => {
+    if (currentPage && currentPage > 1 && onPageChange) {
+      onPageChange(currentPage - 1);
+    }
+  }, [currentPage, onPageChange]);
+
+  const handleNextPage = useCallback(() => {
+    if (currentPage && totalPages && currentPage < totalPages && onPageChange) {
+      onPageChange(currentPage + 1);
+    }
+  }, [currentPage, totalPages, onPageChange]);
+
+  const handlePageSizeChange = useCallback(
+    (size: number) => {
+      if (onPageSizeChange) {
+        onPageSizeChange(size);
+      }
+    },
+    [onPageSizeChange]
+  );
+
+  // Custom footer with server-side pagination (only when pagination props are provided)
+  const customFooter =
+    totalItems &&
+    currentPage &&
+    pageSize &&
+    totalPages &&
+    onPageChange &&
+    onPageSizeChange ? (
+      <div className="mt-4 border shadow-sm rounded-md bg-card">
+        <div className="flex flex-col gap-3 sm:gap-4 items-start sm:items-center sm:justify-between p-3 sm:p-4 sm:flex-row">
+          <div className="text-xs sm:text-sm text-muted-foreground order-2 sm:order-1 text-center sm:text-left w-full sm:w-auto">
+            Showing {(currentPage - 1) * pageSize + 1} to{' '}
+            {Math.min(currentPage * pageSize, totalItems)} of{' '}
+            {totalItems.toLocaleString()} results
+          </div>
+
+          <div className="flex flex-col gap-2 sm:gap-3 w-full sm:w-auto sm:flex-row sm:items-center order-1 sm:order-2">
+            {/* Page Size Selector */}
+            <div className="flex items-center gap-2 justify-center sm:justify-start">
+              <span className="text-xs sm:text-sm text-muted-foreground whitespace-nowrap">
+                Rows per page:
+              </span>
+              <select
+                value={pageSize}
+                onChange={e => handlePageSizeChange(Number(e.target.value))}
+                aria-label="Rows per page"
+                className="px-2 py-1 border border-input rounded text-xs sm:text-sm focus:ring-2 focus:ring-ring focus:border-primary bg-background text-foreground"
+              >
+                {pageSizeOptions.map(size => (
+                  <option key={size} value={size}>
+                    {size}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Pagination Controls */}
+            <div className="flex items-center gap-1 sm:gap-2 justify-center sm:justify-end">
+              <button
+                onClick={handlePreviousPage}
+                disabled={currentPage <= 1}
+                aria-label="Previous page"
+                className="px-2 sm:px-3 py-1 text-xs sm:text-sm border border-input rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-muted text-foreground"
+              >
+                Prev
+              </button>
+
+              <span className="text-xs sm:text-sm text-muted-foreground whitespace-nowrap">
+                {currentPage} of {totalPages}
+              </span>
+
+              <button
+                onClick={handleNextPage}
+                disabled={currentPage >= totalPages}
+                aria-label="Next page"
+                className="px-2 sm:px-3 py-1 text-xs sm:text-sm border border-input rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-muted text-foreground"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    ) : null;
+
+  return (
+    <div className={cn('w-full max-w-full overflow-x-auto', className)}>
+      <MultiSelectTable
+        data={data}
+        title={title || ''}
+        columns={columns}
+        loading={loading}
+        isRefreshing={isRefreshing}
+        error={error}
+        onRefresh={onRefresh}
+        emptyComponent={emptyComponent}
+        multiSelect={multiSelect}
+        selectedItems={selectedItems}
+        onSelectedItemsChange={onSelectedItemsChange}
+        searchable={searchable} // Search box visibility is caller-controlled
+        searchableColumns={searchableColumns}
+        showPagination={showClientPagination} // Enable built-in pagination for client-side operations
+        onPageSizeChange={onPageSizeChange}
+        onClientPageChange={onClientPageChange}
+        onClientSortChange={onClientSortChange}
+        sortable={true}
+        headerComponent={customHeader}
+        customHeaderDivider={customHeaderDivider}
+        searchActions={searchActions}
+        selectionLabel={selectionLabel}
+        onSearchTermChange={onSearchTermChange}
+        compactRows={compactRows}
+        onRowClick={onRowClick}
+        {...(searchTerm !== undefined && onSearchChange !== undefined
+          ? { searchTerm, onSearchChange }
+          : {})}
+      />
+
+      {/* Only show custom footer if pagination props are provided */}
+      {customFooter}
+    </div>
+  );
+}
