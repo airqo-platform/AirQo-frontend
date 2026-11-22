@@ -1,0 +1,337 @@
+"use client"
+
+import { useEffect, useRef, useState } from "react"
+import Link from "next/link"
+import { usePathname } from "next/navigation"
+import { LogOut, Loader2 } from "lucide-react"
+import { AqHelpCircle, AqMenu01, AqRefreshCw01 } from "@airqo/icons-react"
+import BrandLogo from "@/components/brand-logo"
+import { beaconConfig } from "@/beacon.config"
+import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui/card"
+import GroupSelector from "@/components/dashboard/group-selector"
+import { syncGroups } from "@/services/device-api.service"
+import { useToast } from "@/components/ui/use-toast"
+import { useGroup } from "@/lib/group-context"
+import { useTour } from "@/components/tour/tour-provider"
+import { ROUTES, getModuleForPath, getPageTitle } from "@/lib/navigation"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu"
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
+import { openFeedbackDialog } from "@/components/features/feedback/feedback-dialog"
+import { isSystemGroup } from "@/beacon.config"
+
+type User = {
+  id?: number
+  _id?: string
+  first_name?: string
+  last_name?: string
+  firstName?: string
+  lastName?: string
+  email?: string
+  userName?: string
+  phone?: string
+  role?: string
+  created_at?: string
+  profilePicture?: string
+  image?: string
+}
+
+interface TopNavProps {
+  user: User | null
+  loading: boolean
+  isLoggingOut: boolean
+  onMenuClick: () => void
+  onLogout: () => void
+}
+
+export default function TopNav({
+  user,
+  loading,
+  isLoggingOut,
+  onMenuClick,
+  onLogout,
+}: Readonly<TopNavProps>) {
+  const pathname = usePathname()
+  const pageTitle = getPageTitle(pathname)
+  const isAdminMode = getModuleForPath(pathname) === "admin"
+
+  const { toast } = useToast()
+  const { activeGroup } = useGroup()
+  const isSystemGroupActive = isSystemGroup(activeGroup)
+  const { hasTour, startTour } = useTour()
+  const tourChosenRef = useRef(false)
+  const helpButtonRef = useRef<HTMLButtonElement>(null)
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false)
+  const [isSyncingGroups, setIsSyncingGroups] = useState(false)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  // Generate user initials from first_name and last_name
+  const getUserInitials = (user: User | null) => {
+    if (!user) return "U"
+    const firstInitial = (user.first_name || user.firstName)?.[0]?.toUpperCase() || ""
+    const lastInitial = (user.last_name || user.lastName)?.[0]?.toUpperCase() || ""
+    if (firstInitial || lastInitial) {
+      return firstInitial + lastInitial
+    }
+    const emailOrUsername = user.email || user.userName
+    return emailOrUsername?.[0]?.toUpperCase() || "U"
+  }
+
+  // Get display name
+  const getDisplayName = (user: User | null) => {
+    if (!user) return "User"
+    const firstName = user.first_name || user.firstName || ""
+    const lastName = user.last_name || user.lastName || ""
+    const fullName = `${firstName} ${lastName}`.trim()
+    return fullName || user.email || user.userName || "User"
+  }
+
+  const userInitials = getUserInitials(user)
+  const displayName = getDisplayName(user)
+
+  const handleLogoutClick = () => {
+    setShowLogoutDialog(false)
+    onLogout()
+  }
+
+  const handleSyncGroups = async () => {
+    setIsSyncingGroups(true)
+    try {
+      await syncGroups()
+      toast({
+        title: "Groups sync successful",
+        description: "Groups synced successfully.",
+      })
+    } catch (error) {
+      console.error("Error syncing groups:", error)
+      toast({
+        variant: "destructive",
+        title: "Groups sync failed",
+        description: error instanceof Error ? error.message : "Failed to sync groups.",
+      })
+    } finally {
+      setIsSyncingGroups(false)
+    }
+  }
+
+  return (
+    <>
+      <header className="relative z-40 w-full shrink-0">
+        <Card className="w-full p-0 rounded-xl border border-border bg-card shadow-sm">
+          <div className="flex items-center justify-between w-full h-14 px-3 sm:px-4">
+            {/* Left Section: Hamburger & Brand */}
+            <div className="flex items-center space-x-2 shrink-0">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="-ml-1 mr-1 p-2 rounded-lg text-foreground hover:bg-muted"
+                onClick={onMenuClick}
+                aria-label="Open navigation menu"
+                title="Menu"
+              >
+                <AqMenu01 className="w-5 h-5 text-foreground" />
+              </Button>
+
+              <Link
+                href={ROUTES.HOME}
+                className="flex items-center space-x-2.5 cursor-pointer focus:outline-none"
+              >
+                <BrandLogo size={32} />
+                <span className="text-lg font-bold text-foreground tracking-tight hidden xs:inline-block">
+                  {beaconConfig.app.name}
+                </span>
+              </Link>
+
+              {isAdminMode && (
+                <span className="hidden sm:inline-flex px-2.5 py-0.5 rounded-full text-xs font-bold bg-primary/10 text-primary">
+                  Administrator
+                </span>
+              )}
+            </div>
+
+            {/* Middle Section: Page Title  */}
+            <div className="flex-1 ml-4 sm:ml-6 min-w-0">
+              <h1 className="text-base sm:text-xl font-normal text-foreground truncate">
+                {pageTitle}
+              </h1>
+            </div>
+
+            {/* Right Section: Controls & Profile */}
+            <div className="flex items-center gap-x-2 sm:gap-x-3 shrink-0">
+              <GroupSelector />
+
+              {/* Help & Feedback */}
+              {(hasTour || beaconConfig.features.feedback) && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    ref={helpButtonRef}
+                    variant="ghost"
+                    size="icon"
+                    data-tour="help-menu"
+                    className="text-muted-foreground hover:text-foreground rounded-full h-9 w-9 hover:bg-muted transition-colors"
+                    title="Help & Feedback"
+                    aria-label="Help & Feedback"
+                  >
+                    <AqHelpCircle className="w-5 h-5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align="end"
+                  className="w-56 bg-card border border-border shadow-lg rounded-xl mt-1 z-[9999]"
+                  onCloseAutoFocus={(event) => {
+                    // Focus belongs in the tour's card, not on this button behind its overlay
+                    if (tourChosenRef.current) event.preventDefault()
+                    tourChosenRef.current = false
+                  }}
+                >
+                  {hasTour && (
+                    <DropdownMenuItem
+                      className="cursor-pointer rounded-lg"
+                      onSelect={() => {
+                        tourChosenRef.current = true
+                        startTour(helpButtonRef.current, "help_menu")
+                      }}
+                    >
+                      Take a tour of this page
+                    </DropdownMenuItem>
+                  )}
+                  {beaconConfig.features.feedback && (
+                    <DropdownMenuItem className="cursor-pointer rounded-lg" onSelect={() => openFeedbackDialog()}>
+                      Send feedback
+                    </DropdownMenuItem>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+              )}
+
+              {/* Sync Groups, where the unused notifications bell was */}
+              {isSystemGroupActive && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleSyncGroups}
+                  disabled={isSyncingGroups}
+                  className="text-muted-foreground hover:text-foreground rounded-full h-9 w-9 hover:bg-muted transition-colors"
+                  title={isSyncingGroups ? "Syncing groups…" : "Sync Groups"}
+                  aria-label={isSyncingGroups ? "Syncing groups" : "Sync Groups"}
+                >
+                  <AqRefreshCw01 className={`w-5 h-5 ${isSyncingGroups ? "animate-spin" : ""}`} />
+                </Button>
+              )}
+
+              {/* User profile dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className="flex items-center cursor-pointer hover:bg-transparent p-0 m-0 focus-visible:ring-0 rounded-full"
+                    title={`Account\n${displayName}`}
+                    aria-label="Account"
+                  >
+                    <Avatar className="h-9 w-9">
+                      <AvatarImage
+                        src={user?.profilePicture || user?.image || ""}
+                        alt={displayName}
+                      />
+                      <AvatarFallback className="bg-primary/10 text-primary font-semibold text-xs">
+                        {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : userInitials}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align="end"
+                  className="w-56 px-2 bg-card border border-border shadow-lg rounded-xl mt-1 z-[9999]"
+                >
+                  <div className="flex items-center p-2">
+                    <Avatar className="h-9 w-9">
+                      <AvatarImage
+                        src={user?.profilePicture || user?.image || ""}
+                        alt={displayName}
+                      />
+                      <AvatarFallback className="bg-primary/10 text-primary font-semibold text-xs">
+                        {userInitials}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex flex-col space-y-0.5 pl-2 truncate">
+                      <p className="text-sm font-semibold leading-none text-foreground truncate">
+                        {displayName.length > 18
+                          ? displayName.slice(0, 18) + "..."
+                          : displayName}
+                      </p>
+                      <p className="text-xs leading-none text-muted-foreground truncate">
+                        {user?.email || user?.userName}
+                      </p>
+                    </div>
+                  </div>
+
+                  <DropdownMenuSeparator className="bg-border" />
+
+                  <DropdownMenuItem
+                    className="flex items-center text-red-600 focus:text-red-600 cursor-pointer p-2 rounded-lg text-sm hover:bg-red-50 dark:hover:bg-red-950/20"
+                    onClick={() => setShowLogoutDialog(true)}
+                  >
+                    <LogOut className="h-4 w-4 mr-2" />
+                    <span>Log out</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </div>
+        </Card>
+      </header>
+
+      {/* Logout Confirmation Dialog */}
+      <AlertDialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
+        <AlertDialogContent className="rounded-xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure you want to logout?</AlertDialogTitle>
+            <AlertDialogDescription>
+              You will be redirected to the login page and will need to sign in again to access your account.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isLoggingOut} className="rounded-lg">
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleLogoutClick}
+              disabled={isLoggingOut}
+              className="rounded-lg bg-red-600 hover:bg-red-700 text-white"
+            >
+              {isLoggingOut ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Logging out...
+                </>
+              ) : (
+                "Logout"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  )
+}

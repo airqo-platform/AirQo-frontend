@@ -1,0 +1,916 @@
+"use client"
+
+import { useState, useEffect, useCallback, useMemo, useRef } from "react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { LoadingState } from "@/components/ui/loading-state"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
+import {
+  Search,
+  MapPin,
+  Wifi,
+  WifiOff,
+  BarChart3,
+  AlertCircle,
+  Map as MapIcon,
+  Activity
+} from "lucide-react"
+import { DeviceSummaryCards } from "@/components/devices/device-summary-cards"
+import { NoDevicesPrompt } from "@/components/onboarding/no-devices-prompt"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Pagination } from "@/components/ui/pagination"
+import { useToast } from "@/components/ui/use-toast"
+import { 
+  getDeviceSummary, 
+  getDevicesForUIPaginated, 
+  syncDevices, 
+  syncDevicePerformance,
+  getMyDevicesForUI,
+  getPersonalUserCohorts 
+} from "@/services/device-api.service"
+import { useSession } from "next-auth/react"
+import type { ApiResponseMeta, DeviceSummaryResponse, UIDevice } from "@/types/api.types"
+import UpdateDeviceDialog from "@/components/dashboard/update-device-dialog"
+import { formatCategoryLabel } from "@/lib/utils"
+import { getDeviceLastSeenTimestamp, isDeviceOnline } from "@/lib/device-status"
+import { useGroup } from "@/lib/group-context"
+import { ROUTES } from "@/lib/navigation"
+import { useNetworks } from "@/hooks/use-networks"
+import {
+  buildNetworkFilterOptions,
+  buildNetworkFilterOptionsFromDevices,
+  getDeviceSourceIdentifier,
+  matchesNetworkFilter,
+  pruneNetworkSelection,
+  serializeNetworkFilter,
+} from "@/lib/manufacturers"
+import { ManufacturerBadge } from "@/components/devices/manufacturer-badge"
+import { DataSourceIndicator } from "@/components/devices/data-source-indicator"
+import { ManufacturerFilter } from "@/components/devices/manufacturer-filter"
+import { SyncMenu } from "@/components/dashboard/sync-menu"
+
+import { Switch } from "@/components/ui/switch"
+import { Label } from "@/components/ui/label"
+import { trackEvent } from "@/lib/analytics"
+import { isSystemGroup } from "@/beacon.config"
+
+export type DeviceScope = "org" | "my"
+
+export default function DevicesView({ scope }: Readonly<{ scope: DeviceScope }>) {
+  const { data: session } = useSession()
+  const { toast } = useToast()
+  const { activeGroup, loading: groupLoading } = useGroup()
+
+  const isSystemGroupActive = isSystemGroup(activeGroup)
+
+  // State for device data (Org Devices)
+  const [devices, setDevices] = useState<UIDevice[]>([])
+  const [devicesMeta, setDevicesMeta] = useState<ApiResponseMeta | null>(null)
+  const [totalDevices, setTotalDevices] = useState(0)
+  const [totalPages, setTotalPages] = useState(0)
+  const [hasNext, setHasNext] = useState(false)
+  const [hasPrevious, setHasPrevious] = useState(false)
+  const [deviceCounts, setDeviceCounts] = useState<DeviceSummaryResponse>({
+    total_devices: 0,
+    active_airqlouds: 0,
+    tracked_devices: 0,
+    deployed_devices: 0,
+    tracked_online: 0,
+    tracked_offline: 0
+  })
+
+  // Org devices render at /dashboard/devices, personal devices at /dashboard/devices/my-devices
+  const deviceScope = scope
+  // My Devices leaves out the Category and Manufacturer columns.
+  const showHardwareColumns = deviceScope === "org"
+
+  // State for personal devices (My Devices)
+  const [myDevices, setMyDevices] = useState<UIDevice[]>([])
+  const [myDevicesLoading, setMyDevicesLoading] = useState(false)
+  // Before the first response an empty list only means "not loaded yet"
+  const [myDevicesLoaded, setMyDevicesLoaded] = useState(false)
+  const [myDevicesError, setMyDevicesError] = useState<string | null>(null)
+  const [myDevicesCounts, setMyDevicesCounts] = useState({
+    total: 0,
+    deployed: 0
+  })
+
+  // UI states
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [searchTerm, setSearchTerm] = useState("")
+  const [statusFilter, setStatusFilter] = useState("all")
+  // Sensor manufacturers (the platform's `network`) to show; empty means all. Sent as the
+  // comma-separated `network` query parameter, so it survives paging and refreshes.
+  const [networkFilter, setNetworkFilter] = useState<string[]>([])
+  const networkFilterParam = serializeNetworkFilter(networkFilter)
+  // The query the org list last answered, so an organisation with no devices can be told apart
+  // from a filter that matched nothing or a request still in flight
+  const [answeredOrgListQuery, setAnsweredOrgListQuery] = useState<string | null>(null)
+  const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(null)
+  const [isRefreshing, setIsRefreshing] = useState(false)
+  const [isSyncing, setIsSyncing] = useState(false)
+  const [firmwareDialogOpen, setFirmwareDialogOpen] = useState(false)
+  const [selectedFirmwareDevice, setSelectedFirmwareDevice] = useState<UIDevice | null>(null)
+  const [showTracked, setShowTracked] = useState(true) // Default to tracked
+
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1)
+  const [itemsPerPage, setItemsPerPage] = useState(25)
+
+  // Manufacturer filter options: GET /networks/ scoped to the active organisation (the same
+  // `group` the device list sends), re-fetched when the organisation changes. My Devices is
+  // filtered in memory, so its options are counted from the devices themselves.
+  const networksQuery = useNetworks({
+    group: activeGroup,
+    onlyWithDevices: true,
+    enabled: !groupLoading && Boolean(activeGroup) && deviceScope === "org",
+  })
+  const networksLoading = deviceScope === "org" ? networksQuery.isLoading : myDevicesLoading
+  const manufacturerOptions = useMemo(
+    () =>
+      deviceScope === "org"
+        ? buildNetworkFilterOptions(networksQuery.data)
+        : buildNetworkFilterOptionsFromDevices(myDevices),
+    [deviceScope, networksQuery.data, myDevices]
+  )
+  // True once the options belong to the current organisation, not a loading or stale list
+  const manufacturerOptionsReady = deviceScope === "org" ? networksQuery.isSuccess : !myDevicesLoading
+
+  // Derived loading and error states based on active scope
+  const isDataLoading = deviceScope === "org" ? loading : myDevicesLoading
+  const activeError = deviceScope === "org" ? error : myDevicesError
+
+  // Debounce search term specifically
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchTerm)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm)
+    }, 350)
+    return () => clearTimeout(timer)
+  }, [searchTerm])
+
+  const orgListQuery = JSON.stringify([activeGroup, networkFilterParam, debouncedSearchTerm.trim(), currentPage])
+
+  // Fetch device counts
+  const fetchDeviceCounts = async () => {
+    try {
+      const data = await getDeviceSummary()
+      setDeviceCounts(data)
+    } catch (err) {
+      console.error("Error fetching device counts:", err)
+    }
+  }
+
+  // Only the latest list request may update state, so a slower response for an earlier filter
+  // (e.g. a default before it is pruned) can't overwrite a newer one
+  const devicesRequestRef = useRef(0)
+
+  // Fetch devices list with pagination (Org Devices)
+  const fetchDevices = async (isBackground = false) => {
+    const requestId = ++devicesRequestRef.current
+    if (!activeGroup) {
+      setDevices([])
+      setDevicesMeta(null)
+      setTotalDevices(0)
+      setTotalPages(0)
+      setHasNext(false)
+      setHasPrevious(false)
+      setLoading(false)
+      setIsRefreshing(false)
+      return
+    }
+
+    try {
+      if (!isBackground && devices.length === 0) {
+        setLoading(true)
+      } else {
+        setIsRefreshing(true)
+      }
+      setError(null)
+
+      const skip = (currentPage - 1) * itemsPerPage
+      const params: any = {
+        skip,
+        limit: itemsPerPage,
+        group: activeGroup,
+      }
+
+      if (debouncedSearchTerm && debouncedSearchTerm.trim()) {
+        params.search = debouncedSearchTerm.trim()
+      }
+
+      if (networkFilterParam) {
+        params.network = networkFilterParam
+      }
+
+      const data = await getDevicesForUIPaginated(params)
+      if (requestId !== devicesRequestRef.current) return
+
+      setDevices(data.devices)
+      setDevicesMeta(data.meta ?? null)
+      setTotalDevices(data.pagination.total)
+      setTotalPages(data.pagination.pages)
+      setHasNext(data.pagination.has_next)
+      setHasPrevious(data.pagination.has_previous)
+      setAnsweredOrgListQuery(orgListQuery)
+    } catch (err) {
+      if (requestId !== devicesRequestRef.current) return
+      console.error("Error fetching devices:", err)
+      setError("Failed to load device data")
+    } finally {
+      if (requestId === devicesRequestRef.current) {
+        setLoading(false)
+        setIsRefreshing(false)
+      }
+    }
+  }
+
+  // Fetch personal devices (My Devices)
+  const fetchMyDevices = async (isBackground = false) => {
+    try {
+      if (!isBackground && myDevices.length === 0) {
+        setMyDevicesLoading(true)
+      } else {
+        setIsRefreshing(true)
+      }
+      setMyDevicesError(null)
+
+      const token = session?.accessToken
+      if (!token) {
+        throw new Error("No authentication token available")
+      }
+
+      const rawToken = token.replace(/^(JWT|Bearer)\s+/i, '')
+      const userResp = await fetch("/api/auth/user", {
+        headers: {
+          'Authorization': `JWT ${rawToken}`,
+          'Content-Type': 'application/json'
+        }
+      })
+      if (!userResp.ok) throw new Error("Failed to fetch user details")
+      const data = await userResp.json()
+      const userData = data.users?.[0]
+
+      if (!userData?._id) {
+        throw new Error("Could not retrieve user ID")
+      }
+
+      const uId = userData._id
+
+      const grps = userData.groups || []
+      const grpIds = grps
+        .filter((g: any) => !isSystemGroup(g.grp_title))
+        .map((g: any) => g._id)
+
+      const cohortIds = await getPersonalUserCohorts(uId)
+
+      const result = await getMyDevicesForUI({
+        userId: uId,
+        groupIds: grpIds,
+        cohortIds: cohortIds
+      })
+
+      setMyDevices(result.devices)
+      setMyDevicesCounts({
+        total: result.total_devices,
+        deployed: result.deployed_devices
+      })
+      setMyDevicesLoaded(true)
+    } catch (err: any) {
+      console.error("Error fetching my devices:", err)
+      setMyDevicesError(err.message || "Failed to fetch personal devices")
+    } finally {
+      setMyDevicesLoading(false)
+      setIsRefreshing(false)
+    }
+  }
+
+  // Initial data load
+  useEffect(() => {
+    // Summary counts only back the org view
+    if (groupLoading || !activeGroup || deviceScope !== "org") return
+    fetchDeviceCounts()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeGroup, groupLoading, deviceScope])
+
+  // Org devices are paginated and searched server-side, so refetch when those controls change
+  useEffect(() => {
+    if (groupLoading || !activeGroup || deviceScope !== "org") return
+    fetchDevices()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPage, itemsPerPage, debouncedSearchTerm, networkFilterParam, showTracked, activeGroup, groupLoading, deviceScope])
+
+  // Personal devices are filtered and paginated in memory, so only refetch when the source changes
+  useEffect(() => {
+    if (groupLoading || !activeGroup || deviceScope !== "my" || !session?.accessToken) return
+    fetchMyDevices()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeGroup, groupLoading, deviceScope, session?.accessToken])
+
+  // Refresh all data
+  const refreshData = () => {
+    setIsRefreshing(true)
+    if (deviceScope === "org") {
+      Promise.all([fetchDeviceCounts(), fetchDevices()]).finally(() => setIsRefreshing(false))
+    } else {
+      fetchMyDevices().finally(() => setIsRefreshing(false))
+    }
+  }
+
+  // Sync devices and performance
+  const handleSyncDevices = async () => {
+    setIsSyncing(true)
+    try {
+      await Promise.all([
+        syncDevices(),
+        syncDevicePerformance()
+      ])
+      toast({
+        title: "Success",
+        description: "Devices synced successfully.",
+      })
+      refreshData()
+    } catch (err) {
+      console.error("Error syncing devices:", err)
+      toast({
+        variant: "destructive",
+        title: "Sync Failed",
+        description: "An error occurred while syncing devices.",
+      })
+    } finally {
+      setIsSyncing(false)
+    }
+  }
+
+  const totalDevicesCount = deviceScope === "org"
+    ? (devicesMeta?.totalDevices ?? devicesMeta?.total ?? deviceCounts.total_devices)
+    : myDevices.length
+
+  const trackedDevicesCount = deviceScope === "org"
+    ? (devicesMeta?.devicesInAtLeastOneCohort ?? deviceCounts.tracked_devices)
+    : myDevices.length
+
+  const deployedDevicesCount = deviceScope === "org"
+    ? (devicesMeta?.deployedDevices ?? deviceCounts.deployed_devices)
+    : myDevices.filter(d => d.status === "deployed").length
+
+  const onlineDevicesCount = deviceScope === "org"
+    ? (devicesMeta?.onlineDevices ?? deviceCounts.tracked_online)
+    : myDevices.filter(d => isDeviceOnline(d)).length
+
+  const offlineDevicesCount = deviceScope === "org"
+    ? (devicesMeta?.offlineDevices ?? deviceCounts.tracked_offline)
+    : myDevices.filter(d => !isDeviceOnline(d)).length
+
+  // Sort devices - online devices first, then by name
+  const sortedDevices = useMemo(() => {
+    return [...devices].sort((a, b) => {
+      if (a.status === "deployed" && b.status !== "deployed") return -1;
+      if (a.status !== "deployed" && b.status === "deployed") return 1;
+      return (a.device_name || "").localeCompare(b.device_name || "");
+    });
+  }, [devices])
+
+  // Filter, sort, and paginate devices dynamically based on scope
+  const displayedDevices = useMemo(() => {
+    if (deviceScope === "org") {
+      return sortedDevices
+    }
+
+    // Personal devices are not server-paginated, so the manufacturer filter applies in memory
+    let filtered = myDevices.filter((d) => matchesNetworkFilter(d.network, networkFilter))
+    if (searchTerm && searchTerm.trim()) {
+      const term = searchTerm.toLowerCase().trim()
+      filtered = filtered.filter((d) => 
+        (d.device_name || "").toLowerCase().includes(term) ||
+        (d.device_id || "").toLowerCase().includes(term) ||
+        (d.location_name || "").toLowerCase().includes(term) ||
+        (d.city || "").toLowerCase().includes(term) ||
+        (d.country || "").toLowerCase().includes(term)
+      )
+    }
+
+    const sorted = [...filtered].sort((a, b) => {
+      if (a.status === "deployed" && b.status !== "deployed") return -1
+      if (a.status !== "deployed" && b.status === "deployed") return 1
+      return (a.device_name || "").localeCompare(b.device_name || "")
+    })
+
+    return sorted
+  }, [deviceScope, sortedDevices, myDevices, searchTerm, networkFilter])
+
+  // One event per search once its results are in, so empty searches show up; the term isn't sent
+  const lastTrackedSearch = useRef("")
+  // Personal devices filter in memory on the live term, so wait for a loaded list and a settled term
+  const searchResultsReady =
+    deviceScope === "my"
+      ? myDevicesLoaded && !myDevicesLoading && searchTerm.trim() === debouncedSearchTerm.trim()
+      : answeredOrgListQuery === orgListQuery
+  const searchResultCount = deviceScope === "my" ? displayedDevices.length : totalDevices
+  useEffect(() => {
+    const term = debouncedSearchTerm.trim()
+    if (!term) {
+      lastTrackedSearch.current = ""
+      return
+    }
+    const searchKey = `${deviceScope}:${term}`
+    if (!searchResultsReady || searchKey === lastTrackedSearch.current) return
+    lastTrackedSearch.current = searchKey
+    trackEvent("list_searched", {
+      list: "devices",
+      scope: deviceScope,
+      query_length: term.length,
+      result_count: searchResultCount,
+    })
+  }, [debouncedSearchTerm, deviceScope, searchResultsReady, searchResultCount])
+
+  const currentTotalItems = useMemo(() => {
+    return deviceScope === "org" ? totalDevices : displayedDevices.length
+  }, [deviceScope, totalDevices, displayedDevices])
+
+  const currentTotalPages = useMemo(() => {
+    return deviceScope === "org"
+      ? totalPages
+      : Math.ceil(displayedDevices.length / itemsPerPage) || 1
+  }, [deviceScope, totalPages, displayedDevices, itemsPerPage])
+
+  // A refresh can shrink the personal list below the current page, so keep the page in range
+  const safeCurrentPage = deviceScope === "my"
+    ? Math.min(currentPage, currentTotalPages)
+    : currentPage
+
+  const paginatedDisplayedDevices = useMemo(() => {
+    if (deviceScope === "org") {
+      return displayedDevices
+    }
+
+    const startIndex = (safeCurrentPage - 1) * itemsPerPage
+    return displayedDevices.slice(startIndex, startIndex + itemsPerPage)
+  }, [deviceScope, displayedDevices, safeCurrentPage, itemsPerPage])
+
+  const currentItems = paginatedDisplayedDevices;
+
+  // Get status badge variant
+  const getStatusBadge = useCallback((device: UIDevice) => {
+    if (isDeviceOnline(device)) {
+      return { variant: "default", className: "bg-green-500 hover:bg-green-600", icon: Wifi, text: "Online" }
+    }
+    return { variant: "secondary", className: "bg-gray-500 hover:bg-gray-600", icon: WifiOff, text: "Offline" }
+  }, [])
+
+  // Get deployment status badge
+  const getDeploymentBadge = useCallback((status: string | undefined) => {
+    switch (status) {
+      case "deployed":
+        return { variant: "default", className: "bg-green-100 text-green-700 hover:bg-green-200", text: "Deployed" }
+      case "not deployed":
+        return { variant: "secondary", className: "bg-gray-100 text-gray-700 hover:bg-gray-200", text: "Not Deployed" }
+      case "recalled":
+        return { variant: "destructive", className: "bg-red-100 text-red-700 hover:bg-red-200", text: "Recalled" }
+      default:
+        return { variant: "outline", className: "", text: status || "Unknown" }
+    }
+  }, [])
+
+  const handleManufacturerChange = useCallback((selected: string[]) => {
+    setNetworkFilter(selected)
+    setCurrentPage(1) // The result set changes, so start from the first page
+    trackEvent("list_filtered", {
+      list: "devices",
+      scope: deviceScope,
+      filter: "manufacturer",
+      selected_count: selected.length,
+      manufacturers: selected,
+    })
+  }, [deviceScope])
+
+  // After an organisation switch, drop manufacturers the new organisation doesn't have, so a
+  // stale selection can't filter the list down to nothing
+  useEffect(() => {
+    if (!manufacturerOptionsReady || networkFilter.length === 0) return
+    const pruned = pruneNetworkSelection(networkFilter, manufacturerOptions)
+    if (pruned !== networkFilter) {
+      setNetworkFilter(pruned)
+      setCurrentPage(1)
+    }
+  }, [manufacturerOptionsReady, manufacturerOptions, networkFilter])
+
+  // Get firmware badge info
+  const getFirmwareBadge = useCallback((currentFirmware: string | undefined, targetFirmware: string | undefined, downloadState: string | undefined) => {
+    // Both current and target are null - not set
+    if (!currentFirmware && !targetFirmware) {
+      return {
+        color: "bg-gray-100 text-gray-700 hover:bg-gray-200",
+        text: "Not Set",
+        tooltip: "Firmware not set"
+      }
+    }
+
+    // Target is null - has updated firmware
+    if (!targetFirmware) {
+      return {
+        color: "bg-green-100 text-green-700 hover:bg-green-200",
+        text: currentFirmware || "Updated",
+        tooltip: "Firmware is up to date"
+      }
+    }
+
+    // Current firmware matches target - green
+    if (currentFirmware === targetFirmware) {
+      return {
+        color: "bg-green-100 text-green-700 hover:bg-green-200",
+        text: currentFirmware,
+        tooltip: "Firmware is up to date"
+      }
+    }
+
+    // Current firmware differs from target - orange (pending update)
+    return {
+      color: "bg-orange-100 text-orange-700 hover:bg-orange-200",
+      text: currentFirmware || "Pending",
+      tooltip: `${downloadState === 'pending' ? 'Pending' : downloadState === 'failed' ? 'Failed' : 'Updating'} to ${targetFirmware}`
+    }
+  }, [])
+
+  // Handle device selection on map
+  const handleDeviceSelect = useCallback((id: string) => {
+    setSelectedDeviceId(id)
+  }, [])
+
+  // Handle firmware badge click
+  const handleFirmwareClick = useCallback((device: UIDevice, e: React.MouseEvent) => {
+    e.stopPropagation() // Prevent row click
+    setSelectedFirmwareDevice(device)
+    setFirmwareDialogOpen(true)
+  }, [])
+
+  // Handle network ID click
+  const handleNetworkIdClick = useCallback((device: UIDevice, e: React.MouseEvent) => {
+    e.stopPropagation() // Prevent row click
+    setSelectedFirmwareDevice(device)
+    setFirmwareDialogOpen(true)
+  }, [])
+
+  // Handle successful device update. Not memoized, so the refresh uses the current page and search.
+  const handleUpdateSuccess = () => {
+    refreshData()
+  }
+
+  // Handle row click to navigate to device details
+  const handleRowClick = useCallback((deviceId: string) => {
+    const returnTo = deviceScope === "my" ? `?returnTo=${encodeURIComponent(ROUTES.MY_DEVICES)}` : ""
+    window.location.href = `/dashboard/devices/${deviceId}${returnTo}`
+  }, [deviceScope])
+
+
+  const hasInitialData = deviceScope === "org" ? devices.length > 0 : myDevices.length > 0
+
+  // A later page can come back empty when the list shrinks or the organisation changes, which says
+  // nothing about the first page, so go and ask it
+  const isLaterPageEmpty =
+    deviceScope === "org" && !error && currentPage > 1 && devices.length === 0 && answeredOrgListQuery === orgListQuery
+  useEffect(() => {
+    if (isLaterPageEmpty) setCurrentPage(1)
+  }, [isLaterPageEmpty])
+
+  // Only once the source has answered, with no search or filter narrowing it down
+  const hasNoOrganisation = !groupLoading && !activeGroup
+  const hasNoDevices = deviceScope === "my"
+    ? myDevicesLoaded && !myDevicesError && myDevices.length === 0
+    : hasNoOrganisation ||
+      (!error &&
+        currentPage === 1 &&
+        devices.length === 0 &&
+        answeredOrgListQuery === orgListQuery &&
+        !networkFilterParam &&
+        !searchTerm.trim() &&
+        !debouncedSearchTerm.trim())
+
+  const pageHeader = (
+    <div className="flex justify-between items-center">
+      <h1 className="text-2xl font-bold">{deviceScope === "my" ? "My Devices" : "Device Monitoring"}</h1>
+      {isSystemGroupActive && (
+        <SyncMenu
+          items={[
+            {
+              id: "devices",
+              label: "Sync Devices",
+              description: "Devices and their performance from the platform",
+              onSelect: handleSyncDevices,
+              busy: isSyncing,
+              disabled: isRefreshing,
+            },
+            {
+              id: "refresh",
+              label: "Refresh Data",
+              description: "Reload this list",
+              onSelect: refreshData,
+              busy: isRefreshing,
+              disabled: isSyncing,
+            },
+          ]}
+        />
+      )}
+    </div>
+  )
+
+  if (hasNoDevices) {
+    return (
+      <div className="space-y-6">
+        {pageHeader}
+        <NoDevicesPrompt
+          scope={deviceScope === "org" && activeGroup ? "org" : "my"}
+          onRefresh={refreshData}
+          isRefreshing={isRefreshing}
+        />
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-6">
+      {pageHeader}
+
+      {activeError && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>{activeError}</AlertDescription>
+        </Alert>
+      )}
+
+      <DeviceSummaryCards
+        counts={{
+          total: totalDevicesCount,
+          tracked: trackedDevicesCount,
+          deployed: deployedDevicesCount,
+          online: onlineDevicesCount,
+          offline: offlineDevicesCount,
+        }}
+        isLoading={isDataLoading && !hasInitialData}
+      />
+
+      {/* Device List Section with Tabs */}
+      <Card className="hover:shadow-md transition-shadow">
+        <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent border-b">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <CardTitle className="flex items-center">
+              <BarChart3 className="mr-2 h-5 w-5 text-primary" />
+              Device List
+            </CardTitle>
+          </div>
+        </CardHeader>
+
+        <CardContent className="p-4">
+          <>
+            {/* Controls Container */}
+            <div data-tour="device-filters" className="flex flex-col md:flex-row md:items-center justify-between mb-4 gap-4">
+              {/* Search Input */}
+              <div className="relative flex-1 max-w-md">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  type="search"
+                  placeholder="Search by device name, ID, location, city, or country..."
+                  className="pl-8"
+                  value={searchTerm}
+                  onChange={(e) => {
+                    setSearchTerm(e.target.value)
+                    setCurrentPage(1) // Reset to first page when searching
+                  }}
+                />
+                {searchTerm && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-2 top-1.5 h-7 w-7 p-0"
+                    onClick={() => {
+                      setSearchTerm("")
+                      setCurrentPage(1)
+                    }}
+                  >
+                    <span className="sr-only">Clear search</span>
+                    ✕
+                  </Button>
+                )}
+              </div>
+
+              {/* Manufacturer filter */}
+              <div className="flex items-center gap-2">
+                <ManufacturerFilter
+                  options={manufacturerOptions}
+                  selected={networkFilter}
+                  onChange={handleManufacturerChange}
+                  loading={networksLoading}
+                />
+                {networkFilter.length > 0 && (
+                  <Button variant="ghost" size="sm" className="h-9 text-xs" onClick={() => handleManufacturerChange([])}>
+                    Clear
+                  </Button>
+                )}
+              </div>
+            </div>
+
+            {isDataLoading && !hasInitialData ? (
+              <LoadingState text="Loading devices..." className="py-8" />
+            ) : currentItems.length === 0 ? (
+              <div className="py-8 text-center text-gray-500">
+                <AlertCircle className="h-10 w-10 mx-auto mb-4 text-gray-400" />
+                <p>No devices found matching your criteria.</p>
+                <p className="text-sm mt-2">Try changing your search or filter settings.</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="bg-gray-50">
+                      <th className="text-left py-3 px-4 font-medium text-gray-600">Device Name</th>
+                      <th className="text-left py-3 px-4 font-medium text-gray-600">Deployment</th>
+                      {showHardwareColumns && (
+                        <>
+                          <th className="text-left py-3 px-4 font-medium text-gray-600">Category</th>
+                          <th className="text-left py-3 px-4 font-medium text-gray-600">Manufacturer</th>
+                        </>
+                      )}
+                      <th className="text-left py-3 px-4 font-medium text-gray-600">Channel / Serial</th>
+                      <th className="text-left py-3 px-4 font-medium text-gray-600">Network ID</th>
+                      <th className="text-left py-3 px-4 font-medium text-gray-600">Firmware</th>
+                      <th className="text-left py-3 px-4 font-medium text-gray-600">Location</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {currentItems.map((device, deviceIndex) => {
+                      const statusInfo = getStatusBadge(device)
+                      const deploymentInfo = getDeploymentBadge(device.status)
+                      const StatusIcon = statusInfo.icon
+                      const lastSeenTimestamp = getDeviceLastSeenTimestamp(device)
+                      const firmwareInfo = getFirmwareBadge(
+                        device.current_firmware,
+                        device.target_firmware,
+                        device.firmware_download_state
+                      )
+
+                      return (
+                        <tr
+                          key={device.device_id}
+                          data-tour={deviceIndex === 0 ? "device-row" : undefined}
+                          className="border-b hover:bg-gray-50 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset"
+                          onClick={() => handleRowClick(device.device_id)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault()
+                              handleRowClick(device.device_id)
+                            }
+                          }}
+                          tabIndex={0}
+                          role="button"
+                          aria-label={`View details for device ${device.device_name || device.device_id}`}
+                        >
+                          <td className="py-3 px-4">
+                            <div className="flex items-center gap-2">
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger>
+                                    <StatusIcon
+                                      className={`h-4 w-4 ${isDeviceOnline(device) ? 'text-green-500' : 'text-gray-400'}`}
+                                    />
+                                  </TooltipTrigger>
+                                  <TooltipContent className={isDeviceOnline(device) ? "bg-green-600 text-white border-green-600" : "bg-gray-600 text-white border-gray-600"}>
+                                    <p>Last updated: {lastSeenTimestamp ? new Date(lastSeenTimestamp).toLocaleString() : 'Never'}</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                              <span className="font-medium">{device.device_name || "Unnamed"}</span>
+                            </div>
+                          </td>
+                          <td className="py-3 px-4">
+                            <Badge className={`${deploymentInfo.className}`}>
+                              {deploymentInfo.text}
+                            </Badge>
+                          </td>
+                          {showHardwareColumns && (
+                            <>
+                              <td className="py-3 px-4">
+                                <span className="text-sm text-gray-600">
+                                  {formatCategoryLabel(device.category)}
+                                </span>
+                              </td>
+                              <td className="py-3 px-4">
+                                <div className="flex items-center gap-2">
+                                  <ManufacturerBadge network={device.network} />
+                                  <DataSourceIndicator dataSource={device.data_source} variant="icon" />
+                                </div>
+                              </td>
+                            </>
+                          )}
+                          <td className="py-3 px-4">
+                            {(() => {
+                              const identifier = getDeviceSourceIdentifier(device)
+                              return identifier ? (
+                                <span className="text-sm text-gray-600 font-mono" title={identifier.label}>
+                                  {identifier.value}
+                                </span>
+                              ) : (
+                                <span className="text-sm text-gray-400">-</span>
+                              )
+                            })()}
+                          </td>
+                          <td className="py-3 px-4" onClick={(e) => handleNetworkIdClick(device, e)}>
+                            <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-200 cursor-pointer transition-colors">
+                              {device.network_id || "Not Set"}
+                            </Badge>
+                          </td>
+                          <td className="py-3 px-4" onClick={(e) => handleFirmwareClick(device, e)}>
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Badge className={`${firmwareInfo.color} cursor-pointer transition-colors`}>
+                                    {firmwareInfo.text}
+                                  </Badge>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>{firmwareInfo.tooltip}</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </td>
+                          <td className="py-3 px-4">
+                            {device.location_name || device.city || device.country ? (
+                              <div className="flex flex-col">
+                                <span className="text-sm font-medium">
+                                  {device.location_name || "Unknown"}
+                                </span>
+                                {(device.city || device.country) && (
+                                  <span className="text-xs text-gray-500">
+                                    {[device.city, device.country].filter(Boolean).join(", ")}
+                                  </span>
+                                )}
+                              </div>
+                            ) : (
+                              <span className="text-gray-400 text-sm">No location</span>
+                            )}
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+
+                {/* Pagination */}
+                <div className="mt-4 pt-4 border-t">
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-gray-600">Items per page:</span>
+                      <Select
+                        value={itemsPerPage.toString()}
+                        onValueChange={(value) => {
+                          setItemsPerPage(Number(value));
+                          setCurrentPage(1);
+                        }}
+                      >
+                        <SelectTrigger className="w-[100px]">
+                          <SelectValue placeholder="Per page" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="10">10</SelectItem>
+                          <SelectItem value="15">15</SelectItem>
+                          <SelectItem value="20">20</SelectItem>
+                          <SelectItem value="25">25</SelectItem>
+                          <SelectItem value="30">30</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <Pagination
+                      currentPage={safeCurrentPage}
+                      totalPages={currentTotalPages || 1}
+                      onPageChange={setCurrentPage}
+                      showInfo={true}
+                      totalItems={currentTotalItems}
+                      itemsPerPage={itemsPerPage}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+          </>
+        </CardContent>
+      </Card>
+
+      {/* Update Device Dialog */}
+      <UpdateDeviceDialog
+        open={firmwareDialogOpen}
+        onOpenChange={setFirmwareDialogOpen}
+        device={selectedFirmwareDevice}
+        onUpdateSuccess={handleUpdateSuccess}
+      />
+    </div>
+  )
+}
