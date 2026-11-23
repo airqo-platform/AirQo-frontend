@@ -35,6 +35,7 @@ import { generateMapGeoJSON, computeGatewayCoverageStats } from "@/utils/lorawan
 import { useToast } from "@/hooks/use-toast"
 import { MAP_ITEM_NOUNS, countLabel, type MapItemNoun } from "@/lib/maintenance-map"
 import { trackEvent } from "@/lib/analytics"
+import { brandTitle, beaconConfig } from "@/beacon.config"
 
 interface MapExportDialogProps {
   open: boolean
@@ -102,7 +103,7 @@ export function MapExportDialog({
       const imageStr = canvas.toDataURL(mimeType, 0.95)
       const link = document.createElement("a")
       const timestamp = new Date().toISOString().slice(0, 10)
-      link.download = `airqo-maintenance-map-${timestamp}.${format}`
+      link.download = `${beaconConfig.org.slug}-maintenance-map-${timestamp}.${format}`
       link.href = imageStr
       link.click()
       trackEvent("data_exported", { source: "maintenance_map_export", format, row_count: devices.length })
@@ -165,7 +166,7 @@ export function MapExportDialog({
       pdf.setTextColor(255, 255, 255)
       pdf.setFontSize(14)
       pdf.setFont("helvetica", "bold")
-      pdf.text("AirQo Beacon — Maintenance & LoRaWAN Gateway Map Report", margin, 12)
+      pdf.text(`${brandTitle} — Maintenance & LoRaWAN Gateway Map Report`, margin, 12)
 
       pdf.setFontSize(8)
       pdf.setFont("helvetica", "normal")
@@ -213,7 +214,7 @@ export function MapExportDialog({
       }
 
       const timestamp = new Date().toISOString().slice(0, 10)
-      pdf.save(`airqo-maintenance-report-${timestamp}.pdf`)
+      pdf.save(`${beaconConfig.org.slug}-maintenance-report-${timestamp}.pdf`)
       trackEvent("data_exported", { source: "maintenance_map_export", format: "pdf", row_count: devices.length })
 
       toast({
@@ -246,7 +247,7 @@ export function MapExportDialog({
       const url = URL.createObjectURL(blob)
       const a = document.createElement("a")
       const timestamp = new Date().toISOString().slice(0, 10)
-      a.download = `airqo-maintenance-map-${timestamp}.geojson`
+      a.download = `${beaconConfig.org.slug}-maintenance-map-${timestamp}.geojson`
       a.href = url
       a.click()
       URL.revokeObjectURL(url)
@@ -329,7 +330,7 @@ export function MapExportDialog({
       const url = URL.createObjectURL(blob)
       const a = document.createElement("a")
       const timestamp = new Date().toISOString().slice(0, 10)
-      a.download = `airqo-maintenance-${itemNoun.plural}-${timestamp}.csv`
+      a.download = `${beaconConfig.org.slug}-maintenance-${itemNoun.plural}-${timestamp}.csv`
       a.href = url
       a.click()
       URL.revokeObjectURL(url)

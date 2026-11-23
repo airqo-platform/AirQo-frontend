@@ -1,7 +1,15 @@
 /**
  * Theme utilities for immediate theme application and persistence.
- * Mirrors the exact theme schema, tokens, and storage keys used in Nexus.
+ * The default primary colour is `org.primaryColor` from beacon.config.ts.
  */
+import { beaconConfig } from '@/beacon.config';
+
+/** `org.primaryColor` as a six-digit hex, which the inline theme script expects. */
+export const DEFAULT_PRIMARY_COLOR = (() => {
+  const hex = beaconConfig.org.primaryColor.replace('#', '');
+  const full = hex.length === 3 ? hex.split('').map((c) => c + c).join('') : hex;
+  return `#${full.toUpperCase()}`;
+})();
 
 export interface ThemeData {
   mode: 'light' | 'dark' | 'system';
@@ -33,7 +41,7 @@ export function parseThemeValue(raw: string | null): ThemeData | null {
   if (trimmed === 'light' || trimmed === 'dark' || trimmed === 'system') {
     return {
       mode: trimmed,
-      primaryColor: '#145FFF',
+      primaryColor: DEFAULT_PRIMARY_COLOR,
       interfaceStyle: 'default',
       contentLayout: 'wide',
     };
@@ -46,7 +54,7 @@ export function parseThemeValue(raw: string | null): ThemeData | null {
       if (parsed === 'light' || parsed === 'dark' || parsed === 'system') {
         return {
           mode: parsed,
-          primaryColor: '#145FFF',
+          primaryColor: DEFAULT_PRIMARY_COLOR,
           interfaceStyle: 'default',
           contentLayout: 'wide',
         };
@@ -54,7 +62,7 @@ export function parseThemeValue(raw: string | null): ThemeData | null {
     } else if (typeof parsed === 'object' && parsed !== null) {
       return {
         mode: parsed.mode || 'light',
-        primaryColor: parsed.primaryColor || parsed.color || '#145FFF',
+        primaryColor: parsed.primaryColor || parsed.color || DEFAULT_PRIMARY_COLOR,
         interfaceStyle: parsed.interfaceStyle || 'default',
         contentLayout: parsed.contentLayout || 'wide',
       };
@@ -156,7 +164,7 @@ export function applyThemeImmediately(theme: ThemeData): void {
   document.documentElement.style.setProperty('--primary', rgb);
   document.documentElement.style.setProperty('--ring', rgb);
 
-  // Derive lighter and darker shades matching Nexus
+  // Derive lighter and darker shades
   document.documentElement.style.setProperty('--primary-50', lightenRgb(rgb, 0.92));
   document.documentElement.style.setProperty('--primary-100', lightenRgb(rgb, 0.82));
   document.documentElement.style.setProperty('--primary-700', darkenRgb(rgb, 0.25));
@@ -196,7 +204,7 @@ export function initializeTheme(groupId?: string): void {
 
 /**
  * Get the theme script content as a string for head injection before React hydration.
- * Ensures zero-flicker on initial page load when opened from Nexus or refreshed.
+ * Ensures zero-flicker on initial page load.
  */
 export function getThemeScript(): string {
   return `
@@ -208,12 +216,12 @@ export function getThemeScript(): string {
           if (!val) return null;
           var trimmed = val.trim();
           if (trimmed === 'light' || trimmed === 'dark' || trimmed === 'system') {
-            return { mode: trimmed, primaryColor: '#145FFF' };
+            return { mode: trimmed, primaryColor: '${DEFAULT_PRIMARY_COLOR}' };
           }
           try {
             var obj = JSON.parse(trimmed);
             if (typeof obj === 'string') {
-              return { mode: obj, primaryColor: '#145FFF' };
+              return { mode: obj, primaryColor: '${DEFAULT_PRIMARY_COLOR}' };
             }
             return obj;
           } catch(e) { return null; }
@@ -239,13 +247,18 @@ export function getThemeScript(): string {
           }
         }
 
+        // 3. Nothing stored: the configured primary colour on the default light theme
+        if (!themeData) {
+          themeData = { mode: 'light', primaryColor: '${DEFAULT_PRIMARY_COLOR}' };
+        }
+
         if (themeData) {
           var mode = themeData.mode || 'light';
-          var primaryColor = themeData.primaryColor || '#145FFF';
+          var primaryColor = themeData.primaryColor || '${DEFAULT_PRIMARY_COLOR}';
 
           var hex = primaryColor.replace('#', '');
           if (!/^[0-9a-fA-F]{6}$/.test(hex)) {
-            hex = '145FFF';
+            hex = '${DEFAULT_PRIMARY_COLOR.slice(1)}';
           }
           var r = parseInt(hex.substring(0, 2), 16);
           var g = parseInt(hex.substring(2, 4), 16);

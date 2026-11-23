@@ -88,7 +88,7 @@ interface DeviceDiagnosticsPanelProps {
   deviceName?: string;
   /**
    * Show stored diagnoses only, without running evaluations or daily runs and without technician
-   * feedback. Used for partner organisations; AirQo staff get the full panel.
+   * feedback. Used for partner organisations; system group members get the full panel.
    */
   readOnly?: boolean;
 }

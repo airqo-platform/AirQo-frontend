@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react"
 import { normalizeDiscoveredOrganisations } from "@/lib/organisations"
 
 /**
- * Every active organisation the person could ask to join, the same list Nexus shows. Not having it
+ * Every active organisation the person could ask to join, the list the platform offers. Not having it
  * only shortens the switcher, so a failure is left to the caller rather than retried, and this
  * doesn't go through the handler that signs people out on a 401.
  */

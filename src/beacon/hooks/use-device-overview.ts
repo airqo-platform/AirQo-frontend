@@ -10,6 +10,7 @@ import {
   getMyDevicesForUI,
   getPersonalUserCohorts,
 } from "@/services/device-api.service"
+import { isSystemGroup } from "@/beacon.config"
 
 const NO_DEVICES: DeviceCounts = { total: 0, tracked: 0, deployed: 0, online: 0, offline: 0 }
 
@@ -29,9 +30,9 @@ async function fetchOrganisationCounts(group: string): Promise<DeviceCounts> {
   return { total, tracked: meta?.devicesInAtLeastOneCohort ?? 0, deployed, online, offline }
 }
 
-/** The organisations someone's own devices can come from: everything but the AirQo (personal) context. */
+/** The organisations someone's own devices can come from: everything but the system group (personal) context. */
 const personalGroupIds = (groups: UserGroup[]): string[] =>
-  groups.filter((group) => group.grp_title?.toLowerCase() !== "airqo").map((group) => group._id)
+  groups.filter((group) => !isSystemGroup(group.grp_title)).map((group) => group._id)
 
 async function fetchPersonalCounts(userId: string, groupIds: string[]): Promise<DeviceCounts> {
   const cohortIds = await getPersonalUserCohorts(userId)
@@ -41,7 +42,7 @@ async function fetchPersonalCounts(userId: string, groupIds: string[]): Promise<
 
 /**
  * Device counts for what the person is looking at: the organisation's fleet, or their own devices
- * when the AirQo (personal) context doesn't give them the fleet. Home uses this to choose between
+ * when the system group (personal) context doesn't give them the fleet. Home uses this to choose between
  * the setup steps and the returning layout.
  */
 export function useDeviceOverview() {

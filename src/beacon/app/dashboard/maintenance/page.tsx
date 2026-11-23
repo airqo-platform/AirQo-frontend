@@ -54,10 +54,11 @@ import {
   computeGatewayCoverageStats,
   calculateDistance,
   calculateSignalAttenuation,
-  KAMPALA_SAMPLE_GATEWAYS,
+  SAMPLE_GATEWAYS,
 } from "@/utils/lorawan-utils"
 import { CheckCircle2, ArrowRight, X, PanelLeftOpen, PanelLeftClose, Map as MapIcon, List, ChevronUp, ChevronDown, Navigation } from "lucide-react"
 import { trackEvent } from "@/lib/analytics"
+import { beaconConfig } from "@/beacon.config"
 
 // Dynamically import Map component to avoid SSR issues with Leaflet
 const MaintenanceMap = dynamic(() => import("@/components/maintenance/maintenance-map"), {
@@ -69,7 +70,12 @@ const MaintenanceMap = dynamic(() => import("@/components/maintenance/maintenanc
   ssr: false,
 })
 
-const DEFAULT_HOME_LOCATION = { latitude: 0.332078, longitude: 32.570473, name: "Head Office (Kampala)" }
+/** Where routes start from by default: `map.homeLocation`, else the map centre. */
+const DEFAULT_HOME_LOCATION = beaconConfig.map.homeLocation ?? {
+  latitude: beaconConfig.map.defaultCenter[0],
+  longitude: beaconConfig.map.defaultCenter[1],
+  name: `${beaconConfig.org.shortName} office`,
+}
 
 /** "Start → stop 9" for a Google Maps link over [start, stops…, start]. */
 function describeGoogleMapsLink(link: GoogleMapsLink, stopCount: number): string {
@@ -133,7 +139,7 @@ function MaintenancePageClient() {
   const router = useRouter()
   const searchParams = useSearchParams()
 
-  // Devices or sites, kept in `?view=` so it survives reloads; without it AirQo opens on
+  // Devices or sites, kept in `?view=` so it survives reloads; without it the system group opens on
   // devices and other organisations on sites
   const viewParam = searchParams?.get("view")
   const mapView: MaintenanceMapView = isMaintenanceMapView(viewParam)
@@ -235,8 +241,8 @@ function MaintenancePageClient() {
     if (loaded && loaded.length > 0 && !isOldSampleSeed) {
       setGateways(loaded)
     } else {
-      setGateways(KAMPALA_SAMPLE_GATEWAYS)
-      saveGatewaysToStorage(KAMPALA_SAMPLE_GATEWAYS)
+      setGateways(SAMPLE_GATEWAYS)
+      saveGatewaysToStorage(SAMPLE_GATEWAYS)
     }
   }, [])
 

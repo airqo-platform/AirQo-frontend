@@ -1,7 +1,7 @@
 'use client';
 
 import { ReactNode } from 'react';
-import { AqAirQo } from '@airqo/icons-react';
+import BrandLogo from '@/components/brand-logo';
 
 interface AuthLayoutProps {
   children: ReactNode;
@@ -12,7 +12,7 @@ interface AuthLayoutProps {
   subtitleClassName?: string;
 }
 
-const Logo = () => <AqAirQo className="h-9 w-14 text-primary" />;
+const Logo = () => <BrandLogo size={40} />;
 
 const AuthLayout = ({
   children,

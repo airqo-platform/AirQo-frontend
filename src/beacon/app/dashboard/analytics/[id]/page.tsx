@@ -409,7 +409,7 @@ export default function AirQloudDetailPage() {
   const [data, setData] = useState<AirQloudDetailData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  // The same window as the Sites page and Vertex's health cards
+  // The same window as the Sites page 
   const daysOfData = 14
 
   useEffect(() => {

@@ -478,7 +478,7 @@ export function profileDataset(
   }
   const columns = Array.from(columnSet)
 
-  // Unpack ExtraData if present (AirQo specific sensor format)
+  // Unpack ExtraData if present (vendor-specific sensor format)
   const extraDataCol = columns.find((c) => /extradata|extra/i.test(c))
   let data = rawData
 

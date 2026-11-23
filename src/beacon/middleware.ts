@@ -5,11 +5,13 @@ import type { NextRequest } from 'next/server'
 
 
 import { withAuth } from "next-auth/middleware"
+import { isSystemGroup } from "@/beacon.config"
+import { AUTH_SECRET, SESSION_COOKIE_NAME } from "@/lib/auth-secret"
 
 // Routes that don't require authentication
 const PUBLIC_ROUTES = [
   '/login',
-  '/register', 
+  '/register',
   '/forgot-password',
   '/reset-password'
 ]
@@ -23,10 +25,17 @@ const SKIP_PATHS = [
   '/public/'
 ]
 
-const isProduction = process.env.NODE_ENV === 'production';
-const sessionCookieName = isProduction
-  ? '__Secure-next-auth.session-token'
-  : 'next-auth.session-token';
+/**
+ * Members of the system group with admin rights land on the fleet overview. GroupProvider sets the
+ * `isSystemAdmin` cookie once it has the user's groups; before that the session's organisation decides.
+ */
+function isSystemAdminRequest(token: any, request: NextRequest): boolean {
+  const privilege = token?.privilege?.toLowerCase() ?? ''
+  const fromSession =
+    isSystemGroup(token?.organization) &&
+    (privilege.includes('admin') || privilege === 'super' || privilege === 'net admin')
+  return fromSession || request.cookies.get('isSystemAdmin')?.value === 'true'
+}
 
 export default withAuth(
   function middleware(request) {
@@ -38,14 +47,14 @@ export default withAuth(
     }
 
     const token = request.nextauth.token as any;
-    const expTime = token?.exp ?? token?.airqoExp;
+    const expTime = token?.exp ?? token?.accessTokenExp;
     // Add a 5-minute (300 seconds) grace period for clock drift
-    const isAirqoTokenExpired =
+    const isTokenExpired =
       typeof expTime === 'number' && Date.now() / 1000 > (expTime + 300);
-    const isAuthenticated = !!token && !isAirqoTokenExpired;
+    const isAuthenticated = !!token && !isTokenExpired;
     const isPublicRoute = PUBLIC_ROUTES.some(route => pathname.startsWith(route))
     const isOAuthCallback = request.nextUrl.searchParams.has('success') || request.nextUrl.searchParams.has('token')
-    
+
     // Redirect unauthenticated users to login, unless it's an OAuth callback
     // (We need to let the client handle OAuth callbacks to preserve the URL hash fragment)
     if (!isAuthenticated && !isPublicRoute && !isOAuthCallback) {
@@ -56,26 +65,13 @@ export default withAuth(
     
     // Redirect authenticated users away from auth pages
     if (isAuthenticated && isPublicRoute) {
-      // Check privilege/organization or falls back to isAirqoAdmin cookie
-      const isAirqoAdmin = (token?.organization?.toLowerCase() === 'airqo' && 
-                            (token?.privilege?.toLowerCase()?.includes('admin') || 
-                             token?.privilege?.toLowerCase() === 'super' || 
-                             token?.privilege?.toLowerCase() === 'net admin')) ||
-                           request.cookies.get('isAirqoAdmin')?.value === 'true'
-                             
-      const defaultRoute = isAirqoAdmin ? '/dashboard' : '/dashboard/home'
+      const defaultRoute = isSystemAdminRequest(token, request) ? '/dashboard' : '/dashboard/home'
       return NextResponse.redirect(new URL(defaultRoute, request.url))
     }
 
-    // Restrict access to /dashboard to AirQo Admins only
+    // The fleet overview (/dashboard) is for system group admins only
     if (pathname === '/dashboard' || pathname === '/dashboard/') {
-      const isAirqoAdmin = (token?.organization?.toLowerCase() === 'airqo' && 
-                            (token?.privilege?.toLowerCase()?.includes('admin') || 
-                             token?.privilege?.toLowerCase() === 'super' || 
-                             token?.privilege?.toLowerCase() === 'net admin')) ||
-                           request.cookies.get('isAirqoAdmin')?.value === 'true'
-                             
-      if (!isAirqoAdmin) {
+      if (!isSystemAdminRequest(token, request)) {
         return NextResponse.redirect(new URL('/dashboard/home', request.url))
       }
     }
@@ -89,7 +85,10 @@ export default withAuth(
     pages: {
       signIn: "/login",
     },
-    secret: process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET,
+    secret: AUTH_SECRET,
+    cookies: {
+      sessionToken: { name: SESSION_COOKIE_NAME },
+    },
   }
 )
 

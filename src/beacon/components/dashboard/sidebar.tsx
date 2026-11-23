@@ -21,6 +21,7 @@ import { FeedbackLauncher } from "@/components/features/feedback/feedback-launch
 import { useNavigationAccess } from "@/hooks/use-navigation-access"
 import type { NavModule } from "@/lib/navigation"
 import { cn } from "@/lib/utils"
+import { beaconConfig } from "@/beacon.config"
 
 interface SidebarProps {
   sidebarOpen: boolean
@@ -217,7 +218,7 @@ export default function Sidebar({ sidebarOpen, onToggleSidebar, activeModule }: 
           onMouseEnter={(e) => handleItemMouseEnter(item, e.currentTarget)}
           onMouseLeave={handleItemMouseLeave}
         >
-          {/* Nexus Active Indicator - Collapsed Mode */}
+          {/* Active Indicator - Collapsed Mode */}
           {isActive && (
             <div className="absolute top-0 bottom-0 flex items-center -left-2">
               <span className="w-1 bg-primary rounded-md h-1/2" aria-hidden="true" />
@@ -255,7 +256,7 @@ export default function Sidebar({ sidebarOpen, onToggleSidebar, activeModule }: 
         onMouseEnter={(e) => handleItemMouseEnter(item, e.currentTarget)}
         onMouseLeave={handleItemMouseLeave}
       >
-        {/* Nexus Active Indicator - Positioned outside the link container */}
+        {/* Active Indicator - Positioned outside the link container */}
         {isActive && (
           <div className="absolute top-0 bottom-0 flex items-center -left-2">
             <span className="w-1 bg-primary rounded-md h-1/2" aria-hidden="true" />
@@ -331,7 +332,7 @@ export default function Sidebar({ sidebarOpen, onToggleSidebar, activeModule }: 
           "h-full flex flex-col rounded-xl border border-border bg-card shadow-sm relative overflow-y-auto overflow-x-hidden"
         )}
       >
-        {/* Navigation List - grouped into sections like Vertex's secondary sidebar */}
+        {/* Navigation List - grouped into sections  */}
         <nav
           className="flex-1 px-3 py-4"
           aria-label={activeModule === "admin" ? "Administrative panel" : "Device navigation"}
@@ -351,53 +352,55 @@ export default function Sidebar({ sidebarOpen, onToggleSidebar, activeModule }: 
           ))}
         </nav>
 
-        {/* Bottom Section - Nexus Style Feedback Card */}
-        <div
-          className={cn(
-            "p-3 border-t border-border mt-auto",
-            !sidebarOpen && "px-1.5 py-3 flex justify-center"
-          )}
-        >
-          <button
-            type="button"
-            onClick={openFeedbackDialog}
-            title="Share feedback"
-            aria-label="Share feedback"
+        {/* Bottom Section - Feedback Card */}
+        {beaconConfig.features.feedback && (
+          <div
             className={cn(
-              "group flex w-full items-start gap-3 rounded-2xl border border-border bg-background px-3 py-3 text-left shadow-sm transition-colors hover:border-primary/30 hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40",
-              !sidebarOpen &&
-                "items-center justify-center gap-0 border-none bg-transparent px-0 py-0 shadow-none"
+              "p-3 border-t border-border mt-auto",
+              !sidebarOpen && "px-1.5 py-3 flex justify-center"
             )}
           >
-            <span
+            <button
+              type="button"
+              onClick={openFeedbackDialog}
+              title="Share feedback"
+              aria-label="Share feedback"
               className={cn(
-                "flex items-center justify-center transition-colors text-primary flex-shrink-0",
-                sidebarOpen
-                  ? "h-10 w-10 rounded-full bg-primary/10 group-hover:bg-primary/15"
-                  : "h-9 w-9 bg-primary/10 hover:bg-primary/20 rounded-full"
+                "group flex w-full items-start gap-3 rounded-2xl border border-border bg-background px-3 py-3 text-left shadow-sm transition-colors hover:border-primary/30 hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40",
+                !sidebarOpen &&
+                  "items-center justify-center gap-0 border-none bg-transparent px-0 py-0 shadow-none"
               )}
-              aria-hidden="true"
             >
-              <AqMessageNotificationSquare className="h-5 w-5" />
-            </span>
-
-            {sidebarOpen && (
-              <span className="min-w-0 flex-1">
-                <span className="block text-sm font-medium text-foreground">
-                  Share feedback
-                </span>
-                <span
-                  className={cn(
-                    "mt-0.5 block text-xs leading-relaxed text-muted-foreground truncate",
-                    "group-hover:whitespace-normal group-hover:overflow-visible"
-                  )}
-                >
-                  Tell us what is working well, what could be better, or any problems you&apos;ve faced.
-                </span>
+              <span
+                className={cn(
+                  "flex items-center justify-center transition-colors text-primary flex-shrink-0",
+                  sidebarOpen
+                    ? "h-10 w-10 rounded-full bg-primary/10 group-hover:bg-primary/15"
+                    : "h-9 w-9 bg-primary/10 hover:bg-primary/20 rounded-full"
+                )}
+                aria-hidden="true"
+              >
+                <AqMessageNotificationSquare className="h-5 w-5" />
               </span>
-            )}
-          </button>
-        </div>
+
+              {sidebarOpen && (
+                <span className="min-w-0 flex-1">
+                  <span className="block text-sm font-medium text-foreground">
+                    Share feedback
+                  </span>
+                  <span
+                    className={cn(
+                      "mt-0.5 block text-xs leading-relaxed text-muted-foreground truncate",
+                      "group-hover:whitespace-normal group-hover:overflow-visible"
+                    )}
+                  >
+                    Tell us what is working well, what could be better, or any problems you&apos;ve faced.
+                  </span>
+                </span>
+              )}
+            </button>
+          </div>
+        )}
       </Card>
 
       {/* Floating Tooltip in Collapsed Mode (Portal to body) */}
@@ -474,7 +477,7 @@ export default function Sidebar({ sidebarOpen, onToggleSidebar, activeModule }: 
           document.body
         )}
 
-      <FeedbackLauncher />
+      {beaconConfig.features.feedback && <FeedbackLauncher />}
     </aside>
   )
 }

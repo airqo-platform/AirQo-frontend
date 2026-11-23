@@ -15,6 +15,7 @@ import {
   SatisfactionFeedbackToast,
   SatisfactionToastDismissReason,
 } from "./satisfaction-feedback-toast";
+import { beaconConfig } from "@/beacon.config"
 
 const LOGIN_NEGATIVE_REASONS = [
   "It took too long to load",
@@ -99,7 +100,7 @@ const LoginFeedbackToast: React.FC = () => {
       resetKey={personId}
       promptSlotId="login-experience"
       title="How was your login experience?"
-      subtitle="Rate us to help improve Beacon"
+      subtitle={`Rate us to help improve ${beaconConfig.app.name}`}
       negativeReasons={LOGIN_NEGATIVE_REASONS}
       onPositiveSubmit={() => submitLoginFeedback(5)}
       onNegativeSubmit={(description) => submitLoginFeedback(1, description)}

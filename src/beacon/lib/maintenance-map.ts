@@ -1,6 +1,7 @@
 import type { MaintenanceMapItem, MaintenanceMapSite } from "@/types/api.types"
 import { cheapestInsertionKm, haversineDistance, type Coordinates } from "@/utils/routing-utils"
 import { formatCompactNumber } from "@/lib/utils"
+import { isSystemGroup } from "@/beacon.config"
 
 /** What the maintenance map plots: one marker per device, or per site with its devices rolled up. */
 export type MaintenanceMapView = "devices" | "sites"
@@ -10,9 +11,9 @@ export const MAINTENANCE_MAP_VIEWS: readonly MaintenanceMapView[] = ["devices", 
 export const isMaintenanceMapView = (value: unknown): value is MaintenanceMapView =>
   value === "devices" || value === "sites"
 
-/** AirQo looks after its devices; other organisations think in terms of their sites. */
+/** The system group looks after its devices; other organisations think in terms of their sites. */
 export const getDefaultMaintenanceMapView = (activeGroup: string | null | undefined): MaintenanceMapView =>
-  activeGroup?.toLowerCase() === "airqo" ? "devices" : "sites"
+  isSystemGroup(activeGroup) ? "devices" : "sites"
 
 export interface MapItemNoun {
   singular: string

@@ -63,8 +63,8 @@ export class FeedbackService {
   private readonly defaultRequestTimeoutMs: number;
 
   constructor() {
-    // User feedback is sent to staging on localhost, and to the appropriate platform URL otherwise
-    this.baseUrl = config.isLocalhost ? 'https://staging-platform.airqo.net' : config.airqoPlatformUrl;
+    // Feedback goes to the platform API
+    this.baseUrl = config.platformUrl;
     this.apiPrefix = '/api/v2';
     this.defaultRequestTimeoutMs = 10000;
   }

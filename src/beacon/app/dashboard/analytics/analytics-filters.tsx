@@ -220,7 +220,7 @@ export default function AnalyticsFilters({
 
           const canFallback = resolvedAirqlouds.length === 0 && !searchTerm.trim()
           if (canFallback) {
-            // Only tags this organisation may see, so the fallback never surfaces hardware cohorts outside AirQo
+            // Only tags this organisation may see, so the fallback never surfaces hardware cohorts outside the system group
             const fallbackTags = [lastSuccessfulCohortTagRef.current, ...availableTags].filter(
               (tag, index, arr) => availableTags.includes(tag) && arr.indexOf(tag) === index && !effectiveTags.includes(tag)
             )

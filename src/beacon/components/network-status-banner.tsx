@@ -3,6 +3,7 @@
 import { CheckCircle2, Loader2, WifiOff } from "lucide-react"
 import { useNetworkStatus } from "@/hooks/use-network-status"
 import { cn } from "@/lib/utils"
+import { beaconConfig } from "@/beacon.config"
 
 const MESSAGES = {
   offline: {
@@ -11,7 +12,7 @@ const MESSAGES = {
   },
   reconnecting: {
     title: "Reconnecting…",
-    detail: "Your network is back, but Beacon can't be reached yet.",
+    detail: `Your network is back, but ${beaconConfig.app.name} can't be reached yet.`,
   },
   restored: {
     title: "Back online.",

@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect, useMemo } from "react"
-import { useSearchParams } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Activity, RefreshCw, CalendarIcon, AlertCircle, TrendingUp, BarChart3, Clock, ChevronDown, ChevronUp, Battery } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -14,7 +13,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { cn, formatCompactNumber } from "@/lib/utils"
 import { format, subDays } from "date-fns"
 import { getDevicePerformanceData } from "@/services/device-api.service"
-import { isMockMode } from "@/lib/mock-data"
 import { useToast } from "@/hooks/use-toast"
 import { DeviceHourHeatmaps, type HeatmapDevice } from "@/components/analytics/device-heatmap"
 import { useGroup } from "@/lib/group-context"
@@ -67,7 +65,7 @@ interface RawDataPoint {
   battery_voltage?: number | null
   /**
    * Every numeric reading in the point, keyed by the label the API returned. Labels come from the
-   * device's profile and differ per manufacturer ("pm2.5 sensor1" for AirQo, "PM2.5" or "CO2" for others).
+   * device's profile and differ per manufacturer ("pm2.5 sensor1" for dual-sensor hardware, "PM2.5" or "CO2" for others).
    */
   readings: Record<string, number>
 }
@@ -151,8 +149,6 @@ interface DeviceSummary {
 export default function PerformanceTab({ deviceId, deviceName }: Readonly<PerformanceTabProps>) {
   const { toast } = useToast()
   const { activeGroup, loading: groupLoading } = useGroup()
-  const searchParams = useSearchParams()
-  const isMock = searchParams?.get('mock') === 'true'
   const [performanceData, setPerformanceData] = useState<PerformanceData[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -178,7 +174,7 @@ export default function PerformanceTab({ deviceId, deviceName }: Readonly<Perfor
   const [includeTime, setIncludeTime] = useState(false)
 
   const fetchPerformanceData = async () => {
-    if (!isMock && !isMockMode() && (groupLoading || !activeGroup)) {
+    if (groupLoading || !activeGroup) {
       return
     }
 
@@ -186,51 +182,6 @@ export default function PerformanceTab({ deviceId, deviceName }: Readonly<Perfor
       setLoading(true)
       setError(null)
 
-      if (isMock || isMockMode()) {
-        // Provide dummy performance data
-        const mockRawData: RawDataPoint[] = []
-        const start = dateRange.from || fourteenDaysAgo
-        const end = dateRange.to || yesterday
-        const days = Math.ceil((end.getTime() - start.getTime()) / (1000 * 3600 * 24)) + 1
-        
-        for (let i = 0; i < days; i++) {
-          const date = new Date(start)
-          date.setDate(date.getDate() + i)
-          mockRawData.push({
-            datetime: date.toISOString(),
-            pm2_5: 10 + Math.random() * 20,
-            pm10: 15 + Math.random() * 25,
-            s1_pm2_5: 11 + Math.random() * 19,
-            s2_pm2_5: 9 + Math.random() * 21,
-            s1_pm10: 16 + Math.random() * 24,
-            s2_pm10: 14 + Math.random() * 26,
-            temperature: 22 + Math.random() * 8,
-            humidity: 50 + Math.random() * 30,
-            battery_voltage: 3.8 + Math.random() * 0.4,
-            device_name: deviceName,
-            readings: {},
-          })
-        }
-        for (const point of mockRawData) {
-          point.readings = collectReadings(point)
-        }
-
-        const mockPerformance: PerformanceData = {
-          device_name: deviceName,
-          uptime: 95.5,
-          data_completeness: 98.2,
-          sensor_error_margin: 2.4,
-          raw_data: mockRawData,
-          labels: Object.keys(mockRawData[0]?.readings ?? {}),
-          averages: {},
-        }
-
-        // Simulate network delay
-        await new Promise(resolve => setTimeout(resolve, 500))
-        setPerformanceData([mockPerformance])
-        setLoading(false)
-        return
-      }
 
       if (!dateRange.from || !dateRange.to) {
         toast({
@@ -265,7 +216,7 @@ export default function PerformanceTab({ deviceId, deviceName }: Readonly<Perfor
       // response is already unwrapped to the data array by the service
       const data = Array.isArray(response) ? response : []
       // Normalize: the API returns data points under `data` keyed by the labels of the device's
-      // profile: "pm2.5 sensor1" / "pm2.5 sensor2" / "battery" for AirQo hardware, "PM2.5" / "CO2" /
+      // profile: "pm2.5 sensor1" / "pm2.5 sensor2" / "battery" for dual-sensor hardware, "PM2.5" / "CO2" /
       // "WiFi Signal" for other manufacturers. The well-known metrics are matched tolerantly and
       // every numeric label is kept in `readings` so charts can show whatever the device reports.
       const normalized: PerformanceData[] = data.map((device: any) => {
@@ -444,7 +395,7 @@ export default function PerformanceTab({ deviceId, deviceName }: Readonly<Perfor
         deviceName: device.device_name,
         chartData,
         correlationData,
-        // Only AirQo low-cost hardware carries two PM sensors; other manufacturers report one, so
+        // Only some low-cost hardware carries two PM sensors; other manufacturers report one, so
         // the inter-sensor charts have nothing to show for them.
         hasSensorPair: correlationData.length > 0,
         hasBattery: chartData.some((bucket) => bucket.battery_voltage != null),

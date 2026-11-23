@@ -20,10 +20,11 @@ import { useTour } from "@/components/tour/tour-provider"
 import { useDeviceOverview } from "@/hooks/use-device-overview"
 import { useNavigationAccess } from "@/hooks/use-navigation-access"
 import { useRecentlyVisited } from "@/hooks/use-recently-visited"
-import { APP_LINKS } from "@/lib/app-links"
+import { APP_LINKS, inApp } from "@/lib/app-links"
 import { trackEvent } from "@/lib/analytics"
 import { useGroup } from "@/lib/group-context"
 import { getDevicesHome, isRouteAccessible } from "@/lib/navigation"
+import { beaconConfig, isSystemGroup } from "@/beacon.config"
 
 const MAX_RECENT_PAGES = 3
 
@@ -107,10 +108,10 @@ function SetupLayout({
     <div className="space-y-8" data-tour="home-content">
       <header className="space-y-2">
         <p className="text-sm text-muted-foreground">Welcome, {firstName}</p>
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">Set up Beacon</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">Set up {beaconConfig.app.name}</h1>
         <p className="max-w-2xl text-sm text-muted-foreground">
-          Beacon tracks how your devices are doing and what needs fixing. It fills up once you have a device or
-          an organisation.
+          {beaconConfig.app.name} tracks how your devices are doing and what needs fixing. It fills up once you have
+          a device or an organisation.
         </p>
       </header>
 
@@ -126,11 +127,15 @@ function SetupLayout({
             </span>
             <h3 className="text-base font-semibold text-foreground">Add your first device</h3>
             <p className="flex-1 text-sm text-muted-foreground">
-              Claim an AirQo device or import your own in Vertex. It then appears under {deviceListName} here.
+              {deviceLink
+                ? `${inApp("Add or claim a device", APP_LINKS.deviceManagementName || "your device management app")}. It then appears under ${deviceListName} here.`
+                : `Once a device is registered with your organisation, it appears under ${deviceListName} here.`}
             </p>
-            <ExternalAppLink href={deviceLink} destination="vertex" source="home_first_device" className="self-start">
-              Add a device in Vertex
-            </ExternalAppLink>
+            {deviceLink && (
+              <ExternalAppLink href={deviceLink} destination={APP_LINKS.deviceManagementKey} source="home_first_device" className="self-start">
+                {inApp("Add a device", APP_LINKS.deviceManagementName)}
+              </ExternalAppLink>
+            )}
           </Card>
 
           <Card className="flex flex-col gap-3 p-6">
@@ -153,18 +158,22 @@ function SetupLayout({
             ) : (
               <>
                 <p className="flex-1 text-sm text-muted-foreground">
-                  Ask to join in Nexus, or request a new organisation. Once you&apos;re approved, switch to it here
-                  to see its devices, sites and reports.
+                  {APP_LINKS.organisationAccessName
+                    ? `Ask to join in ${APP_LINKS.organisationAccessName}, or request a new organisation.`
+                    : "Ask your organisation\u2019s admin to add you."}{" "}
+                  Once you&apos;re approved, switch to it here to see its devices, sites and reports.
                 </p>
-                <ExternalAppLink
-                  href={APP_LINKS.nexus}
-                  destination="nexus"
-                  source="home_find_organisation"
-                  variant="outline"
-                  className="self-start"
-                >
-                  Find it in Nexus
-                </ExternalAppLink>
+                {APP_LINKS.organisationAccess && (
+                  <ExternalAppLink
+                    href={APP_LINKS.organisationAccess}
+                    destination={APP_LINKS.organisationAccessKey}
+                    source="home_find_organisation"
+                    variant="outline"
+                    className="self-start"
+                  >
+                    {APP_LINKS.organisationAccessName ? `Find it in ${APP_LINKS.organisationAccessName}` : "Request access"}
+                  </ExternalAppLink>
+                )}
               </>
             )}
           </Card>
@@ -172,7 +181,7 @@ function SetupLayout({
       </section>
 
       <section aria-labelledby="home-features-title" className="space-y-3">
-        <SectionTitle id="home-features-title">What you can do in Beacon</SectionTitle>
+        <SectionTitle id="home-features-title">What you can do in {beaconConfig.app.name}</SectionTitle>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {features.map((feature) => (
             <FeatureCard key={feature.id} feature={feature} title={feature.title} lockedLabel={lockedLabel} />
@@ -180,10 +189,12 @@ function SetupLayout({
         </div>
       </section>
 
-      <Button variant="link" className="h-auto gap-2 p-0" onClick={onStartTour}>
-        <AqPlayCircle className="h-4 w-4" aria-hidden="true" />
-        Take the tour
-      </Button>
+      {beaconConfig.features.productTours && (
+        <Button variant="link" className="h-auto gap-2 p-0" onClick={onStartTour}>
+          <AqPlayCircle className="h-4 w-4" aria-hidden="true" />
+          Take the tour
+        </Button>
+      )}
     </div>
   )
 }
@@ -197,7 +208,7 @@ function ReturningLayout({
   features,
   lockedLabel,
   onStartTour,
-  vertexHref,
+  deviceManagementHref,
 }: Readonly<{
   firstName: string
   overview: ReturnType<typeof useDeviceOverview>
@@ -206,7 +217,7 @@ function ReturningLayout({
   features: HomeFeature[]
   lockedLabel: string
   onStartTour: () => void
-  vertexHref: string
+  deviceManagementHref: string
 }>) {
   return (
     <div className="space-y-8" data-tour="home-content">
@@ -278,28 +289,34 @@ function ReturningLayout({
       </section>
 
       <nav aria-label="More options" className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm font-medium">
-        <Button variant="link" className="h-auto gap-2 p-0" onClick={onStartTour}>
-          <AqPlayCircle className="h-4 w-4" aria-hidden="true" />
-          Take the tour
-        </Button>
-        <a
-          href={vertexHref}
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={() => trackEvent("app_link_opened", { destination: "vertex", source: "home_add_devices" })}
-          className="text-primary hover:underline"
-        >
-          Add devices in Vertex
-        </a>
-        <a
-          href={APP_LINKS.nexusRequestOrganisation}
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={() => trackEvent("app_link_opened", { destination: "nexus", source: "home_request_organisation" })}
-          className="text-primary hover:underline"
-        >
-          Request a new organisation
-        </a>
+        {beaconConfig.features.productTours && (
+          <Button variant="link" className="h-auto gap-2 p-0" onClick={onStartTour}>
+            <AqPlayCircle className="h-4 w-4" aria-hidden="true" />
+            Take the tour
+          </Button>
+        )}
+        {deviceManagementHref && (
+          <a
+            href={deviceManagementHref}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => trackEvent("app_link_opened", { destination: APP_LINKS.deviceManagementKey, source: "home_add_devices" })}
+            className="text-primary hover:underline"
+          >
+            {inApp("Add devices", APP_LINKS.deviceManagementName)}
+          </a>
+        )}
+        {APP_LINKS.organisationAccessRequest && (
+          <a
+            href={APP_LINKS.organisationAccessRequest}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => trackEvent("app_link_opened", { destination: APP_LINKS.organisationAccessKey, source: "home_request_organisation" })}
+            className="text-primary hover:underline"
+          >
+            Request a new organisation
+          </a>
+        )}
       </nav>
     </div>
   )
@@ -340,10 +357,10 @@ export function HomePage() {
 
   const organisationNames = availableGroups
     .map((group) => group.grp_title)
-    .filter((title) => title?.toLowerCase() !== "airqo")
+    .filter((title) => !isSystemGroup(title))
   const features = getHomeFeatures(access)
   const lockedLabel = organisationNames.length > 0 ? "Switch organisation to use this" : "Needs an organisation"
-  const deviceLink = access.isPersonalContext ? APP_LINKS.vertexMyDevices : APP_LINKS.vertexOrgDevices
+  const deviceLink = access.isPersonalContext ? APP_LINKS.deviceManagementMyDevices : APP_LINKS.deviceManagementOrgDevices
 
   // A failed count says nothing about whether they have devices, so it never reads as "no devices"
   if (overview.data?.total === 0) {
@@ -371,7 +388,7 @@ export function HomePage() {
       features={features}
       lockedLabel={lockedLabel}
       onStartTour={() => startTour(null, "home")}
-      vertexHref={deviceLink}
+      deviceManagementHref={deviceLink}
     />
   )
 }

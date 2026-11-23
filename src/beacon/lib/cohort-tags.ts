@@ -1,18 +1,20 @@
+import { beaconConfig, isSystemGroup } from "@/beacon.config"
+
 /**
  * Cohort tags offered in the analytics filters. Every organisation starts on its organisational
- * cohorts; hardware cohorts are AirQo's own test groupings, so only the AirQo organisation sees them.
+ * cohorts; hardware cohorts are the operator's own test groupings, so only the system group sees them.
  */
 export const DEFAULT_COHORT_TAG = "organizational"
 
 const COHORT_TAGS = ["organizational", "hardware", "duplicate", "inlab", "misc"]
 
 export function cohortTagsFor(activeGroup: string | null | undefined): string[] {
-  return activeGroup?.toLowerCase() === "airqo" ? COHORT_TAGS : COHORT_TAGS.filter((tag) => tag !== "hardware")
+  return isSystemGroup(activeGroup) ? COHORT_TAGS : COHORT_TAGS.filter((tag) => tag !== "hardware")
 }
 
-const DEFAULT_COHORT_NAME = "airqo"
+const DEFAULT_COHORT_NAME = beaconConfig.auth.systemGroupSlug.toLowerCase()
 
-/** The default cohort holds every AirQo device, so it isn't a cluster anyone works with or selects. */
+/** The default cohort holds every device, so it isn't a cluster anyone works with or selects. */
 export const isDefaultCohort = (name: string | null | undefined): boolean =>
   name?.trim().toLowerCase() === DEFAULT_COHORT_NAME
 

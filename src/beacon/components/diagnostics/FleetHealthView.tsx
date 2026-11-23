@@ -57,9 +57,9 @@ const DIAGNOSTICS_TOOLS = [
 
 
 interface FleetHealthViewProps {
-  /** Group title whose devices are summarised; the AirQo group covers the whole fleet. */
+  /** Group title whose devices are summarised; the system group covers the whole fleet. */
   group: string;
-  /** AirQo staff tools: running and backfilling diagnoses, the bench simulator and device profiles. */
+  /** system group members tools: running and backfilling diagnoses, the bench simulator and device profiles. */
   canManage: boolean;
   title: string;
   description: string;

@@ -5,7 +5,7 @@ import { trackEvent } from "@/lib/analytics"
 
 interface ExternalAppLinkProps {
   href: string
-  /** For analytics: the app it opens ("vertex", "nexus") and the prompt it's in. */
+  /** For analytics: the app it opens ("device_management", "organisation_access") and the prompt it's in. */
   destination: string
   source: string
   children: ReactNode
@@ -14,7 +14,7 @@ interface ExternalAppLinkProps {
   className?: string
 }
 
-/** A button-styled link to another AirQo app. Opens in a new tab, so Beacon stays where it was. */
+/** A button-styled link to a companion app. Opens in a new tab, so this app stays where it was. */
 export function ExternalAppLink({
   href,
   destination,

@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { config } from '@/lib/config';
+import { handleMockRequest } from '@/lib/mock';
 
-// Same platform as the sign-in (lib/auth.ts): a token only works on the platform that issued it.
-const AIRQO_API_BASE_URL = config.airqoPlatformUrl;
+/** Forwards /api/proxy/{path} to the platform API's /api/{path}; the mock backend answers in-process. */
+const PLATFORM_API_BASE_URL = config.platformUrl;
 
 async function handleProxy(request: NextRequest, { params }: { params: { path: string[] } }) {
   try {
@@ -10,11 +11,22 @@ async function handleProxy(request: NextRequest, { params }: { params: { path: s
     const path = pathSegments.join('/');
     const searchParams = request.nextUrl.searchParams.toString();
     const query = searchParams ? `?${searchParams}` : '';
+
+    if (config.isMockBackend) {
+      const text = request.method === 'GET' || request.method === 'HEAD' ? '' : await request.text();
+      let body: unknown = null;
+      try {
+        body = text ? JSON.parse(text) : null;
+      } catch {
+        body = text;
+      }
+      return handleMockRequest('platform', request.method, `api/${path}`, request.nextUrl.searchParams, body);
+    }
     
     // Construct the destination URL correctly.
     // Ensure we don't duplicate 'api/' if it's already in the path or base URL incorrectly
     // The request to /api/proxy/v2/users/... will have pathSegments = ['v2', 'users', ...]
-    const targetUrl = `${AIRQO_API_BASE_URL}/api/${path}${query}`;
+    const targetUrl = `${PLATFORM_API_BASE_URL}/api/${path}${query}`;
 
     // Forward relevant headers
     const headers = new Headers();

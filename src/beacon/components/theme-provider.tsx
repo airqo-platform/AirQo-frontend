@@ -28,7 +28,7 @@ export function ThemeProvider({ children, activeGroupId }: ThemeProviderProps) {
   }, [activeGroupId])
 
   // 2. Cross-tab & Cross-app live theme synchronization
-  // Listens for localStorage updates made in Nexus (or another tab on same origin)
+  // Listens for localStorage updates made in another tab on the same origin
   React.useEffect(() => {
     if (typeof window === 'undefined') return
 

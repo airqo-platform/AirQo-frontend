@@ -1,4 +1,5 @@
 import type { DeviceDataSource, NetworkSummary } from "@/types/network.types"
+import { beaconConfig } from "@/beacon.config"
 
 /**
  * Sensor manufacturers. On the platform a device's `network` is the manufacturer or data
@@ -23,6 +24,10 @@ const NETWORK_LABELS: Record<string, string> = {
   nasa: "NASA",
   tahmo: "TAHMO",
   airnow: "AirNow",
+  // The mock backend's demo manufacturers (lib/mock/fleet.ts)
+  acme: "Acme Sensors",
+  nimbus: "Nimbus Labs",
+  terra: "TerraSense",
 }
 
 const NETWORK_TONES: Record<string, string> = {
@@ -36,6 +41,9 @@ const NETWORK_TONES: Record<string, string> = {
   airly: "bg-teal-100 text-teal-800 border-teal-200",
   plumelabs: "bg-rose-100 text-rose-800 border-rose-200",
   "quant-aq": "bg-orange-100 text-orange-800 border-orange-200",
+  acme: "bg-blue-100 text-blue-800 border-blue-200",
+  nimbus: "bg-emerald-100 text-emerald-800 border-emerald-200",
+  terra: "bg-amber-100 text-amber-800 border-amber-200",
 }
 
 const DEFAULT_NETWORK_TONE = "bg-gray-100 text-gray-800 border-gray-200"
@@ -89,7 +97,7 @@ export const DATA_SOURCE_META: Record<DeviceDataSource, DataSourceMeta> = {
     label: "No data path",
     shortLabel: "No data",
     description:
-      "Beacon has no way to read this device yet, so it shows no readings and counts as offline. It needs a ThingSpeak channel and read key, or a serial number and connection URL for a manufacturer with a working adapter.",
+      `${beaconConfig.app.name} has no way to read this device yet, so it shows no readings and counts as offline. It needs a ThingSpeak channel and read key, or a serial number and connection URL for a manufacturer with a working adapter.`,
     tone: "bg-gray-100 text-gray-600 border-gray-200",
   },
 }
@@ -109,7 +117,7 @@ export interface DataSourceInput {
 
 /**
  * The data source the API reports, or the best guess for an older beacon-api build that doesn't
- * send one: those builds only mirrored AirQo devices, which read from ThingSpeak when they have a channel.
+ * send one: those builds only mirrored channel-based devices, which read from ThingSpeak when they have a channel.
  */
 export function resolveDeviceDataSource(device: DataSourceInput | null | undefined): DeviceDataSource {
   if (!device) return "none"
@@ -128,7 +136,7 @@ export interface SourceIdentifierInput extends DataSourceInput {
 }
 
 /**
- * The identifier that locates a device at its data source: the ThingSpeak channel for AirQo
+ * The identifier that locates a device at its data source: the ThingSpeak channel for channel-based
  * devices, the manufacturer serial number for everything else. Null when neither is recorded.
  */
 export function getDeviceSourceIdentifier(

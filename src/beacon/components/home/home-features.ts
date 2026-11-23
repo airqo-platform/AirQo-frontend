@@ -9,6 +9,7 @@ import {
 } from "@airqo/icons-react"
 import type { NavIcon } from "@/components/dashboard/nav-config"
 import { ROUTES, type NavigationAccess } from "@/lib/navigation"
+import { beaconConfig } from "@/beacon.config"
 
 export interface HomeFeature {
   id: string
@@ -98,12 +99,19 @@ const FEATURES: FeatureDefinition[] = [
 ]
 
 /**
- * The parts of Beacon to offer on Home. Pages that need an organisation stay listed as locked, so
- * someone new can see what Beacon does. AirQo staff get no locked entries: the one page their
+ * The parts of the app to offer on Home. Pages that need an organisation stay listed as locked, so
+ * someone new can see what the app does. system group members get no locked entries: the one page their
  * admin context hides, Network Health, has a counterpart in the admin panel.
  */
+/** Home entries for features switched off in beacon.config.ts are left out, not shown as locked. */
+const FEATURE_FLAGS: Record<string, boolean> = {
+  maintenance: beaconConfig.features.maintenanceMap,
+  reports: beaconConfig.features.reports,
+}
+
 export function getHomeFeatures(access: NavigationAccess): HomeFeature[] {
   return FEATURES.flatMap(({ isAvailable, hideWhenUnavailable, ...feature }) => {
+    if (FEATURE_FLAGS[feature.id] === false) return []
     const available = isAvailable(access)
     if (!available && (hideWhenUnavailable || access.canAccessAdminPanel)) return []
     return [{ ...feature, available }]

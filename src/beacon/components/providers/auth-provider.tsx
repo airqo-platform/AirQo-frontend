@@ -1,85 +1,39 @@
 'use client';
 
-import { SessionProvider, signIn, useSession } from 'next-auth/react';
-import { useEffect, useState, ReactNode } from 'react';
-import { consumeOAuthTokenHandoffFromUrl, isSupportedSocialAuthProvider } from '@/lib/oauth-session';
-import { markLoginStarted } from '@/lib/feedback-preferences';
+import { SessionProvider, useSession } from 'next-auth/react';
+import { useEffect, ReactNode } from 'react';
 import authService from '@/services/api-service';
-import { LoadingOverlay } from '@/components/ui/loading-overlay';
+import { AuthHandoff } from '@/components/integration';
 
+/** Mirrors the session into authService, which the API services read the token from. */
 function AuthEffect({ children }: { children: ReactNode }) {
   const { data: session, status } = useSession();
-  const [handoffProcessed, setHandoffProcessed] = useState(false);
-  const [isHandlingHandoff, setIsHandlingHandoff] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return window.location.hash.includes('token=');
-    }
-    return false;
-  });
 
   useEffect(() => {
     if (status === 'authenticated' && session) {
       const rawToken = session.accessToken ? session.accessToken.replace(/^(JWT|Bearer)\s+/i, '') : '';
       authService.setToken(rawToken ? `JWT ${rawToken}` : null);
-      
+
       const rawUser = session.user;
       if (rawUser) {
         authService.setUserData({
           id: (rawUser as any).id,
-          _id: (rawUser as any)._id,
+          _id: rawUser._id,
           first_name: rawUser.firstName,
           last_name: rawUser.lastName,
           firstName: rawUser.firstName,
           lastName: rawUser.lastName,
           email: rawUser.email,
-          userName: (rawUser as any).userName,
-          phone: (rawUser as any).phoneNumber,
-          role: (rawUser as any).privilege || 'user',
+          userName: rawUser.userName,
+          phone: rawUser.phoneNumber,
+          role: rawUser.privilege || 'user',
         });
-      }
-      
-      if (isHandlingHandoff) {
-        setIsHandlingHandoff(false);
       }
     } else if (status === 'unauthenticated') {
       authService.setToken(null);
       authService.setUserData(null);
     }
-  }, [session, status, isHandlingHandoff]);
-
-  useEffect(() => {
-    if (handoffProcessed) return;
-
-    const handoff = consumeOAuthTokenHandoffFromUrl();
-    if (handoff) {
-      setHandoffProcessed(true);
-      
-      const callbackUrl = handoff.callbackUrl || '/dashboard/home';
-      // Lets the dashboard follow this sign-in with the login experience prompt
-      // The provider comes from the URL: anything unrecognised is recorded as plain 'oauth'
-      markLoginStarted(isSupportedSocialAuthProvider(handoff.provider) ? handoff.provider : 'oauth');
-      
-      signIn('credentials', {
-        oauthToken: handoff.token,
-        oauthProvider: handoff.provider,
-        redirect: true,
-        callbackUrl: callbackUrl,
-      });
-    } else {
-      setIsHandlingHandoff(false);
-    }
-  }, [handoffProcessed]);
-
-  if (isHandlingHandoff || (status === 'unauthenticated' && typeof window !== 'undefined' && window.location.hash.includes('token='))) {
-    return (
-      <LoadingOverlay
-        isVisible
-        delayMs={0}
-        title="Completing sign in..."
-        description="Setting up your authenticated session..."
-      />
-    );
-  }
+  }, [session, status]);
 
   return <>{children}</>;
 }
@@ -87,7 +41,9 @@ function AuthEffect({ children }: { children: ReactNode }) {
 export function AuthProvider({ children }: { children: ReactNode }) {
   return (
     <SessionProvider>
-      <AuthEffect>{children}</AuthEffect>
+      <AuthEffect>
+        <AuthHandoff>{children}</AuthHandoff>
+      </AuthEffect>
     </SessionProvider>
   );
 }

@@ -32,8 +32,8 @@ function formatOrganisationName(title: string): string {
 
 /**
  * GroupSelector — badge in the header bar that opens a centered modal listing the person's
- * organisations and, as in Nexus, the others they could join. Beacon only switches between
- * organisations: access is requested in Nexus, so those rows link out.
+ * organisations and the others they could join. This app only switches between
+ * organisations: access is requested elsewhere, so those rows link out when `links.organisationAccessUrl` is set.
  */
 export default function GroupSelector() {
   const { activeGroup, availableGroups, setActiveGroup, loading } = useGroup()
@@ -122,7 +122,8 @@ export default function GroupSelector() {
             </DialogTitle>
             <DialogDescription>
               You&apos;re in {availableGroups.length}{" "}
-              {availableGroups.length === 1 ? "organisation" : "organisations"}. Join others through Nexus.
+              {availableGroups.length === 1 ? "organisation" : "organisations"}.
+              {APP_LINKS.organisationAccessName && ` Join others through ${APP_LINKS.organisationAccessName}.`}
             </DialogDescription>
           </DialogHeader>
 
@@ -154,19 +155,21 @@ export default function GroupSelector() {
                     <div className="flex-1 min-w-0 text-sm font-medium text-foreground truncate uppercase">
                       {formatOrganisationName(option.title)}
                     </div>
-                    <a
-                      href={APP_LINKS.nexus}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={() =>
-                        trackEvent("app_link_opened", { destination: "nexus", source: "organisation_switcher_join" })
-                      }
-                      className="flex-shrink-0 inline-flex items-center gap-1.5 rounded-md border border-primary/40 px-2.5 py-1.5 text-xs font-semibold text-primary transition-colors hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                    >
-                      Request in Nexus
-                      <AqLinkExternal01 className="h-3.5 w-3.5" aria-hidden="true" />
-                      <span className="sr-only">(opens in a new tab)</span>
-                    </a>
+                    {APP_LINKS.organisationAccess && (
+                      <a
+                        href={APP_LINKS.organisationAccess}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={() =>
+                          trackEvent("app_link_opened", { destination: APP_LINKS.organisationAccessKey, source: "organisation_switcher_join" })
+                        }
+                        className="flex-shrink-0 inline-flex items-center gap-1.5 rounded-md border border-primary/40 px-2.5 py-1.5 text-xs font-semibold text-primary transition-colors hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      >
+                        {APP_LINKS.organisationAccessName ? `Request in ${APP_LINKS.organisationAccessName}` : "Request access"}
+                        <AqLinkExternal01 className="h-3.5 w-3.5" aria-hidden="true" />
+                        <span className="sr-only">(opens in a new tab)</span>
+                      </a>
+                    )}
                   </div>
                 )
               }
@@ -227,19 +230,7 @@ export default function GroupSelector() {
             )}
             {discovery.isError && (
               <p className="p-4 text-center text-sm text-muted-foreground">
-                We couldn&apos;t load other organisations here, but you can still find them in{" "}
-                <a
-                  href={APP_LINKS.nexus}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={() =>
-                    trackEvent("app_link_opened", { destination: "nexus", source: "organisation_switcher_error" })
-                  }
-                  className="font-medium text-primary hover:underline"
-                >
-                  Nexus
-                </a>
-                .
+                We couldn&apos;t load other organisations here.
               </p>
             )}
           </div>
@@ -248,13 +239,15 @@ export default function GroupSelector() {
             <Button variant="outline" onClick={() => handleOpenChange(false)}>
               Close
             </Button>
-            <ExternalAppLink
-              href={APP_LINKS.nexusRequestOrganisation}
-              destination="nexus"
-              source="organisation_switcher_request_new"
-            >
-              Request a new organisation
-            </ExternalAppLink>
+            {APP_LINKS.organisationAccessRequest && (
+              <ExternalAppLink
+                href={APP_LINKS.organisationAccessRequest}
+                destination={APP_LINKS.organisationAccessKey}
+                source="organisation_switcher_request_new"
+              >
+                Request a new organisation
+              </ExternalAppLink>
+            )}
           </div>
         </DialogContent>
       </Dialog>

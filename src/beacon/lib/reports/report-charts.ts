@@ -10,6 +10,7 @@ import {
   getUptimeBand,
   type DeviceReport,
 } from "@/lib/reports/device-report"
+import { DEFAULT_PRIMARY_COLOR } from "@/lib/theme-utils"
 
 /**
  * Report charts as plain shapes. The preview draws them as SVG and the PDF as vector graphics, so
@@ -26,7 +27,7 @@ export const REPORT_COLORS = {
   muted: "#64748b",
   axis: "#475569",
   grid: "#e2e8f0",
-  primary: "#145fff",
+  primary: DEFAULT_PRIMARY_COLOR,
   outside: "#f1f5f9",
   goodLine: "#15803d",
   criticalLine: "#b91c1c",

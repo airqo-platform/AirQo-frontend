@@ -29,6 +29,7 @@ import {
   readImageFile,
   renderAnnotatedScreenshot,
 } from './screenshot-tools';
+import { beaconConfig } from "@/beacon.config"
 
 type MainCategory = 'issue' | 'idea';
 
@@ -580,7 +581,7 @@ export const FeedbackLauncher: React.FC = () => {
 
   const dialogTitle = mainCategory
     ? (mainCategory === 'issue' ? 'Report an issue' : 'Suggest an idea')
-    : 'Send feedback to AirQo';
+    : `Send feedback to ${beaconConfig.org.shortName}`;
 
   return (
     <>
@@ -617,7 +618,7 @@ export const FeedbackLauncher: React.FC = () => {
               </DialogTitle>
             </div>
             <DialogDescription className="sr-only">
-              Report a problem with Beacon or suggest an improvement.
+              Report a problem with {beaconConfig.app.name} or suggest an improvement.
             </DialogDescription>
           </DialogHeader>
 

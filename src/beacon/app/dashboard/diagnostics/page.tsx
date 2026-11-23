@@ -1,14 +1,14 @@
 "use client";
 
 import React, { Suspense } from "react";
-import { AirqoFleetGate, FleetPageSkeleton } from "@/components/diagnostics/AirqoFleetGate";
+import { SystemFleetGate, FleetPageSkeleton } from "@/components/diagnostics/SystemFleetGate";
 import { FleetHealthView } from "@/components/diagnostics/FleetHealthView";
 import { ROUTES } from "@/lib/navigation";
 
 export default function FleetDiagnosticsPage() {
   return (
     <Suspense fallback={<FleetPageSkeleton />}>
-      <AirqoFleetGate>
+      <SystemFleetGate>
         {(group) => (
           <FleetHealthView
             group={group}
@@ -18,7 +18,7 @@ export default function FleetDiagnosticsPage() {
             description="What the nightly diagnosis found across the fleet, grouped by the part of the device to fix."
           />
         )}
-      </AirqoFleetGate>
+      </SystemFleetGate>
     </Suspense>
   );
 }

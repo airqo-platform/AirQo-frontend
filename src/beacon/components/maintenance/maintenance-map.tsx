@@ -572,7 +572,7 @@ export default function MaintenanceMap({
               <span class="text-[10px] text-gray-500 font-mono">${escapeHtml(gw.eui || gw.id)}</span>
             </div>
             <h4 class="font-bold text-xs text-gray-900">${escapeHtml(gw.name)}</h4>
-            <p class="text-[11px] text-gray-600 mb-2">${escapeHtml(gw.description || "AirQo Gateway")}</p>
+            <p class="text-[11px] text-gray-600 mb-2">${escapeHtml(gw.description || "Gateway")}</p>
             <div class="grid grid-cols-2 gap-1.5 text-[10px] bg-slate-50 p-1.5 rounded border border-slate-200">
               <div><span class="text-gray-500">Profile:</span> <span class="font-semibold capitalize text-indigo-900">${escapeHtml(env)}</span></div>
               <div><span class="text-gray-500">Antenna:</span> <span class="font-semibold">${escapeHtml(gw.antenna_height_m || 25)}m</span></div>

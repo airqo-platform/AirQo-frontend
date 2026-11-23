@@ -21,6 +21,7 @@ import { useConnectionRecoveryKey } from "@/hooks/use-network-status"
 import { PageSatisfactionBanner } from "@/components/features/feedback/page-satisfaction-banner"
 import LoginFeedbackToast from "@/components/features/feedback/login-feedback-toast"
 import { AnalyticsGroupSync } from "@/components/providers/analytics-group-sync"
+import { beaconConfig } from "@/beacon.config"
 
 type User = {
   id?: number
@@ -73,7 +74,7 @@ export default function DashboardLayout({
   // Most pages fetch in useEffect with no retry, so when reads failed during an
   // outage the page is remounted once the connection is back to load them again
   const recoveryKey = useConnectionRecoveryKey()
-  // Like Vertex, the sidebar module follows the URL: admin routes show the admin panel
+  // The sidebar module follows the URL: admin routes show the admin panel
   const activeModule = getModuleForPath(pathname)
 
   // Close the navigation drawer once a new page is reached
@@ -153,7 +154,7 @@ export default function DashboardLayout({
                   <GroupRouteGuard key={recoveryKey}>{children}</GroupRouteGuard>
                 </div>
               ) : (
-                /* Content Container matching Nexus padding and max-w layout */
+                /* Content Container padding and max-w layout */
                 <div className="flex-grow w-full max-w-full">
                   <div className="container px-1 py-6 mx-auto md:px-6 lg:px-8 w-full max-w-7xl">
                     <GroupRouteGuard key={recoveryKey}>{children}</GroupRouteGuard>
@@ -161,7 +162,7 @@ export default function DashboardLayout({
                 </div>
               )}
             </main>
-            <PageSatisfactionBanner />
+            {beaconConfig.features.feedback && <PageSatisfactionBanner />}
           </div>
         </div>
 
@@ -172,7 +173,7 @@ export default function DashboardLayout({
           activeModule={activeModule}
         />
       </div>
-      <LoginFeedbackToast />
+      {beaconConfig.features.feedback && <LoginFeedbackToast />}
       </TourProvider>
     </GroupProvider>
   )

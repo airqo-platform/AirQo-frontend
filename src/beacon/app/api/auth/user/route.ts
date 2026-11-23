@@ -1,14 +1,16 @@
 /**
  * API Route: /api/auth/user
- * Proxies user profile requests to AirQo Platform API.
- * Decodes the JWT to extract user_id, then fetches the full user profile
- * (including groups) from the platform.
+ * Returns the signed-in user's profile, including groups, from the platform API.
+ * Decodes the JWT to extract user_id, then fetches the profile. With the mock backend the
+ * request is answered in-process.
  */
 import { NextRequest, NextResponse } from 'next/server'
 import { config } from '@/lib/config'
+import { handleMockRequest } from '@/lib/mock'
 
-// Same platform as the sign-in (lib/auth.ts): a token only works on the platform that issued it.
-const AIRQO_API_BASE_URL = config.airqoPlatformUrl
+export const dynamic = 'force-dynamic'
+
+const PLATFORM_API_BASE_URL = config.platformUrl
 const API_VERSION = config.apiVersion
 
 /**
@@ -35,7 +37,7 @@ function getUserIdFromPayload(payload: Record<string, any>): string | null {
 
 /**
  * GET /api/auth/user
- * Returns the full user profile including groups from the AirQo Platform API.
+ * Returns the full user profile including groups from the platform API.
  */
 export async function GET(request: NextRequest) {
   try {
@@ -58,8 +60,11 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Fetch user profile from AirQo Platform API
-    const userApiUrl = `${AIRQO_API_BASE_URL}/api/${API_VERSION}/users/${userId}`
+    if (config.isMockBackend) {
+      return handleMockRequest('platform', 'GET', `api/${API_VERSION}/users/${userId}`, new URLSearchParams(), null)
+    }
+
+    const userApiUrl = `${PLATFORM_API_BASE_URL}/api/${API_VERSION}/users/${userId}`
 
     const platformResponse = await fetch(userApiUrl, {
       method: 'GET',

@@ -56,13 +56,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useGroup } from "@/lib/group-context";
 import { ROUTES } from "@/lib/navigation";
 import { trackEvent } from "@/lib/analytics";
+import { beaconConfig, isSystemGroup, systemGroupLabel } from "@/beacon.config"
 
 export default function DeviceProfileDetailPage() {
   const params = useParams();
   const router = useRouter();
   const profileId = (params?.id as string) || "";
   const { activeGroup, loading: groupLoading } = useGroup();
-  const isAirqoGroup = activeGroup?.toLowerCase() === "airqo";
+  const isSystemGroupActive = isSystemGroup(activeGroup);
 
   const [profile, setProfile] = useState<DeviceProfile | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -97,7 +98,7 @@ export default function DeviceProfileDetailPage() {
   const [relPreselectedTarget, setRelPreselectedTarget] = useState<string | null>(null);
 
   const fetchProfile = useCallback(async () => {
-    if (!profileId || !isAirqoGroup) return;
+    if (!profileId || !isSystemGroupActive) return;
     try {
       setLoading(true);
       setError(null);
@@ -109,13 +110,13 @@ export default function DeviceProfileDetailPage() {
     } finally {
       setLoading(false);
     }
-  }, [profileId, isAirqoGroup]);
+  }, [profileId, isSystemGroupActive]);
 
   useEffect(() => {
-    if (isAirqoGroup) {
+    if (isSystemGroupActive) {
       fetchProfile();
     }
-  }, [fetchProfile, isAirqoGroup]);
+  }, [fetchProfile, isSystemGroupActive]);
 
   // Diagnostic readiness is recomputed server-side from the saved profile, so refresh it after every edit.
   const [readiness, setReadiness] = useState<ProfileDiagnosticReadiness | null>(null);
@@ -123,7 +124,7 @@ export default function DeviceProfileDetailPage() {
   const [readinessError, setReadinessError] = useState<string | null>(null);
 
   const fetchReadiness = useCallback(async () => {
-    if (!profileId || !isAirqoGroup) return;
+    if (!profileId || !isSystemGroupActive) return;
     try {
       setReadinessLoading(true);
       setReadinessError(null);
@@ -134,7 +135,7 @@ export default function DeviceProfileDetailPage() {
     } finally {
       setReadinessLoading(false);
     }
-  }, [profileId, isAirqoGroup]);
+  }, [profileId, isSystemGroupActive]);
 
   useEffect(() => {
     if (profile) {
@@ -373,7 +374,7 @@ export default function DeviceProfileDetailPage() {
     );
   }
 
-  if (!isAirqoGroup) {
+  if (!isSystemGroupActive) {
     return (
       <div className="p-6 max-w-4xl mx-auto space-y-6">
         <div className="flex items-center gap-2 text-xs text-gray-400">
@@ -389,7 +390,7 @@ export default function DeviceProfileDetailPage() {
             </CardTitle>
             <CardDescription className="text-xs text-gray-600 leading-relaxed mt-1">
               Device Profiles & Hardware Topologies are exclusively available when the active organization is set to{" "}
-              <span className="font-semibold text-primary">AirQo</span>.
+              <span className="font-semibold text-primary">{systemGroupLabel}</span>.
             </CardDescription>
           </CardHeader>
         </Card>

@@ -40,6 +40,7 @@ import { normalizeNetwork } from "@/lib/manufacturers"
 import { cn, formatCategoryLabel } from "@/lib/utils"
 import { ROUTES } from "@/lib/navigation"
 import type { NetworkProfileReadiness, NetworkSummary } from "@/types/network.types"
+import { beaconConfig, systemGroupLabel } from "@/beacon.config"
 
 const NO_NETWORKS: NetworkSummary[] = []
 const NO_PROFILES: NetworkProfileReadiness[] = []
@@ -244,7 +245,7 @@ export default function ManufacturersPage() {
           </h1>
           <p className="text-xs text-gray-500 mt-1 max-w-3xl">
             Every manufacturer whose devices beacon mirrors from the platform, how many of their devices it can read
-            (ThingSpeak for AirQo hardware, the manufacturer&apos;s API for the rest), and whether the diagnostic engine
+            (from a ThingSpeak channel or the manufacturer&apos;s API), and whether the diagnostic engine
             can assess each manufacturer&apos;s devices.
           </p>
         </div>
@@ -334,7 +335,7 @@ export default function ManufacturersPage() {
               </Button>
             </div>
           ) : (
-            <p className="text-xs text-gray-500">These actions need device maintainer rights in the AirQo group.</p>
+            <p className="text-xs text-gray-500">These actions need device maintainer rights in the {systemGroupLabel} group.</p>
           )}
         </CardContent>
       </Card>
@@ -499,8 +500,8 @@ export default function ManufacturersPage() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          {key === "airqo" ? (
-                            <span className="text-xs text-gray-500">AirQo profiles</span>
+                          {beaconConfig.hardware.network && key === beaconConfig.hardware.network ? (
+                            <span className="text-xs text-gray-500">{beaconConfig.hardware.vendor} profiles</span>
                           ) : networkProfiles.length === 0 ? (
                             <span className="text-xs text-gray-400">No profile</span>
                           ) : (

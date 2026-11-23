@@ -2,6 +2,7 @@
 
 import { AqAlertCircle, AqRefreshCw01 } from "@airqo/icons-react"
 import { Button } from "@/components/ui/button"
+import { beaconConfig } from "@/beacon.config"
 
 interface GroupLinkErrorProps {
   onRetry: () => void
@@ -16,7 +17,7 @@ export function GroupLinkError({ onRetry, onContinue }: GroupLinkErrorProps) {
         <AqAlertCircle className="mx-auto mb-3 h-8 w-8 text-muted-foreground" aria-hidden="true" />
         <h2 className="text-lg font-semibold">Couldn&apos;t open this link&apos;s organisation</h2>
         <p className="mt-2 text-sm text-muted-foreground">
-          Beacon couldn&apos;t check that you belong to the organisation in this link. Try again, or continue with your
+          {beaconConfig.app.name} couldn&apos;t check that you belong to the organisation in this link. Try again, or continue with your
           current organisation.
         </p>
         <div className="mt-5 flex flex-wrap justify-center gap-2">
