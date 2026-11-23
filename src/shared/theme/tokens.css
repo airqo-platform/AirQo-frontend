@@ -1,0 +1,143 @@
+/*
+ * AirQo design tokens: the one place to change the look of every dashboard.
+ *
+ * Gathered from the three dashboards, which already use the same variable names
+ * and the same RGB-triplet format (`20 95 255`, read by Tailwind as
+ * `rgb(var(--primary) / <alpha-value>)`):
+ *   beacon/app/globals.css, vertex/app/globals.css, nexus/src/app/globals.css
+ *
+ * Light mode was already identical in all three apart from two values; dark mode
+ * differs per app. Where they disagreed, the value chosen here is marked with the
+ * alternatives, so switching is a one-line change. See README "theme/".
+ *
+ * Website and Moringa use stock shadcn HSL tokens (`240 5.9% 10%`) and a near-black
+ * primary; they would need these values converted before using the preset.
+ */
+
+@layer base {
+  :root {
+    /* Surfaces and text */
+    --background: 246 246 247;
+    --foreground: 28 29 32;
+    --card: 255 255 255;
+    --card-foreground: 15 23 42;
+    --popover: 255 255 255;
+    --popover-foreground: 15 23 42;
+    --text: 31 41 55; /* Nexus, Vertex. Beacon maps text-text to --foreground */
+    --heading: 16 24 40; /* Nexus, Vertex. Beacon maps text-heading to --foreground */
+
+    /* Brand */
+    --primary: 20 95 255;
+    --primary-foreground: 255 255 255;
+    --primary-50: 239 246 255; /* Beacon, Nexus. Vertex: 235 245 255 */
+    --primary-100: 219 234 254;
+    --primary-700: 3 105 161;
+    --primary-800: 7 89 133;
+    --primary-900: 12 74 110;
+
+    /* Neutral fills */
+    --secondary: 241 245 249;
+    --secondary-foreground: 15 23 42;
+    --muted: 241 245 249;
+    /* Vertex (2026-04 "Update muted color"): 5.2:1 on --background, passes WCAG AA.
+       Beacon, Nexus: 100 116 139 (4.4:1, fails AA for small text). */
+    --muted-foreground: 91 105 124;
+    --accent: 241 245 249;
+    --accent-foreground: 15 23 42;
+
+    /* Status */
+    --destructive: 239 68 68;
+    --destructive-foreground: 255 255 255;
+
+    /* Lines and focus */
+    --border: 226 232 240;
+    --input: 226 232 240;
+    --ring: 20 95 255;
+
+    /* Shape */
+    --radius: 0.5rem;
+
+    /* Sidebar (Beacon; used by the shadcn sidebar primitive) */
+    --sidebar-background: 255 255 255;
+    --sidebar-foreground: 28 29 32;
+    --sidebar-primary: 20 95 255;
+    --sidebar-primary-foreground: 255 255 255;
+    --sidebar-accent: 241 245 249;
+    --sidebar-accent-foreground: 15 23 42;
+    --sidebar-border: 226 232 240;
+    --sidebar-ring: 20 95 255;
+
+    /* Scrollbars (Nexus, Vertex) */
+    --scrollbar-track: 241 245 249;
+    --scrollbar-thumb: 100 116 139;
+    --scrollbar-hover: 51 65 85;
+
+    /* Typography (Nexus, Vertex). The font itself is Inter, loaded by each app
+       with next/font as the --font-inter variable. */
+    --font-mono:
+      'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', 'Source Code Pro',
+      monospace;
+    --heading-weight: 500;
+    --heading-line-height: 1.25;
+    --heading-letter-spacing: -0.025em;
+  }
+
+  /*
+   * Dark mode: Beacon's (the 2026-08 redesign). Neutral greys throughout, cards
+   * one step lighter than the page.
+   *
+   * Nexus and Vertex instead use slate fills on a grey page, with cards the same
+   * colour as the page:
+   *   --card/--popover 29 31 32, --secondary/--muted/--accent 30 41 59,
+   *   --*-foreground 248 250 252, --muted-foreground 148 163 184,
+   *   --border/--input 51 65 85, --destructive 220 38 38.
+   * Nexus also paints the dark page 42 44 45, so its cards sit darker than the page.
+   */
+  .dark {
+    --background: 29 31 32;
+    --foreground: 237 237 237;
+    --card: 38 40 42;
+    --card-foreground: 237 237 237;
+    --popover: 38 40 42;
+    --popover-foreground: 237 237 237;
+    --text: 249 250 251;
+    --heading: 255 255 255;
+
+    --primary: 20 95 255;
+    --primary-foreground: 255 255 255;
+    --primary-50: 239 246 255;
+    --primary-100: 219 234 254;
+    --primary-700: 3 105 161;
+    --primary-800: 7 89 133;
+    --primary-900: 12 74 110;
+
+    --secondary: 45 48 51;
+    --secondary-foreground: 237 237 237;
+    --muted: 45 48 51;
+    --muted-foreground: 156 163 175;
+    --accent: 45 48 51;
+    --accent-foreground: 237 237 237;
+
+    --destructive: 239 68 68;
+    --destructive-foreground: 255 255 255;
+
+    --border: 55 58 62;
+    --input: 55 58 62;
+    --ring: 20 95 255;
+
+    --sidebar-background: 38 40 42;
+    --sidebar-foreground: 237 237 237;
+    --sidebar-primary: 20 95 255;
+    --sidebar-primary-foreground: 255 255 255;
+    --sidebar-accent: 45 48 51;
+    --sidebar-accent-foreground: 237 237 237;
+    --sidebar-border: 55 58 62;
+    --sidebar-ring: 20 95 255;
+
+    /* Nexus, Vertex (Beacon has no scrollbar tokens). Slate, so they don't match
+       the neutral greys above; worth retuning when this palette is settled. */
+    --scrollbar-track: 30 41 59;
+    --scrollbar-thumb: 148 163 184;
+    --scrollbar-hover: 51 65 85;
+  }
+}
