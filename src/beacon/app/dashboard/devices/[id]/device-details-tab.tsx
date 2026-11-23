@@ -73,7 +73,7 @@ export default function DeviceDetailsTab({
   const targetFirmware = device.target_firmware
   const isFirmwarePending = targetFirmware && currentFirmware !== targetFirmware
 
-  // Only AirQo devices read from ThingSpeak; everything else is known by serial number + manufacturer API URL
+  // Only ThingSpeak devices have a channel; everything else is known by serial number + manufacturer API URL
   const dataSource = resolveDeviceDataSource(device)
   const isThingSpeak = dataSource === "thingspeak"
   const serialNumber: string | null = device.serial_number ?? device.beacon_data?.serial_number ?? null

@@ -11,7 +11,6 @@ import { RefreshCw, Save, User } from "lucide-react"
 import { config } from "@/lib/config"
 import authService from "@/services/api-service"
 import { fetchWithAuth } from "@/lib/api-client"
-import { isMockMode, getMockProfile } from "@/lib/mock-data"
 
 interface UserProfile {
   id: number
@@ -63,21 +62,6 @@ export default function SettingsPage() {
       setLoading(true)
       setError(null)
       
-      if (isMockMode()) {
-        const profileData = getMockProfile() as any
-        setProfile(profileData)
-        setFormData({
-          first_name: profileData.first_name || "",
-          last_name: profileData.last_name || "",
-          email: profileData.email || "",
-          phone: profileData.phone || "",
-          current_password: "",
-          new_password: "",
-          confirm_password: ""
-        })
-        setLoading(false)
-        return
-      }
       
       let token
       try {

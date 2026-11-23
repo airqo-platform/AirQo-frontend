@@ -156,7 +156,7 @@ export const TechnicianFeedbackModal: React.FC<TechnicianFeedbackModalProps> = (
               </Label>
               <Input
                 id="technician-id"
-                placeholder="e.g. technician@airqo.net or tech_field_12"
+                placeholder="e.g. technician@example.org or tech_field_12"
                 value={technicianUserId}
                 onChange={(e) => setTechnicianUserId(e.target.value)}
                 required

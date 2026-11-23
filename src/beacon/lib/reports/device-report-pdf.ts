@@ -24,6 +24,10 @@ import {
   HEATMAP_DEVICE_LIMIT,
   type ReportChart,
 } from "@/lib/reports/report-charts"
+import { brandTitle } from "@/beacon.config"
+import { DEFAULT_PRIMARY_COLOR } from "@/lib/theme-utils"
+
+const REPORT_BRAND = brandTitle
 
 export interface ReportSections {
   map: boolean
@@ -37,7 +41,7 @@ export interface ReportSections {
 export interface ReportImages {
   /** JPEG data URL of the device map. */
   map?: string | null
-  /** PNG data URL of the AirQo logo, 47:32. */
+  /** PNG data URL of the organisation logo, 47:32. */
   logo?: string | null
 }
 
@@ -56,7 +60,7 @@ const COLORS = {
   body: "#475569",
   muted: "#64748b",
   border: "#e2e8f0",
-  primary: "#145fff",
+  primary: DEFAULT_PRIMARY_COLOR,
   headerFill: "#f1f5f9",
   findingsFill: "#eff6ff",
   findingsBorder: "#dbeafe",
@@ -189,8 +193,8 @@ export function buildDeviceReportPdf(report: DeviceReport, sections: ReportSecti
   pdf.setProperties({
     title: report.title,
     subject: "Device health report",
-    author: "AirQo Beacon",
-    creator: "AirQo Beacon",
+    author: REPORT_BRAND,
+    creator: REPORT_BRAND,
   })
 
   const left = PAGE.marginX
@@ -281,7 +285,7 @@ export function buildDeviceReportPdf(report: DeviceReport, sections: ReportSecti
   if (images.logo) pdf.addImage(images.logo, "PNG", left, y, 14.1, 9.6)
   setHeading(9, COLORS.muted)
   pdf.setFont("helvetica", "normal")
-  pdf.text("AirQo Beacon", PAGE.width - PAGE.marginX, y + 4, { align: "right" })
+  pdf.text(REPORT_BRAND, PAGE.width - PAGE.marginX, y + 4, { align: "right" })
   pdf.text("Device health report", PAGE.width - PAGE.marginX, y + 8, { align: "right" })
   y += 15
 
@@ -571,7 +575,7 @@ export function buildDeviceReportPdf(report: DeviceReport, sections: ReportSecti
     pdf.setFontSize(8)
     pdf.setTextColor(COLORS.muted)
     pdf.text(`Page ${page} of ${pageCount}`, PAGE.width / 2, PAGE.height - 9, { align: "center" })
-    pdf.text("AirQo Beacon", left, PAGE.height - 9)
+    pdf.text(REPORT_BRAND, left, PAGE.height - 9)
     pdf.text(format(report.to, "MMM d, yyyy"), PAGE.width - PAGE.marginX, PAGE.height - 9, { align: "right" })
   }
 

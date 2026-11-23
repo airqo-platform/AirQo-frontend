@@ -14,6 +14,7 @@ import type {
   StatusDecodeResult,
   StatusDecodeRule,
 } from "@/types/diagnostics"
+import { beaconConfig } from "@/beacon.config"
 
 // A decoded value takes the most serious kind among its parts; an undefined part ranks below a fault.
 const STATUS_RANK: Record<Exclude<DecodedStatus, "invalid">, number> = { ok: 0, info: 1, unknown: 2, fault: 3 }
@@ -149,11 +150,7 @@ export function getProfileStatusField(profile: Pick<DeviceProfile, "telemetry_ma
 }
 
 // Profile names some legacy categories use, mirroring beacon-api's `_resolve_profile_id`
-const CATEGORY_PROFILE_ALIASES: Record<string, string[]> = {
-  gas: ["lowcost_gas"],
-  lowcost: ["lowcost", "AirQo-v5-DualPM"],
-  "airqo-v5-dualpm": ["lowcost", "AirQo-v5-DualPM"],
-}
+const CATEGORY_PROFILE_ALIASES: Record<string, string[]> = beaconConfig.hardware.profileAliases
 
 /**
  * The profile a device category uses, matched the way beacon-api does: a profile named like the

@@ -1,7 +1,6 @@
 import { config } from '@/lib/config'
 import authService from './api-service'
 import { resolveDeviceDataSource } from '@/lib/manufacturers'
-import { isMockMode, getMockDevices, getMockDeviceStats, getMockDeviceSummary, getMockDashboardSummary, getMockSystemHealth, getMockDataTransmission, getMockNetworkPerformance, getMockOfflineDevices, getMockUpcomingMaintenance, getMockMapData, getMockMaintenanceMapData, getMockDevicePerformanceData, getMockDeviceMetadata, getMockDeviceConfig } from '@/lib/mock-data'
 import {
   DeviceStatsResponse,
   Device,
@@ -32,6 +31,7 @@ import {
   SyncedGridsQueryParams,
   MyDevicesResponse
 } from '@/types/api.types'
+import { beaconConfig } from "@/beacon.config"
 
 
 
@@ -205,7 +205,7 @@ class ApiService {
       const lastReading = device.last_reading
       const lastReadingTimestamp = lastReading?.timestamp || ''
       const lastSeenAt = device.lastRawData || device.lastActive || lastReadingTimestamp || ''
-      // Only AirQo devices have a ThingSpeak channel. Other manufacturers' readings are keyed by
+      // Only ThingSpeak devices have a channel. Other manufacturers' readings are keyed by
       // device id locally, so `last_reading.channel_id` is not a channel for them.
       const dataSource = resolveDeviceDataSource(device)
       const rawChannelId = beaconData?.device_number ?? device.device_number ?? lastReading?.channel_id ?? 0
@@ -285,7 +285,6 @@ class ApiService {
 
   // Device Stats API
   async getDeviceStats(params?: StatsQueryParams): Promise<DeviceStatsResponse> {
-    if (isMockMode()) return getMockDeviceStats() as any
 
     const queryString = this.buildQueryString({
       include_networks: params?.include_networks ?? true,
@@ -318,7 +317,6 @@ class ApiService {
 
   // Device List API
   async getDevices(params?: DeviceQueryParams): Promise<Device[]> {
-    if (isMockMode()) return getMockDevices() as any
 
     const queryString = this.buildQueryString(params || {})
     const endpoint = this.getEndpoint('/devices/synced')
@@ -338,13 +336,6 @@ class ApiService {
 
   // Device List API with Pagination
   async getDevicesPaginated(params?: DeviceQueryParams): Promise<PaginatedDeviceResponse> {
-    if (isMockMode()) {
-      const devices = getMockDevices() as any
-      return {
-        devices,
-        pagination: { total: devices.length, skip: 0, limit: 100, returned: devices.length, pages: 1, current_page: 1, has_next: false, has_previous: false }
-      }
-    }
 
     const queryString = this.buildQueryString(params || {})
     const endpoint = this.getEndpoint('/devices/synced')
@@ -470,10 +461,6 @@ class ApiService {
 
   // Single Device API
   async getDevice(deviceId: string): Promise<Device> {
-    if (isMockMode()) {
-      const devices = getMockDevices() as any
-      return devices.find((d: any) => d._id === deviceId) || devices[0]
-    }
 
     const endpoint = this.getEndpoint('/devices/')
     const url = `${this.baseUrl}${endpoint}${encodeURIComponent(deviceId)}`
@@ -504,7 +491,6 @@ class ApiService {
 
   // Offline Devices API
   async getOfflineDevices(params?: OfflineQueryParams & { limit?: number }): Promise<OfflineDevicesResponse> {
-    if (isMockMode()) return getMockOfflineDevices() as any
 
     const queryString = this.buildQueryString({
       hours: params?.hours || 24,
@@ -552,7 +538,6 @@ class ApiService {
 
   // Dashboard Summary API (analytics prefix)
   async getDashboardSummary(): Promise<any> {
-    if (isMockMode()) return getMockDashboardSummary()
 
     const endpoint = this.getEndpoint('/analytics/dashboard')
     const url = `${this.baseUrl}${endpoint}`
@@ -562,7 +547,6 @@ class ApiService {
   // Device Summary API (new endpoint)
   // Device Summary API (new endpoint)
   async getDeviceSummary(): Promise<DeviceSummaryResponse> {
-    if (isMockMode()) return getMockDeviceSummary()
     
     // Return dummy data as the endpoint is no longer available
     return {
@@ -577,7 +561,6 @@ class ApiService {
 
   // System Health API (analytics prefix)
   async getSystemHealth(): Promise<any> {
-    if (isMockMode()) return getMockSystemHealth()
 
     const endpoint = this.getEndpoint('/analytics/system-health')
     const url = `${this.baseUrl}${endpoint}`
@@ -586,7 +569,6 @@ class ApiService {
 
   // Data Transmission Summary API (analytics prefix)
   async getDataTransmissionSummary(params?: { days?: number }): Promise<any> {
-    if (isMockMode()) return getMockDataTransmission()
 
     const queryString = this.buildQueryString({ days: params?.days || 7 })
     const endpoint = this.getEndpoint('/analytics/data-transmission/summary')
@@ -596,7 +578,6 @@ class ApiService {
 
   // Network Performance API (analytics prefix)
   async getNetworkPerformance(params?: { days?: number }): Promise<any> {
-    if (isMockMode()) return getMockNetworkPerformance()
 
     const queryString = this.buildQueryString({ days: params?.days || 7 })
     const endpoint = this.getEndpoint('/analytics/network-performance')
@@ -606,7 +587,6 @@ class ApiService {
 
   // Upcoming Maintenance API
   async getUpcomingMaintenance(params?: { days?: number; limit?: number }): Promise<any> {
-    if (isMockMode()) return getMockUpcomingMaintenance()
 
     const queryString = this.buildQueryString({
       days: params?.days || 30,
@@ -619,7 +599,6 @@ class ApiService {
 
   // Map Data API
   async getMapData(): Promise<any> {
-    if (isMockMode()) return getMockMapData()
 
     const cacheKey = this.buildMapCacheKey('devices-map-data')
     const cached = this.getCachedMapResponse<any>(cacheKey)
@@ -694,7 +673,6 @@ class ApiService {
     device_id?: string
     category_name?: string
   }): Promise<any> {
-    if (isMockMode()) return getMockDeviceMetadata()
 
     const { device_id, category_name = 'lowcost', ...queryParams } = params || {}
 
@@ -717,7 +695,6 @@ class ApiService {
     skip?: number
     limit?: number
   }): Promise<any> {
-    if (isMockMode()) return getMockDeviceConfig()
 
     const { device_id, category_name = 'lowcost', ...queryParams } = params || {}
 
@@ -758,7 +735,6 @@ class ApiService {
     deviceNames: string[]
     group?: string
   }): Promise<any> {
-    if (isMockMode()) return getMockDevicePerformanceData(data.deviceNames)
 
     const endpoint = this.getEndpoint('/devices/performance')
     const queryString = this.buildQueryString({
@@ -867,7 +843,6 @@ class ApiService {
   }
 
   async getMaintenanceMapData(period_days: number = 14, tags?: string, group?: string): Promise<MaintenanceMapItem[]> {
-    if (isMockMode()) return getMockMaintenanceMapData() as any
 
     const cacheKey = this.buildMapCacheKey('maintenance-map-view', {
       period_days,
@@ -1064,7 +1039,7 @@ class ApiService {
 
     if (!ids || ids.length === 0) return []
 
-    // Verify cohorts and filter out "airqo"
+    // Verify cohorts and filter out the system group's default cohort
     const verifyResults = await Promise.all(
       ids.map(async (id) => {
         try {
@@ -1087,7 +1062,7 @@ class ApiService {
       const result = verifyResults[idx]
       if (!result) return false
       const name = (result?.cohort?.name || '').toLowerCase()
-      return name !== 'airqo'
+      return name !== beaconConfig.auth.systemGroupSlug.toLowerCase()
     })
   }
 

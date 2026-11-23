@@ -26,6 +26,7 @@ import {
   buildWeeklyChart,
   type ReportChart,
 } from "@/lib/reports/report-charts"
+import { beaconConfig, brandTitle } from "@/beacon.config"
 
 const TABLE_PREVIEW_ROWS = 25
 
@@ -188,16 +189,16 @@ export function DeviceHealthReport({ report, sections, map, onSaveImage }: Reado
       <header className="border-b border-slate-200 pb-5 text-center">
         <div className="mb-4 flex items-start justify-between text-left">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/icons/airqo_logo.svg" alt="AirQo" width={47} height={32} />
+          <img src={beaconConfig.org.logo} alt={beaconConfig.org.name} style={{ height: 32, width: "auto" }} />
           <p className="text-right text-xs leading-4 text-slate-500">
-            AirQo Beacon
+            {brandTitle}
             <br />
             Device health report
           </p>
         </div>
         <h1 className="text-xl font-bold text-[#1c1d20]">{report.title}</h1>
         <p className="mt-2 text-slate-500">{report.subtitle}</p>
-        <p className="mt-1 font-semibold text-[#145fff]">{report.periodLabel}</p>
+        <p className="mt-1 font-semibold text-primary">{report.periodLabel}</p>
         <p className="mt-1 text-slate-500">{report.generatedLabel}</p>
       </header>
 
@@ -205,7 +206,7 @@ export function DeviceHealthReport({ report, sections, map, onSaveImage }: Reado
         className={`grid gap-4 ${sections.map && map.status !== "unavailable" ? "md:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]" : ""}`}
       >
         <section className="flex flex-col rounded-lg border border-slate-200 p-5">
-          <h2 className="mb-2 text-base font-semibold text-[#145fff]">Snapshot</h2>
+          <h2 className="mb-2 text-base font-semibold text-primary">Snapshot</h2>
           <dl className="space-y-1.5">
             {report.snapshot.map((row) => (
               <div key={row.label} className="flex justify-between gap-4">
@@ -217,7 +218,7 @@ export function DeviceHealthReport({ report, sections, map, onSaveImage }: Reado
             ))}
           </dl>
           {sections.map && map.status === "ready" && (
-            <p className="mt-auto pt-3 text-xs text-[#145fff]">{getMapNote(report.devices, sections.mapHeatmap)}</p>
+            <p className="mt-auto pt-3 text-xs text-primary">{getMapNote(report.devices, sections.mapHeatmap)}</p>
           )}
         </section>
         {sections.map && map.status === "loading" && (

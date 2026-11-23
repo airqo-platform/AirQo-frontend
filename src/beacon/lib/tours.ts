@@ -1,4 +1,5 @@
 import { ROUTES, isRouteAccessible, type NavigationAccess } from "@/lib/navigation"
+import { beaconConfig } from "@/beacon.config"
 
 export interface TourStep {
   /** Selector for what the step spotlights. A step whose target isn't on screen is skipped. */
@@ -20,14 +21,14 @@ const tourTarget = (name: string) => `[data-tour="${name}"]`
 
 const HOME_TOUR: PageTour = {
   id: "home",
-  title: "Explore Beacon",
+  title: `Explore ${beaconConfig.app.name}`,
   readyTarget: tourTarget("home-content"),
   steps: [
     {
       target: tourTarget("home-setup"),
       title: "Start here",
       description:
-        "Add a device in Vertex or join your organisation in Nexus. Beacon fills up as soon as you've done either.",
+        "Add a device or join your organisation. This page fills up as soon as you've done either.",
     },
     {
       target: tourTarget("home-overview"),
@@ -37,7 +38,7 @@ const HOME_TOUR: PageTour = {
     {
       target: tourTarget("side-menu"),
       title: "Everything is in this menu",
-      description: "These are the parts of Beacon you can open. What's listed depends on the organisation you're in.",
+      description: `These are the parts of ${beaconConfig.app.name} you can open. What's listed depends on the organisation you're in.`,
     },
     {
       target: tourTarget("organisation-switcher"),

@@ -1,12 +1,12 @@
 "use client";
 
 import React, { Suspense } from "react";
-import { FleetPageSkeleton } from "@/components/diagnostics/AirqoFleetGate";
+import { FleetPageSkeleton } from "@/components/diagnostics/SystemFleetGate";
 import { FleetHealthView } from "@/components/diagnostics/FleetHealthView";
 import { useGroup } from "@/lib/group-context";
 import { ROUTES } from "@/lib/navigation";
 
-/** The organisation's own fleet health, read-only. AirQo staff use Fleet Health in the admin panel. */
+/** The organisation's own fleet health, read-only. system group members use Fleet Health in the admin panel. */
 export default function NetworkHealthPage() {
   const { activeGroup, loading: groupLoading } = useGroup();
 

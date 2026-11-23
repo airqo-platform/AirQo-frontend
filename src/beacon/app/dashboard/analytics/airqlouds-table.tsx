@@ -42,6 +42,7 @@ import { DEFAULT_COHORT_TAG, cohortTagsFor, withoutDefaultCohort } from "@/lib/c
 import { summarizeDailyPerformance } from "@/lib/performance-summary"
 import { formatCompactNumber } from "@/lib/utils"
 import { trackEvent } from "@/lib/analytics"
+import { beaconConfig } from "@/beacon.config"
 
 type GridAdminLevelFilter = GridAdminLevel | "all"
 
@@ -412,9 +413,11 @@ export default function AirQloudsTable({
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc")
   const [processedData, setProcessedData] = useState<ProcessedAirQloud[]>([])
   const [gridAdminLevel, setGridAdminLevel] = useState<GridAdminLevelFilter>("all")
-  // Devices only: sensor manufacturers to show, empty for all. Like the Devices list it opens on
-  // AirQo, and an organisation without AirQo devices is pruned back to all below.
-  const [networkFilter, setNetworkFilter] = useState<string[]>(["airqo"])
+  // Devices only: sensor manufacturers to show, empty for all. Like the Devices list it opens on the
+  // operator's own hardware (`hardware.network`), and an organisation without any is pruned back to all below.
+  const [networkFilter, setNetworkFilter] = useState<string[]>(
+    beaconConfig.hardware.network ? [beaconConfig.hardware.network] : []
+  )
   const networkFilterParam = serializeNetworkFilter(networkFilter)
   // Only the latest request may fill the table, so a slow response can't overwrite a newer one
   const latestRequestRef = useRef(0)
@@ -515,7 +518,7 @@ export default function AirQloudsTable({
 
         const canFallback = (response.airqlouds?.length ?? 0) === 0 && !searchTerm.trim()
         if (canFallback) {
-          // Only tags this organisation may see, so the fallback never surfaces hardware cohorts outside AirQo
+          // Only tags this organisation may see, so the fallback never surfaces hardware cohorts outside the system group
           const fallbackTags = [lastSuccessfulCohortTagRef.current, ...availableTags].filter(
             (tag, index, arr) => availableTags.includes(tag) && arr.indexOf(tag) === index && !cohortTags.includes(tag)
           )

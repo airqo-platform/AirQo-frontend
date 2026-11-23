@@ -43,11 +43,12 @@ import {
 } from "@/types/lorawan.types"
 import {
   parseLoRaWANGatewayJSON,
-  KAMPALA_SAMPLE_GATEWAYS,
+  SAMPLE_GATEWAYS,
   ENVIRONMENT_PROFILES,
 } from "@/utils/lorawan-utils"
 import { useToast } from "@/hooks/use-toast"
 import { trackEvent } from "@/lib/analytics"
+import { beaconConfig } from "@/beacon.config"
 
 interface LoRaWANGatewayDialogProps {
   open: boolean
@@ -155,11 +156,11 @@ export function LoRaWANGatewayDialog({
 
   // Load sample gateways
   const handleLoadSample = () => {
-    const sampleText = JSON.stringify(KAMPALA_SAMPLE_GATEWAYS, null, 2)
+    const sampleText = JSON.stringify(SAMPLE_GATEWAYS, null, 2)
     handleJsonChange(sampleText)
     toast({
       title: "Sample Loaded",
-      description: `Loaded ${KAMPALA_SAMPLE_GATEWAYS.length} official AirQo LoRaWAN gateways.`
+      description: `Loaded ${SAMPLE_GATEWAYS.length} sample LoRaWAN gateways.`
     })
   }
 
@@ -239,13 +240,13 @@ export function LoRaWANGatewayDialog({
     setShowAddForm(false)
   }
 
-  // Reset to 5 default gateways
+  // Reset to the sample gateways
   const handleResetToDefaults = () => {
-    if (confirm("Reset to the 5 official AirQo default gateways? (Muk, Muganzirwaza, NWSC-Ggaba, Masaka Nkozi, Soroti)")) {
-      onGatewaysChange(KAMPALA_SAMPLE_GATEWAYS)
+    if (confirm(`Reset to the ${SAMPLE_GATEWAYS.length} sample gateways?`)) {
+      onGatewaysChange(SAMPLE_GATEWAYS)
       toast({
         title: "Defaults Restored",
-        description: "Reset to the 5 official AirQo gateways."
+        description: `Reset to the ${SAMPLE_GATEWAYS.length} sample gateways.`
       })
     }
   }
@@ -302,7 +303,7 @@ export function LoRaWANGatewayDialog({
     const url = URL.createObjectURL(blob)
     const a = document.createElement("a")
     a.href = url
-    a.download = `airqo-lorawan-gateways-${new Date().toISOString().split("T")[0]}.json`
+    a.download = `${beaconConfig.org.slug}-lorawan-gateways-${new Date().toISOString().split("T")[0]}.json`
     a.click()
     URL.revokeObjectURL(url)
     trackEvent("data_exported", { source: "lorawan_gateways", format: "json", row_count: gateways.length })
@@ -359,7 +360,7 @@ export function LoRaWANGatewayDialog({
               <div className="flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-indigo-600 flex-shrink-0" />
                 <div className="text-xs text-indigo-900">
-                  <span className="font-semibold">Quick Start:</span> Load sample Kampala gateways or paste your gateway JSON / GeoJSON below.
+                  <span className="font-semibold">Quick Start:</span> Load the sample gateways or paste your gateway JSON / GeoJSON below.
                 </div>
               </div>
               <div className="flex items-center gap-2 w-full sm:w-auto">
@@ -370,7 +371,7 @@ export function LoRaWANGatewayDialog({
                   className="bg-white border-indigo-200 text-indigo-700 hover:bg-indigo-50 text-xs h-8 shadow-sm flex-1 sm:flex-none"
                 >
                   <Sparkles className="w-3 h-3 mr-1.5" />
-                  Load AirQo Gateways (5 Gateways)
+                  Load Sample Gateways ({SAMPLE_GATEWAYS.length})
                 </Button>
                 <Button
                   size="sm"
@@ -487,7 +488,7 @@ export function LoRaWANGatewayDialog({
                   variant="outline"
                   onClick={handleResetToDefaults}
                   className="text-xs h-7 px-2.5 text-indigo-700 border-indigo-200 hover:bg-indigo-50"
-                  title="Reset to the 5 official AirQo default gateways"
+                  title="Reset to the sample gateways"
                 >
                   <RotateCcw className="w-3 h-3 mr-1" />
                   Reset Defaults (5)
@@ -529,7 +530,7 @@ export function LoRaWANGatewayDialog({
                   <div className="space-y-1">
                     <Label className="text-[11px] font-semibold text-gray-700">Gateway Name</Label>
                     <Input
-                      placeholder="e.g. Jinja Highway Gateway"
+                      placeholder="e.g. Ridge Road Gateway"
                       value={newGwName}
                       onChange={(e) => setNewGwName(e.target.value)}
                       className="h-8 text-xs bg-white"
@@ -567,7 +568,7 @@ export function LoRaWANGatewayDialog({
                       onChange={(e) => setNewGwEnv(e.target.value as GatewayEnvironment)}
                       className="w-full h-8 px-2.5 rounded-md border border-gray-200 bg-white text-xs text-gray-800 focus:ring-1 focus:ring-indigo-500"
                     >
-                      <option value="urban">Urban (2–5 km spread, Kampala)</option>
+                      <option value="urban">Urban (2–5 km spread)</option>
                       <option value="suburban">Suburban (5–7 km spread)</option>
                       <option value="rural">Rural / Open (Up to 10 km reach)</option>
                     </select>
@@ -622,7 +623,7 @@ export function LoRaWANGatewayDialog({
                 <Radio className="w-10 h-10 text-gray-300 mb-2" />
                 <h4 className="text-sm font-semibold text-gray-700">No LoRaWAN Gateways Loaded</h4>
                 <p className="text-xs text-gray-500 max-w-sm mt-1 mb-4">
-                  Click below to load the 5 default AirQo gateways or import a JSON payload.
+                  Click below to load the sample gateways or import a JSON payload.
                 </p>
                 <Button
                   size="sm"
@@ -630,7 +631,7 @@ export function LoRaWANGatewayDialog({
                   className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs"
                 >
                   <Sparkles className="w-3.5 h-3.5 mr-1.5" />
-                  Load AirQo Primary Gateways (5 Gateways)
+                  Load Sample Gateways ({SAMPLE_GATEWAYS.length})
                 </Button>
               </div>
             ) : (
@@ -649,7 +650,7 @@ export function LoRaWANGatewayDialog({
                   <tbody className="divide-y divide-gray-100 bg-white">
                     {gateways.map((gw) => {
                       const env = gw.environment || "urban"
-                      const isDefault = KAMPALA_SAMPLE_GATEWAYS.some(d => d.name.toLowerCase() === gw.name.toLowerCase() || d.id === gw.id)
+                      const isDefault = SAMPLE_GATEWAYS.some(d => d.name.toLowerCase() === gw.name.toLowerCase() || d.id === gw.id)
                       return (
                         <tr key={gw.id} className="hover:bg-slate-50/80 transition-colors">
                           <td className="px-3 py-2 text-center">
@@ -768,7 +769,7 @@ export function LoRaWANGatewayDialog({
                   <h4 className="text-xs font-bold text-amber-900">Urban Spread: 2 to 5 km</h4>
                 </div>
                 <p className="text-xs text-amber-800 leading-relaxed">
-                  Expect reduced coverage (<strong>2 to 5 km</strong>) in dense built-up areas like <strong>Kampala</strong> due to concrete walls and building diffraction.
+                  Expect reduced coverage (<strong>2 to 5 km</strong>) in dense built-up areas due to concrete walls and building diffraction.
                 </p>
                 <div className="mt-2 text-[10px] text-amber-700 font-mono bg-amber-100/60 p-1.5 rounded">
                   Path Loss Exponent: n ≈ 3.8<br />
@@ -801,7 +802,7 @@ export function LoRaWANGatewayDialog({
                   <div className="w-3.5 h-3.5 rounded-full bg-emerald-500 border border-emerald-600 mt-0.5 flex-shrink-0" />
                   <div>
                     <div className="font-bold text-emerald-800">Strong Zone (≤ 2 km)</div>
-                    <div className="text-[11px] text-gray-600">RSSI &gt; -90 dBm, SF7. Ideal for high-frequency AirQo telemetry.</div>
+                    <div className="text-[11px] text-gray-600">RSSI &gt; -90 dBm, SF7. Ideal for high-frequency telemetry.</div>
                   </div>
                 </div>
 

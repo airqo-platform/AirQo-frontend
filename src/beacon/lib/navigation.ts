@@ -1,12 +1,22 @@
+import { beaconConfig, isSystemGroup } from "@/beacon.config"
+import {
+  EXTENSION_ADMIN_ROUTE_PREFIXES,
+  EXTENSION_PAGE_TITLES,
+  EXTENSION_RECENT_PAGES,
+  EXTENSION_TITLE_PREFIXES,
+} from "@/lib/integration/routes"
+
+const { features } = beaconConfig
+
 /**
- * Beacon navigation model, mirroring Vertex's layout:
+ * Navigation model:
  *
- * - Two modules: "devices" (day-to-day monitoring) and "admin" (AirQo-internal
+ * - Two modules: "devices" (day-to-day monitoring) and "admin" (operator-internal
  *   tools, including Device Data Analysis). The active module is derived from the pathname alone, so the
  *   sidebar can never disagree with the page being shown.
  * - The Administrative Panel is entered from the primary (hamburger) drawer and
- *   is only offered to AirQo-group members who can maintain devices.
- * - Personal devices ("My Devices") belong to the AirQo (personal) context;
+ *   is only offered to system group members who can maintain devices.
+ * - Personal devices ("My Devices") belong to the system group (personal) context;
  *   other organisations see their organisation's devices instead.
  *
  * The access rules live here so the sidebars, the drawer and the route guard
@@ -30,12 +40,6 @@ export const ROUTES = {
   DIAGNOSTIC_TEMPLATES: "/dashboard/settings/diagnostic-templates",
   STATUS_CODES: "/dashboard/settings/status-codes",
   MANUFACTURERS: "/dashboard/manufacturers",
-  COLLOCATION_INLAB: "/dashboard/collocation/inlab",
-  COLLOCATION_SITE: "/dashboard/collocation/site",
-  FIRMWARE: "/dashboard/firmware",
-  CATEGORIES: "/dashboard/category",
-  STOCK: "/dashboard/stock",
-  USERS: "/dashboard/users",
   ALERTS: "/dashboard/alerts",
   SETTINGS: "/dashboard/settings",
 } as const
@@ -73,12 +77,7 @@ const ADMIN_ROUTE_PREFIXES = [
   ROUTES.DIAGNOSTIC_TEMPLATES,
   ROUTES.STATUS_CODES,
   ROUTES.MANUFACTURERS,
-  "/dashboard/collocation",
-  ROUTES.FIRMWARE,
-  ROUTES.CATEGORIES,
-  ROUTES.STOCK,
-  // User management isn't in the admin menu yet, but it is an admin surface.
-  ROUTES.USERS,
+  ...EXTENSION_ADMIN_ROUTE_PREFIXES,
 ]
 
 export function isAdminRoute(pathname: string): boolean {
@@ -100,7 +99,7 @@ export interface NavigationAccessInput {
 }
 
 export interface NavigationAccess {
-  /** The AirQo group is active — Beacon's equivalent of Vertex's personal context. */
+  /** The system group is active — the personal context. */
   isPersonalContext: boolean
   canMaintainDevices: boolean
   /** Gates both the "Administrative Panel" entry and every admin-module route. */
@@ -112,7 +111,7 @@ export interface NavigationAccess {
   canAccessSites: boolean
   canAccessMaintenance: boolean
   canAccessReports: boolean
-  /** The organisation's own fleet health; AirQo staff use Fleet Diagnostics in the admin panel instead. */
+  /** The organisation's own fleet health; system group members use Fleet Diagnostics in the admin panel instead. */
   canAccessNetworkHealth: boolean
 }
 
@@ -123,9 +122,9 @@ export function getNavigationAccess({
   hasAnyPermission,
 }: NavigationAccessInput): NavigationAccess {
   const hasGroup = Boolean(activeGroup)
-  const isPersonalContext = activeGroup?.toLowerCase() === "airqo"
+  const isPersonalContext = isSystemGroup(activeGroup)
   const canMaintainDevices = hasPermission("DEVICE_MAINTAIN") || isActiveGroupAdmin
-  // Outside the AirQo group every member gets their organisation's tools;
+  // Outside the system group every member gets their organisation's tools;
   // inside it, the fleet-wide views need maintainer rights.
   const canUseGroupTools = hasGroup && (!isPersonalContext || canMaintainDevices)
   const canAccessAnalytics =
@@ -139,10 +138,10 @@ export function getNavigationAccess({
     showOrgDevices: !isPersonalContext || canMaintainDevices,
     canAccessAnalytics,
     canAccessSites: canAccessAnalytics,
-    canAccessMaintenance: canUseGroupTools,
+    canAccessMaintenance: features.maintenanceMap && canUseGroupTools,
     canAccessReports:
-      canUseGroupTools ||
-      (hasGroup && hasAnyPermission(["DATA_EXPORT", "ANALYTICS_EXPORT", "DATA_VIEW"])),
+      features.reports &&
+      (canUseGroupTools || (hasGroup && hasAnyPermission(["DATA_EXPORT", "ANALYTICS_EXPORT", "DATA_VIEW"]))),
     canAccessNetworkHealth: hasGroup && !isPersonalContext,
   }
 }
@@ -155,6 +154,10 @@ export function getNavigationAccess({
  * profile settings (ROUTES.SETTINGS).
  */
 export function isRouteAccessible(pathname: string, access: NavigationAccess): boolean {
+  // Features switched off in beacon.config.ts
+  if (!features.deviceDataAnalysis && (matchesRoute(pathname, ROUTES.VISUALISE) || matchesRoute(pathname, "/dashboard/visualize"))) {
+    return false
+  }
   if (isAdminRoute(pathname)) return access.canAccessAdminPanel
   if (matchesRoute(pathname, ROUTES.MY_DEVICES)) return access.showMyDevices
   // Exact match so device detail pages stay reachable from My Devices.
@@ -170,8 +173,7 @@ export function isRouteAccessible(pathname: string, access: NavigationAccess): b
 }
 
 /**
- * Where the route guard sends someone off a page their organisation doesn't offer. As in
- * Vertex, the AirQo (personal) context lands on the user's own devices.
+ * Where the route guard sends someone off a page their organisation doesn't offer. The system group (personal) context lands on the user's own devices.
  */
 export function getDevicesHome(access: NavigationAccess): string {
   return access.showMyDevices ? ROUTES.MY_DEVICES : ROUTES.DEVICES
@@ -199,11 +201,7 @@ const RECENT_PAGE_ROUTES: Array<RecentPage & { exact?: boolean }> = [
   { label: "Diagnostic Templates", href: ROUTES.DIAGNOSTIC_TEMPLATES },
   { label: "Status Codes", href: ROUTES.STATUS_CODES },
   { label: "Sensor Manufacturers", href: ROUTES.MANUFACTURERS },
-  { label: "In-Lab Collocation", href: ROUTES.COLLOCATION_INLAB },
-  { label: "Site Collocation", href: ROUTES.COLLOCATION_SITE },
-  { label: "Firmware Management", href: ROUTES.FIRMWARE },
-  { label: "Device Categories", href: ROUTES.CATEGORIES },
-  { label: "Stock & Inventory", href: ROUTES.STOCK },
+  ...EXTENSION_RECENT_PAGES,
 ]
 
 /** Maps a pathname to the top-level page it belongs to, for "Recently Visited". */
@@ -215,7 +213,7 @@ export function getRecentPage(pathname: string): RecentPage | null {
 }
 
 /** Title shown for pages that have no name of their own. */
-export const DEFAULT_PAGE_TITLE = "Beacon"
+export const DEFAULT_PAGE_TITLE = beaconConfig.app.name
 
 const PAGE_TITLES: Record<string, string> = {
   "/dashboard/home": "Home",
@@ -235,16 +233,11 @@ const PAGE_TITLES: Record<string, string> = {
   "/dashboard/settings/diagnostic-templates": "Diagnostic Templates",
   "/dashboard/settings/status-codes": "Status Codes",
   "/dashboard/manufacturers": "Sensor Manufacturers",
-  "/dashboard/collocation/inlab": "In-Lab Collocation",
-  "/dashboard/collocation/site": "Field Collocation",
-  "/dashboard/firmware": "Firmware Management",
-  "/dashboard/category": "Device Categories",
-  "/dashboard/stock": "Stock & Inventory",
   "/dashboard/visualise": "Device Data Analysis",
   "/dashboard/visualize": "Device Data Analysis",
   "/dashboard/settings": "Settings",
-  "/dashboard/users": "User Management",
   "/dashboard/alerts": "Alerts",
+  ...EXTENSION_PAGE_TITLES,
 }
 
 export function getPageTitle(pathname: string | null): string {
@@ -268,17 +261,8 @@ export function getPageTitle(pathname: string | null): string {
     return "Site Details"
   }
 
-  // Collocation subroutes
-  if (pathname.startsWith("/dashboard/collocation/inlab/")) {
-    return "In-Lab Collocation"
-  }
-  if (pathname.startsWith("/dashboard/collocation/site/")) {
-    return "Field Collocation"
-  }
-
-  // Category subroutes
-  if (pathname.startsWith("/dashboard/category/")) {
-    return "Device Category Details"
+  for (const [prefix, title] of EXTENSION_TITLE_PREFIXES) {
+    if (pathname.startsWith(prefix)) return title
   }
 
   // Analytics subroutes

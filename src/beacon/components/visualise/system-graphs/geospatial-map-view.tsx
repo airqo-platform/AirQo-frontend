@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { MapPin } from "lucide-react"
 import type { StandardizedRecord } from "@/lib/visualise/column-mapper"
 import { getAQICategory, AQI_CATEGORIES } from "@/lib/visualise/column-mapper"
+import { beaconConfig } from "@/beacon.config"
 
 const escapeHtml = (v: unknown): string => {
   if (v === null || v === undefined) return ""
@@ -100,9 +101,8 @@ export function GeospatialMapView({ records }: GeospatialMapViewProps) {
           mapInstanceRef.current = null
         }
 
-        // Center on average coords or default to Kampala (0.3476, 32.5825)
-        let centerLat = 0.3476
-        let centerLng = 32.5825
+        // Center on average coords or default to the configured map centre
+        let [centerLat, centerLng] = beaconConfig.map.defaultCenter
         let zoom = 11
 
         if (validGeoRecords.length > 0) {

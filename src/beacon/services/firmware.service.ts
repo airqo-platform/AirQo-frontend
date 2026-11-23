@@ -7,7 +7,6 @@ import axios from '@/lib/api-client';
 import { AxiosRequestConfig } from 'axios';
 import { config, enforceHttpsForRemote } from '@/lib/config';
 import authService from './api-service';
-import { isMockMode, getMockFirmwareVersions } from '@/lib/mock-data';
 import {
   FirmwareVersion,
   FirmwareUploadData,
@@ -67,7 +66,6 @@ class FirmwareService {
    * Get all firmware versions
    */
   async getAllFirmwares(params?: FirmwareListParams): Promise<FirmwareVersion[]> {
-    if (isMockMode()) return getMockFirmwareVersions() as any
 
     try {
       const queryParams = new URLSearchParams();
@@ -91,7 +89,6 @@ class FirmwareService {
    * Get the latest firmware version
    */
   async getLatestFirmware(firmware_type?: FirmwareType): Promise<FirmwareVersion> {
-    if (isMockMode()) return getMockFirmwareVersions()[0] as any
 
     try {
       const queryParams = firmware_type ? `?firmware_type=${firmware_type}` : '';
@@ -111,10 +108,6 @@ class FirmwareService {
    * Get specific firmware by ID
    */
   async getFirmwareById(firmwareId: string): Promise<FirmwareVersion> {
-    if (isMockMode()) {
-      const all = getMockFirmwareVersions() as any
-      return all.find((f: any) => f.id === firmwareId) || all[0]
-    }
 
     try {
       const endpoint = this.getEndpoint(`/firmware/${firmwareId}`);

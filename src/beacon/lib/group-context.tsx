@@ -4,6 +4,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback, use
 import { useSession } from "next-auth/react"
 import { themeService } from "@/services/theme-service"
 import { trackEvent } from "@/lib/analytics"
+import { isSystemGroup } from "@/beacon.config"
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -54,12 +55,12 @@ export function isGroupAdmin(group: UserGroup | null | undefined): boolean {
   );
 }
 
-/** The group named by a `?group=` link, e.g. from Vertex's Open in Beacon. */
+/** The group named by a `?group=` link, e.g. from a companion app's "Open in" link. */
 export function getGroupLink(search: string): string | null {
   return new URLSearchParams(search).get("group")?.trim() || null;
 }
 
-/** The user's own title for a linked group, or null if they don't belong to it. Vertex's admin pages always link `airqo`. */
+/** The user's own title for a linked group, or null if they don't belong to it. A device management app can link the system group this way. */
 export function findGroupTitle(groups: UserGroup[], title: string | null): string | null {
   if (!title) return null;
 
@@ -68,7 +69,7 @@ export function findGroupTitle(groups: UserGroup[], title: string | null): strin
 }
 
 interface GroupContextValue {
-  /** The currently active group title (e.g. "airqo") */
+  /** The currently active group title (e.g. "system") */
   activeGroup: string | null
   /** Full list of groups the user belongs to */
   availableGroups: UserGroup[]
@@ -178,7 +179,7 @@ export function GroupProvider({ children }: Readonly<{ children: React.ReactNode
               const linkedGroup = findGroupTitle(cachedGroups, groupLink)
               if (linkedGroup) {
                 setActiveGroup(linkedGroup)
-                // Arrived from a `?group=` link, such as Vertex's device health cards
+                // Arrived from a `?group=` link, such as a companion app's device health cards
                 trackEvent("group_link_opened", { matched: true })
               }
 
@@ -241,19 +242,19 @@ export function GroupProvider({ children }: Readonly<{ children: React.ReactNode
           globalThis.localStorage.setItem("beacon_available_groups", JSON.stringify(groups))
         }
 
-        // Check if user is an AirQo Admin via role permissions
-        const isAirqoAdmin = groups.some(g => {
-          if (g.grp_title?.toLowerCase() === 'airqo') {
+        // Check if user is an system group admin via role permissions
+        const isSystemAdmin = groups.some(g => {
+          if (isSystemGroup(g.grp_title)) {
              return isGroupAdmin(g)
           }
           return false
         })
 
-        // Set isAirqoAdmin cookie and localStorage
+        // Set isSystemAdmin cookie and localStorage
         if (typeof globalThis.window !== "undefined") {
           const maxAge = 7 * 24 * 60 * 60 // 7 days
-          globalThis.document.cookie = `isAirqoAdmin=${isAirqoAdmin}; path=/; max-age=${maxAge}; SameSite=Strict`
-          globalThis.localStorage.setItem('isAirqoAdmin', String(isAirqoAdmin))
+          globalThis.document.cookie = `isSystemAdmin=${isSystemAdmin}; path=/; max-age=${maxAge}; SameSite=Strict`
+          globalThis.localStorage.setItem('isSystemAdmin', String(isSystemAdmin))
         }
 
         // The profile settles a link the cache couldn't: it applies, or it's ignored for good
@@ -270,17 +271,17 @@ export function GroupProvider({ children }: Readonly<{ children: React.ReactNode
             ? globalThis.localStorage.getItem(STORAGE_KEY)
             : null
 
-        // Default logic: Skip AirQo if not admin
+        // Default logic: Skip the system group if not admin
         let defaultGroup = groups[0]?.grp_title
-        const nonAirqoOrAdminAirqo = groups.find(g => {
-          if (g.grp_title.toLowerCase() === 'airqo') {
+        const nonSystemOrAdminSystem = groups.find(g => {
+          if (isSystemGroup(g.grp_title)) {
              return isGroupAdmin(g)
           }
           return true
         })
 
-        if (nonAirqoOrAdminAirqo) {
-           defaultGroup = nonAirqoOrAdminAirqo.grp_title
+        if (nonSystemOrAdminSystem) {
+           defaultGroup = nonSystemOrAdminSystem.grp_title
         }
 
         setCurrentActiveGroup((prevActive) => {

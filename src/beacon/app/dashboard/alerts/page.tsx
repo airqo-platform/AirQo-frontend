@@ -31,7 +31,6 @@ import {
 import { config } from "@/lib/config"
 import { fetchWithAuth } from "@/lib/api-client"
 import authService from "@/services/api-service"
-import { isMockMode, getMockAlertDevices } from "@/lib/mock-data"
 
 // Types
 type AlertType = "critical" | "warning" | "success"
@@ -122,9 +121,7 @@ export default function AlertsPage() {
       setIsLoading(true)
       
       let data: any
-      if (isMockMode()) {
-        data = getMockAlertDevices()
-      } else {
+      {
         // Using the devices-detail endpoint to get maintenance history
         const prefix = config.beaconApiPrefix || (config.isLocalhost ? '/api/v1' : '/api/v1/beacon')
         const response = await fetchWithAuth(`${config.apiUrl}${prefix}/devices`, {

@@ -1,5 +1,6 @@
 import { buildPlatformApiUrl } from "./config";
 import { getSafeReturnPath } from "./navigation";
+import { normalizeOAuthAccessToken } from "./access-token";
 
 const OAUTH_FRAGMENT_TOKEN_KEY = 'token';
 const OAUTH_SUCCESS_PROVIDER_KEY = 'success';
@@ -109,12 +110,7 @@ const safeDecodeURIComponent = (value: string): string => {
   }
 };
 
-export const normalizeOAuthAccessToken = (token: string): string => {
-  return token
-    .replace(/^JWT\s+/i, '')
-    .replace(/^Bearer\s+/i, '')
-    .trim();
-};
+export { normalizeOAuthAccessToken };
 
 // The platform returns to `redirect_after` with `success` added, so this page is where the user was heading
 const getOAuthLandingPath = (): string | null => {

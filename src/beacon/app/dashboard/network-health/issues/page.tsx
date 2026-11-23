@@ -1,7 +1,7 @@
 "use client";
 
 import React, { Suspense } from "react";
-import { FleetPageSkeleton } from "@/components/diagnostics/AirqoFleetGate";
+import { FleetPageSkeleton } from "@/components/diagnostics/SystemFleetGate";
 import { FleetIssuesView } from "@/components/diagnostics/FleetIssuesView";
 import { useGroup } from "@/lib/group-context";
 import { ROUTES } from "@/lib/navigation";

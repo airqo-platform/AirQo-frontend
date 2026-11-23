@@ -4,7 +4,9 @@ import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { LogOut, Loader2 } from "lucide-react"
-import { AqAirQo, AqHelpCircle, AqMenu01, AqRefreshCw01 } from "@airqo/icons-react"
+import { AqHelpCircle, AqMenu01, AqRefreshCw01 } from "@airqo/icons-react"
+import BrandLogo from "@/components/brand-logo"
+import { beaconConfig } from "@/beacon.config"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import GroupSelector from "@/components/dashboard/group-selector"
@@ -31,8 +33,9 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
-import AppDropdown from "./app-dropdown"
 import { openFeedbackDialog } from "@/components/features/feedback/feedback-dialog"
+import { TopNavExtras } from "@/components/integration"
+import { isSystemGroup } from "@/beacon.config"
 
 type User = {
   id?: number
@@ -71,7 +74,7 @@ export default function TopNav({
 
   const { toast } = useToast()
   const { activeGroup } = useGroup()
-  const isAirqoGroup = activeGroup?.toLowerCase() === "airqo"
+  const isSystemGroupActive = isSystemGroup(activeGroup)
   const { hasTour, startTour } = useTour()
   const tourChosenRef = useRef(false)
   const helpButtonRef = useRef<HTMLButtonElement>(null)
@@ -154,9 +157,9 @@ export default function TopNav({
                 href={ROUTES.HOME}
                 className="flex items-center space-x-2.5 cursor-pointer focus:outline-none"
               >
-                <AqAirQo size={32} color="#0A84FF" />
+                <BrandLogo size={32} />
                 <span className="text-lg font-bold text-foreground tracking-tight hidden xs:inline-block">
-                  Beacon
+                  {beaconConfig.app.name}
                 </span>
               </Link>
 
@@ -167,7 +170,7 @@ export default function TopNav({
               )}
             </div>
 
-            {/* Middle Section: Page Title (Nexus Style) */}
+            {/* Middle Section: Page Title  */}
             <div className="flex-1 ml-4 sm:ml-6 min-w-0">
               <h1 className="text-base sm:text-xl font-normal text-foreground truncate">
                 {pageTitle}
@@ -179,6 +182,7 @@ export default function TopNav({
               <GroupSelector />
 
               {/* Help & Feedback */}
+              {(hasTour || beaconConfig.features.feedback) && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
@@ -213,17 +217,19 @@ export default function TopNav({
                       Take a tour of this page
                     </DropdownMenuItem>
                   )}
-                  <DropdownMenuItem className="cursor-pointer rounded-lg" onSelect={() => openFeedbackDialog()}>
-                    Send feedback
-                  </DropdownMenuItem>
+                  {beaconConfig.features.feedback && (
+                    <DropdownMenuItem className="cursor-pointer rounded-lg" onSelect={() => openFeedbackDialog()}>
+                      Send feedback
+                    </DropdownMenuItem>
+                  )}
                 </DropdownMenuContent>
               </DropdownMenu>
+              )}
 
-              {/* Apps Dropdown */}
-              <AppDropdown />
+              <TopNavExtras />
 
               {/* Sync Groups, where the unused notifications bell was */}
-              {isAirqoGroup && (
+              {isSystemGroupActive && (
                 <Button
                   variant="ghost"
                   size="icon"
@@ -243,8 +249,8 @@ export default function TopNav({
                   <Button
                     variant="ghost"
                     className="flex items-center cursor-pointer hover:bg-transparent p-0 m-0 focus-visible:ring-0 rounded-full"
-                    title={`AirQo Account\n${displayName}`}
-                    aria-label="AirQo Account"
+                    title={`${beaconConfig.org.shortName} Account\n${displayName}`}
+                    aria-label={`${beaconConfig.org.shortName} Account`}
                   >
                     <Avatar className="h-9 w-9">
                       <AvatarImage

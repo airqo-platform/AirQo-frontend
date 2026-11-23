@@ -1,5 +1,5 @@
-// Sensor manufacturers ("networks" on the AirQo platform) and how beacon-api reads their devices.
-// On the platform a device's `network` names the manufacturer or data provider that owns it; Vertex
+// Sensor manufacturers ("networks" on the platform) and how beacon-api reads their devices.
+// On the platform a device's `network` names the manufacturer or data provider that owns it; the device management app
 // labels the same field "Sensor Manufacturer".
 
 /** Where beacon-api gets a device's readings from. */
@@ -23,7 +23,7 @@ export interface NetworkSummary {
   total_devices: number
   deployed_devices: number
   online_devices: number
-  /** Devices beacon can read from ThingSpeak (AirQo hardware) */
+  /** Devices beacon can read from ThingSpeak (channel-based hardware) */
   thingspeak_devices: number
   /** Devices readable through the manufacturer's API adapter */
   external_api_devices: number

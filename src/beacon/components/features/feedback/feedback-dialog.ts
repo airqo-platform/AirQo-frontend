@@ -1,4 +1,4 @@
-export const FEEDBACK_DIALOG_OPEN_EVENT = 'airqo:feedback:open';
+export const FEEDBACK_DIALOG_OPEN_EVENT = 'beacon:feedback:open';
 
 export interface FeedbackDialogOpenDetail {
   /** Where the dialog was opened from, e.g. the title of the dialog hosting the "?" button. */

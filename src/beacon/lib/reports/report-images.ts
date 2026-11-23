@@ -1,5 +1,6 @@
 import { MAX_RADIUS_KM, heatmapGradientStops, metersPerPixel, paintHeatmap } from "@/lib/device-heatmap"
 import { BAND_ORDER, SNAPSHOT_NOTE, UPTIME_BANDS, type ReportDevice } from "@/lib/reports/device-report"
+import { beaconConfig } from "@/beacon.config"
 
 /**
  * The map and logo for a report, drawn straight onto a canvas. A screenshot of the live Leaflet map
@@ -215,15 +216,22 @@ export async function renderDeviceMap(devices: ReportDevice[], withHeatmap = fal
   return canvas.toDataURL("image/jpeg", 0.82)
 }
 
-/** The AirQo logo as a PNG data URL, because jsPDF can't embed SVG. */
+/**
+ * The organisation's logo (`org.logo`) as a PNG data URL, because jsPDF can't embed SVG. It is
+ * fitted inside a 47:32 box, left-aligned, so any logo shape keeps its proportions.
+ */
 export async function loadReportLogo(): Promise<string | null> {
-  const image = await loadImage("/icons/airqo_logo.svg")
+  const image = await loadImage(beaconConfig.org.logo)
   if (!image) return null
   const canvas = document.createElement("canvas")
   canvas.width = 282
   canvas.height = 192
   const context = canvas.getContext("2d")
   if (!context) return null
-  context.drawImage(image, 0, 0, canvas.width, canvas.height)
+  const naturalWidth = image.naturalWidth || canvas.width
+  const naturalHeight = image.naturalHeight || canvas.height
+  const scale = Math.min(canvas.width / naturalWidth, canvas.height / naturalHeight)
+  const height = naturalHeight * scale
+  context.drawImage(image, 0, (canvas.height - height) / 2, naturalWidth * scale, height)
   return canvas.toDataURL("image/png")
 }

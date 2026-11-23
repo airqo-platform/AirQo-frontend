@@ -33,7 +33,6 @@ import { fetchCollocationSites } from "@/lib/api"
 import { getStatusIssues, type StatusIssue } from "@/lib/status-codes"
 import { useCategoryStatusCodeSet } from "@/hooks/use-status-code-set"
 import { StatusCodeChip } from "@/components/diagnostics/StatusCodeChips"
-import { isMockMode } from "@/lib/mock-data"
 import { syncSites } from "@/services/device-api.service"
 import { useToast } from "@/components/ui/use-toast"
 import { REFERENCE_MONITOR_LABEL, formatCompactNumber } from "@/lib/utils"
@@ -331,12 +330,6 @@ export default function SiteCollocationPage() {
     setIsLoading(true)
     setError(null)
     try {
-      // Check if mock mode is enabled
-      if (isMockMode()) {
-        setSites(mockSites)
-        setIsLoading(false)
-        return
-      }
 
       const end = new Date()
       const start = new Date()

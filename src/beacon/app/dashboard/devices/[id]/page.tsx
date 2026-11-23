@@ -14,17 +14,14 @@ import {
   Box,
   Settings,
   MapPin,
-  FileText,
   Edit,
   ArrowLeft,
-  TerminalIcon,
   Stethoscope,
 } from "lucide-react"
 import { config } from "@/lib/config"
 import { fetchWithAuth } from "@/lib/api-client"
 import authService from "@/services/api-service"
 import { useSession } from "next-auth/react"
-import { isMockMode } from "@/lib/mock-data"
 import { useToast } from "@/hooks/use-toast"
 import UpdateDeviceDialog from "@/components/dashboard/update-device-dialog"
 import MetadataTab from "./metadata-tab"
@@ -32,27 +29,20 @@ import ConfigTab from "./config-tab"
 import PerformanceTab from "./performance-tab"
 import DeviceDetailsTab from "./device-details-tab"
 import DiagnosticsTab from "./diagnostics-tab"
-import dynamic from "next/dynamic"
 import { useGroup } from "@/lib/group-context"
 import { resolveDeviceDataSource } from "@/lib/manufacturers"
 import type { DeviceDataSource } from "@/types/network.types"
 import { trackEvent } from "@/lib/analytics"
+import { DEVICE_EXTENSION_TABS } from "@/components/integration"
+import { isSystemGroup } from "@/beacon.config"
 
-const RemoteTerminalTab = dynamic(() => import("./remote-terminal-tab"), {
-  ssr: false,
-  loading: () => (
-    <div className="h-[700px] w-full bg-[#1e1e1e] flex items-center justify-center text-gray-500 rounded-md border border-gray-800">
-      Initializing workbench...
-    </div>
-  ),
-})
 
 // Define interfaces for the device data
 interface DeviceDetail {
   _id: string
   name: string
   long_name: string
-  /** ThingSpeak channel; AirQo devices only. The device identity is `_id`. */
+  /** ThingSpeak channel; ThingSpeak devices only. The device identity is `_id`. */
   device_number?: number | null
   description?: string
   createdAt: string
@@ -61,14 +51,14 @@ interface DeviceDetail {
   network: string
   network_id: string | null
   device_codes: string[]
-  /** Manufacturer serial number; the identity of non-AirQo devices */
+  /** Manufacturer serial number; the identity of devices read from a manufacturer API */
   serial_number?: string | null
-  /** Manufacturer API URL ("device connection URL") for non-AirQo devices */
+  /** Manufacturer API URL ("device connection URL") for devices read from a manufacturer API */
   api_code?: string | null
   /** thingspeak | external_api | none; older API builds omit it */
   data_source?: DeviceDataSource | null
 
-  // ThingSpeak keys; AirQo devices only
+  // ThingSpeak keys; ThingSpeak devices only
   readKey?: string | null
   writeKey?: string | null
 
@@ -147,12 +137,27 @@ interface DeviceDetail {
   tags: any[]
 }
 
-const DEVICE_TABS = ["device-details", "diagnostics", "metadata", "config", "performance", "remote-shell", "files"]
+const DEVICE_TABS = [
+  "device-details",
+  "diagnostics",
+  "metadata",
+  "config",
+  "performance",
+  ...DEVICE_EXTENSION_TABS.map((tab) => tab.value),
+]
+
+// Literal class names, so Tailwind keeps them
+const TAB_GRID_COLUMNS: Record<number, string> = {
+  5: "grid-cols-5",
+  6: "grid-cols-6",
+  7: "grid-cols-7",
+  8: "grid-cols-8",
+}
 
 export default function DeviceDetailPage() {
   const { data: session, status } = useSession()
   const { activeGroup } = useGroup()
-  const isAirqoGroup = activeGroup?.toLowerCase() === "airqo"
+  const isSystemGroupActive = isSystemGroup(activeGroup)
   const params = useParams()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -198,82 +203,7 @@ export default function DeviceDetailPage() {
       if (!params?.id) return
 
       const deviceId = params.id as string
-      const isMock = searchParams?.get('mock') === 'true' || isMockMode()
-
-      if (isMock) {
-        // Use dummy data for in-lab collocation devices
-        const mockDevice: DeviceDetail = {
-          _id: deviceId,
-          name: `mock_device_${deviceId.substring(0, 4)}`,
-          long_name: "Mock In-Lab Device",
-          device_number: 123456,
-          description: "This is a dummy device for in-lab collocation demonstration.",
-          createdAt: new Date().toISOString(),
-          network: "airqo",
-          network_id: null,
-          device_codes: ["MOCK-001"],
-          serial_number: "SN-MOCK-001",
-          data_source: "thingspeak",
-          readKey: "mock-read-key-123456789",
-          writeKey: "mock-write-key-987654321",
-          isActive: true,
-          isOnline: true,
-          rawOnlineStatus: true,
-          status: "in-lab",
-          visibility: true,
-          mobility: false,
-          authRequired: false,
-          category: "lowcost",
-          category_hierarchy: [
-            { level: "primary", category: "lowcost", description: "Low cost sensor" }
-          ],
-          device_categories: {
-            primary_category: "lowcost",
-            deployment_category: "in-lab",
-            is_mobile: false,
-            is_static: true,
-            is_lowcost: true,
-            all_categories: ["lowcost"]
-          },
-          height: 1.5,
-          mountType: "pole",
-          powerType: "solar",
-          beacon_data: {
-            network_id: null,
-            current_firmware: "v1.0.0-mock",
-            previous_firmware: null,
-            file_upload_state: false,
-            firmware_download_state: null
-          },
-          latitude: 0.3476,
-          longitude: 32.5825,
-          approximate_distance_in_km: 0,
-          bearing_in_radians: 0,
-          site: {
-            _id: "mock-site-id",
-            name: "Mock Lab Site",
-            formatted_name: "Makerere University Lab",
-            location_name: "Kampala, Uganda",
-            city: "Kampala",
-            country: "Uganda",
-            description: "Mock laboratory site for collocation"
-          },
-          deployment_date: new Date().toISOString(),
-          nextMaintenance: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-          lastActive: new Date().toISOString(),
-          lastRawData: new Date().toISOString(),
-          cohorts: [{ _id: "mock-cohort", name: "Mock In-Lab Cohort" }],
-          grids: [],
-          groups: [],
-          tags: ["mock", "in-lab"]
-        }
-        
-        // Simulate network delay
-        await new Promise(resolve => setTimeout(resolve, 500))
-        setDevice(mockDevice)
-        setLoading(false)
-        return
-      }
+      
 
       // Use consistent endpoint path as per user request
       const prefix = config.beaconApiPrefix || (config.isLocalhost ? '/api/v1' : '/api/v1/beacon')
@@ -331,7 +261,7 @@ export default function DeviceDetailPage() {
     })
   }
 
-  // Only AirQo devices read from ThingSpeak and have a channel to configure
+  // Only ThingSpeak devices have a channel and have a channel to configure
   const dataSource = resolveDeviceDataSource(device)
 
   if (loading) {
@@ -377,7 +307,10 @@ export default function DeviceDetailPage() {
         className="mt-2"
       >
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
-          <TabsList data-tour="device-tabs" className="grid w-full max-w-4xl grid-cols-7">
+          <TabsList
+            data-tour="device-tabs"
+            className={`grid w-full ${DEVICE_TABS.length > 5 ? "max-w-4xl" : "max-w-3xl"} ${TAB_GRID_COLUMNS[DEVICE_TABS.length] ?? "grid-cols-5"}`}
+          >
             <TabsTrigger value="device-details" className="flex items-center">
               <MapPin className="mr-2 h-4 w-4" />
               Device Details
@@ -402,14 +335,12 @@ export default function DeviceDetailPage() {
               <Activity className="mr-2 h-4 w-4" />
               Performance
             </TabsTrigger>
-            <TabsTrigger value="remote-shell" className="flex items-center">
-              <TerminalIcon className="mr-2 h-4 w-4" />
-              Remote Shell
-            </TabsTrigger>
-            <TabsTrigger value="files" className="flex items-center">
-              <FileText className="mr-2 h-4 w-4" />
-              Files
-            </TabsTrigger>
+            {DEVICE_EXTENSION_TABS.map(({ value, label, icon: Icon }) => (
+              <TabsTrigger key={value} value={value} className="flex items-center">
+                <Icon className="mr-2 h-4 w-4" />
+                {label}
+              </TabsTrigger>
+            ))}
           </TabsList>
           <Button
             variant="outline"
@@ -434,7 +365,7 @@ export default function DeviceDetailPage() {
           <DiagnosticsTab
             deviceId={device._id}
             deviceName={device.long_name || device.name}
-            readOnly={!isAirqoGroup}
+            readOnly={!isSystemGroupActive}
           />
         </TabsContent>
 
@@ -458,30 +389,11 @@ export default function DeviceDetailPage() {
           <PerformanceTab deviceId={device.name} deviceName={device.long_name || device.name} />
         </TabsContent>
 
-        <TabsContent value="remote-shell" className="mt-4">
-          <RemoteTerminalTab
-            deviceId={device._id}
-            deviceName={device.long_name || device.name}
-            transmissionStatus={device.transmissionStatus}
-          />
-        </TabsContent>
-
-        <TabsContent value="files" className="mt-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Device Files</CardTitle>
-              <CardDescription>
-                View and manage files associated with this device
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-10 text-gray-500">
-                <FileText className="h-10 w-10 mx-auto mb-2 text-gray-400" />
-                <p>No files available for this device.</p>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+        {DEVICE_EXTENSION_TABS.map(({ value, render }) => (
+          <TabsContent key={value} value={value} className="mt-4">
+            {render({ device })}
+          </TabsContent>
+        ))}
       </Tabs>
 
       {/* Update Device Dialog */}

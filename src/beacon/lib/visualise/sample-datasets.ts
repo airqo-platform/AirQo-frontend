@@ -9,17 +9,17 @@ export interface SampleDatasetInfo {
   csvContent: string
 }
 
-// 1. Hourly Air Quality Time Series (Kampala & Environs)
+// 1. Hourly Air Quality Time Series (Riverside & Environs)
 const generateAirQualityTimeseries = (): string => {
   const rows = [
     "timestamp,device_name,site_name,pm2_5,pm10,temperature,humidity,battery_voltage,aqi_category",
   ]
   const sites = [
-    { device: "aq_gaba_01", site: "Ggaba Pier" },
-    { device: "aq_makerere_02", site: "Makerere University" },
-    { device: "aq_nakawa_03", site: "Nakawa Market" },
-    { device: "aq_kololo_04", site: "Kololo Airstrip" },
-    { device: "aq_jinja_05", site: "Jinja Main Street" },
+    { device: "acme_1001", site: "Lakeshore Pier" },
+    { device: "acme_1004", site: "University Main Gate" },
+    { device: "nimbus_1002", site: "Market Square" },
+    { device: "acme_1007", site: "Central Library" },
+    { device: "terra_1003", site: "Hillcrest Water Works" },
   ]
 
   const now = new Date()
@@ -71,7 +71,7 @@ const generateCollocationData = (): string => {
     const rh = Number((65 + Math.cos(i / 10) * 15).toFixed(1))
     const isValid = errorMargin < 4.0
 
-    rows.push(`${timeStr},airqo_colloc_09,${s1},${s2},${errorMargin},${temp},${rh},${isValid}`)
+    rows.push(`${timeStr},acme_colloc_09,${s1},${s2},${errorMargin},${temp},${rh},${isValid}`)
   }
 
   return rows.join("\n")
@@ -80,15 +80,13 @@ const generateCollocationData = (): string => {
 // 3. Regional AirQloud Performance Summary
 const generateRegionalSummary = (): string => {
   return `region,city,cohort_name,total_devices,active_devices,uptime_percentage,avg_pm2_5,avg_pm10,data_completeness_pct
-Central,Kampala,Kampala Urban Network,42,39,92.8,38.4,62.1,94.2
-Central,Entebbe,Lake Victoria Coastal,12,11,91.6,21.3,34.8,96.0
-Central,Wakiso,Greater Wakiso Residential,28,25,89.2,34.7,55.9,90.5
-Eastern,Jinja,Industrial & Tourism Belt,16,15,93.7,42.1,68.4,95.1
-Eastern,Mbale,Mount Elgon Foothills,10,9,90.0,18.6,29.3,88.4
-Western,Mbarara,Western Corridor Hub,14,13,92.8,29.5,47.2,93.0
-Western,Fort Portal,Rwenzori Tourism Belt,8,8,100.0,14.2,22.0,98.5
-Northern,Gulu,Northern Regional Grid,15,13,86.6,26.8,41.9,87.2
-Northern,Lira,Lango Commercial Center,9,8,88.8,31.2,49.5,89.0`
+Central,Riverside,Riverside City Network,42,39,92.8,38.4,62.1,94.2
+Central,Riverside,Riverside Schools Programme,12,11,91.6,21.3,34.8,96.0
+Eastern,Lakeshore,Lakeshore Campus,28,25,89.2,34.7,55.9,90.5
+Eastern,Lakeshore,Harbour Industrial Belt,16,15,93.7,42.1,68.4,95.1
+Western,Hillcrest,Hillcrest Pilot,10,9,90.0,18.6,29.3,88.4
+Western,Hillcrest,Ridge Corridor,14,13,92.8,29.5,47.2,93.0
+`
 }
 
 export const SAMPLE_DATASETS: SampleDatasetInfo[] = [

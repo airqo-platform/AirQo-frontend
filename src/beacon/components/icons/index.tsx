@@ -39,22 +39,6 @@ export const AqAirQlouds: React.FC<IconProps> = ({ size = 24, color = 'currentCo
   </svg>
 );
 
-export const AqAirQo: React.FC<IconProps> = ({ size = 24, color = 'currentColor', ...props }) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke={color}
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    {...props}
-  >
-    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-  </svg>
-);
-
 export const AqAlignLeft: React.FC<IconProps> = ({ size = 24, color = 'currentColor', ...props }) => (
   <svg
     width={size}

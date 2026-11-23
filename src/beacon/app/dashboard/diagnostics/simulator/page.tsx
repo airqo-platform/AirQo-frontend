@@ -45,6 +45,7 @@ import {
 } from "lucide-react";
 import { useGroup } from "@/lib/group-context";
 import { trackEvent } from "@/lib/analytics";
+import { beaconConfig, isSystemGroup, systemGroupLabel } from "@/beacon.config"
 
 const formatRecords = (records: Record<string, any>[]) =>
   records.length === 0 ? "[]" : `[\n${records.map((r) => `  ${JSON.stringify(r)}`).join(",\n")}\n]`;
@@ -53,7 +54,7 @@ function DiagnosticSimulatorContent() {
   const searchParams = useSearchParams();
   const queryDeviceId = searchParams?.get("device_id");
   const { activeGroup, loading: groupLoading } = useGroup();
-  const isAirqoGroup = activeGroup?.toLowerCase() === "airqo";
+  const isSystemGroupActive = isSystemGroup(activeGroup);
 
   const [profiles, setProfiles] = useState<DeviceProfile[]>([]);
   const [profilesLoading, setProfilesLoading] = useState<boolean>(false);
@@ -90,8 +91,8 @@ function DiagnosticSimulatorContent() {
   }, []);
 
   useEffect(() => {
-    if (isAirqoGroup) loadProfiles();
-  }, [isAirqoGroup, loadProfiles]);
+    if (isSystemGroupActive) loadProfiles();
+  }, [isSystemGroupActive, loadProfiles]);
 
   useEffect(() => {
     if (queryDeviceId) setDeviceId(queryDeviceId);
@@ -186,7 +187,7 @@ function DiagnosticSimulatorContent() {
     );
   }
 
-  if (!isAirqoGroup) {
+  if (!isSystemGroupActive) {
     return (
       <div className="p-6 max-w-4xl mx-auto">
         <Card className="border border-slate-200 shadow-sm">
@@ -196,7 +197,7 @@ function DiagnosticSimulatorContent() {
               Restricted Organization Section
             </CardTitle>
             <CardDescription className="text-xs text-gray-600 leading-relaxed mt-1">
-              Diagnostic Simulator & Bench Tester is exclusively available when the active organization is set to <span className="font-semibold text-primary">AirQo</span>.
+              Diagnostic Simulator & Bench Tester is exclusively available when the active organization is set to <span className="font-semibold text-primary">{systemGroupLabel}</span>.
             </CardDescription>
           </CardHeader>
         </Card>

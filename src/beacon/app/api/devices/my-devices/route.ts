@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { config } from '@/lib/config'
+import { handleMockRequest } from '@/lib/mock'
 
 export const dynamic = 'force-dynamic'
 
 // Same platform as the sign-in (lib/auth.ts): a token only works on the platform that issued it.
-const AIRQO_API_BASE_URL = config.airqoPlatformUrl
+const PLATFORM_API_BASE_URL = config.platformUrl
 const API_VERSION = config.apiVersion
 
 export async function GET(request: NextRequest) {
@@ -34,8 +35,11 @@ export async function GET(request: NextRequest) {
     if (groupIds) params.append('group_ids', groupIds)
     if (cohortIds) params.append('cohort_ids', cohortIds)
 
-    // Build URL to platform api
-    const url = `${AIRQO_API_BASE_URL}/api/${API_VERSION}/devices/my-devices?${params.toString()}`
+    if (config.isMockBackend) {
+      return handleMockRequest('platform', 'GET', `api/${API_VERSION}/devices/my-devices`, params, null)
+    }
+
+    const url = `${PLATFORM_API_BASE_URL}/api/${API_VERSION}/devices/my-devices?${params.toString()}`
 
     // Format auth header: Ensure it has JWT prefix if it's a raw JWT token
     let formattedAuthHeader = authHeader

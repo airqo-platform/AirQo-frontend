@@ -36,6 +36,18 @@ npm test
 ```
 Runs the `node:test` suites in `tests/unit/manufacturers` (Node 20 or later) through a small loader (`tests/unit/register.mjs`) that transpiles TypeScript, resolves `@/` imports and stubs Next.js runtime modules. No extra test framework is needed.
 
+### Without the AirQo platform (mock backend)
+```bash
+NEXT_PUBLIC_BEACON_MOCK=true npm run dev
+```
+Serves a seeded demo fleet from Beacon's own mock backend (`lib/mock/`) and signs in as a demo user, so every page works without platform credentials or a local beacon-api.
+
+### Beacon template
+```bash
+npm run export:template
+```
+Writes a domain-neutral copy of Beacon to `dist/beacon-template`: generic branding, the mock backend and demo sign-in, without AirQo's own pages and integrations. Branding, links and features come from `beacon.config.ts`; AirQo-only code sits behind the `integration` files. See [`template/README.md`](./template/README.md) before adding AirQo-specific code.
+
 ## 📋 Architecture Integration
 
 This frontend microservice is part of AirQo's three-layer architecture:

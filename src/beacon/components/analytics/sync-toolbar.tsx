@@ -5,6 +5,7 @@ import { useToast } from "@/components/ui/use-toast"
 import { SyncMenu } from "@/components/dashboard/sync-menu"
 import { syncCohorts, syncThingSpeak } from "@/services/device-api.service"
 import { useGroup } from "@/lib/group-context"
+import { isSystemGroup } from "@/beacon.config"
 
 interface SyncState {
   isSyncingCohorts: boolean
@@ -73,7 +74,7 @@ export function useSyncActions(): SyncState {
   }
 }
 
-/** Clustered Analysis sync actions for the AirQo group, behind one icon. */
+/** Clustered Analysis sync actions for the system group, behind one icon. */
 export function SyncToolbar({
   isSyncingCohorts,
   isSyncingData,
@@ -81,9 +82,9 @@ export function SyncToolbar({
   handleSyncData,
 }: SyncState) {
   const { activeGroup } = useGroup()
-  const isAirqoGroup = activeGroup?.toLowerCase() === "airqo"
+  const isSystemGroupActive = isSystemGroup(activeGroup)
 
-  if (!isAirqoGroup) {
+  if (!isSystemGroupActive) {
     return null
   }
   return (
@@ -92,7 +93,7 @@ export function SyncToolbar({
         {
           id: "clusters",
           label: "Sync Clusters",
-          description: "From the AirQo platform",
+          description: "From the platform",
           onSelect: handleSyncCohorts,
           busy: isSyncingCohorts,
         },

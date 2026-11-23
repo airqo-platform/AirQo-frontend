@@ -9,13 +9,14 @@ import {
   GatewayDeviceCoverage,
 } from "@/types/lorawan.types";
 import { calculateDistance } from "@/utils/map-utils";
+import { beaconConfig, brandTitle } from "@/beacon.config"
 export { calculateDistance };
 
-export const LORAWAN_STORAGE_KEY = "airqo_beacon_lorawan_gateways";
+export const LORAWAN_STORAGE_KEY = "beacon_lorawan_gateways";
 
 /**
  * Default RF coverage factors based on terrain and environment:
- * - Urban: Dense concrete obstructions (e.g. Kampala), 2-5 km range.
+ * - Urban: Dense concrete obstructions (city centres), 2-5 km range.
  * - Suburban: Moderate buildings and foliage, 5-7 km range.
  * - Rural: Open layout with minimal obstructions, reaching up to 10 km.
  */
@@ -31,7 +32,7 @@ export const ENVIRONMENT_PROFILES: Record<
   }
 > = {
   urban: {
-    label: "Dense Urban (e.g. Kampala)",
+    label: "Dense Urban (city centre)",
     description: "Reduced spread (2–5 km) due to concrete buildings & multi-path interference",
     pathLossExponent: 3.8,
     strongRadiusKm: 2.0,
@@ -56,81 +57,44 @@ export const ENVIRONMENT_PROFILES: Record<
   },
 };
 
+const [GATEWAY_CENTER_LAT, GATEWAY_CENTER_LNG] = beaconConfig.map.defaultCenter
+
+const sampleGateway = (
+  index: number,
+  name: string,
+  offset: [number, number],
+  environment: LoRaWANGateway["environment"],
+  range: { height: number; max: number; strong: number },
+  description: string,
+): LoRaWANGateway => ({
+  id: `gw-sample-${String(index).padStart(2, "0")}`,
+  name,
+  latitude: Math.round((GATEWAY_CENTER_LAT + offset[0]) * 1e5) / 1e5,
+  longitude: Math.round((GATEWAY_CENTER_LNG + offset[1]) * 1e5) / 1e5,
+  environment,
+  antenna_height_m: range.height,
+  max_range_km: range.max,
+  inner_strong_radius_km: range.strong,
+  eui: `A84041FFFF2100${String(index).padStart(2, "0")}`,
+  frequency_band: "EU868",
+  description,
+  enabled: true,
+})
+
 /**
- * Realistic sample LoRaWAN gateways deployed across Kampala & Greater Central Uganda
+ * Generated gateways around the configured map centre (`map.defaultCenter`), near the demo fleet's
+ * three areas. Used when beacon.config.ts lists no `map.sampleGateways`.
  */
-export const KAMPALA_SAMPLE_GATEWAYS: LoRaWANGateway[] = [
-  {
-    id: "gw-muk-01",
-    name: "Muk Gateway",
-    latitude: 0.33415,
-    longitude: 32.57028,
-    environment: "urban",
-    antenna_height_m: 35,
-    max_range_km: 5.0,
-    inner_strong_radius_km: 2.0,
-    eui: "A84041FFFF210001",
-    frequency_band: "EU868",
-    description: "Altitude: 1195m ASL. High elevation gateway at Makerere University covering Central Kampala & Wandegeya.",
-    enabled: true,
-  },
-  {
-    id: "gw-mug-02",
-    name: "Gateway at Muganzirwaza",
-    latitude: 0.29526,
-    longitude: 32.57249,
-    environment: "urban",
-    antenna_height_m: 30,
-    max_range_km: 5.0,
-    inner_strong_radius_km: 2.0,
-    eui: "A84041FFFF210002",
-    frequency_band: "EU868",
-    description: "Urban gateway at Muganzirwaza Complex covering Katwe, Kibuye, Ndeeba and South Kampala.",
-    enabled: true,
-  },
-  {
-    id: "gw-ggaba-03",
-    name: "Gateway at NWSC-Ggaba",
-    latitude: 0.25126,
-    longitude: 32.63737,
-    environment: "suburban",
-    antenna_height_m: 30,
-    max_range_km: 7.0,
-    inner_strong_radius_km: 3.5,
-    eui: "A84041FFFF210003",
-    frequency_band: "EU868",
-    description: "Water treatment plant gateway with clear line-of-sight across Ggaba, Munyonyo and Lake Victoria shore.",
-    enabled: true,
-  },
-  {
-    id: "gw-nkozi-04",
-    name: "Masaka Nkozi Gateway",
-    latitude: 0.00273,
-    longitude: 32.01378,
-    environment: "rural",
-    antenna_height_m: 40,
-    max_range_km: 10.0,
-    inner_strong_radius_km: 5.0,
-    eui: "A84041FFFF210004",
-    frequency_band: "EU868",
-    description: "Altitude: 1250m ASL. Elevated mast at Uganda Martyrs University Nkozi / Masaka Highway with up to 10 km reach.",
-    enabled: true,
-  },
-  {
-    id: "gw-soroti-05",
-    name: "Gateway at Soroti",
-    latitude: 1.7656607,
-    longitude: 33.6272319,
-    environment: "rural",
-    antenna_height_m: 40,
-    max_range_km: 10.0,
-    inner_strong_radius_km: 5.0,
-    eui: "A84041FFFF210005",
-    frequency_band: "EU868",
-    description: "Eastern Uganda regional hub gateway in Soroti with open terrain propagation up to 10 km.",
-    enabled: true,
-  },
-];
+const GENERATED_GATEWAYS: LoRaWANGateway[] = [
+  sampleGateway(1, "Riverside Hill Gateway", [0.01, -0.01], "urban", { height: 35, max: 5, strong: 2 }, "High-elevation gateway covering central Riverside."),
+  sampleGateway(2, "Riverside South Gateway", [-0.05, 0.02], "urban", { height: 30, max: 5, strong: 2 }, "Urban gateway covering southern Riverside."),
+  sampleGateway(3, "Lakeshore Campus Gateway", [0.18, 0.9], "suburban", { height: 30, max: 7, strong: 3.5 }, "Rooftop gateway at the university with line-of-sight over the lake shore."),
+  sampleGateway(4, "Hillcrest Ridge Gateway", [-0.45, -0.85], "rural", { height: 40, max: 10, strong: 5 }, "Elevated mast on the ridge with open terrain propagation."),
+]
+
+/** The gateways the maintenance map loads: `map.sampleGateways` from beacon.config.ts, else generated ones. */
+export const SAMPLE_GATEWAYS: LoRaWANGateway[] =
+  beaconConfig.map.sampleGateways.length > 0 ? beaconConfig.map.sampleGateways : GENERATED_GATEWAYS
 
 /**
  * Calculates estimated RSSI (dBm) and signal metrics using the Log-Distance Path Loss Model:
@@ -220,7 +184,7 @@ export function getGatewayCoverageZones(gateway: LoRaWANGateway): GatewayCoverag
       quality: "moderate",
       description:
         envKey === "urban"
-          ? "Typical urban limit in Kampala due to concrete multi-path attenuation (RSSI -90 to -110 dBm)"
+          ? "Typical urban limit due to concrete multi-path attenuation (RSSI -90 to -110 dBm)"
           : "Standard coverage boundary (RSSI -90 to -110 dBm)",
       fillColor: "#f59e0b", // amber-500
       fillOpacity: 0.11,
@@ -429,15 +393,16 @@ export function parseLoRaWANGatewayJSON(input: unknown): LoRaWANGateway[] {
     const rawEnv = String(item.environment || item.env || item.terrain || item.spread || "").toLowerCase();
     const nameLower = String(name).toLowerCase();
 
-    if (rawEnv.includes("rur") || rawEnv.includes("open") || nameLower.includes("soroti") || nameLower.includes("masaka") || nameLower.includes("nkozi") || nameLower.includes("rural") || nameLower.includes("open")) {
+    if (rawEnv.includes("rur") || rawEnv.includes("open") || nameLower.includes("rural") || nameLower.includes("open")) {
       env = "rural";
-    } else if (rawEnv.includes("sub") || rawEnv.includes("semi") || nameLower.includes("ggaba") || nameLower.includes("nwsc") || nameLower.includes("namanve") || nameLower.includes("lake")) {
+    } else if (rawEnv.includes("sub") || rawEnv.includes("semi") || nameLower.includes("suburb")) {
       env = "suburban";
-    } else if (rawEnv.includes("urb") || rawEnv.includes("kampala") || rawEnv.includes("city") || nameLower.includes("muk") || nameLower.includes("makerere") || nameLower.includes("muganzirwaza") || nameLower.includes("kololo")) {
+    } else if (rawEnv.includes("urb") || rawEnv.includes("city") || nameLower.includes("city")) {
       env = "urban";
-    } else if (lat < 0.2 || lat > 0.5 || lng < 32.4 || lng > 32.7) {
-      // Coordinates outside greater Kampala metro area default to rural open spread
-      env = "rural";
+    } else {
+      // No hint: assume rural open spread beyond ~25 km of the configured map centre
+      const [centerLat, centerLng] = beaconConfig.map.defaultCenter;
+      if (Math.abs(lat - centerLat) > 0.25 || Math.abs(lng - centerLng) > 0.25) env = "rural";
     }
 
     const antennaHeight = toNumber(item.antenna_height_m ?? item.antenna_height ?? item.height ?? item.tower_height, 25);
@@ -584,13 +549,13 @@ export function generateMapGeoJSON(
     if (d.latitude == null || d.longitude == null) return;
     const identity = d.site
       ? {
-          layer: "AirQo Maintenance Sites",
+          layer: "Maintenance Sites",
           site_id: d.site.site_id,
           site_name: d.site.site_name,
           generated_name: d.site.generated_name,
           number_of_devices: d.site.number_of_devices,
         }
-      : { layer: "AirQo Maintenance Devices", device_id: d.device_id, device_name: d.device_name };
+      : { layer: "Maintenance Devices", device_id: d.device_id, device_name: d.device_name };
     features.push({
       type: "Feature",
       id: d.device_id,
@@ -658,7 +623,7 @@ export function generateMapGeoJSON(
     type: "FeatureCollection",
     metadata: {
       generatedAt: new Date().toISOString(),
-      generator: "AirQo Beacon Maintenance Platform",
+      generator: brandTitle,
     },
     features,
   };

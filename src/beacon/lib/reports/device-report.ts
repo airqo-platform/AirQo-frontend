@@ -1,4 +1,5 @@
 import { addDays, eachDayOfInterval, format, startOfDay, startOfWeek } from "date-fns"
+import { beaconConfig, isSystemGroup } from "@/beacon.config"
 
 /**
  * The device health report, worked out once from the performance data. The on-screen preview and
@@ -300,8 +301,8 @@ function listNames(names: string[], limit = NAMES_IN_A_SENTENCE): string {
 }
 
 const formatOrganisation = (organisation: string): string =>
-  organisation.toLowerCase() === "airqo"
-    ? "AirQo"
+  isSystemGroup(organisation)
+    ? beaconConfig.org.name
     : organisation.replace(/[_-]+/g, " ").replace(/(^|\s)\S/g, (start) => start.toUpperCase())
 
 const toSlug = (value: string): string =>
@@ -510,7 +511,7 @@ export function buildDeviceReport(input: DeviceReportInput): DeviceReport {
   } else {
     introduction.push(
       rich(
-        "Beacon received no data from these devices in this period, so the sections that follow are limited to what to check next."
+        `${beaconConfig.app.name} received no data from these devices in this period, so the sections that follow are limited to what to check next.`
       )
     )
   }
@@ -623,7 +624,7 @@ export function buildDeviceReport(input: DeviceReportInput): DeviceReport {
   // ── Conclusion ────────────────────────────────────────────────────────────
   const conclusion: ReportText[] = []
   if (band === "no-data") {
-    conclusion.push(rich(`Beacon received nothing from ${scopeSentence} in this period, so its health can't be assessed.`))
+    conclusion.push(rich(`${beaconConfig.app.name} received nothing from ${scopeSentence} in this period, so its health can't be assessed.`))
   } else {
     const uptimeText = formatPercent(averageUptime as number)
     if (band === "good") {

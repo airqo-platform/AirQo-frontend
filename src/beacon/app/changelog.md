@@ -2,6 +2,32 @@
 
 > **Note**: This changelog consolidates all recent improvements, features, and fixes to the AirQo Beacon frontend.
 
+## Unreleased
+
+### Feature: Config-driven Beacon, mock backend and template export
+
+One codebase now serves AirQo's Beacon and a domain-neutral Beacon template, instead of a separate copy that would drift.
+
+<details>
+<summary><strong>Config and integration files</strong></summary>
+
+- **`beacon.config.ts`** (schema in `lib/beacon-config.ts`): organisation name and logo, the system group (`airqo`), companion apps (Vertex, Nexus) with per-environment URLs, LoRaWAN gateways, the office route start, the error report route and feature flags. Shared code reads these instead of hardcoding AirQo, e.g. `isSystemGroup()` for `=== "airqo"`.
+- **Integration files**: `lib/integration/{api-urls,auth,routes}` and `components/integration` hold AirQo's API URLs, platform sign-in, lab and inventory pages, OAuth hand-off, apps launcher and the Remote Shell and Files tabs. The sign-in provider moved to `lib/platform-auth.ts`; the login page to `components/auth/platform-login.tsx`.
+- **Session**: the platform token's expiry is stored as `accessTokenExp` (was `airqoExp`); the session cookie name is shared with the middleware. The admin cookie is now `isSystemAdmin`.
+- **Errors**: `sendToSlack` is now `reportError`, posting to `monitoring.errorReportEndpoint`.
+
+</details>
+
+<details>
+<summary><strong>Mock backend and template</strong></summary>
+
+- **Mock backend** (`app/api/mock`, `lib/mock`): a seeded fleet with diagnoses, maintenance, reports data and network status. `NEXT_PUBLIC_BEACON_MOCK=true` runs Beacon on it with a demo sign-in. `tests/unit/mock` checks every endpoint the pages call.
+- **`npm run export:template`** writes the template to `dist/beacon-template` from `template/manifest.json` and `template/overlay/`, and fails if any AirQo wording is left. See `template/README.md`.
+- **Removed** the unused in-page mock data (`lib/mock-data.ts`, `?mock=true` device pages); `USE_MOCK_DATA` was already off.
+- **Fixed** feedback from localhost going to staging-platform regardless of configuration; it now uses the configured platform URL (still staging in development).
+
+</details>
+
 ## Version 2.4.0
 **Released:** September 21, 2026
 

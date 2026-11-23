@@ -57,6 +57,8 @@ import { networkStatusService, NetworkStatusAlert, NetworkStatistics, HourlyTren
 import { airQloudService, Cohort } from "@/services/airqloud.service"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectSeparator, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tooltip as UiTooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { beaconConfig, isSystemGroup } from "@/beacon.config"
+import { formatNetworkLabel } from "@/lib/manufacturers"
 
 const aggregateUptimeFromAlerts = (alerts: NetworkStatusAlert[]): UptimeSummaryItem[] => {
   const groups: Record<string, {
@@ -105,14 +107,7 @@ const aggregateUptimeFromAlerts = (alerts: NetworkStatusAlert[]): UptimeSummaryI
 }
 
 const getNetworkDisplayName = (networkVal: string): string => {
-  const mapping: Record<string, string> = {
-    airqo: "AirQo",
-    airgradient: "AirGradient",
-    kcca: "KCCA",
-    metone: "MetOne",
-    iqair: "IQAir"
-  };
-  return mapping[networkVal.toLowerCase()] || networkVal.charAt(0).toUpperCase() + networkVal.slice(1);
+  return formatNetworkLabel(networkVal);
 }
 
 function DashboardContent() {
@@ -140,15 +135,15 @@ function DashboardContent() {
 
   useEffect(() => {
     if (!groupsLoading) {
-      const hasAirqoAdmin = availableGroups.some(g => {
-        if (g.grp_title?.toLowerCase() === 'airqo') {
+      const hasSystemAdmin = availableGroups.some(g => {
+        if (isSystemGroup(g.grp_title)) {
           const roleName = g.role?.role_name?.toLowerCase() || ''
           return roleName.includes('admin') || roleName === 'super' || roleName === 'net admin'
         }
         return false
       })
 
-      if (!hasAirqoAdmin) {
+      if (!hasSystemAdmin) {
         router.replace('/dashboard/home')
       } else {
         setIsAuthorized(true)
@@ -195,7 +190,7 @@ function DashboardContent() {
         networkStatusService.getNetworkBreakdown(baseParams).catch(e => { console.error(e); return { success: false, error: e }; }),
         networkStatusService.getCohortBreakdown(baseParams).catch(e => { console.error(e); return { success: false, error: e }; }),
         activeFilter ? networkStatusService.getDeviceSummaryCount(activeFilter).catch(e => { console.error(e); return { success: false, error: e }; }) : Promise.resolve(null),
-        airQloudService.getCohorts({ limit: 100, group: activeGroup || 'airqo' }).catch(e => { console.error(e); return null; })
+        airQloudService.getCohorts({ limit: 100, group: activeGroup || beaconConfig.auth.systemGroupSlug }).catch(e => { console.error(e); return null; })
       ])
 
       let rawAlerts: NetworkStatusAlert[] = []
@@ -503,7 +498,7 @@ function DashboardContent() {
             {activeTab === 'overview' 
               ? (selectedNetwork 
                   ? `Showing status and trends for ${getNetworkDisplayName(selectedNetwork)} manufacturer fleet` 
-                  : "Real-time status tracking for the AirQo device transmission network")
+                  : `Real-time status tracking for the ${beaconConfig.org.shortName} device transmission network`)
               : "Compare real-time status and transmission rates across all sensor manufacturers and device fleets"}
           </p>
         </div>

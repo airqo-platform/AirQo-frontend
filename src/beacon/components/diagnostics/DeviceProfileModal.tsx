@@ -40,6 +40,7 @@ import {
   ArrowRight,
   Sparkles,
 } from "lucide-react";
+import { beaconConfig } from "@/beacon.config"
 
 export const getVendorName = (vendor: string | DeviceVendor | null | undefined): string => {
   if (!vendor) return "";
@@ -157,7 +158,7 @@ export function DeviceProfileModal({
       setFormName("");
       setFormCategory("air_quality");
       setFormDescription("");
-      setFormVendor("AirQo");
+      setFormVendor(beaconConfig.hardware.vendor);
       setFormMetaDataJson(
         JSON.stringify({ is_default_lowcost: true, hardware_generation: "v5.2" }, null, 2)
       );
@@ -513,7 +514,7 @@ export function DeviceProfileModal({
                 <Input
                   value={formName}
                   onChange={(e) => setFormName(e.target.value)}
-                  placeholder="e.g. AirQo-v5-DualPM"
+                  placeholder="e.g. Acme-v2-DualPM"
                   className="h-8 text-xs"
                 />
               </div>
@@ -542,7 +543,7 @@ export function DeviceProfileModal({
                 <Input
                   value={formVendor}
                   onChange={(e) => setFormVendor(e.target.value)}
-                  placeholder="e.g. AirQo / Met One Instruments"
+                  placeholder="e.g. Acme Sensors"
                   className="h-8 text-xs"
                 />
               </div>

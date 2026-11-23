@@ -7,7 +7,6 @@ import axios from '@/lib/api-client';
 import { AxiosRequestConfig } from 'axios';
 import { config } from '@/lib/config';
 import authService from './api-service';
-import { isMockMode, getMockStockItems } from '@/lib/mock-data';
 import {
   ItemsStock,
   ItemsStockCreate,
@@ -68,7 +67,6 @@ class StockService {
    * Get all stock items
    */
   async getAllItems(params?: ItemsStockListParams): Promise<ItemsStockResponse | ItemsStock[]> {
-    if (isMockMode()) return getMockStockItems() as any
 
     try {
       const queryParams = new URLSearchParams();
