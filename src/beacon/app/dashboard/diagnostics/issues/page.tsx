@@ -1,16 +1,16 @@
 "use client";
 
 import React, { Suspense } from "react";
-import { AirqoFleetGate, FleetPageSkeleton } from "@/components/diagnostics/AirqoFleetGate";
+import { SystemFleetGate, FleetPageSkeleton } from "@/components/diagnostics/SystemFleetGate";
 import { FleetIssuesView } from "@/components/diagnostics/FleetIssuesView";
 import { ROUTES } from "@/lib/navigation";
 
 export default function FleetIssuesPage() {
   return (
     <Suspense fallback={<FleetPageSkeleton />}>
-      <AirqoFleetGate>
+      <SystemFleetGate>
         {(group) => <FleetIssuesView group={group} parentTitle="Fleet Health" basePath={ROUTES.DIAGNOSTICS} />}
-      </AirqoFleetGate>
+      </SystemFleetGate>
     </Suspense>
   );
 }

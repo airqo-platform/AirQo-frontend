@@ -5,7 +5,9 @@ import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import * as DialogPrimitive from "@radix-ui/react-dialog"
 import { ChevronDown, ChevronRight, Clock, ShieldCheck } from "lucide-react"
-import { AqAirQo, AqHomeSmile, AqXClose } from "@airqo/icons-react"
+import { AqHomeSmile, AqXClose } from "@airqo/icons-react"
+import BrandLogo from "@/components/brand-logo"
+import { beaconConfig } from "@/beacon.config"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -78,7 +80,7 @@ interface DrawerFlyoutProps {
   children: React.ReactNode
 }
 
-/** Drawer entry that opens a side menu on hover, click or keyboard — Vertex's admin/recent pattern. */
+/** Drawer entry that opens a side menu on hover, click or keyboard  */
 function DrawerFlyout({
   open,
   onOpenChange,
@@ -140,8 +142,8 @@ function DrawerFlyout({
 
 /**
  * Slide-over primary navigation opened from the top bar's menu button.
- * Mirrors Vertex: Home returns to the devices module, the Administrative Panel
- * (AirQo maintainers only) switches to the admin module, and Recently Visited
+ * Home returns to the devices module, the Administrative Panel
+ * (system group maintainers only) switches to the admin module, and Recently Visited
  * jumps back to recent pages.
  *
  * Built on Radix Dialog for the modal behaviour: focus is trapped inside and
@@ -228,10 +230,10 @@ export default function PrimarySidebar({ isOpen, onClose, activeModule }: Readon
           {/* Drawer Header */}
           <div className="flex items-center justify-between px-5 py-4 border-b border-border">
             <div className="flex items-center gap-2.5 min-w-0">
-              <AqAirQo size={36} color="#0A84FF" />
+              <BrandLogo size={36} />
               <div className="flex flex-col gap-0.5 min-w-0">
                 <DialogPrimitive.Title className="font-bold text-lg leading-tight text-foreground">
-                  Beacon
+                  {beaconConfig.app.name}
                 </DialogPrimitive.Title>
                 {activeGroup && (
                   <span
@@ -268,7 +270,7 @@ export default function PrimarySidebar({ isOpen, onClose, activeModule }: Readon
                 <DrawerItemBody icon={AqHomeSmile} label="Home" isActive={pathname === ROUTES.HOME} />
               </Link>
 
-              {/* Administrative Panel - AirQo maintainers only */}
+              {/* Administrative Panel - system group maintainers only */}
               {access.canAccessAdminPanel && (
                 <DrawerFlyout
                   {...flyoutProps("admin")}

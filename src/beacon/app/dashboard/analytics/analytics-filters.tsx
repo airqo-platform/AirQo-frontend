@@ -19,6 +19,7 @@ import type { Device } from "@/types/api.types"
 import { useGroup } from "@/lib/group-context"
 import { DEFAULT_COHORT_TAG, cohortTagsFor, isDefaultCohort } from "@/lib/cohort-tags"
 import { useSyncActions, SyncToolbar } from "@/components/analytics/sync-toolbar"
+import { useToast } from "@/components/ui/use-toast"
 
 export type AnalyticsFilterType = "airqlouds" | "devices"
 
@@ -34,6 +35,16 @@ export const FILTER_TYPE_LABELS: Record<AnalyticsFilterType, string> = {
 export const FILTER_ITEM_LABELS: Record<AnalyticsFilterType, string> = {
   airqlouds: "Cluster",
   devices: "Device",
+}
+
+/**
+ * Most items one analysis may cover. Each cluster brings every device's series for the whole
+ * period, so a wide selection is slow to fetch and heavy to render, and only a smaller one keeps
+ * its sessionStorage copy for a reload of the results page (lib/analysis-handoff.ts).
+ */
+export const MAX_SELECTED_ITEMS: Record<AnalyticsFilterType, number> = {
+  airqlouds: 5,
+  devices: 20,
 }
 
 const DEFAULT_PERIOD_DAYS = 14
@@ -108,6 +119,7 @@ export default function AnalyticsFilters({
   isAnalysing,
 }: AnalyticsFiltersProps) {
   const { activeGroup, loading: groupLoading } = useGroup()
+  const { toast } = useToast()
   const syncActions = useSyncActions()
   const [filterType, setFilterType] = useState<AnalyticsFilterType>(initialFilterType)
   const [selectedItems, setSelectedItems] = useState<string[]>([])
@@ -167,8 +179,10 @@ export default function AnalyticsFilters({
     if (stored) {
       try {
         const parsed: SelectedItem[] = JSON.parse(stored)
-        // Selections saved before the default cohort stopped being listed can still hold it
-        const selectable = filterType === "airqlouds" ? parsed.filter(item => !isDefaultCohort(item.name)) : parsed
+        // Selections saved before the default cohort stopped being listed can still hold it,
+        // and ones saved before the limit existed can be longer than it
+        const selectable = (filterType === "airqlouds" ? parsed.filter(item => !isDefaultCohort(item.name)) : parsed)
+          .slice(0, MAX_SELECTED_ITEMS[filterType])
         const map = new Map(selectable.map(item => [item.id, item]))
         setSelectedItemsMap(map)
         setSelectedItems(selectable.map(item => item.id))
@@ -220,7 +234,7 @@ export default function AnalyticsFilters({
 
           const canFallback = resolvedAirqlouds.length === 0 && !searchTerm.trim()
           if (canFallback) {
-            // Only tags this organisation may see, so the fallback never surfaces hardware cohorts outside AirQo
+            // Only tags this organisation may see, so the fallback never surfaces hardware cohorts outside the system group
             const fallbackTags = [lastSuccessfulCohortTagRef.current, ...availableTags].filter(
               (tag, index, arr) => availableTags.includes(tag) && arr.indexOf(tag) === index && !effectiveTags.includes(tag)
             )
@@ -288,6 +302,8 @@ export default function AnalyticsFilters({
 
   const filterTypeLabel = FILTER_TYPE_LABELS[filterType]
   const isLoadingItems = filterType === "airqlouds" ? isLoadingAirqlouds : isLoadingDevices
+  const maxSelected = MAX_SELECTED_ITEMS[filterType]
+  const atSelectionLimit = selectedItems.length >= maxSelected
 
   const handleFilterTypeChange = (value: AnalyticsFilterType) => {
     setFilterType(value)
@@ -305,6 +321,13 @@ export default function AnalyticsFilters({
       newMap.delete(itemId)
       newSelection = selectedItems.filter(id => id !== itemId)
     } else {
+      if (atSelectionLimit) {
+        toast({
+          title: "Selection limit reached",
+          description: `You can analyse up to ${maxSelected} ${filterTypeLabel.toLowerCase()} at a time. Remove one to add another.`,
+        })
+        return
+      }
       // Add item
       newMap.set(itemId, { id: itemId, name: itemName })
       newSelection = [...selectedItems, itemId]
@@ -412,6 +435,9 @@ export default function AnalyticsFilters({
                 <label className="text-sm font-medium">
                   Select {filterTypeLabel}
                 </label>
+                <span className="text-xs text-muted-foreground">
+                  Up to {maxSelected} at a time
+                </span>
               </div>
 
               {/* Tag Filters for Cohorts */}
@@ -448,21 +474,27 @@ export default function AnalyticsFilters({
                   </div>
                 ) : filteredItems.length > 0 ? (
                   filteredItems.map(item => {
+                    const isSelected = selectedItems.includes(item.id || '')
+                    // Once the limit is reached only deselecting is left; the row still answers a click with the reason
+                    const isBlocked = !isSelected && atSelectionLimit
                     return (
                       <div
                         key={item.id}
                         className={cn(
-                          "p-2 cursor-pointer hover:bg-accent transition-colors",
-                          selectedItems.includes(item.id || '') && "bg-accent"
+                          "p-2 transition-colors",
+                          isBlocked ? "cursor-not-allowed opacity-50" : "cursor-pointer hover:bg-accent",
+                          isSelected && "bg-accent"
                         )}
+                        aria-disabled={isBlocked || undefined}
+                        title={isBlocked ? `Up to ${maxSelected} ${filterTypeLabel.toLowerCase()} at a time` : undefined}
                         onClick={() => handleItemSelect(item.id || '', item.name || 'Unknown')}
                       >
                         <div className="flex items-center gap-2">
                           <input
                             type="checkbox"
-                            checked={selectedItems.includes(item.id || '')}
+                            checked={isSelected}
                             onChange={() => { }}
-                            className="cursor-pointer"
+                            className={isBlocked ? "cursor-not-allowed" : "cursor-pointer"}
                           />
                           <span className="text-sm flex-1">
                             {item.name || 'Unknown'}
@@ -682,7 +714,7 @@ export default function AnalyticsFilters({
             {/* Selected Items Display */}
             <div className="space-y-2">
               <label className="text-sm font-medium">
-                Selected {filterTypeLabel} ({selectedItems.length})
+                Selected {filterTypeLabel} ({selectedItems.length}/{maxSelected})
               </label>
               <div className="border rounded-md p-3 min-h-[100px] max-h-[150px] overflow-y-auto">
                 {selectedItems.length > 0 ? (

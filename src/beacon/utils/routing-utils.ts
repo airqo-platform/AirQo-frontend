@@ -1,3 +1,5 @@
+import { beaconConfig } from "@/beacon.config";
+
 export interface Coordinates {
     latitude: number;
     longitude: number;
@@ -228,12 +230,12 @@ export const buildGoogleMapsDirectionsLinks = (
 // ---------------------------------------------------------------------------
 
 /**
- * Road routing (OSRM) is off until NEXT_PUBLIC_ENABLE_ROAD_ROUTING=true; meanwhile routes are
+ * Road routing (OSRM) is off until `features.roadRouting` is true in beacon.config.ts (which reads
+ * NEXT_PUBLIC_ENABLE_ROAD_ROUTING by default); meanwhile routes are
  * optimised on straight-line distances and no stop coordinates go to OSRM. Google Maps links
  * carry the stop coordinates either way, when they are opened, copied or shared.
  */
-export const ROAD_ROUTING_ENABLED =
-    typeof process !== "undefined" && process.env.NEXT_PUBLIC_ENABLE_ROAD_ROUTING === "true";
+export const ROAD_ROUTING_ENABLED = beaconConfig.features.roadRouting;
 
 export const OSRM_BASE_URL =
     (typeof process !== "undefined" && process.env.NEXT_PUBLIC_OSRM_BASE_URL) ||

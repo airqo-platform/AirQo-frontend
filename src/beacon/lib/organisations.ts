@@ -6,7 +6,7 @@ export type DiscoverableOrganisation = Pick<UserGroup, "_id" | "grp_title" | "or
 export interface OrganisationOption {
   id: string
   title: string
-  /** Only members can switch to it. Everyone else asks for access in Nexus. */
+  /** Only members can switch to it. Everyone else asks for access (links.organisationAccessUrl). */
   isMember: boolean
   /** Lower-cased and with underscores spelled out, as a member's role is. */
   roleName?: string

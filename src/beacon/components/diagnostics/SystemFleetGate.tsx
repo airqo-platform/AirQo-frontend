@@ -5,6 +5,7 @@ import { ShieldAlert } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useGroup } from "@/lib/group-context";
+import { beaconConfig, isSystemGroup, systemGroupLabel } from "@/beacon.config"
 
 export const FleetPageSkeleton: React.FC = () => (
   <div className="p-6">
@@ -13,14 +14,14 @@ export const FleetPageSkeleton: React.FC = () => (
   </div>
 );
 
-/** Renders its children with the active group only while that group is AirQo. */
-export function AirqoFleetGate({ children }: { children: (group: string) => React.ReactNode }) {
+/** Renders its children with the active group only while that group is the system group. */
+export function SystemFleetGate({ children }: { children: (group: string) => React.ReactNode }) {
   const { activeGroup, loading: groupLoading } = useGroup();
-  const isAirqoGroup = activeGroup?.toLowerCase() === "airqo";
+  const isSystemGroupActive = isSystemGroup(activeGroup);
 
   if (groupLoading) return <FleetPageSkeleton />;
 
-  if (!isAirqoGroup || !activeGroup) {
+  if (!isSystemGroupActive || !activeGroup) {
     return (
       <div className="p-6 max-w-4xl mx-auto">
         <Card className="border border-slate-200 shadow-sm">
@@ -30,7 +31,7 @@ export function AirqoFleetGate({ children }: { children: (group: string) => Reac
               Restricted Organization Section
             </CardTitle>
             <CardDescription className="text-xs text-gray-600 leading-relaxed mt-1">
-              IoT Diagnostics and Automated Triage are exclusively available when the active organization is set to <span className="font-semibold text-primary">AirQo</span>.
+              IoT Diagnostics and Automated Triage are exclusively available when the active organization is set to <span className="font-semibold text-primary">{systemGroupLabel}</span>.
             </CardDescription>
           </CardHeader>
         </Card>

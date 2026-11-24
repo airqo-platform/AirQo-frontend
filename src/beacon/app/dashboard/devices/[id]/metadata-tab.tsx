@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useSearchParams } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Box, RefreshCw, CalendarIcon, AlertCircle, ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -47,8 +46,6 @@ interface MetadataResponse {
 
 export default function MetadataTab({ deviceId, deviceName }: MetadataTabProps) {
   const { toast } = useToast()
-  const searchParams = useSearchParams()
-  const isMock = searchParams?.get('mock') === 'true'
   const [metadata, setMetadata] = useState<MetadataEntry[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -76,25 +73,6 @@ export default function MetadataTab({ deviceId, deviceName }: MetadataTabProps) 
       setLoading(true)
       setError(null)
 
-      if (isMock) {
-        // Provide dummy metadata
-        const mockMetadata: MetadataEntry[] = Array.from({ length: limit }, (_, i) => ({
-          entryID: 1000 + skip + i,
-          created_at: new Date(Date.now() - (skip + i) * 3600000).toISOString(),
-          pm2_5: (Math.random() * 50).toFixed(2),
-          pm10: (Math.random() * 60).toFixed(2),
-          temperature: (20 + Math.random() * 10).toFixed(1),
-          humidity: (40 + Math.random() * 20).toFixed(1),
-          battery: (3.7 + Math.random() * 0.5).toFixed(2),
-        }))
-
-        // Simulate network delay
-        await new Promise(resolve => setTimeout(resolve, 500))
-        setMetadata(mockMetadata)
-        setTotal(100) // Mock total records
-        setLoading(false)
-        return
-      }
 
       const params: any = {
         device_id: deviceId,

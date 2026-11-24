@@ -10,13 +10,16 @@
  *   URLs lose their query string and hash before they leave the browser.
  *
  * Event names are `object_action` in snake_case, past tense, for completed actions.
- * docs/POSTHOG_ANALYTICS.md lists every event and what it answers.
+ * The analytics doc in docs/ lists what is and isn't collected.
  */
 import type { CaptureResult, PostHog, PostHogConfig } from "posthog-js"
 import { getPageTitle } from "@/lib/navigation"
 import config from "@/lib/config"
+import { beaconConfig } from "@/beacon.config"
+import { EXTENSION_ROUTE_TEMPLATES } from "@/lib/integration/routes"
 
-export const ANALYTICS_APP_NAME = "beacon"
+/** `app_name` on every event: the app name in lowercase ("beacon"). */
+export const ANALYTICS_APP_NAME = beaconConfig.app.name.toLowerCase()
 
 const POSTHOG_KEY = process.env.NEXT_PUBLIC_POSTHOG_KEY || ""
 const POSTHOG_HOST = process.env.NEXT_PUBLIC_POSTHOG_HOST || "https://us.i.posthog.com"
@@ -30,18 +33,11 @@ const POSTHOG_HOST = process.env.NEXT_PUBLIC_POSTHOG_HOST || "https://us.i.posth
 export const ROUTE_TEMPLATES = [
   "/",
   "/login",
-  "/register",
   "/dashboard",
   "/dashboard/alerts",
   "/dashboard/analytics",
   "/dashboard/analytics/[id]",
   "/dashboard/analytics/analysis",
-  "/dashboard/category",
-  "/dashboard/category/[categoryId]",
-  "/dashboard/collocation/inlab",
-  "/dashboard/collocation/inlab/[id]",
-  "/dashboard/collocation/site",
-  "/dashboard/collocation/site/[id]",
   "/dashboard/devices",
   "/dashboard/devices/[id]",
   "/dashboard/devices/[id]/diagnostics",
@@ -49,7 +45,6 @@ export const ROUTE_TEMPLATES = [
   "/dashboard/diagnostics",
   "/dashboard/diagnostics/issues",
   "/dashboard/diagnostics/simulator",
-  "/dashboard/firmware",
   "/dashboard/home",
   "/dashboard/maintenance",
   "/dashboard/manufacturers",
@@ -63,10 +58,9 @@ export const ROUTE_TEMPLATES = [
   "/dashboard/settings/status-codes",
   "/dashboard/sites",
   "/dashboard/sites/[id]",
-  "/dashboard/stock",
-  "/dashboard/users",
   "/dashboard/visualise",
   "/dashboard/visualize",
+  ...EXTENSION_ROUTE_TEMPLATES,
 ] as const
 
 const UNMATCHED_ROUTE = "unmatched"
@@ -412,7 +406,7 @@ export interface AnalyticsOrganization {
 
 /**
  * Associates events with the active group. Uses PostHog's `organization` group type, the same
- * one Nexus uses, so one organisation's activity can be followed across AirQo apps.
+ * one other apps can share, so an organisation's activity can be followed across them.
  */
 export function setActiveOrganization(organization: AnalyticsOrganization | null): void {
   withClient((posthog) => {
@@ -441,7 +435,7 @@ function forgetStoredIdentity(): void {
     // Storage blocked: nothing stored there
   }
   if (typeof document === "undefined") return
-  // PostHog sets its cookie on the parent domain (.airqo.net) so it's shared across subdomains
+  // PostHog sets its cookie on the parent domain so it's shared across subdomains
   const labels = window.location.hostname.split(".")
   const domains = [""].concat(labels.slice(0, -1).map((_, index) => `; domain=.${labels.slice(index).join(".")}`))
   for (const domain of domains) {

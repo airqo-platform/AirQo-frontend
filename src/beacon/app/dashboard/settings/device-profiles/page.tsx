@@ -43,11 +43,12 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { useGroup } from "@/lib/group-context";
 import { trackEvent } from "@/lib/analytics";
+import { beaconConfig, isSystemGroup, systemGroupLabel } from "@/beacon.config"
 
 export default function DeviceProfilesCatalogPage() {
   const router = useRouter();
   const { activeGroup, loading: groupLoading } = useGroup();
-  const isAirqoGroup = activeGroup?.toLowerCase() === "airqo";
+  const isSystemGroupActive = isSystemGroup(activeGroup);
 
   const [profiles, setProfiles] = useState<DeviceProfile[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -62,7 +63,7 @@ export default function DeviceProfilesCatalogPage() {
 
   // Load profiles from backend API
   const loadProfiles = useCallback(async () => {
-    if (!isAirqoGroup) return;
+    if (!isSystemGroupActive) return;
     try {
       setLoading(true);
       const data = await diagnosticsService.getProfiles({
@@ -80,13 +81,13 @@ export default function DeviceProfilesCatalogPage() {
     } finally {
       setLoading(false);
     }
-  }, [categoryFilter, isAirqoGroup]);
+  }, [categoryFilter, isSystemGroupActive]);
 
   useEffect(() => {
-    if (isAirqoGroup) {
+    if (isSystemGroupActive) {
       loadProfiles();
     }
-  }, [loadProfiles, isAirqoGroup]);
+  }, [loadProfiles, isSystemGroupActive]);
 
   const handleDeleteProfile = async (e: React.MouseEvent, prof: DeviceProfile) => {
     e.stopPropagation();
@@ -157,7 +158,7 @@ export default function DeviceProfilesCatalogPage() {
     );
   }
 
-  if (!isAirqoGroup) {
+  if (!isSystemGroupActive) {
     return (
       <div className="p-6 max-w-4xl mx-auto">
         <Card className="border border-slate-200 shadow-sm">
@@ -168,7 +169,7 @@ export default function DeviceProfilesCatalogPage() {
             </CardTitle>
             <CardDescription className="text-xs text-gray-600 leading-relaxed mt-1">
               Device Profiles & Hardware Topologies are exclusively available when the active organization is set to{" "}
-              <span className="font-semibold text-primary">AirQo</span>.
+              <span className="font-semibold text-primary">{systemGroupLabel}</span>.
             </CardDescription>
           </CardHeader>
         </Card>

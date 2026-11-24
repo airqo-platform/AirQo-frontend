@@ -1,3 +1,5 @@
+import { beaconConfig } from '@/beacon.config';
+
 const isDevelopment = process.env.NODE_ENV === 'development';
 
 export const logger = {
@@ -6,7 +8,7 @@ export const logger = {
       level: 'info',
       message,
       timestamp: new Date().toISOString(),
-      service: 'airqo-frontend',
+      service: `${beaconConfig.org.slug}-frontend`,
       ...data
     };
     
@@ -22,7 +24,7 @@ export const logger = {
       level: 'error',
       message,
       timestamp: new Date().toISOString(),
-      service: 'airqo-frontend',
+      service: `${beaconConfig.org.slug}-frontend`,
       error: error.message || error,
       stack: error.stack
     };
@@ -39,7 +41,7 @@ export const logger = {
       level: 'warn',
       message,
       timestamp: new Date().toISOString(),
-      service: 'airqo-frontend',
+      service: `${beaconConfig.org.slug}-frontend`,
       ...data
     };
     
@@ -80,30 +82,40 @@ function canSend(error) {
   return true;
 }
 
-export async function sendToSlack(
+/**
+ * Reports an unexpected client error, rate-limited and de-duplicated. With
+ * `monitoring.errorReportEndpoint` set in beacon.config.ts (Beacon: its Slack route), errors are
+ * posted there in production, or in development when NEXT_PUBLIC_ENABLE_SLACK_DEV_NOTIFS is true.
+ * Without one they're logged to the console.
+ */
+export async function reportError(
   message,
   error,
   context = {}
 ) {
+  const endpoint = beaconConfig.monitoring.errorReportEndpoint;
   const isProd = process.env.NODE_ENV === "production";
   const devNotifs = process.env.NEXT_PUBLIC_ENABLE_SLACK_DEV_NOTIFS === "true";
-  if ((!isProd && !devNotifs) || !canSend(error)) return;
+  if (endpoint && !isProd && !devNotifs) return;
+  if (!canSend(error)) return;
 
   const stack = error.stack?.split("\n").slice(0, 10).join("\n").slice(0, 500);
+  const details = {
+    errorName: error.name,
+    errorMessage: error.message,
+    stack,
+    url: typeof window !== "undefined" ? window.location.href : "SSR",
+    ...context,
+  };
 
-  fetch("/api/slack/notify", {
+  if (!endpoint) {
+    console.error(`[reportError] ${message}`, details);
+    return;
+  }
+
+  fetch(endpoint, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      level: "error",
-      message,
-      context: {
-        errorName: error.name,
-        errorMessage: error.message,
-        stack,
-        url: typeof window !== "undefined" ? window.location.href : "SSR",
-        ...context,
-      },
-    }),
+    body: JSON.stringify({ level: "error", message, context: details }),
   }).catch(() => {}); // fire-and-forget; never let alerts break the app
 }

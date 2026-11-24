@@ -91,7 +91,7 @@ export function ColumnMappingDialog({
             Semantic Column Mapping Wizard
           </DialogTitle>
           <DialogDescription>
-            Map your dataset&apos;s columns to standard AirQo sensor semantics (Sensors, Devices, Battery, Temperature, Humidity, Coordinates).
+            Map your dataset&apos;s columns to standard sensor semantics (Sensors, Devices, Battery, Temperature, Humidity, Coordinates).
           </DialogDescription>
         </DialogHeader>
 

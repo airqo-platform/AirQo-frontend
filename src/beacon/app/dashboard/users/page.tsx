@@ -28,7 +28,6 @@ import {
 import { config } from "@/lib/config"
 import authService from "@/services/api-service"
 import { fetchWithAuth } from "@/lib/api-client"
-import { isMockMode, getMockUsers } from "@/lib/mock-data"
 
 interface User {
   id: number
@@ -80,11 +79,6 @@ export default function UsersPage() {
       setLoading(true)
       setError(null)
 
-      if (isMockMode()) {
-        setUsers(getMockUsers() as any)
-        setLoading(false)
-        return
-      }
 
       let token
       try {

@@ -19,6 +19,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/components/ui/use-toast";
 import { Layers, Plus, Sparkles, ArrowRight } from "lucide-react";
+import { beaconConfig } from "@/beacon.config"
 
 interface RegisterProfileModalProps {
   open: boolean;
@@ -35,10 +36,10 @@ export function RegisterProfileModal({
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
   // Form State: Header & Metadata Only
-  const [name, setName] = useState<string>("");
+  const [name, setName] = useState<string>(beaconConfig.hardware.vendor);
   const [category, setCategory] = useState<string>("air_quality");
-  const [vendor, setVendor] = useState<string>("AirQo");
-  const [description, setDescription] = useState<string>("");
+  const [vendor, setVendor] = useState<string>(beaconConfig.hardware.vendor);
+  const [description, setDescription] = useState<string>(beaconConfig.hardware.vendor);
   const [metaDataJson, setMetaDataJson] = useState<string>(
     JSON.stringify({ is_default_lowcost: true, hardware_generation: "v5.2" }, null, 2)
   );
@@ -129,7 +130,7 @@ export function RegisterProfileModal({
             <Input
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="e.g. AirQo-v5-DualPM or BAM-1020"
+              placeholder="e.g. Acme-v2-DualPM or BAM-1020"
               className="h-8 text-xs"
             />
           </div>
@@ -159,7 +160,7 @@ export function RegisterProfileModal({
               <Input
                 value={vendor}
                 onChange={(e) => setVendor(e.target.value)}
-                placeholder="e.g. AirQo / Met One"
+                placeholder="e.g. Acme Sensors"
                 className="h-8 text-xs"
               />
             </div>

@@ -1,15 +1,11 @@
 /**
  * Authentication Service
- * Handles all authentication operations for the AirQo platform
+ * Holds the session's token and user data for the API services
  */
 
 import { config } from '@/lib/config'
 import { handleUnauthorized } from '@/lib/api-client'
-
-interface LoginCredentials {
-  userName: string
-  password: string
-}
+import { clearAnalysisHandoff } from '@/lib/analysis-handoff'
 
 interface ApiResponse {
   success?: boolean
@@ -70,7 +66,7 @@ class AuthService {
   
   constructor() {
     // Use centralized config for API URL
-    this.baseUrl = config.airqoPlatformUrl
+    this.baseUrl = config.platformUrl
     
     // Restore token from storage if available
     if (isBrowser()) {
@@ -167,9 +163,9 @@ class AuthService {
       // Also try without Secure flag in case of local development
       document.cookie = `${this.TOKEN_COOKIE_NAME}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Strict`
       
-      // Clear isAirqoAdmin cookie
-      document.cookie = `isAirqoAdmin=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Strict`
-      document.cookie = `isAirqoAdmin=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`
+      // Clear isSystemAdmin cookie
+      document.cookie = `isSystemAdmin=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Strict`
+      document.cookie = `isSystemAdmin=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`
       
       // Try removing from all possible paths
       document.cookie = `${this.TOKEN_COOKIE_NAME}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`
@@ -186,12 +182,12 @@ class AuthService {
     // Clear from localStorage
     localStorage.removeItem(this.TOKEN_KEY)
     localStorage.removeItem(this.USER_DATA_KEY)
-    localStorage.removeItem('isAirqoAdmin')
+    localStorage.removeItem('isSystemAdmin')
     
     // Clear from sessionStorage
     sessionStorage.removeItem(this.TOKEN_KEY)
     sessionStorage.removeItem(this.USER_DATA_KEY)
-    sessionStorage.removeItem('isAirqoAdmin')
+    sessionStorage.removeItem('isSystemAdmin')
     
     // Clear any other auth-related items
     const keysToRemove: string[] = []
@@ -212,63 +208,12 @@ class AuthService {
     
     // Clear all auth-related cookies
     this.removeAuthCookie()
-    
+
     // Clear the token from memory
     this.token = null
-  }
 
-  /**
-   * Authenticates user with email and password
-   */
-  async login(credentials: LoginCredentials): Promise<ApiResponse> {
-    try {
-      // Clear any existing auth data before login
-      this.clearAllAuthData()
-      
-      // Use local API proxy to avoid CORS issues
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(credentials),
-        credentials: 'same-origin'
-      })
-
-      const data = await this.handleResponse(response)
-      
-      // Store authentication data
-      if (data.token) {
-        this.token = data.token
-        if (isBrowser()) {
-          localStorage.setItem(this.TOKEN_KEY, data.token)
-          sessionStorage.setItem(this.TOKEN_KEY, data.token)
-          this.setAuthCookie(data.token)
-        }
-      }
-      
-      // Store user information
-      if (data.user || data._id) {
-        const userData = data.user || {
-          _id: data._id,
-          email: data.email || credentials.userName,
-          userName: data.userName || credentials.userName
-        }
-        if (isBrowser()) {
-          localStorage.setItem(this.USER_DATA_KEY, JSON.stringify(userData))
-          sessionStorage.setItem(this.USER_DATA_KEY, JSON.stringify(userData))
-        }
-      }
-
-      return data
-    } catch (error: any) {
-      // Handle CORS errors specifically
-      if (error.message?.includes('Failed to fetch')) {
-        throw new Error('Unable to connect to the server. Please check your connection.')
-      }
-      
-      throw new Error(error.message || 'Authentication failed. Please try again.')
-    }
+    // The last Clustered Analysis belongs to this sign-in, not the next one on this tab
+    clearAnalysisHandoff()
   }
 
   /**

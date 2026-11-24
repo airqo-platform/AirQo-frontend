@@ -5,6 +5,7 @@ import {
   applyThemeImmediately,
   saveThemeToStorage,
   getStoredTheme,
+  DEFAULT_PRIMARY_COLOR,
 } from '@/lib/theme-utils'
 
 class ThemeService {
@@ -31,7 +32,7 @@ class ThemeService {
   }
 
   /**
-   * Fetch user theme from AirQo Platform API with fallbacks
+   * Fetch user theme from the platform API with fallbacks
    */
   async fetchUserTheme(
     groupId?: string | null,
@@ -88,7 +89,7 @@ class ThemeService {
           if (payload && (payload.primaryColor || payload.color || payload.mode)) {
             const themeData: ThemeData = {
               mode: payload.mode || 'light',
-              primaryColor: payload.primaryColor || payload.color || '#145FFF',
+              primaryColor: payload.primaryColor || payload.color || DEFAULT_PRIMARY_COLOR,
               interfaceStyle: payload.interfaceStyle || 'default',
               contentLayout: payload.contentLayout || 'wide',
             }
@@ -116,7 +117,7 @@ class ThemeService {
   }
 
   /**
-   * Update theme via AirQo backend Platform API
+   * Update theme via the platform API
    */
   async updateUserTheme(
     themeData: Partial<ThemeData>,

@@ -60,6 +60,7 @@ import { SyncMenu } from "@/components/dashboard/sync-menu"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { trackEvent } from "@/lib/analytics"
+import { isSystemGroup, beaconConfig } from "@/beacon.config"
 
 export type DeviceScope = "org" | "my"
 
@@ -68,7 +69,7 @@ export default function DevicesView({ scope }: Readonly<{ scope: DeviceScope }>)
   const { toast } = useToast()
   const { activeGroup, loading: groupLoading } = useGroup()
 
-  const isAirqoGroup = activeGroup?.toLowerCase() === 'airqo'
+  const isSystemGroupActive = isSystemGroup(activeGroup)
 
   // State for device data (Org Devices)
   const [devices, setDevices] = useState<UIDevice[]>([])
@@ -109,9 +110,10 @@ export default function DevicesView({ scope }: Readonly<{ scope: DeviceScope }>)
   const [statusFilter, setStatusFilter] = useState("all")
   // Sensor manufacturers (the platform's `network`) to show; empty means all. Sent as the
   // comma-separated `network` query parameter, so it survives paging and refreshes. The Devices
-  // list opens on AirQo; an organisation without AirQo devices is pruned back to all below.
+  // list opens on the operator's own hardware (`hardware.network`); an organisation without any of
+  // it is pruned back to all below.
   const [networkFilter, setNetworkFilter] = useState<string[]>(() =>
-    deviceScope === "org" ? ["airqo"] : []
+    deviceScope === "org" && beaconConfig.hardware.network ? [beaconConfig.hardware.network] : []
   )
   const networkFilterParam = serializeNetworkFilter(networkFilter)
   // The query the org list last answered, so an organisation with no devices can be told apart
@@ -173,7 +175,7 @@ export default function DevicesView({ scope }: Readonly<{ scope: DeviceScope }>)
   }
 
   // Only the latest list request may update state, so a slower response for an earlier filter
-  // (e.g. the AirQo default before it is pruned) can't overwrite a newer one
+  // (e.g. a default before it is pruned) can't overwrite a newer one
   const devicesRequestRef = useRef(0)
 
   // Fetch devices list with pagination (Org Devices)
@@ -270,7 +272,7 @@ export default function DevicesView({ scope }: Readonly<{ scope: DeviceScope }>)
 
       const grps = userData.groups || []
       const grpIds = grps
-        .filter((g: any) => g.grp_title?.toLowerCase() !== "airqo")
+        .filter((g: any) => !isSystemGroup(g.grp_title))
         .map((g: any) => g._id)
 
       const cohortIds = await getPersonalUserCohorts(uId)
@@ -600,13 +602,13 @@ export default function DevicesView({ scope }: Readonly<{ scope: DeviceScope }>)
   const pageHeader = (
     <div className="flex justify-between items-center">
       <h1 className="text-2xl font-bold">{deviceScope === "my" ? "My Devices" : "Device Monitoring"}</h1>
-      {isAirqoGroup && (
+      {isSystemGroupActive && (
         <SyncMenu
           items={[
             {
               id: "devices",
               label: "Sync Devices",
-              description: "Devices and their performance from the AirQo platform",
+              description: "Devices and their performance from the platform",
               onSelect: handleSyncDevices,
               busy: isSyncing,
               disabled: isRefreshing,

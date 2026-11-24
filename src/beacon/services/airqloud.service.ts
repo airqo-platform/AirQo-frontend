@@ -4,8 +4,8 @@
  */
 
 import { config } from '@/lib/config'
-import { isMockMode, getMockCohorts, getMockCohortPerformance } from '@/lib/mock-data'
 import type { DeviceDiagnostics, DiagnosticsSummary } from '@/types/diagnostics'
+import { beaconConfig } from "@/beacon.config"
 
 export interface DevicePerformance {
   device_id: string
@@ -22,7 +22,7 @@ export interface Device {
   name: string
   long_name: string
   description: string | null
-  /** ThingSpeak channel; AirQo devices only */
+  /** ThingSpeak channel; ThingSpeak devices only */
   device_number?: number | null
   isActive: boolean
   isOnline: boolean
@@ -590,20 +590,6 @@ class AirQloudService {
    * Get all Cohorts (formerly AirQlouds)
    */
   async getCohorts(params: AirQloudsQueryParams = {}): Promise<MappedAirQloudsResponse> {
-    if (isMockMode()) {
-      const data = getMockCohorts()
-      const mappedCohorts: AirQloudWithPerformance[] = data.cohorts.map((cohort: any) => ({
-        ...cohort,
-        id: cohort._id || cohort.name,
-        device_count: cohort.numberOfDevices,
-        is_active: cohort.visibility,
-        country: '',
-        freq: cohort.freq || [],
-        error_margin: cohort.error_margin || [],
-        timestamp: cohort.timestamp || [],
-      }))
-      return { airqlouds: mappedCohorts, meta: data.meta }
-    }
 
     const queryParams = new URLSearchParams()
 
@@ -612,7 +598,7 @@ class AirQloudService {
     if (params.tags) queryParams.append('tags', params.tags)
 
     if (params.search) queryParams.append('search', params.search)
-    const group = params.group || 'airqo'
+    const group = params.group || beaconConfig.auth.systemGroupSlug
     queryParams.append('group', group)
 
     if (params.includePerformance) queryParams.append('includePerformance', params.includePerformance.toString())
@@ -676,9 +662,6 @@ class AirQloudService {
   async getAirQlouds(
     params: AirQloudsQueryParams & { cohort_ids?: string[] | string } = {}
   ): Promise<MappedAirQloudsResponse> {
-    if (isMockMode()) {
-      return this.getCohorts(params)
-    }
 
     const queryParams = new URLSearchParams()
     appendIdsParam(queryParams, 'cohort_ids', params.cohort_ids)
@@ -792,18 +775,6 @@ class AirQloudService {
     startDateTime?: string,
     endDateTime?: string
   ): Promise<AirQloudWithPerformance> {
-    if (isMockMode()) {
-      const data = getMockCohorts()
-      const cohort = data.cohorts[0] as any
-      return {
-        ...cohort,
-        id: cohort._id || cohort.name,
-        device_count: cohort.numberOfDevices,
-        is_active: cohort.visibility,
-        country: '',
-        error_margin: cohort.error_margin,
-      }
-    }
 
     const endpoint = this.getEndpoint(`/cohorts/synced/${airqloudId}`)
 
@@ -1020,7 +991,6 @@ class AirQloudService {
     limit?: number
     frequency?: string
   }): Promise<AirQloudPerformanceData[]> {
-    if (isMockMode()) return getMockCohortPerformance(params.ids) as any
 
     if (!params.ids || params.ids.length === 0) {
       return []
@@ -1303,7 +1273,6 @@ class AirQloudService {
     force?: boolean
     run_in_background?: boolean
   } = {}): Promise<{ success: boolean; message: string; force: boolean }> {
-    if (isMockMode()) return { success: true, message: 'Sync completed (mock mode)', force: false }
 
     const queryParams = new URLSearchParams()
 

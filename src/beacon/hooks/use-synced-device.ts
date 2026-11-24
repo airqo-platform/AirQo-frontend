@@ -10,14 +10,14 @@ import type { DeviceDataSource } from "@/types/network.types"
 export interface SyncedDeviceRecord {
   id: string
   name: string | null
-  /** Sensor manufacturer / network (airqo, airgradient, ...) */
+  /** Sensor manufacturer / network (acme, nimbus, ...) */
   network: string | null
   /** Picks the device's profile; a device without one counts as lowcost */
   category: string
   /** Where beacon reads the device from; `none` means no readings are stored */
   dataSource: DeviceDataSource
   /**
-   * Source key the local raw readings are stored under: the ThingSpeak channel for AirQo devices,
+   * Source key the local raw readings are stored under: the ThingSpeak channel for ThingSpeak devices,
    * the device id for other manufacturers read through their API. Null when there is no data path.
    */
   channelId: string | number | null

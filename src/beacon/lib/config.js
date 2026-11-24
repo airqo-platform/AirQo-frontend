@@ -1,24 +1,47 @@
 // lib/config.js
-// Centralized configuration for API endpoints and environment settings
+// API base URLs and environment flags. Branding, features and the data adapter live in
+// beacon.config.ts; this file turns the adapter choice into URLs.
+//
+// The UI talks to two HTTP APIs:
+// - the Beacon API (device health: devices, cohorts, diagnostics, maintenance, reports)
+// - the platform API (users, groups, permissions, preferences)
+//
+// `api.adapter: "http"` takes their URLs from lib/integration/api-urls.js. `"mock"` points both at
+// the mock backend this app serves itself (app/api/mock/[...path]), so it runs with no backend.
+
+import { beaconConfig } from '@/beacon.config';
+import { httpBeaconApiPrefix, httpBeaconApiUrl, httpPlatformApiUrl } from '@/lib/integration/api-urls';
+
+export { enforceHttpsForRemote } from '@/lib/url-utils';
+
+const MOCK_BEACON_API_PATH = '/api/mock/beacon';
+const MOCK_PLATFORM_API_PATH = '/api/mock/platform';
+
+const isServer = () => typeof window === 'undefined';
+const isMock = () => beaconConfig.api.adapter === 'mock';
 
 /**
- * Environment detection
+ * Origin for requests to this app: the page's own origin in the browser, and the port Next is
+ * listening on for server code. Absolute, because some services build URLs with `new URL()`.
  */
-const isServer = globalThis.window === undefined;
+const selfOrigin = () =>
+  isServer() ? `http://127.0.0.1:${process.env.PORT || 3000}` : window.location.origin;
 
-const isLocalhost = !isServer && 
-  (globalThis.location.hostname === 'localhost' || 
-   globalThis.location.hostname === '127.0.0.1' || 
-   globalThis.location.hostname.startsWith('192.168.'));
-
-const isDevelopment = process.env.NODE_ENV === 'development';
-const isProduction = process.env.NODE_ENV === 'production';
+const isLocalhostHost = () =>
+  !isServer() &&
+  (window.location.hostname === 'localhost' ||
+    window.location.hostname === '127.0.0.1' ||
+    window.location.hostname.startsWith('192.168.'));
 
 /**
- * Get the current environment context dynamically
+ * `development` | `staging` | `production`. NEXT_PUBLIC_ENV wins when set; otherwise it's read
+ * from the address the app is running on, because `next build` always sets NODE_ENV to production.
  */
 const getEnvironment = () => {
-  if (!isServer) {
+  const forced = (process.env.NEXT_PUBLIC_ENV || '').toLowerCase();
+  if (forced === 'development' || forced === 'staging' || forced === 'production') return forced;
+
+  if (!isServer()) {
     const hostname = globalThis.location.hostname.toLowerCase();
     if (
       hostname === 'localhost' ||
@@ -29,7 +52,7 @@ const getEnvironment = () => {
     ) {
       return 'development';
     }
-    if (hostname.includes('stage') || hostname.includes('staging') || hostname.includes('beacon-stage')) {
+    if (hostname.includes('stage') || hostname.includes('staging')) {
       return 'staging';
     }
     return 'production';
@@ -37,7 +60,7 @@ const getEnvironment = () => {
 
   // Server-side detection
   const nextAuthUrl = process.env.NEXTAUTH_URL || '';
-  if (nextAuthUrl.includes('stage') || nextAuthUrl.includes('staging') || nextAuthUrl.includes('beacon-stage')) {
+  if (nextAuthUrl.includes('stage') || nextAuthUrl.includes('staging')) {
     return 'staging';
   }
 
@@ -58,154 +81,55 @@ const getEnvironment = () => {
   return 'production';
 };
 
-/**
- * Strip trailing slashes from URLs
- */
-const stripTrailingSlash = (url) => url?.replace(/\/$/, '') || '';
+const getBeaconApiUrl = () =>
+  isMock() ? `${selfOrigin()}${MOCK_BEACON_API_PATH}` : httpBeaconApiUrl(getEnvironment());
 
-/**
- * Keep localhost/private-network URLs on HTTP, force remote URLs to HTTPS
- */
-export const enforceHttpsForRemote = (url) => {
-  const normalizedUrl = stripTrailingSlash(url);
-  if (!normalizedUrl) return '';
+const getPlatformApiUrl = () =>
+  isMock() ? `${selfOrigin()}${MOCK_PLATFORM_API_PATH}` : httpPlatformApiUrl(getEnvironment());
 
-  try {
-    const parsed = new URL(normalizedUrl);
-    const host = parsed.hostname;
-    const isPrivateNetworkHost =
-      host === 'localhost' ||
-      host === '::1' ||
-      host.startsWith('127.') ||
-      host.startsWith('192.168.') ||
-      host.startsWith('169.254.') ||
-      host.startsWith('10.') ||
-      /^172\.(1[6-9]|2\d|3[0-1])\./.test(host);
-
-    if (parsed.protocol === 'http:' && !isPrivateNetworkHost) {
-      parsed.protocol = 'https:';
-      return stripTrailingSlash(parsed.toString());
-    }
-
-    return normalizedUrl;
-  } catch {
-    if (
-      normalizedUrl.startsWith('http://') &&
-      !normalizedUrl.includes('localhost') &&
-      !normalizedUrl.includes('::1') &&
-      !normalizedUrl.includes('//127.') &&
-      !normalizedUrl.includes('192.168.') &&
-      !normalizedUrl.includes('169.254.') &&
-      !normalizedUrl.includes('10.')
-    ) {
-      return normalizedUrl.replace('http://', 'https://');
-    }
-
-    return normalizedUrl;
-  }
-};
-
-/**
- * Get the appropriate API URL based on environment
- */
-const getBeaconApiUrl = () => {
-  const env = getEnvironment();
-
-  if (env === 'development') {
-    const localUrl = process.env.NEXT_PUBLIC_LOCAL_API_URL || process.env.BEACON_API_URL;
-    if (localUrl) return enforceHttpsForRemote(localUrl);
-    return 'http://localhost:8000';
-  }
-
-  if (env === 'staging') {
-    const stagingUrl = process.env.NEXT_PUBLIC_AIRQO_STAGING_API_BASE_URL || 
-                       process.env.AIRQO_STAGING_API_BASE_URL;
-    if (stagingUrl) return enforceHttpsForRemote(stagingUrl);
-    return 'https://staging-platform.airqo.net';
-  }
-
-  // Production
-  const prodUrl = process.env.NEXT_PUBLIC_AIRQO_API_BASE_URL || 
-                  process.env.AIRQO_API_BASE_URL;
-  if (prodUrl) return enforceHttpsForRemote(prodUrl);
-
-  return 'https://platform.airqo.net';
-};
-
-/**
- * Get the AirQo Platform API URL (for auth, users, etc.)
- */
-const getAirQoPlatformApiUrl = () => {
-  const env = getEnvironment();
-  
-  if (env === 'development' || env === 'staging') {
-    const stagingUrl = process.env.NEXT_PUBLIC_AIRQO_STAGING_API_BASE_URL || 
-                       process.env.AIRQO_STAGING_API_BASE_URL;
-    if (stagingUrl) return enforceHttpsForRemote(stagingUrl);
-    return 'https://staging-platform.airqo.net';
-  }
-  
-  // Production
-  const prodUrl = process.env.NEXT_PUBLIC_AIRQO_API_BASE_URL || 
-                  process.env.AIRQO_API_BASE_URL;
-  if (prodUrl) return enforceHttpsForRemote(prodUrl);
-  
-  return 'https://platform.airqo.net';
-};
-
-/**
- * API Configuration with dynamic properties
- */
 export const config = {
-  // Environment flags
-  get isServer() { return typeof window === 'undefined'; },
-  get isLocalhost() {
-    return typeof window !== 'undefined' && 
-      (window.location.hostname === 'localhost' || 
-       window.location.hostname === '127.0.0.1' || 
-       window.location.hostname.startsWith('192.168.'));
-  },
+  get isServer() { return isServer(); },
+  get isLocalhost() { return isLocalhostHost(); },
   get isDevelopment() { return process.env.NODE_ENV === 'development'; },
   get isProduction() { return process.env.NODE_ENV === 'production'; },
   get environment() { return getEnvironment(); },
-  
+  get isMockBackend() { return isMock(); },
+
   // API URLs
   get apiUrl() { return getBeaconApiUrl(); },
   get beaconApiUrl() { return getBeaconApiUrl(); },
-  get airqoPlatformUrl() { return getAirQoPlatformApiUrl(); },
-  
-  // API version
-  apiVersion: process.env.AIRQO_API_VERSION || 'v2',
-  
+  get platformUrl() { return getPlatformApiUrl(); },
+
+  // Platform API version
+  apiVersion: process.env.PLATFORM_API_VERSION || 'v2',
+
   // API prefixes
   apiPrefix: '/api/v1',
-  get beaconApiPrefix() { return this.isLocalhost ? '/api/v1' : '/api/v1/beacon'; },
-  
+  get beaconApiPrefix() { return isMock() ? '/api/v1' : httpBeaconApiPrefix(isLocalhostHost()); },
+
   // Auth settings
-  get requiresAuth() { return !this.isLocalhost && this.isProduction; },
-  
+  get requiresAuth() { return !isLocalhostHost() && this.isProduction; },
+
   // Timeouts
   defaultTimeout: 30000,
   uploadTimeout: 120000,
 };
 
 /**
- * Build full API URL with path
+ * Build a Beacon API URL with path
  */
 export const buildApiUrl = (path, usePrefix = true) => {
-  const baseUrl = config.apiUrl;
   const prefix = usePrefix ? config.apiPrefix : '';
   const cleanPath = path.startsWith('/') ? path : `/${path}`;
-  return `${baseUrl}${prefix}${cleanPath}`;
+  return `${config.apiUrl}${prefix}${cleanPath}`;
 };
 
 /**
- * Build AirQo Platform API URL with path
+ * Build a platform API URL with path
  */
 export const buildPlatformApiUrl = (path, version = config.apiVersion) => {
-  const baseUrl = config.airqoPlatformUrl;
   const cleanPath = path.startsWith('/') ? path.slice(1) : path;
-  return `${baseUrl}/api/${version}/${cleanPath}`;
+  return `${config.platformUrl}/api/${version}/${cleanPath}`;
 };
 
 export default config;

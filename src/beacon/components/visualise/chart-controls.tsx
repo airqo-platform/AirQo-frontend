@@ -55,8 +55,8 @@ export interface ChartConfigState {
 }
 
 export const COLOR_PALETTES: Record<string, { name: string; colors: string[] }> = {
-  airqo: {
-    name: "AirQo Palette",
+  brand: {
+    name: "Brand Palette",
     colors: ["#2563eb", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899", "#06b6d4"],
   },
   airquality: {
@@ -141,7 +141,7 @@ export function ChartControls({ dataset, config, onChange }: ChartControlsProps)
     return <Layers className="w-3 h-3 text-purple-500 mr-1.5" />
   }
 
-  // AirQo Quick Preset Views
+  // Quick Preset Views
   const s1pm25 = columns.find((c) => /sensor1.*pm2\.?5/i.test(c))
   const s2pm25 = columns.find((c) => /sensor2.*pm2\.?5/i.test(c))
   const dateCol = dateCols[0] || columns.find((c) => /created|time|date/i.test(c))
@@ -150,13 +150,13 @@ export function ChartControls({ dataset, config, onChange }: ChartControlsProps)
 
   return (
     <div className="space-y-5">
-      {/* Quick Presets for AirQo Data */}
+      {/* Quick Presets */}
       {(s1pm25 && s2pm25) && (
         <Card className="border-primary/20 bg-primary/10 shadow-xs">
           <CardHeader className="pb-2 pt-3 px-4">
             <CardTitle className="text-xs uppercase font-semibold text-primary tracking-wider flex items-center gap-1.5">
               <Zap className="w-3.5 h-3.5 text-amber-500" />
-              AirQo Quick Analysis Presets
+              Quick Analysis Presets
             </CardTitle>
           </CardHeader>
           <CardContent className="px-4 pb-3 flex flex-wrap gap-1.5">

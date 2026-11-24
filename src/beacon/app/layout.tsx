@@ -1,6 +1,5 @@
 import type React from "react"
 import "./globals.css"
-import "xterm/css/xterm.css"
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import { QueryProvider } from "@/components/providers/query-provider"
@@ -10,12 +9,13 @@ import { AuthProvider } from "@/components/providers/auth-provider"
 import { AnalyticsProvider } from "@/components/providers/analytics-provider"
 import { ThemeProvider } from "@/components/theme-provider"
 import { getThemeScript } from "@/lib/theme-utils"
+import { beaconConfig, brandTitle } from "@/beacon.config"
 
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "AirQo Beacon",
-  description: "Air quality monitoring dashboard for AirQo",
+  title: brandTitle,
+  description: beaconConfig.app.description,
 }
 
 export default function RootLayout({
@@ -26,9 +26,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32x32.png" />
-        <link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16x16.png" />
-        <link rel="shortcut icon" href="/icons/favicon.ico" />
+        <link rel="icon" href={beaconConfig.org.favicon || beaconConfig.org.logo} />
         <script
           id="theme-script"
           dangerouslySetInnerHTML={{ __html: getThemeScript() }}

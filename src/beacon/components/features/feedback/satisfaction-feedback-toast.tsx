@@ -13,6 +13,7 @@ import {
   claimFeedbackPromptSlot,
   releaseFeedbackPromptSlot,
 } from "./feedback-prompt-slot";
+import { beaconConfig } from "@/beacon.config"
 
 type ToastPhase =
   | "idle"
@@ -57,7 +58,7 @@ interface SatisfactionFeedbackToastProps {
 
 export const SatisfactionFeedbackToast: React.FC<SatisfactionFeedbackToastProps> = ({
   title,
-  subtitle = "Rate us to help improve Beacon",
+  subtitle = `Rate us to help improve ${beaconConfig.app.name}`,
   negativeReasons,
   onPositiveSubmit,
   onNegativeSubmit,
@@ -68,7 +69,7 @@ export const SatisfactionFeedbackToast: React.FC<SatisfactionFeedbackToastProps>
   otherReasonLabel = "Other",
   otherPlaceholder = "Please provide details (required)",
   thankYouTitle = "Thank you for your feedback!",
-  thankYouMessage = "Your input helps us improve Beacon.",
+  thankYouMessage = `Your input helps us improve ${beaconConfig.app.name}.`,
   showDelayMs = 3000,
   autoDismissMs = 30000,
   onDismiss,

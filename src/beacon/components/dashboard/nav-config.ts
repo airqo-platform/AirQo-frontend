@@ -2,16 +2,12 @@ import type { ComponentType } from "react"
 import {
   AqActivityHeart,
   AqAirQlouds,
-  AqBeaker02,
-  AqBox,
   AqCpuChip01,
   AqFile02,
   AqHomeSmile,
-  AqLayersThree01,
   AqLineChartUp01,
   AqMarkerPin01,
   AqMonitor,
-  AqPackage,
   AqTool02,
   AqUserSquare,
 } from "@airqo/icons-react"
@@ -21,6 +17,8 @@ import {
   type NavModule,
   type NavigationAccess,
 } from "@/lib/navigation"
+import { beaconConfig } from "@/beacon.config"
+import { EXTENSION_ADMIN_NAV_ITEMS } from "@/lib/integration/routes"
 
 export type NavIcon = ComponentType<{ className?: string; size?: number | string; color?: string }>
 
@@ -127,7 +125,7 @@ const REPORTS_ITEM: NavItemConfig = {
 }
 
 /**
- * Like Vertex, the AirQo (personal) context leads with the user's own devices,
+ * The system group (personal) context leads with the user's own devices,
  * while any other organisation leads with the organisation's devices.
  */
 export function getDeviceNavSections(access: NavigationAccess): NavSection[] {
@@ -214,56 +212,18 @@ export const ADMIN_NAV_ITEMS: NavItemConfig[] = [
       },
     ],
   },
-  {
-    id: "admin-device-data-analysis",
-    label: "Device Data Analysis",
-    href: ROUTES.VISUALISE,
-    icon: AqLineChartUp01,
-    description: "Explore raw sensor telemetry charts",
-  },
-  {
-    id: "admin-collocation",
-    label: "Collocation",
-    href: ROUTES.COLLOCATION_INLAB,
-    icon: AqBeaker02,
-    description: "In-lab and on-site sensor collocation testing",
-    isActive: (pathname) => matchesRoute(pathname, "/dashboard/collocation"),
-    subroutes: [
-      {
-        id: "collocation-inlab",
-        label: "In-Lab Collocation",
-        href: ROUTES.COLLOCATION_INLAB,
-        description: "Review in-laboratory batch collocation results",
-      },
-      {
-        id: "collocation-site",
-        label: "Site Collocation",
-        href: ROUTES.COLLOCATION_SITE,
-        description: "Field site collocation sensor calibration",
-      },
-    ],
-  },
-  {
-    id: "admin-firmware",
-    label: "Firmware Management",
-    href: ROUTES.FIRMWARE,
-    icon: AqPackage,
-    description: "Binary releases and over-the-air updates",
-  },
-  {
-    id: "admin-categories",
-    label: "Device Categories",
-    href: ROUTES.CATEGORIES,
-    icon: AqLayersThree01,
-    description: "Organize devices into functional categories",
-  },
-  {
-    id: "admin-stock",
-    label: "Stock & Inventory",
-    href: ROUTES.STOCK,
-    icon: AqBox,
-    description: "Hardware parts, inventory levels & stock movements",
-  },
+  ...(beaconConfig.features.deviceDataAnalysis
+    ? [
+        {
+          id: "admin-device-data-analysis",
+          label: "Device Data Analysis",
+          href: ROUTES.VISUALISE,
+          icon: AqLineChartUp01,
+          description: "Explore raw sensor telemetry charts",
+        },
+      ]
+    : []),
+  ...EXTENSION_ADMIN_NAV_ITEMS,
   {
     id: "admin-manufacturers",
     label: "Sensor Manufacturers",

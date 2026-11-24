@@ -50,10 +50,11 @@ import {
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useGroup } from "@/lib/group-context";
+import { beaconConfig, isSystemGroup, systemGroupLabel } from "@/beacon.config"
 
 export default function DiagnosticTemplatesPage() {
   const { activeGroup, loading: groupLoading } = useGroup();
-  const isAirqoGroup = activeGroup?.toLowerCase() === "airqo";
+  const isSystemGroupActive = isSystemGroup(activeGroup);
 
   const [templates, setTemplates] = useState<DiagnosticTemplate[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -94,7 +95,7 @@ export default function DiagnosticTemplatesPage() {
   const [ruleDesc, setRuleDesc] = useState<string>("");
 
   const loadTemplates = useCallback(async () => {
-    if (!isAirqoGroup) return;
+    if (!isSystemGroupActive) return;
     try {
       setLoading(true);
       const data = await diagnosticsService.getTemplates();
@@ -113,13 +114,13 @@ export default function DiagnosticTemplatesPage() {
     } finally {
       setLoading(false);
     }
-  }, [isAirqoGroup]);
+  }, [isSystemGroupActive]);
 
   useEffect(() => {
-    if (isAirqoGroup) {
+    if (isSystemGroupActive) {
       loadTemplates();
     }
-  }, [loadTemplates, isAirqoGroup]);
+  }, [loadTemplates, isSystemGroupActive]);
 
   const handleOpenCreate = () => {
     setIsEditing(false);
@@ -477,7 +478,7 @@ export default function DiagnosticTemplatesPage() {
     );
   }
 
-  if (!isAirqoGroup) {
+  if (!isSystemGroupActive) {
     return (
       <div className="p-6 max-w-4xl mx-auto">
         <Card className="border border-slate-200 shadow-sm">
@@ -487,7 +488,7 @@ export default function DiagnosticTemplatesPage() {
               Restricted Organization Section
             </CardTitle>
             <CardDescription className="text-xs text-gray-600 leading-relaxed mt-1">
-              Diagnostic Templates and Evidential Rules are exclusively available when the active organization is set to <span className="font-semibold text-primary">AirQo</span>.
+              Diagnostic Templates and Evidential Rules are exclusively available when the active organization is set to <span className="font-semibold text-primary">{systemGroupLabel}</span>.
             </CardDescription>
           </CardHeader>
         </Card>

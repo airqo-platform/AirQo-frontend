@@ -32,7 +32,7 @@ const timeAgo = (value: string | null) => {
 
 interface DeviceReportedStatusProps {
   deviceId: string;
-  /** Link the set to the Status Codes admin page (AirQo staff only). */
+  /** Link the set to the Status Codes admin page (system group members only). */
   showSetLink?: boolean;
 }
 

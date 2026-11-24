@@ -49,7 +49,7 @@ export interface UptimeSummaryItem {
 }
 
 export interface NetworkBreakdownItem {
-  _id: string; // network name (e.g. airqo, airgradient)
+  _id: string; // network name (e.g. acme, nimbus)
   totalChecks: number;
   avg_total_monitors: number;
   avg_not_transmitting_percentage: number;

@@ -48,6 +48,7 @@ import {
 import type { ChartConfigState } from "./chart-controls"
 import { COLOR_PALETTES } from "./chart-controls"
 import { trackEvent } from "@/lib/analytics"
+import { beaconConfig } from "@/beacon.config"
 
 interface ChartCanvasProps {
   dataset: ParsedDataset
@@ -61,7 +62,7 @@ export function ChartCanvas({ dataset, config, height = 480 }: ChartCanvasProps)
   const chartCardRef = useRef<HTMLDivElement>(null)
 
   const paletteColors = useMemo(() => {
-    return COLOR_PALETTES[config.colorPalette]?.colors || COLOR_PALETTES.airqo.colors
+    return COLOR_PALETTES[config.colorPalette]?.colors || COLOR_PALETTES.brand.colors
   }, [config.colorPalette])
 
   // Filter & process dataset according to active configuration
@@ -167,7 +168,7 @@ export function ChartCanvas({ dataset, config, height = 480 }: ChartCanvasProps)
       })
       const dataUrl = canvas.toDataURL("image/png")
       const link = document.createElement("a")
-      link.download = `${(config.title || "airqo_visualisation").toLowerCase().replace(/\s+/g, "_")}_${Date.now()}.png`
+      link.download = `${(config.title || `${beaconConfig.org.slug}_visualisation`).toLowerCase().replace(/\s+/g, "_")}_${Date.now()}.png`
       link.href = dataUrl
       link.click()
       trackEvent("data_exported", { source: "device_data_chart", format: "png", chart_type: config.chartType })
@@ -193,7 +194,7 @@ export function ChartCanvas({ dataset, config, height = 480 }: ChartCanvasProps)
       const blob = new Blob([svgData], { type: "image/svg+xml;charset=utf-8" })
       const url = URL.createObjectURL(blob)
       const link = document.createElement("a")
-      link.download = `${(config.title || "airqo_visualisation").toLowerCase().replace(/\s+/g, "_")}_${Date.now()}.svg`
+      link.download = `${(config.title || `${beaconConfig.org.slug}_visualisation`).toLowerCase().replace(/\s+/g, "_")}_${Date.now()}.svg`
       link.href = url
       link.click()
       setTimeout(() => URL.revokeObjectURL(url), 1000)

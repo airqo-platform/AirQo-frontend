@@ -8,12 +8,13 @@ import { DeviceDiagnosticsPanel } from "@/components/diagnostics/DeviceDiagnosti
 import { BackButton } from "@/components/diagnostics/FleetHealthParts";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useGroup } from "@/lib/group-context";
+import { isSystemGroup } from "@/beacon.config"
 
 export default function DeviceDiagnosticInspectorPage() {
   const params = useParams();
   const { activeGroup, loading: groupLoading } = useGroup();
-  // Partner organisations get the stored diagnoses only; evaluations and the simulator are AirQo tools.
-  const readOnly = activeGroup?.toLowerCase() !== "airqo";
+  // Partner organisations get the stored diagnoses only; evaluations and the simulator are system group tools.
+  const readOnly = !isSystemGroup(activeGroup);
 
   const rawId = params?.id || params?.deviceId || "";
   const deviceId = Array.isArray(rawId) ? rawId[0] : rawId;

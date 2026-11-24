@@ -1,6 +1,7 @@
 import test from "node:test"
 import assert from "node:assert/strict"
 import "../test-env.mjs"
+import { beaconConfig } from "@/beacon.config"
 
 import {
   SNAPSHOT_NOTE,
@@ -296,7 +297,7 @@ test("titles, labels and filenames describe the selection", () => {
   assert.match(many.title, /for 4 clusters:/)
   assert.equal(many.filename, "device-health-report-4-clusters-2026-11-09.pdf")
 
-  assert.match(buildReport([device], { organisation: "airqo" }).subtitle, /^AirQo /)
+  assert.ok(buildReport([device], { organisation: beaconConfig.auth.systemGroupSlug }).subtitle.startsWith(`${beaconConfig.org.name} `))
 })
 
 test("charts stay inside their bounds", () => {

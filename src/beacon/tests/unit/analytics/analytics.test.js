@@ -46,7 +46,7 @@ test("concrete paths are reported as their route template", () => {
   assert.equal(getRouteTemplate("/dashboard/devices/aq_g5_87"), "/dashboard/devices/[id]")
   assert.equal(getRouteTemplate("/dashboard/devices/aq_g5_87/diagnostics"), "/dashboard/devices/[id]/diagnostics")
   assert.equal(getRouteTemplate("/dashboard/sites/64f0c2a1e4b0a1b2c3d4e5f6"), "/dashboard/sites/[id]")
-  assert.equal(getRouteTemplate("/dashboard/category/lowcost"), "/dashboard/category/[categoryId]")
+  assert.equal(getRouteTemplate("/dashboard/settings/device-profiles/lowcost"), "/dashboard/settings/device-profiles/[id]")
   assert.equal(getRouteTemplate("/dashboard/home"), "/dashboard/home")
   assert.equal(getRouteTemplate("/dashboard"), "/dashboard")
   assert.equal(getRouteTemplate("/"), "/")

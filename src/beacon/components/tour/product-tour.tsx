@@ -37,7 +37,7 @@ interface ProductTourProps {
   onClose: (outcome: TourOutcome, stepsViewed: number) => void
 }
 
-/** Spotlights one thing at a time with a card explaining it. Adapted from Nexus's ProductTour. */
+/** Spotlights one thing at a time with a card explaining it.  */
 export function ProductTour({ steps, title, onClose }: Readonly<ProductTourProps>) {
   const [index, setIndex] = useState(0)
   // The furthest step reached, so going back before closing doesn't shrink what was seen

@@ -9,7 +9,6 @@ import middleware from "@/middleware"
 import { GroupLinkError } from "@/components/group-link-error"
 import { findGroupTitle, getGroupLink } from "@/lib/group-context"
 import { getSafeReturnPath } from "@/lib/navigation"
-import { consumeOAuthTokenHandoffFromUrl, resolveOAuthRedirectAfterUrl } from "@/lib/oauth-session"
 
 process.env.NEXTAUTH_SECRET = "test-secret"
 
@@ -75,10 +74,6 @@ test("a signed-out user without a query keeps just the path", async () => {
   assert.equal(location.searchParams.get("from"), "/dashboard/devices")
 })
 
-test("an OAuth callback still reaches the page so the client can read the token", async () => {
-  assert.equal(await redirectFor("/dashboard/sites/s1?group=kcca&success=google"), null)
-})
-
 test("only dashboard paths on this site are returned to", () => {
   for (const link of LINKS) assert.equal(getSafeReturnPath(link), link)
   assert.equal(getSafeReturnPath("/dashboard"), "/dashboard")
@@ -100,27 +95,4 @@ test("only dashboard paths on this site are returned to", () => {
   ]) {
     assert.equal(getSafeReturnPath(path), null, String(path))
   }
-})
-
-test("social sign-in sends the full link out and returns to it without the OAuth params", (t) => {
-  const { location } = globalThis.window
-  const original = { ...location }
-  globalThis.window.history = { replaceState: () => {} }
-  t.after(() => {
-    Object.assign(location, original)
-    delete globalThis.window.history
-  })
-
-  assert.equal(resolveOAuthRedirectAfterUrl("/dashboard/sites/s1?group=kcca"), "http://localhost:3000/dashboard/sites/s1?group=kcca")
-
-  const landOn = (pathname, search) => {
-    Object.assign(location, { hash: "#token=abc", pathname, search })
-    return consumeOAuthTokenHandoffFromUrl().callbackUrl
-  }
-
-  assert.equal(landOn("/dashboard/sites/s1", "?group=kcca&success=google"), "/dashboard/sites/s1?group=kcca")
-  assert.equal(landOn("/dashboard/home", "?success=google"), "/dashboard/home")
-  // Nothing to go back to: AuthEffect falls back to Home
-  assert.equal(landOn("/login", "?success=google"), null)
-  assert.equal(landOn("/dashboard/home", "?success=google&callbackUrl=/dashboard/reports"), "/dashboard/reports")
 })

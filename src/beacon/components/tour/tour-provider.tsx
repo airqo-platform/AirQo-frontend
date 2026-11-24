@@ -19,6 +19,7 @@ import {
   markTourSeen,
   type TourStep,
 } from "@/lib/tours"
+import { beaconConfig } from "@/beacon.config"
 
 /** Lets the page finish laying out once it's ready, so steps aren't skipped for rendering a beat late. */
 const SETTLE_BEFORE_STARTING_MS = 400
@@ -54,7 +55,8 @@ export function TourProvider({ children }: Readonly<{ children: React.ReactNode 
   const runningTourRef = useRef<{ tour_id: string; trigger: string; step_count: number } | null>(null)
 
   const personId = session?.user?._id || session?.user?.email || ""
-  const tour = pathname && !access.loading ? getTourForPath(pathname, access) : null
+  // Tours are off when `features.productTours` is false in beacon.config.ts
+  const tour = beaconConfig.features.productTours && pathname && !access.loading ? getTourForPath(pathname, access) : null
 
   const showTour = useCallback((tourId: string, steps: TourStep[], trigger: string) => {
     runningTourRef.current = { tour_id: tourId, trigger, step_count: steps.length }

@@ -3,7 +3,7 @@
 import { useEffect } from "react"
 import { AlertCircle, RefreshCw, WifiOff } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { sendToSlack } from "@/lib/logger"
+import { reportError } from "@/lib/logger"
 import { isLikelyOffline } from "@/lib/network-status"
 import { isConnectivityError } from "@/lib/retry"
 
@@ -22,7 +22,7 @@ export function RouteError({ error, reset, boundary, className }: RouteErrorProp
   useEffect(() => {
     console.error(`Uncaught error (${boundary}):`, error)
     if (!offline) {
-      sendToSlack("Unhandled React error", error, { errorType: boundary, digest: error.digest })
+      reportError("Unhandled React error", error, { errorType: boundary, digest: error.digest })
     }
   }, [error, boundary, offline])
 

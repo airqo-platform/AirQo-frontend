@@ -127,7 +127,7 @@ export function EditHeaderModal({
             <Input
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="e.g. AirQo-v5-DualPM"
+              placeholder="e.g. Acme-v2-DualPM"
               className="h-8 text-xs"
             />
           </div>
@@ -157,7 +157,7 @@ export function EditHeaderModal({
               <Input
                 value={vendor}
                 onChange={(e) => setVendor(e.target.value)}
-                placeholder="e.g. AirQo / Met One"
+                placeholder="e.g. Acme Sensors"
                 className="h-8 text-xs"
               />
             </div>

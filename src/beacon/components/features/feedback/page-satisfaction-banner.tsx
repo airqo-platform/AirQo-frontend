@@ -33,6 +33,7 @@ import {
 } from '@/lib/feedback-preferences';
 import { openFeedbackDialog } from './feedback-dialog';
 import { useFeedbackPromptSlot } from './feedback-prompt-slot';
+import { beaconConfig } from "@/beacon.config"
 
 const NEGATIVE_REASONS = [
   'Confusing',
@@ -350,7 +351,7 @@ export const PageSatisfactionBanner: React.FC<PageSatisfactionBannerProps> = ({
       setTimeout(() => {
         toast({
           title: 'Thank you for your feedback!',
-          description: 'Your input helps us improve Beacon.',
+          description: `Your input helps us improve ${beaconConfig.app.name}.`,
         });
       }, 300);
       return null;

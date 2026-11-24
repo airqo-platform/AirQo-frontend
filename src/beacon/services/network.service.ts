@@ -1,7 +1,6 @@
 import { config } from "@/lib/config"
 import { fetchWithAuth } from "@/lib/api-client"
 import authService from "@/services/api-service"
-import { isMockMode, getMockNetworks, getMockNetworkProfiles } from "@/lib/mock-data"
 import type {
   DataSyncTriggerResponse,
   NetworkListParams,
@@ -89,7 +88,6 @@ class NetworkService {
    * the device list); without it they are fleet-wide.
    */
   async getNetworks(params: NetworkListParams = {}): Promise<NetworkSummary[]> {
-    if (isMockMode()) return getMockNetworks()
     const response = await this.request<NetworkListResponse>(`/networks/?${buildNetworksQuery(params)}`, "Fetching manufacturers")
     return Array.isArray(response?.networks) ? response.networks : []
   }
@@ -104,7 +102,6 @@ class NetworkService {
 
   /** Each manufacturer profile as the diagnostic engine sees it. */
   async getManufacturerProfiles(): Promise<NetworkProfileReadiness[]> {
-    if (isMockMode()) return getMockNetworkProfiles()
     const response = await this.request<NetworkProfilesResponse>("/networks/profiles", "Fetching manufacturer profiles")
     return Array.isArray(response?.profiles) ? response.profiles : []
   }
