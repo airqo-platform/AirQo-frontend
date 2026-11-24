@@ -7,6 +7,7 @@ import AnalyticsFilters, {
   FILTER_TYPES,
   FILTER_TYPE_LABELS,
   FilterState,
+  MAX_SELECTED_ITEMS,
   fetchFilteredPerformance,
   getFilterDateWindow,
   type AnalyticsFilterType,
@@ -14,6 +15,7 @@ import AnalyticsFilters, {
 import AirQloudsTable from "./airqlouds-table"
 import { useToast } from "@/components/ui/use-toast"
 import type { PerformanceEntityType } from "@/services/airqloud.service"
+import { handOffAnalysis } from "@/lib/analysis-handoff"
 import { useGroup } from "@/lib/group-context"
 import { ROUTES } from "@/lib/navigation"
 
@@ -81,18 +83,27 @@ export default function AnalyticsPageClient() {
       return
     }
 
+    const maxSelected = MAX_SELECTED_ITEMS[filterState.filterType]
+    if (filterState.selectedItems.length > maxSelected) {
+      toast({
+        title: "Too Many Items Selected",
+        description: `You can analyse up to ${maxSelected} ${FILTER_TYPE_LABELS[filterState.filterType].toLowerCase()} at a time.`,
+        variant: "destructive",
+      })
+      return
+    }
+
     setIsAnalysing(true)
 
     try {
       const { startDate, endDate } = getFilterDateWindow(filterState)
       const response = await fetchFilteredPerformance(filterState, startDate.toISOString(), endDate.toISOString(), activeGroup)
 
-      sessionStorage.setItem("analysisData", JSON.stringify(response))
-      sessionStorage.setItem("analysisDateRange", JSON.stringify({
-        from: startDate.toISOString(),
-        to: endDate.toISOString(),
-      }))
-      sessionStorage.setItem("analysisType", filterState.filterType)
+      handOffAnalysis({
+        type: filterState.filterType,
+        dateRange: { from: startDate.toISOString(), to: endDate.toISOString() },
+        data: response,
+      })
 
       router.push("/dashboard/analytics/analysis")
     } catch (error) {

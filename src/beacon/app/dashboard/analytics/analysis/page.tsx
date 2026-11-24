@@ -28,6 +28,7 @@ import { type AirQloudPerformanceData } from "@/services/airqloud.service"
 import { useSyncActions, SyncToolbar } from "@/components/analytics/sync-toolbar"
 import DevicePerformanceHeatmaps, { DeviceHourHeatmaps } from "@/components/analytics/device-heatmap"
 import AirQloudPerformanceTab from "./airqloud-performance-tab"
+import { readAnalysisHandoff } from "@/lib/analysis-handoff"
 import { formatCompactNumber } from "@/lib/utils"
 
 interface DateRange {
@@ -462,27 +463,24 @@ export default function AnalysisResultsPage() {
   const backHref = `/dashboard/analytics?analysis=${analysisType === "airqlouds" ? "cohorts" : analysisType}`
 
   useEffect(() => {
-    // Load data from sessionStorage
-    const storedData = sessionStorage.getItem('analysisData')
-    const storedDateRange = sessionStorage.getItem('analysisDateRange')
-    const storedAnalysisType = sessionStorage.getItem('analysisType') as AnalysisType | null
+    // The analysis the filters page just ran, or the copy sessionStorage kept across a reload
+    try {
+      const handoff = readAnalysisHandoff()
 
-    if (storedData && storedDateRange) {
-      try {
-        const parsedDateRange = JSON.parse(storedDateRange) as DateRange
-        setDateRange(parsedDateRange)
-        setAnalysisType(storedAnalysisType === "devices" ? "devices" : "airqlouds")
+      if (handoff) {
+        setDateRange(handoff.dateRange)
+        setAnalysisType(handoff.type)
 
-        if (storedAnalysisType === "devices") {
+        if (handoff.type === "devices") {
           // Device analysis - data is array of device performance (flat structure)
-          const parsedPayload = JSON.parse(storedData)
-          const parsedData = Array.isArray(parsedPayload)
-            ? parsedPayload
-            : parsedPayload?.data || []
+          const payload = handoff.data as any
+          const parsedData = Array.isArray(payload)
+            ? payload
+            : payload?.data || []
           setDeviceData(parsedData)
         } else {
           // Cohort/grid analysis - data includes devices in each entity
-          const parsedData = JSON.parse(storedData) as AirQloudPerformanceData[]
+          const parsedData = handoff.data as AirQloudPerformanceData[]
           setData(parsedData)
 
           // Set the first tab as selected
@@ -490,9 +488,9 @@ export default function AnalysisResultsPage() {
             setSelectedTab(parsedData[0].id)
           }
         }
-      } catch (error) {
-        console.error('Error parsing stored data:', error)
       }
+    } catch (error) {
+      console.error('Error reading analysis data:', error)
     }
 
     setIsLoading(false)
