@@ -41,6 +41,21 @@ export function handOffAnalysis(handoff: AnalysisHandoff): void {
   }
 }
 
+/**
+ * Forgets the analysis, in memory and in sessionStorage. Part of the auth cleanup, so whoever
+ * signs in next on this tab cannot open the previous account's results.
+ */
+export function clearAnalysisHandoff(): void {
+  latest = null
+  if (typeof sessionStorage === "undefined") return
+
+  try {
+    for (const key of Object.values(STORAGE_KEYS)) sessionStorage.removeItem(key)
+  } catch {
+    // Storage unavailable; nothing was kept there.
+  }
+}
+
 /** The latest analysis: the one just run, else the one sessionStorage kept across a reload. */
 export function readAnalysisHandoff(): AnalysisHandoff | null {
   if (latest) return latest

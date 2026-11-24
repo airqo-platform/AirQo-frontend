@@ -5,6 +5,7 @@
 
 import { config } from '@/lib/config'
 import { handleUnauthorized } from '@/lib/api-client'
+import { clearAnalysisHandoff } from '@/lib/analysis-handoff'
 
 interface ApiResponse {
   success?: boolean
@@ -207,9 +208,12 @@ class AuthService {
     
     // Clear all auth-related cookies
     this.removeAuthCookie()
-    
+
     // Clear the token from memory
     this.token = null
+
+    // The last Clustered Analysis belongs to this sign-in, not the next one on this tab
+    clearAnalysisHandoff()
   }
 
   /**
