@@ -21,14 +21,7 @@ COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
 
-ARG NEXT_PUBLIC_AIRQO_API_BASE_URL
-ARG NEXT_PUBLIC_AIRQO_STAGING_API_BASE_URL
-ARG NEXT_PUBLIC_LOCAL_API_URL
-
-ENV NEXT_PUBLIC_AIRQO_API_BASE_URL=$NEXT_PUBLIC_AIRQO_API_BASE_URL
-ENV NEXT_PUBLIC_AIRQO_STAGING_API_BASE_URL=$NEXT_PUBLIC_AIRQO_STAGING_API_BASE_URL
-ENV NEXT_PUBLIC_LOCAL_API_URL=$NEXT_PUBLIC_LOCAL_API_URL
-
+# The build needs no settings: the server reads them when it runs (lib/public-env.ts)
 # Build the application
 RUN npm run build
 
@@ -58,6 +51,16 @@ EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
 ENV NODE_ENV=production
+
+# Defaults for settings the server reads when it runs (lib/public-env.ts). The pod's own
+# environment, from Key Vault (sta-env-beacon-web, prod-env-beacon-web), overrides them, so a new
+# value only needs a restart.
+ARG NEXT_PUBLIC_AIRQO_API_BASE_URL
+ARG NEXT_PUBLIC_AIRQO_STAGING_API_BASE_URL
+ARG NEXT_PUBLIC_LOCAL_API_URL
+ENV NEXT_PUBLIC_AIRQO_API_BASE_URL=$NEXT_PUBLIC_AIRQO_API_BASE_URL
+ENV NEXT_PUBLIC_AIRQO_STAGING_API_BASE_URL=$NEXT_PUBLIC_AIRQO_STAGING_API_BASE_URL
+ENV NEXT_PUBLIC_LOCAL_API_URL=$NEXT_PUBLIC_LOCAL_API_URL
 
 # Start the application using the standalone server
 CMD ["node", "server.js"]

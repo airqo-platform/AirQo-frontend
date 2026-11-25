@@ -9,7 +9,7 @@ Beacon sends product analytics to PostHog so we can see which parts of Beacon pe
 | `NEXT_PUBLIC_POSTHOG_KEY` | The PostHog project API key (`phc_…`). Nothing is loaded or sent while it's empty. |
 | `NEXT_PUBLIC_POSTHOG_HOST` | Ingestion host. Defaults to `https://us.i.posthog.com`. |
 
-Both are read when the image is built, so they go in the env secret the deploy writes to `src/beacon/.env` (`sta-env-beacon` for staging, the production secret for production), not in the Kubernetes runtime config. Rebuild after changing them.
+Both are read when the server runs (`lib/public-env.ts`), so they go in the pods' environment: the Key Vault secret `sta-env-beacon-web` for staging and `prod-env-beacon-web` for production. A new value takes effect when the pods restart; no rebuild is needed.
 
 - **Same project as Nexus and Vertex, or separate?** Using one project lets you follow a person and an organisation across AirQo apps: PostHog's cookie is set on `.airqo.net`, so the same browser keeps one id across Beacon, Vertex and Nexus. Every event carries `app_name` (`beacon`) and `environment` (`development`, `staging`, `production`, from the hostname), so you can filter to one app or keep staging out of production charts.
 - **Content Security Policy.** Beacon only sends a CSP header when `ENABLE_CSP=true`. If that's on and `CSP_HEADER` is unset, the default policy (`default-src 'self'`) blocks PostHog's scripts and requests, and nothing reaches PostHog without any visible error. Set `CSP_HEADER` to allow the PostHog hosts in `connect-src` and `script-src` (`https://us.i.posthog.com https://us-assets.i.posthog.com`, or your region's).

@@ -1,4 +1,5 @@
 import { beaconConfig } from '@/beacon.config';
+import { getPublicEnv } from '@/lib/public-env';
 
 const isDevelopment = process.env.NODE_ENV === 'development';
 
@@ -95,7 +96,7 @@ export async function reportError(
 ) {
   const endpoint = beaconConfig.monitoring.errorReportEndpoint;
   const isProd = process.env.NODE_ENV === "production";
-  const devNotifs = process.env.NEXT_PUBLIC_ENABLE_SLACK_DEV_NOTIFS === "true";
+  const devNotifs = getPublicEnv("NEXT_PUBLIC_ENABLE_SLACK_DEV_NOTIFS") === "true";
   if (endpoint && !isProd && !devNotifs) return;
   if (!canSend(error)) return;
 

@@ -22,8 +22,8 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Local env files
-.env*.local
+# Env files: settings come from the running container, not the build (see lib/public-env.ts)
+.env*
 
 # Vercel
 .vercel
