@@ -9,6 +9,8 @@ import { AuthProvider } from "@/components/providers/auth-provider"
 import { AnalyticsProvider } from "@/components/providers/analytics-provider"
 import { ThemeProvider } from "@/components/theme-provider"
 import { getThemeScript } from "@/lib/theme-utils"
+import { getPublicEnvScript, PUBLIC_ENV_SCRIPT_ID } from "@/lib/public-env"
+import { unstable_noStore as noStore } from "next/cache"
 import { beaconConfig, brandTitle } from "@/beacon.config"
 
 const inter = Inter({ subsets: ["latin"] })
@@ -23,9 +25,14 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
+  // Render per request so each page carries this server's settings, never the build's
+  // (see lib/public-env.ts)
+  noStore()
+
   return (
     <html lang="en">
       <head>
+        <script id={PUBLIC_ENV_SCRIPT_ID} dangerouslySetInnerHTML={{ __html: getPublicEnvScript() }} />
         <link rel="icon" href={beaconConfig.org.favicon || beaconConfig.org.logo} />
         <script
           id="theme-script"

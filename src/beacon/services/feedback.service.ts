@@ -1,5 +1,6 @@
 import authService from './api-service';
 import { config } from '@/lib/config';
+import { getPublicEnv } from '@/lib/public-env';
 
 export interface FeedbackSubmissionMetadata extends Record<string, unknown> {
   page?: string;
@@ -55,7 +56,7 @@ const extractResponseData = <T extends { success?: boolean; message?: string }>(
   return data;
 };
 
-export const getAppVersion = (): string => process.env.NEXT_PUBLIC_APP_VERSION || '1.0.0';
+export const getAppVersion = (): string => getPublicEnv('NEXT_PUBLIC_APP_VERSION') || '1.0.0';
 
 export class FeedbackService {
   private readonly baseUrl: string;

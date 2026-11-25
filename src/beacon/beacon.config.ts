@@ -1,4 +1,5 @@
 import { brandTitleOf, isSystemGroupTitle, validateBeaconConfig, type BeaconConfigInput } from "./lib/beacon-config"
+import { getPublicEnv } from "@/lib/public-env"
 
 /**
  * AirQo's Beacon. The same code is exported as a domain-neutral template
@@ -7,7 +8,7 @@ import { brandTitleOf, isSystemGroupTitle, validateBeaconConfig, type BeaconConf
  * NEXT_PUBLIC_BEACON_MOCK=true runs Beacon on its own mock backend with the demo sign-in, for local
  * work without the AirQo platform.
  */
-const useMock = process.env.NEXT_PUBLIC_BEACON_MOCK === "true"
+const useMock = getPublicEnv("NEXT_PUBLIC_BEACON_MOCK") === "true"
 
 const config: BeaconConfigInput = {
   org: {
@@ -44,7 +45,7 @@ const config: BeaconConfigInput = {
   },
   features: {
     maintenanceMap: true,
-    roadRouting: process.env.NEXT_PUBLIC_ENABLE_ROAD_ROUTING === "true",
+    roadRouting: getPublicEnv("NEXT_PUBLIC_ENABLE_ROAD_ROUTING") === "true",
     reports: true,
     deviceDataAnalysis: true,
     productTours: true,

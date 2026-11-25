@@ -1,20 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { enforceHttpsForRemote } from '@/lib/config';
+import { getPublicEnv } from '@/lib/public-env';
 
 const getBeaconApiUrl = () => {
   const isDevelopment = process.env.NODE_ENV === 'development';
 
-  if (isDevelopment && process.env.NEXT_PUBLIC_LOCAL_API_URL) {
-    return enforceHttpsForRemote(process.env.NEXT_PUBLIC_LOCAL_API_URL);
+  if (isDevelopment && getPublicEnv('NEXT_PUBLIC_LOCAL_API_URL')) {
+    return enforceHttpsForRemote(getPublicEnv('NEXT_PUBLIC_LOCAL_API_URL'));
   }
 
   const candidates = [
     process.env.BEACON_API_URL,
     process.env.AIRQO_STAGING_API_BASE_URL,
     process.env.AIRQO_API_BASE_URL,
-    process.env.NEXT_PUBLIC_BEACON_API_URL,
-    process.env.NEXT_PUBLIC_AIRQO_STAGING_API_BASE_URL,
-    process.env.NEXT_PUBLIC_AIRQO_API_BASE_URL,
+    getPublicEnv('NEXT_PUBLIC_BEACON_API_URL'),
+    getPublicEnv('NEXT_PUBLIC_AIRQO_STAGING_API_BASE_URL'),
+    getPublicEnv('NEXT_PUBLIC_AIRQO_API_BASE_URL'),
   ];
 
   for (const candidate of candidates) {

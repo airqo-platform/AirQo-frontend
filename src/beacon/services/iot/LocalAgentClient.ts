@@ -1,4 +1,5 @@
 import { FlashProgress } from '@/types/iot';
+import { getPublicEnv } from '@/lib/public-env';
 
 export class LocalAgentClient {
   private ws: WebSocket | null = null;
@@ -6,7 +7,7 @@ export class LocalAgentClient {
   private connectionPromise: Promise<void> | null = null;
   
   // Use environment variable if available, fallback to default key
-  private readonly agentKey = process.env.NEXT_PUBLIC_LOCAL_AGENT_KEY || 'airqo-local-agent-secure-key-123';
+  private readonly agentKey = getPublicEnv('NEXT_PUBLIC_LOCAL_AGENT_KEY') || 'airqo-local-agent-secure-key-123';
   
   constructor(private readonly url: string = 'ws://127.0.0.1:3300') {}
 

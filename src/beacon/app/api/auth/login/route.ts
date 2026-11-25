@@ -3,13 +3,14 @@
  * Proxies authentication requests to AirQo API to avoid CORS issues
  */
 import { NextRequest, NextResponse } from 'next/server'
+import { getPublicEnv } from '@/lib/public-env'
 
 // Use environment variables with proper fallbacks
 const getApiBaseUrl = () => {
   return process.env.AIRQO_STAGING_API_BASE_URL ||
-    process.env.NEXT_PUBLIC_AIRQO_STAGING_API_BASE_URL ||
+    getPublicEnv('NEXT_PUBLIC_AIRQO_STAGING_API_BASE_URL') ||
     process.env.AIRQO_API_BASE_URL ||
-    process.env.NEXT_PUBLIC_AIRQO_API_BASE_URL ||
+    getPublicEnv('NEXT_PUBLIC_AIRQO_API_BASE_URL') ||
     'https://staging-platform.airqo.net'
 }
 

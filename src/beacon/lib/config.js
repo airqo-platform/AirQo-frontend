@@ -11,6 +11,7 @@
 
 import { beaconConfig } from '@/beacon.config';
 import { httpBeaconApiPrefix, httpBeaconApiUrl, httpPlatformApiUrl } from '@/lib/integration/api-urls';
+import { getPublicEnv } from '@/lib/public-env';
 
 export { enforceHttpsForRemote } from '@/lib/url-utils';
 
@@ -38,7 +39,7 @@ const isLocalhostHost = () =>
  * from the address the app is running on, because `next build` always sets NODE_ENV to production.
  */
 const getEnvironment = () => {
-  const forced = (process.env.NEXT_PUBLIC_ENV || '').toLowerCase();
+  const forced = (getPublicEnv('NEXT_PUBLIC_ENV') || '').toLowerCase();
   if (forced === 'development' || forced === 'staging' || forced === 'production') return forced;
 
   if (!isServer()) {
