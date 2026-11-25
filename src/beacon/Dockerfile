@@ -21,7 +21,12 @@ COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
 
-# The build needs no settings: the server reads them when it runs (lib/public-env.ts)
+# The build needs no settings: the server reads them when it runs (lib/public-env.ts). The one
+# exception is the local beacon-api proxy, a rewrite in next.config.mjs, which Next.js fixes at
+# build time: pass NEXT_PUBLIC_LOCAL_API_URL as a build argument to include it.
+ARG NEXT_PUBLIC_LOCAL_API_URL
+ENV NEXT_PUBLIC_LOCAL_API_URL=$NEXT_PUBLIC_LOCAL_API_URL
+
 # Build the application
 RUN npm run build
 
