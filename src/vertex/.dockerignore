@@ -4,3 +4,7 @@ node_modules
 npm-debug.log*
 .vscode
 coverage
+.next
+
+# Env comes from the running container, not the build (see lib/public-env.ts).
+.env*

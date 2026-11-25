@@ -3,9 +3,10 @@ import logger from '@/lib/logger';
 import { clearSessionData } from '../utils/sessionManager';
 import { getSession } from 'next-auth/react';
 import { ExtendedSession } from '../utils/secureApiProxyClient';
+import { getPublicEnv, readServerEnv } from '@/lib/public-env';
 
-const API_TOKEN = process.env.NEXT_PUBLIC_API_TOKEN;
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const API_TOKEN = readServerEnv('NEXT_PUBLIC_API_TOKEN');
+const API_URL = getPublicEnv('NEXT_PUBLIC_API_URL');
 const NETWORK_DEGRADED_EVENT = 'vertex-network-degraded';
 const NETWORK_RECOVERED_EVENT = 'vertex-network-recovered';
 

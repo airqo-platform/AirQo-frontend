@@ -8,8 +8,9 @@ import { setPolygon } from '@/core/redux/slices/gridsSlice';
 import MapboxDraw from '@mapbox/mapbox-gl-draw';
 import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css';
 import { cn } from '@/lib/utils';
+import { getPublicEnv } from '@/lib/public-env';
 
-mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || '';
+mapboxgl.accessToken = getPublicEnv('NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN') || '';
 
 interface MiniMapProps {
   latitude?: string;

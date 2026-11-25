@@ -50,7 +50,7 @@ The badges above reflect the latest `staging` run: build/test status and overall
 
 ## Environment variables
 
-Use `src/vertex/.env.example` as the base. Common variables include:
+Use `src/vertex/.env.example` as the base. Vertex reads these when the server runs, not when the image is built, so the Docker build needs no `.env` and one image works in every environment. The browser gets the `NEXT_PUBLIC_` values listed in `lib/public-env.ts` from the page; read them with `getPublicEnv()`, never as a literal `process.env.NEXT_PUBLIC_*`, which Next.js would freeze into the build. `NEXT_PUBLIC_API_TOKEN` stays on the server despite its name. Common variables include:
 
 - `NEXT_PUBLIC_API_URL`: Backend API base URL.
 - `NEXT_PUBLIC_API_BASE_URL`: Public API origin used for measurement URL examples.

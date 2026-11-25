@@ -9,7 +9,7 @@ Vertex sends product analytics to PostHog so the team can see which parts of Ver
 | `NEXT_PUBLIC_POSTHOG_KEY` | PostHog project API key (`phc_…`). Nothing is loaded or sent when it is empty. |
 | `NEXT_PUBLIC_POSTHOG_HOST` | Ingestion host. Defaults to `https://us.i.posthog.com`. |
 
-Both are `NEXT_PUBLIC_` variables, so Next.js bakes them into the build. In deployments they go in the env secret the image is built from (`sta-env-vertex` for staging, `prod-env-vertex` for production); setting them on a running pod does nothing. A project API key is meant to be public, so it is safe in the browser bundle.
+Vertex reads both when the server runs, not when the image is built (`lib/public-env.ts`), and hands them to the browser in the page. In deployments they go in the app's env secret (`sta-env-vertex` for staging, `prod-env-vertex` for production) and take effect when the pods restart. A project API key is meant to be public, so it is safe in the page.
 
 Code lives in:
 

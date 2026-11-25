@@ -21,6 +21,7 @@ import { uploadToCloudinary } from '@/core/apis/cloudinary';
 import { FEEDBACK_DIALOG_OPEN_EVENT, FeedbackDialogOpenDetail } from './feedback-dialog';
 import { getApiErrorMessage } from '@/core/utils/getApiErrorMessage';
 import { trackEvent } from '@/lib/track';
+import { getPublicEnv } from '@/lib/public-env';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -76,7 +77,7 @@ const buildFeedbackMetadata = (pathname: string) => {
     return {
       page: pathname,
       browser: 'Unknown browser',
-      appVersion: process.env.NEXT_PUBLIC_APP_VERSION || '1.0.0',
+      appVersion: getPublicEnv('NEXT_PUBLIC_APP_VERSION') || '1.0.0',
       screenResolution: 'Unknown',
     };
   }
@@ -99,7 +100,7 @@ const buildFeedbackMetadata = (pathname: string) => {
   return {
     page: pathname,
     browser: getBrowserLabel(),
-    appVersion: process.env.NEXT_PUBLIC_APP_VERSION || '1.0.0',
+    appVersion: getPublicEnv('NEXT_PUBLIC_APP_VERSION') || '1.0.0',
     screenResolution: `${window.screen.width}x${window.screen.height}`,
   };
 };

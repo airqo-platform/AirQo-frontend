@@ -1,6 +1,7 @@
 import logger from '@/lib/logger';
 import { MapPinIcon } from 'lucide-react';
 import React, { useState, useEffect, useRef } from 'react';
+import { getPublicEnv } from '@/lib/public-env';
 
 interface LocationSuggestion {
   id: string;
@@ -35,7 +36,7 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
   const dropdownRef = useRef<HTMLDivElement>(null);
   const debounceTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const MAPBOX_ACCESS_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
+  const MAPBOX_ACCESS_TOKEN = getPublicEnv('NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN');
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
