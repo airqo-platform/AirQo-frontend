@@ -7,6 +7,7 @@ import { AqSearchRefraction } from '@airqo/icons-react';
 import type { Group } from "@/app/types/users";
 import ReusableButton from "@/components/shared/button/ReusableButton";
 import { trackEvent } from "@/lib/track";
+import { getPublicEnv } from "@/lib/public-env";
 
 interface OrganizationModalProps {
   isOpen: boolean;
@@ -77,7 +78,7 @@ const OrganizationModal: React.FC<OrganizationModalProps> = ({
   }, [userGroups, searchTerm]);
 
   const handleCreateNew = () => {
-    const baseUrl = process.env.NEXT_PUBLIC_ANALYTICS_URL || 'https://analytics.airqo.net';
+    const baseUrl = getPublicEnv("NEXT_PUBLIC_ANALYTICS_URL") || 'https://analytics.airqo.net';
     const url = `${baseUrl.replace(/\/$/, '')}/request-organization`;
     trackEvent('app_link_opened', { destination: 'nexus', source: 'request_organization' });
     window.open(url, '_blank', 'noopener,noreferrer');

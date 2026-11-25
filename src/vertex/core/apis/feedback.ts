@@ -1,4 +1,5 @@
 import createSecureApiClient from "../utils/secureApiProxyClient";
+import { getPublicEnv } from "@/lib/public-env";
 
 export interface FeedbackSubmissionMetadata extends Record<string, unknown> {
   page?: string;
@@ -98,7 +99,7 @@ export class FeedbackService {
           typeof window !== 'undefined'
             ? navigator.userAgent.slice(0, 80)
             : 'Unknown',
-        appVersion: process.env.NEXT_PUBLIC_APP_VERSION || '1.0.0',
+        appVersion: getPublicEnv("NEXT_PUBLIC_APP_VERSION") || '1.0.0',
         ...metadata,
       },
     });

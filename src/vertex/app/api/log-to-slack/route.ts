@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import axios, { AxiosError } from 'axios';
+import { getPublicEnv } from '@/lib/public-env';
 
 interface ErrorResponse {
   status?: number;
@@ -56,7 +57,7 @@ interface SlackPayload {
 // Get environment info
 function getEnvironmentInfo() {
   const env =
-    process.env.NEXT_PUBLIC_ALLOW_DEV_TOOLS ??
+    getPublicEnv('NEXT_PUBLIC_ALLOW_DEV_TOOLS') ??
     process.env.NODE_ENV ??
     'development';
 
