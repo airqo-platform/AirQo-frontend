@@ -33,6 +33,7 @@ export function FieldView({
   filter,
   scopeName,
   networkName,
+  refreshToken = 0,
 }: {
   counts: StatusCounts
   status: DeviceStatusKey
@@ -40,6 +41,8 @@ export function FieldView({
   filter?: { network?: string; cohort_id?: string }
   scopeName: string
   networkName: (network: string) => string
+  /** Changes when the dashboard's Refresh is pressed, so a failed list loads again */
+  refreshToken?: number
 }) {
   const [devices, setDevices] = useState<StatusDevice[]>([])
   const [total, setTotal] = useState<number | null>(null)
@@ -75,9 +78,12 @@ export function FieldView({
     return () => {
       current = false
     }
-  }, [status, network, cohortId])
+  }, [status, network, cohortId, refreshToken])
 
   const areas = useMemo(() => countByArea(devices), [devices])
+  // The platform returns at most 1000 devices per request; say so wherever the list is summed or exported
+  const partial = total !== null && total > devices.length
+  const loadedNote = partial ? `the first ${devices.length.toLocaleString()} of ${total.toLocaleString()}` : null
   const largestArea = areas[0]?.count ?? 0
   const category = getStatusCategory(status)
   const now = new Date()
@@ -88,10 +94,10 @@ export function FieldView({
     const url = URL.createObjectURL(blob)
     const link = document.createElement("a")
     link.href = url
-    link.download = `beacon-${status.replace(/_/g, "-")}-${format(now, "yyyy-MM-dd")}.csv`
+    link.download = `beacon-${status.replace(/_/g, "-")}-${format(now, "yyyy-MM-dd")}${partial ? `-first-${devices.length}` : ""}.csv`
     link.click()
     URL.revokeObjectURL(url)
-    trackEvent("overview_devices_exported", { status, count: devices.length })
+    trackEvent("overview_devices_exported", { status, count: devices.length, partial })
   }
 
   return (
@@ -102,9 +108,15 @@ export function FieldView({
         description={`${category.label}: ${category.description.toLowerCase()}. Longest silent first.`}
         className="lg:col-span-3"
         action={
-          <Button variant="outline" size="sm" onClick={exportCsv} disabled={loading || devices.length === 0}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={exportCsv}
+            disabled={loading || devices.length === 0}
+            title={loadedNote ? `Exports ${loadedNote} devices, longest silent first` : undefined}
+          >
             <AqDownload01 className="h-4 w-4" aria-hidden="true" />
-            Export CSV
+            {loadedNote ? `Export first ${devices.length.toLocaleString()}` : "Export CSV"}
           </Button>
         }
       >
@@ -194,6 +206,7 @@ export function FieldView({
             <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-muted-foreground">
               <span>
                 Showing {Math.min(visible, devices.length).toLocaleString()} of {(total ?? devices.length).toLocaleString()}
+                {loadedNote && <>. The list, export and district counts cover {loadedNote}, longest silent first.</>}
               </span>
               {visible < devices.length && (
                 <Button variant="outline" size="sm" onClick={() => setVisible((v) => v + PAGE_SIZE)}>
@@ -205,7 +218,10 @@ export function FieldView({
         )}
       </OverviewCard>
 
-      <OverviewCard title="Where they are" description={`${category.label}, by district`}>
+      <OverviewCard
+        title="Where they are"
+        description={`${category.label}, by district${loadedNote ? `, for ${loadedNote}` : ""}`}
+      >
         {loading ? (
           <div className="space-y-3" aria-hidden="true">
             {Array.from({ length: 4 }, (_, i) => (

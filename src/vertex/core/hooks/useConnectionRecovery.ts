@@ -111,6 +111,8 @@ export function useConnectionRecovery() {
 
   const startRecovery = useCallback(() => {
     cancelRecovery();
+    // An offline check still in flight (such as an earlier Retry) is older than this recovery
+    offlineCheckRef.current += 1;
     const run = recoveryRunRef.current;
     setPhase("reconnecting");
 

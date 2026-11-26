@@ -1,9 +1,14 @@
 import type {
   CohortBreakdownItem,
+  HourlyTrend,
   NetworkBreakdownItem,
   NetworkStatusAlert,
   UptimeSummaryItem,
 } from "@/services/network-status.service"
+
+/** The platform can send `null` for a figure it didn't record; that is not zero. */
+const numberOrNull = (value: unknown): number | null =>
+  typeof value === "number" && Number.isFinite(value) ? value : null
 
 /**
  * Pure helpers behind the admin Overview (/dashboard): the four device statuses, the network's
@@ -174,16 +179,73 @@ export interface DailyOnline {
   lowestOnline: number
 }
 
-/** Daily average and lowest online rate, oldest first. */
+/** Daily average and lowest online rate, oldest first. A day with no recorded average is left out. */
 export function dailyOnline(uptime: UptimeSummaryItem[]): DailyOnline[] {
   return [...uptime]
-    .filter((day) => day && typeof day._id === "string")
+    .filter((day) => day && typeof day._id === "string" && numberOrNull(day.avgOfflinePercentage) !== null)
     .sort((a, b) => a._id.localeCompare(b._id))
     .map((day) => ({
       date: day._id,
-      averageOnline: 100 - (day.avgOfflinePercentage ?? 0),
-      lowestOnline: 100 - (day.maxOfflinePercentage ?? 0),
+      averageOnline: 100 - day.avgOfflinePercentage,
+      lowestOnline: 100 - (numberOrNull(day.maxOfflinePercentage) ?? day.avgOfflinePercentage),
     }))
+}
+
+/**
+ * The days to chart. Summary days with a recorded average are kept as they are. A day the
+ * summary has no average for takes the figure worked out from that day's checks, and is left out
+ * when there is none, rather than counting as 0% offline.
+ */
+export function mergeUptime(summary: UptimeSummaryItem[], fromChecks: UptimeSummaryItem[]): UptimeSummaryItem[] {
+  const checked = new Map(
+    fromChecks.filter((day) => numberOrNull(day?.avgOfflinePercentage) !== null).map((day) => [day._id, day])
+  )
+  const days: UptimeSummaryItem[] = []
+  for (const day of summary) {
+    if (!day || typeof day._id !== "string") continue
+    if (numberOrNull(day.avgOfflinePercentage) !== null) days.push(day)
+    else if (checked.has(day._id)) days.push(checked.get(day._id)!)
+  }
+  return days
+}
+
+/** Checks over the warning line in the last `hours`, newest first. */
+export function recentIncidents(
+  checks: NetworkStatusAlert[],
+  { hours = 48, limit = 10, now = new Date() }: { hours?: number; limit?: number; now?: Date } = {}
+): NetworkStatusAlert[] {
+  const since = now.getTime() - hours * HOUR_MS
+  return checks
+    .filter((check) => check.threshold_exceeded && Date.parse(check.checked_at) >= since)
+    .sort((a, b) => Date.parse(b.checked_at) - Date.parse(a.checked_at))
+    .slice(0, limit)
+}
+
+export interface HourlyOnline {
+  hour: number
+  online: number
+  checks: number
+}
+
+/**
+ * Online rate by hour of day. The platform splits each hour by day of the week; each slot counts
+ * by how many checks it holds, and a slot without a figure or without checks is left out.
+ */
+export function hourlyOnline(trends: HourlyTrend[]): HourlyOnline[] {
+  const byHour = new Map<number, { weighted: number; checks: number }>()
+  for (const trend of trends) {
+    const hour = trend?._id?.hour
+    const offline = numberOrNull(trend?.avg_not_transmitting_percentage)
+    const checks = numberOrNull(trend?.count) ?? 1
+    if (typeof hour !== "number" || offline === null || checks <= 0) continue
+    const slot = byHour.get(hour) ?? { weighted: 0, checks: 0 }
+    slot.weighted += (100 - offline) * checks
+    slot.checks += checks
+    byHour.set(hour, slot)
+  }
+  return [...byHour.entries()]
+    .sort(([a], [b]) => a - b)
+    .map(([hour, slot]) => ({ hour, online: slot.weighted / slot.checks, checks: slot.checks }))
 }
 
 export interface PeriodSummary {

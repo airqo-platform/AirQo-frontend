@@ -20,6 +20,7 @@ import {
   DEVICE_STATUS_CATEGORIES,
   HEALTH_LABELS,
   OVERVIEW_VIEWS,
+  hourlyOnline,
   percentOf,
   type DailyOnline,
   type DeviceStatusKey,
@@ -306,18 +307,7 @@ export function OnlineTrendChart({
 
 /** Average online rate for each hour of the day; hours below the warning line in orange. */
 export function HourlyChart({ trends, warningAt, height = 260 }: { trends: HourlyTrend[]; warningAt: number; height?: number }) {
-  const byHour = new Map<number, number[]>()
-  for (const trend of trends) {
-    const hour = trend._id?.hour
-    if (typeof hour !== "number") continue
-    byHour.set(hour, [...(byHour.get(hour) ?? []), 100 - (trend.avg_not_transmitting_percentage ?? 0)])
-  }
-  const data = [...byHour.entries()]
-    .sort(([a], [b]) => a - b)
-    .map(([hour, values]) => ({
-      hour,
-      online: values.reduce((sum, v) => sum + v, 0) / values.length,
-    }))
+  const data = hourlyOnline(trends)
 
   if (data.length === 0) {
     return (

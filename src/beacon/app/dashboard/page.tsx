@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useMemo, Suspense } from "react"
+import { useState, useEffect, useMemo, useRef, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { format, parseISO } from "date-fns"
 import { AqRefreshCw01, AqWifiOff } from "@airqo/icons-react"
@@ -42,8 +42,10 @@ import {
   healthFor,
   isDeviceStatusKey,
   isOverviewView,
+  mergeUptime,
   percentOf,
   rankFleets,
+  recentIncidents,
   reportSummary,
   summarisePeriod,
   type DeviceStatusKey,
@@ -150,6 +152,11 @@ function DashboardContent() {
   const [summaryError, setSummaryError] = useState<boolean>(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  // The fleet the figures on screen were loaded for, and the newest load; a slower, older load is dropped
+  const [loadedScope, setLoadedScope] = useState<string | null>(null)
+  const latestRequest = useRef(0)
+  // Bumped by Refresh so the Field view reloads its device list too
+  const [refreshToken, setRefreshToken] = useState(0)
 
   useEffect(() => {
     setStoredView(readStoredView())
@@ -174,6 +181,9 @@ function DashboardContent() {
   }, [availableGroups, groupsLoading, router])
 
   const fetchData = async () => {
+    const request = ++latestRequest.current
+    const isLatest = () => request === latestRequest.current
+    const scopeKey = selectedCohortId ? `cohort:${selectedCohortId}` : selectedNetwork ? `network:${selectedNetwork}` : "all"
     setLoading(true)
     setError(null)
     try {
@@ -214,6 +224,8 @@ function DashboardContent() {
         activeFilter ? networkStatusService.getDeviceSummaryCount(activeFilter).catch(e => { console.error(e); return { success: false, error: e }; }) : Promise.resolve(null),
         airQloudService.getCohorts({ limit: 100, group: activeGroup || beaconConfig.auth.systemGroupSlug }).catch(e => { console.error(e); return null; })
       ])
+      if (!isLatest()) return
+      setLoadedScope(scopeKey)
 
       let rawAlerts: NetworkStatusAlert[] = []
       if (allRes && 'alerts' in allRes && allRes.alerts) {
@@ -235,33 +247,14 @@ function DashboardContent() {
         setTrends([])
       }
 
-      if (uptimeRes && 'summary' in uptimeRes && uptimeRes.summary) {
-        const hasNulls = uptimeRes.summary.some(
-          (item: any) => item.avgOfflinePercentage === null
-        )
+      // Days without a recorded average take the figure from that day's checks, or are left out
+      const daysFromChecks = aggregateUptimeFromAlerts(rawAlerts)
+      const summaryDays = uptimeRes && 'summary' in uptimeRes && uptimeRes.summary ? uptimeRes.summary : []
+      setUptime(summaryDays.length > 0 ? mergeUptime(summaryDays, daysFromChecks) : daysFromChecks)
 
-        if (hasNulls && rawAlerts.length > 0) {
-          setUptime(aggregateUptimeFromAlerts(rawAlerts))
-        } else {
-          setUptime(uptimeRes.summary)
-        }
-      } else if (rawAlerts.length > 0) {
-        setUptime(aggregateUptimeFromAlerts(rawAlerts))
-      } else {
-        setUptime([])
-      }
-
-      if (recentRes && 'alerts' in recentRes && recentRes.alerts) {
-        if (recentRes.alerts.length === 0 && rawAlerts.length > 0) {
-          setRecentAlerts(rawAlerts.filter(alert => alert.threshold_exceeded).slice(0, 10))
-        } else {
-          setRecentAlerts(recentRes.alerts)
-        }
-      } else if (rawAlerts.length > 0) {
-        setRecentAlerts(rawAlerts.filter(alert => alert.threshold_exceeded).slice(0, 10))
-      } else {
-        setRecentAlerts([])
-      }
+      // The period's checks are the fallback; they reach back 14 days, so keep only the last 48 hours
+      const recent = recentRes && 'alerts' in recentRes && recentRes.alerts ? recentRes.alerts : []
+      setRecentAlerts(recent.length > 0 ? recent : recentIncidents(rawAlerts, { hours: 48, limit: 10 }))
 
       if (breakdownRes && 'data' in breakdownRes && breakdownRes.data) {
         setBreakdownData(breakdownRes.data)
@@ -299,11 +292,17 @@ function DashboardContent() {
       }
 
     } catch (err: any) {
+      if (!isLatest()) return
       console.error(err)
       setError(err.message || "Network status didn't load. Check your connection and try Refresh.")
     } finally {
-      setLoading(false)
+      if (isLatest()) setLoading(false)
     }
+  }
+
+  const refresh = () => {
+    setRefreshToken((token) => token + 1)
+    void fetchData()
   }
 
   useEffect(() => {
@@ -327,8 +326,18 @@ function DashboardContent() {
     ? getNetworkDisplayName(selectedNetwork)
     : "All fleets"
 
+  const selectedFilterValue = selectedCohortId
+    ? `cohort:${selectedCohortId}`
+    : selectedNetwork
+    ? `network:${selectedNetwork}`
+    : "all"
+  // Until the selected fleet's figures arrive, nothing from the previous fleet is shown or reported
+  const isCurrentScope = loadedScope === selectedFilterValue
+
   // Current counts: the device summary for one fleet, the newest check for the whole network
-  const counts: StatusCounts | null = isFiltered
+  const counts: StatusCounts | null = !isCurrentScope
+    ? null
+    : isFiltered
     ? summaryCount ? countsFromSummary(summaryCount) : null
     : latestCheck ? countsFromCheck(latestCheck) : null
 
@@ -409,14 +418,8 @@ function DashboardContent() {
     handleFilterChange(`${kind === "network" ? "network" : "cohort"}:${id}`)
   }
 
-  const selectedFilterValue = selectedCohortId
-    ? `cohort:${selectedCohortId}`
-    : selectedNetwork
-    ? `network:${selectedNetwork}`
-    : "all"
-
-  const isEmptyState = isFiltered && summaryCount?.total_monitors === 0
-  const showSkeleton = loading && !counts
+  const isEmptyState = isCurrentScope && isFiltered && summaryCount?.total_monitors === 0
+  const showSkeleton = (loading && !counts) || !isCurrentScope
 
   return (
     <div className="space-y-6 p-6 lg:p-8 max-w-7xl mx-auto">
@@ -482,7 +485,7 @@ function DashboardContent() {
               )}
             </SelectContent>
           </Select>
-          <Button variant="outline" onClick={fetchData} disabled={loading}>
+          <Button variant="outline" onClick={refresh} disabled={loading}>
             <AqRefreshCw01 className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} aria-hidden="true" />
             {loading ? "Refreshing…" : "Refresh"}
           </Button>
@@ -538,6 +541,7 @@ function DashboardContent() {
               filter={selectedCohortId ? { cohort_id: selectedCohortId } : selectedNetwork ? { network: selectedNetwork } : undefined}
               scopeName={scopeName}
               networkName={getNetworkDisplayName}
+              refreshToken={refreshToken}
             />
           )}
           {view === "reporting" && (

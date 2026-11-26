@@ -186,8 +186,11 @@ function confirmOffline() {
       if (state === "offline") restore()
       return
     }
-    // If the flag is back to online, the "online" event has already started a reconnect
-    if (navigator.onLine === false && !isChecking()) goOffline()
+    if (isChecking()) return
+    // The server can't be reached. If an "online" event came during the check, it found the
+    // monitor still online and did nothing, so reconnect (and keep polling) here instead.
+    if (navigator.onLine === false) goOffline()
+    else startReconnecting()
   })
 }
 
@@ -230,8 +233,10 @@ export function reportRequestFailure(error: unknown, method = "GET") {
   }
 
   void checkReachability().then((ok) => {
-    if (ok || state === "offline" || state === "reconnecting") return
+    if (ok) return
+    // Recorded before the state check: an offline check sharing this ping may have changed the state first
     if (isRead) lostRequests = true
+    if (isChecking()) return
     if (navigator.onLine === false) goOffline()
     else startReconnecting()
   })

@@ -19,7 +19,12 @@ globalThis.window = win
 globalThis.localStorage = win.localStorage
 globalThis.document = Object.assign(new EventTarget(), { visibilityState: "visible" })
 // next-auth logs client errors with sendBeacon when the browser has it (all current browsers do)
-globalThis.navigator = { onLine: true, userAgent: "node", sendBeacon: () => true }
+// Node 21+ has a read-only global navigator, so the fixture is defined rather than assigned
+Object.defineProperty(globalThis, "navigator", {
+  value: { onLine: true, userAgent: "node", sendBeacon: () => true },
+  configurable: true,
+  writable: true,
+})
 
 const { forgetSession, isSessionRead, keepSession, withSessionFallback } = await import("@/lib/session-fallback")
 const { startNetworkMonitor } = await import("@/lib/network-status")

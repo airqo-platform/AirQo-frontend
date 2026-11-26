@@ -496,6 +496,26 @@ describe('NetworkStatusBanner reconnect recovery', () => {
     expect(client.getQueryState(['list'])?.status).toBe('success');
   });
 
+  it('does not let an older Retry check undo a newer recovery', async () => {
+    const queryFn = vi.fn().mockRejectedValueOnce(networkError()).mockResolvedValue('ok');
+    await renderWithFailedList(queryFn);
+
+    goOffline();
+    await screen.findByText(OFFLINE);
+
+    // Retry's check hangs; meanwhile the timed check finds the app reachable and recovers
+    const retryCheck = deferred<{ ok: boolean }>();
+    ping.mockReturnValueOnce(retryCheck.promise);
+    fireEvent.click(screen.getByRole('button', { name: 'Retry' }));
+    ping.mockResolvedValue({ ok: true });
+    await screen.findByText(RESTORED, undefined, { timeout: 2000 });
+
+    await act(async () => retryCheck.reject(new TypeError('Failed to fetch')));
+    await act(async () => new Promise((resolve) => setTimeout(resolve, 400)));
+    expect(screen.queryByText(OFFLINE)).not.toBeInTheDocument();
+    expect(onlineManager.isOnline()).toBe(true);
+  });
+
   it('hides the restored message after the auto-hide delay', async () => {
     const queryFn = vi.fn().mockRejectedValueOnce(networkError()).mockResolvedValue('ok');
     await renderWithFailedList(queryFn, 20);

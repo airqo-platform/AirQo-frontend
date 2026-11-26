@@ -15,11 +15,12 @@ win.fetch = async (url) => {
 }
 globalThis.window = win
 globalThis.document = Object.assign(new EventTarget(), { visibilityState: "visible" })
-globalThis.navigator = { onLine: false, userAgent: "node" }
+// Node 21+ has a read-only global navigator, so the fixture is defined rather than assigned
+Object.defineProperty(globalThis, "navigator", { value: { onLine: false, userAgent: "node" }, configurable: true, writable: true })
 
 mock.timers.enable({ apis: ["setTimeout", "Date"], now: Date.UTC(2026, 10, 26, 9) })
 
-const { checkConnectionNow, getConnectionState, isLikelyOffline, subscribe } = await import("@/lib/network-status")
+const { checkConnectionNow, getConnectionState, isLikelyOffline, onConnectionRestored, subscribe } = await import("@/lib/network-status")
 
 /** Lets pending promise callbacks run (the ping is async). */
 const settle = async () => {
@@ -114,4 +115,38 @@ test("Retry checks the server straight away instead of waiting for the next time
   serverAnswers = true
   await checkConnectionNow()
   assert.equal(getConnectionState(), "restored")
+})
+
+test("reconnects when the online event arrives while the offline check is still running", async () => {
+  await advance(3000) // the restored message clears
+  assert.equal(getConnectionState(), "online")
+  serverAnswers = false
+  navigator.onLine = false
+  window.dispatchEvent(new Event("offline"))
+  // The flag flips back before the ping fails: the online event finds the monitor still online
+  navigator.onLine = true
+  window.dispatchEvent(new Event("online"))
+  await settle()
+  assert.equal(getConnectionState(), "reconnecting", "a failed check must leave recovery running")
+
+  serverAnswers = true
+  assert.equal(await waitFor("restored"), "restored")
+})
+
+test("reports lost reads even when the offline check changed the state first", async () => {
+  await advance(3000)
+  const restored = []
+  const stop = onConnectionRestored((event) => restored.push(event))
+  serverAnswers = false
+  navigator.onLine = false
+  window.dispatchEvent(new Event("offline"))
+  await window.fetch("/api/devices").catch(() => {})
+  await settle()
+  assert.equal(getConnectionState(), "offline")
+
+  serverAnswers = true
+  navigator.onLine = true
+  assert.equal(await waitFor("restored"), "restored")
+  stop()
+  assert.deepEqual(restored, [{ lostRequests: true }])
 })

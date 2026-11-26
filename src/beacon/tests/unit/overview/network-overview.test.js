@@ -7,11 +7,14 @@ import {
   dailyOnline,
   devicesToCsv,
   healthFor,
+  hourlyOnline,
   isOverviewView,
   lastSeenOf,
   locationOf,
+  mergeUptime,
   onlinePercent,
   rankFleets,
+  recentIncidents,
   reportSummary,
   silentFor,
   sortByLongestSilent,
@@ -181,4 +184,56 @@ test("only the four role views are accepted", () => {
   assert.equal(isOverviewView("field"), true)
   assert.equal(isOverviewView("admin"), false)
   assert.equal(isOverviewView(null), false)
+})
+
+const day = (date, avg, max = avg) => ({
+  _id: date,
+  avgOfflinePercentage: avg,
+  maxOfflinePercentage: max,
+  minOfflinePercentage: avg,
+  totalChecks: 4,
+  alertsTriggered: 0,
+})
+
+test("a day without a recorded average is left out, not shown as 100% online", () => {
+  assert.deepEqual(
+    dailyOnline([day("2026-11-24", null, null), day("2026-11-25", 20, 30)]).map((d) => [d.date, d.averageOnline, d.lowestOnline]),
+    [["2026-11-25", 80, 70]]
+  )
+  assert.equal(summarisePeriod([day("2026-11-24", null, null)]).averageOnline, null)
+})
+
+test("summary days keep their figures and gaps take the figure from that day's checks", () => {
+  const summary = [day("2026-11-23", 10), day("2026-11-24", null, null), day("2026-11-25", null, null)]
+  const fromChecks = [day("2026-11-23", 99), day("2026-11-24", 40)]
+  assert.deepEqual(
+    mergeUptime(summary, fromChecks).map((d) => [d._id, d.avgOfflinePercentage]),
+    [["2026-11-23", 10], ["2026-11-24", 40]]
+  )
+})
+
+test("recent incidents keep the last 48 hours over the warning line, newest first", () => {
+  const now = new Date("2026-11-26T12:00:00Z")
+  const at = (iso, exceeded) => ({ ...check(iso, 40), threshold_exceeded: exceeded })
+  const checks = [
+    at("2026-11-19T12:00:00Z", true), // a week old
+    at("2026-11-25T08:00:00Z", true),
+    at("2026-11-26T10:00:00Z", true),
+    at("2026-11-26T11:00:00Z", false), // under the line
+    at("2026-11-24T13:00:00Z", true),
+  ]
+  assert.deepEqual(
+    recentIncidents(checks, { now }).map((c) => c.checked_at),
+    ["2026-11-26T10:00:00Z", "2026-11-25T08:00:00Z", "2026-11-24T13:00:00Z"]
+  )
+  assert.equal(recentIncidents(checks, { now, limit: 1 }).length, 1)
+})
+
+test("the hourly online rate counts each slot by its number of checks", () => {
+  const slot = (hour, offline, count) => ({ _id: { hour, dayOfWeek: 1 }, avg_not_transmitting_percentage: offline, count })
+  const hours = hourlyOnline([slot(9, 0, 4), slot(9, 100, 1), slot(10, null, 3), slot(11, 50, 0), slot(8, 20, 2)])
+  assert.deepEqual(
+    hours.map((h) => [h.hour, h.online, h.checks]),
+    [[8, 80, 2], [9, 80, 5]]
+  )
 })
