@@ -19,6 +19,7 @@
  * `onConnectionRestored` run so data that failed during the outage can reload.
  */
 import { backoffDelay, isConnectivityError } from "@/lib/retry"
+import { isSessionRead, withSessionFallback } from "@/lib/session-fallback"
 
 export type ConnectionState = "online" | "offline" | "reconnecting" | "restored"
 
@@ -246,7 +247,9 @@ function requestMethod(input: RequestInfo | URL, init?: RequestInit): string {
 
 /**
  * Most Beacon pages call `fetch` directly, so failures are observed with a
- * thin pass-through wrapper. The caller gets the original promise unchanged.
+ * thin pass-through wrapper. The caller gets the original promise unchanged,
+ * except next-auth's session check, which keeps the last session through a
+ * failure (see lib/session-fallback).
  */
 function observeFetch() {
   // Already wrapped (e.g. this module was re-evaluated by hot reload): reuse the original
@@ -262,7 +265,7 @@ function observeFetch() {
   const observed: typeof fetch = (input, init) => {
     const promise = original(input, init)
     promise.catch((error) => reportRequestFailure(error, requestMethod(input, init)))
-    return promise
+    return isSessionRead(input, init) ? withSessionFallback(promise) : promise
   }
   ;(observed as any).__beaconNativeFetch = original
   window.fetch = observed
