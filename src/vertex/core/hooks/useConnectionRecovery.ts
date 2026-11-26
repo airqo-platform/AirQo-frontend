@@ -16,12 +16,7 @@ const PING_RETRY_BASE_MS = 1000;
 const PING_RETRY_MAX_MS = 30_000;
 
 /**
- * `navigator.onLine` is only a hint. Some browsers (seen in Chrome on macOS) keep reporting offline
- * while the network works, so "offline" also needs a failed ping, and is checked again with backoff
- * rather than waiting for an "online" event that a stuck flag never sends. React Query follows these
- * phases instead of the browser's events, so a wrong flag can't pause every query.
- *
- * - offline: the browser reports no network and the app can't be reached
+ * - offline: the browser reports no network
  * - reconnecting: the browser reports a network and it is being confirmed
  * - unreachable: the network is up but the app can't be reached yet; still checking
  * - refreshing: the app can be reached and the queries this recovery started haven't all finished,
@@ -41,27 +36,15 @@ export type ConnectionPhase =
 
 const isBrowserOffline = () => typeof navigator !== "undefined" && navigator.onLine === false;
 
-/** React Query's own listener, put back when the hook unmounts. */
-const followBrowserEvents = (setOnline: (online: boolean) => void) => {
-  const online = () => setOnline(true);
-  const offline = () => setOnline(false);
-  window.addEventListener("online", online);
-  window.addEventListener("offline", offline);
-  return () => {
-    window.removeEventListener("online", online);
-    window.removeEventListener("offline", offline);
-  };
-};
-
 /** Drives the reconnect flow for the whole app. Mount it once, inside the query provider. */
 export function useConnectionRecovery() {
   const queryClient = useQueryClient();
-  // Starts idle even if the browser says offline: the mount effect checks that with a ping first.
-  const [phase, setPhaseState] = useState<ConnectionPhase>("idle");
+  const [phase, setPhaseState] = useState<ConnectionPhase>(() =>
+    isBrowserOffline() ? "offline" : "idle"
+  );
 
   const phaseRef = useRef(phase);
   const recoveryRunRef = useRef(0);
-  const offlineCheckRef = useRef(0);
   const pingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const stopWatchingRef = useRef<(() => void) | null>(null);
   const hiddenAtRef = useRef<number | null>(null);
@@ -69,7 +52,6 @@ export function useConnectionRecovery() {
   const setPhase = useCallback((next: ConnectionPhase) => {
     phaseRef.current = next;
     setPhaseState(next);
-    onlineManager.setOnline(next !== "offline");
   }, []);
 
   const stopWatching = useCallback(() => {
@@ -111,8 +93,6 @@ export function useConnectionRecovery() {
 
   const startRecovery = useCallback(() => {
     cancelRecovery();
-    // An offline check still in flight (such as an earlier Retry) is older than this recovery
-    offlineCheckRef.current += 1;
     const run = recoveryRunRef.current;
     setPhase("reconnecting");
 
@@ -146,57 +126,17 @@ export function useConnectionRecovery() {
     void ping(0);
   }, [cancelRecovery, enterUnstable, queryClient, setPhase, stopWatching, watchQueries]);
 
-  /** Only called once a ping has failed. Keeps pinging, since a stuck flag never sends "online". */
-  const enterOffline = useCallback(() => {
-    cancelRecovery();
-    const run = recoveryRunRef.current;
-    setPhase("offline");
-
-    const recheck = (failures: number) => {
-      pingTimerRef.current = setTimeout(async () => {
-        const reachable = await checkApiReachable();
-        if (run !== recoveryRunRef.current) return;
-        if (reachable) startRecovery();
-        else recheck(failures + 1);
-      }, backoffWithJitter(failures, PING_RETRY_BASE_MS, PING_RETRY_MAX_MS));
-    };
-    recheck(0);
-  }, [cancelRecovery, setPhase, startRecovery]);
-
-  /**
-   * The browser says there's no network. Believe it only if the app can't be reached either;
-   * otherwise the flag is wrong and whatever is under way carries on.
-   */
-  const confirmOffline = useCallback((): Promise<void> => {
-    const check = ++offlineCheckRef.current;
-    return checkApiReachable().then((reachable) => {
-      if (check !== offlineCheckRef.current) return;
-      if (reachable) {
-        if (phaseRef.current === "offline") startRecovery();
-        return;
-      }
-      // If the flag is back to online, the "online" event has already started a reconnect
-      if (isBrowserOffline() && phaseRef.current !== "offline") enterOffline();
-    });
-  }, [enterOffline, startRecovery]);
-
-  /** The banner's Retry. While offline it checks the app now; otherwise it runs the recovery again. */
-  const retry = useCallback((): Promise<void> => {
-    if (phaseRef.current === "offline") return confirmOffline();
-    startRecovery();
-    return Promise.resolve();
-  }, [confirmOffline, startRecovery]);
-
   const clearRestored = useCallback(() => {
     if (phaseRef.current === "restored") setPhase("idle");
   }, [setPhase]);
 
   useEffect(() => {
-    // React Query would pause every query on the browser's "offline" event alone; setPhase drives it
-    onlineManager.setEventListener(() => undefined);
+    const handleOffline = () => {
+      cancelRecovery();
+      setPhase("offline");
+    };
 
     const handleOnline = () => {
-      offlineCheckRef.current += 1;
       if (phaseRef.current === "reconnecting" || phaseRef.current === "refreshing") return;
       startRecovery();
     };
@@ -210,10 +150,11 @@ export function useConnectionRecovery() {
       const hiddenAt = hiddenAtRef.current;
       hiddenAtRef.current = null;
 
-      // A frozen tab can miss online and offline events, so ask the browser again, and check
-      // what it says. While offline this also re-checks now instead of waiting on a throttled timer.
-      if (isBrowserOffline()) {
-        void confirmOffline();
+      // A frozen tab can miss online and offline events, so ask the browser again.
+      onlineManager.setOnline(navigator.onLine);
+
+      if (!navigator.onLine) {
+        handleOffline();
         return;
       }
 
@@ -233,22 +174,17 @@ export function useConnectionRecovery() {
       }
     };
 
-    window.addEventListener("offline", confirmOffline);
+    window.addEventListener("offline", handleOffline);
     window.addEventListener("online", handleOnline);
     document.addEventListener("visibilitychange", handleVisibilityChange);
 
-    if (isBrowserOffline()) void confirmOffline();
-
     return () => {
       cancelRecovery();
-      offlineCheckRef.current += 1;
-      window.removeEventListener("offline", confirmOffline);
+      window.removeEventListener("offline", handleOffline);
       window.removeEventListener("online", handleOnline);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
-      onlineManager.setEventListener(followBrowserEvents);
-      onlineManager.setOnline(true);
     };
-  }, [cancelRecovery, confirmOffline, queryClient, startRecovery]);
+  }, [cancelRecovery, queryClient, setPhase, startRecovery]);
 
-  return { phase, retry, clearRestored };
+  return { phase, retry: startRecovery, clearRestored };
 }

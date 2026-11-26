@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { AqCheckCircle, AqLoading01, AqSignal02, AqXClose } from '@airqo/icons-react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { AqLoading01, AqWifiOff, AqSignal02, AqXClose } from '@airqo/icons-react';
 import { useConnectionRecovery, type ConnectionPhase } from '@/core/hooks/useConnectionRecovery';
 
 const DEBOUNCE_DELAY = 300;
@@ -9,33 +9,15 @@ const AUTO_HIDE_DELAY = 5000;
 const API_DEGRADED_EVENT = 'vertex-network-degraded';
 const API_RECOVERED_EVENT = 'vertex-network-recovered';
 
-type Tone = 'amber' | 'blue' | 'green';
-
-// The amber pill matches Nexus's offline status (src/nexus AppNetworkGate); blue and green follow its shape
-const TONES: Record<Tone, string> = {
-  amber:
-    'border-amber-200 bg-amber-100 text-amber-800 dark:border-amber-800 dark:bg-amber-950/60 dark:text-amber-200',
-  blue: 'border-blue-200 bg-blue-100 text-blue-800 dark:border-blue-800 dark:bg-blue-950/60 dark:text-blue-200',
-  green:
-    'border-green-200 bg-green-100 text-green-800 dark:border-green-800 dark:bg-green-950/60 dark:text-green-200',
-};
-
-const STRONG_TEXT: Record<Tone, string> = {
-  amber: 'text-amber-900 dark:text-amber-100',
-  blue: 'text-blue-900 dark:text-blue-100',
-  green: 'text-green-900 dark:text-green-100',
-};
-
-const ICON_CLASS = 'h-3.5 w-3.5 shrink-0';
-const Spinner = <AqLoading01 className={`${ICON_CLASS} motion-safe:animate-spin`} aria-hidden="true" />;
-
-const PROGRESS: Partial<Record<ConnectionPhase, { message: string; tone: Tone; icon: React.ReactNode }>> = {
-  reconnecting: { message: 'Reconnecting…', tone: 'blue', icon: Spinner },
-  refreshing: { message: 'Refreshing data…', tone: 'blue', icon: Spinner },
+const PROGRESS_BANNERS: Partial<
+  Record<ConnectionPhase, { message: string; bgClass: string; busy: boolean }>
+> = {
+  reconnecting: { message: 'Reconnecting…', bgClass: 'bg-blue-600', busy: true },
+  refreshing: { message: 'Refreshing data…', bgClass: 'bg-blue-600', busy: true },
   restored: {
-    message: 'Back online',
-    tone: 'green',
-    icon: <AqCheckCircle className={ICON_CLASS} aria-hidden="true" />,
+    message: "You're back online. Connection restored.",
+    bgClass: 'bg-green-600',
+    busy: false,
   },
 };
 
@@ -90,50 +72,10 @@ function useApiHealthStatus(): ApiHealthStatus {
   return { hasConnectivityIssue };
 }
 
-interface StatusPillProps {
-  tone: Tone;
-  icon: React.ReactNode;
-  message: string;
-  onRetry?: () => void;
-  retrying?: boolean;
-  onDismiss?: () => void;
-}
-
-function StatusPill({ tone, icon, message, onRetry, retrying = false, onDismiss }: StatusPillProps) {
-  const control = `rounded-full focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-current ${STRONG_TEXT[tone]}`;
-  return (
-    <div
-      className={`pointer-events-auto flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-xs font-medium shadow-md backdrop-blur-sm transition-opacity duration-200 motion-reduce:transition-none ${TONES[tone]}`}
-    >
-      {icon}
-      <span>{message}</span>
-      {onRetry && (
-        <button
-          type="button"
-          onClick={onRetry}
-          disabled={retrying}
-          className={`font-semibold underline-offset-2 hover:underline disabled:no-underline disabled:opacity-80 ${control}`}
-        >
-          {retrying ? 'Checking…' : 'Retry'}
-        </button>
-      )}
-      {onDismiss && (
-        <button
-          type="button"
-          onClick={onDismiss}
-          aria-label="Dismiss network status notification"
-          className={`-my-1 -mr-2 inline-flex h-6 w-6 shrink-0 items-center justify-center opacity-70 hover:bg-black/5 hover:opacity-100 dark:hover:bg-white/10 ${control}`}
-        >
-          <AqXClose className={ICON_CLASS} aria-hidden="true" />
-        </button>
-      )}
-    </div>
-  );
-}
-
 interface NetworkStatusBannerProps {
   position?: 'top' | 'bottom';
   className?: string;
+  showDetailedInfo?: boolean;
   autoHide?: boolean;
   autoHideDelay?: number;
 }
@@ -141,12 +83,12 @@ interface NetworkStatusBannerProps {
 export default function NetworkStatusBanner({
   position = 'top',
   className = '',
+  showDetailedInfo = false,
   autoHide = true,
   autoHideDelay = AUTO_HIDE_DELAY,
 }: NetworkStatusBannerProps) {
   const isMounted = useMounted();
   const [dismissed, setDismissed] = useState(false);
-  const [retrying, setRetrying] = useState(false);
   const { phase, retry, clearRestored } = useConnectionRecovery();
   const { hasConnectivityIssue } = useApiHealthStatus();
 
@@ -157,6 +99,24 @@ export default function NetworkStatusBanner({
     (hasConnectivityIssue && (phase === 'idle' || phase === 'restored'));
   const hasIssue = isOffline || isUnstable;
   const shouldShow = useDebounce(hasIssue && !dismissed, DEBOUNCE_DELAY);
+
+  const config = useMemo(() => {
+    if (isOffline) {
+      return {
+        message: 'You are offline. Check your internet connection.',
+        bgClass: 'bg-red-600',
+        Icon: AqWifiOff,
+      };
+    }
+    if (isUnstable) {
+      return {
+        message: 'Connection is unstable. Some data may be temporarily unavailable.',
+        bgClass: 'bg-amber-600',
+        Icon: AqSignal02,
+      };
+    }
+    return null;
+  }, [isOffline, isUnstable]);
 
   useEffect(() => {
     setDismissed(false);
@@ -174,47 +134,64 @@ export default function NetworkStatusBanner({
 
   const handleDismiss = useCallback(() => setDismissed(true), []);
 
-  const handleRetry = useCallback(() => {
-    setRetrying(true);
-    void retry().finally(() => setRetrying(false));
-  }, [retry]);
-
   if (!isMounted) return null;
 
-  const progress = isUnstable ? undefined : PROGRESS[phase];
+  const progress = isUnstable ? undefined : PROGRESS_BANNERS[phase];
+  const toastClasses = `fixed left-1/2 transform -translate-x-1/2 z-[2000] ${
+    position === 'top' ? 'top-4' : 'bottom-6'
+  } max-w-md mx-4 min-w-[320px] text-white rounded-lg shadow-lg backdrop-blur-sm transition-all duration-300 ease-out ${className}`;
 
   // Both live regions stay mounted so screen readers announce each change to their content.
   return (
-    <div
-      className={`pointer-events-none fixed inset-x-0 z-[2000] flex justify-center px-4 ${
-        position === 'top' ? 'top-0 pt-2' : 'bottom-0 pb-6'
-      } ${className}`}
-    >
+    <>
       <div role="status" aria-live="polite" aria-atomic="true">
-        {progress && <StatusPill tone={progress.tone} icon={progress.icon} message={progress.message} />}
+        {progress && (
+          <div className={`${toastClasses} ${progress.bgClass}`}>
+            <div className="flex items-center gap-3 px-4 py-3">
+              {progress.busy ? (
+                <AqLoading01 className="w-5 h-5 motion-safe:animate-spin" aria-hidden="true" />
+              ) : (
+                <AqSignal02 className="w-5 h-5" aria-hidden="true" />
+              )}
+              <p className="text-sm font-medium leading-tight">{progress.message}</p>
+            </div>
+          </div>
+        )}
       </div>
 
       <div role="alert" aria-live="assertive" aria-atomic="true">
-        {shouldShow && hasIssue && (
-          <StatusPill
-            tone="amber"
-            icon={
-              isOffline ? (
-                <span
-                  aria-hidden="true"
-                  className="h-1.5 w-1.5 shrink-0 rounded-full bg-amber-500 motion-safe:animate-pulse dark:bg-amber-400"
-                />
-              ) : (
-                <AqSignal02 className={ICON_CLASS} aria-hidden="true" />
-              )
-            }
-            message={isOffline ? "You're offline" : 'Connection is unstable'}
-            onRetry={handleRetry}
-            retrying={retrying}
-            onDismiss={handleDismiss}
-          />
+        {shouldShow && config && (
+          <div className={`${toastClasses} ${config.bgClass}`}>
+            <div className="flex items-center gap-3 px-4 py-3">
+              <config.Icon className="w-5 h-5" aria-hidden="true" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium leading-tight">{config.message}</p>
+                {showDetailedInfo && (
+                  <div className="mt-1 text-xs text-white/80">
+                    Network: {isOffline ? 'Offline' : 'Online'}
+                  </div>
+                )}
+              </div>
+              {isUnstable && (
+                <button
+                  type="button"
+                  onClick={retry}
+                  className="flex-shrink-0 rounded-md bg-white px-3 py-1 text-xs font-semibold text-amber-800 hover:bg-amber-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-amber-600 transition-colors duration-200"
+                >
+                  Retry
+                </button>
+              )}
+              <button
+                onClick={handleDismiss}
+                className="flex-shrink-0 text-white/80 hover:text-white focus:text-white focus:outline-none transition-colors duration-200"
+                aria-label="Dismiss network status notification"
+              >
+                <AqXClose className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
         )}
       </div>
-    </div>
+    </>
   );
 }

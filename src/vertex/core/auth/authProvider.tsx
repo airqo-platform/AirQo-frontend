@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useCallback, useState, useSyncExternalStore } from 'react';
+import { useEffect, useMemo, useRef, useCallback, useState } from 'react';
 import { useSession, SessionProvider, getSession, signIn } from 'next-auth/react';
 import type { Session } from 'next-auth';
 import { useRouter, usePathname } from 'next/navigation';
-import { onlineManager, useQuery } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { useAppSelector, useAppDispatch } from '@/core/redux/hooks';
 import {
   setUserDetails,
@@ -126,16 +126,34 @@ function determineInitialUserSetup(
 
 // --- Custom Hooks ---
 
-const subscribeToOnline = (onChange: () => void) => onlineManager.subscribe(onChange);
-const getOnline = () => onlineManager.isOnline();
-const getServerOnline = () => true;
-
 /**
- * Online as React Query sees it. useConnectionRecovery sets that, and checks the browser's offline
- * flag with a ping first, because the flag can say offline while the network works.
+ * Hook to detect online/offline status
  */
 function useOnlineStatus() {
-  return useSyncExternalStore(subscribeToOnline, getOnline, getServerOnline);
+  const [isOnline, setIsOnline] = useState(
+    typeof navigator !== 'undefined' ? navigator.onLine : true
+  );
+
+  useEffect(() => {
+    const handleOnline = () => {
+      setIsOnline(true);
+      logger.info('[OnlineStatus] Connection restored');
+    };
+    const handleOffline = () => {
+      setIsOnline(false);
+      logger.info('[OnlineStatus] Connection lost');
+    };
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  return isOnline;
 }
 
 /**
