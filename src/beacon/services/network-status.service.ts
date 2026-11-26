@@ -1,4 +1,5 @@
 import { buildPlatformApiUrl } from '@/lib/config';
+import { getStatusCategory, type DeviceStatusKey, type StatusDevice } from '@/lib/network-overview';
 import authService from './api-service';
 
 export interface NetworkStatusAlert {
@@ -75,6 +76,13 @@ export interface CohortBreakdownItem {
 export interface CohortBreakdownResponse {
   success: boolean;
   data: CohortBreakdownItem[];
+}
+
+export interface DevicesByStatusResponse {
+  success: boolean;
+  message?: string;
+  meta?: { total?: number };
+  devices: StatusDevice[];
 }
 
 export interface DeviceSummaryCountResponse {
@@ -207,6 +215,36 @@ class NetworkStatusService {
       if (filter.network) url.searchParams.append('network', filter.network);
       if (filter.cohort_id) url.searchParams.append('cohort_id', filter.cohort_id);
     }
+    const response = await fetch(url.toString(), {
+      headers: this.getHeaders(),
+    });
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status} ${response.statusText}`);
+    }
+    return response.json();
+  }
+
+  /**
+   * Deployed devices in one of the four statuses, longest silent first. The platform's device
+   * filters select a status by its two checks: isOnline (feed fresh within 5 hours) and
+   * rawOnlineStatus (transmitted within 2 hours).
+   */
+  async getDevicesByStatus(
+    status: DeviceStatusKey,
+    filter?: { network?: string; cohort_id?: string },
+    limit = 1000
+  ): Promise<DevicesByStatusResponse> {
+    const category = getStatusCategory(status);
+    const url = new URL(buildPlatformApiUrl('devices/summary', 'v2'));
+    url.searchParams.set('status', 'deployed');
+    url.searchParams.set('isOnline', String(category.isOnline));
+    url.searchParams.set('rawOnlineStatus', String(category.rawOnlineStatus));
+    url.searchParams.set('sortBy', 'lastActive');
+    url.searchParams.set('order', 'asc');
+    url.searchParams.set('limit', String(limit));
+    if (filter?.network) url.searchParams.set('network', filter.network);
+    if (filter?.cohort_id) url.searchParams.set('cohort_id', filter.cohort_id);
+
     const response = await fetch(url.toString(), {
       headers: this.getHeaders(),
     });

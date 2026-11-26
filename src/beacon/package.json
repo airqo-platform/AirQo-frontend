@@ -10,7 +10,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "node --import ./tests/unit/register.mjs --test tests/unit/auth/*.test.js tests/unit/manufacturers/*.test.js tests/unit/maintenance/*.test.js tests/unit/diagnostics/*.test.js tests/unit/onboarding/*.test.js tests/unit/reports/*.test.js tests/unit/analytics/*.test.js tests/unit/mock/*.test.js tests/unit/airqo/*.test.js tests/unit/env/*.test.js",
+    "test": "node --import ./tests/unit/register.mjs --test tests/unit/auth/*.test.js tests/unit/manufacturers/*.test.js tests/unit/maintenance/*.test.js tests/unit/diagnostics/*.test.js tests/unit/onboarding/*.test.js tests/unit/reports/*.test.js tests/unit/analytics/*.test.js tests/unit/mock/*.test.js tests/unit/airqo/*.test.js tests/unit/env/*.test.js tests/unit/overview/*.test.js",
     "export:template": "node scripts/export-template.mjs"
   },
   "dependencies": {
