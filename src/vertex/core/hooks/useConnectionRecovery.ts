@@ -192,8 +192,11 @@ export function useConnectionRecovery() {
   }, [setPhase]);
 
   useEffect(() => {
-    // React Query would pause every query on the browser's "offline" event alone; setPhase drives it
+    // React Query would pause every query on the browser's "offline" event alone; setPhase drives it.
+    // Replacing the listener keeps whatever React Query's own listener last set, which may be offline
+    // from an event that fired before this lazily loaded banner mounted, so match the phase now.
     onlineManager.setEventListener(() => undefined);
+    onlineManager.setOnline(phaseRef.current !== "offline");
 
     const handleOnline = () => {
       offlineCheckRef.current += 1;

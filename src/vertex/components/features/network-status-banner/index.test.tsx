@@ -454,6 +454,37 @@ describe('NetworkStatusBanner reconnect recovery', () => {
     expect(screen.queryByText(OFFLINE)).not.toBeInTheDocument();
   });
 
+  it('resumes queries React Query paused before the banner mounted', async () => {
+    // React Query's own listener saw an offline event first; the flag is wrong and the app answers
+    onlineManager.setOnline(false);
+    setOnLine(false);
+    ping.mockResolvedValue({ ok: true });
+    const client = createQueryClient();
+    const queryFn = vi.fn().mockResolvedValue('ok');
+    function List() {
+      useQuery({ queryKey: ['list'], queryFn });
+      return null;
+    }
+    // The banner is loaded lazily in the app, so it mounts after the query client is already running
+    const { rerender } = render(
+      <QueryClientProvider client={client}>
+        <List />
+      </QueryClientProvider>
+    );
+    await waitFor(() => expect(client.getQueryState(['list'])?.fetchStatus).toBe('paused'));
+
+    rerender(
+      <QueryClientProvider client={client}>
+        <List />
+        <NetworkStatusBanner />
+      </QueryClientProvider>
+    );
+
+    await waitFor(() => expect(client.getQueryState(['list'])?.status).toBe('success'));
+    expect(onlineManager.isOnline()).toBe(true);
+    expect(screen.queryByText(OFFLINE)).not.toBeInTheDocument();
+  });
+
   it('recovers without an online event when the browser flag stays on offline', async () => {
     const queryFn = vi.fn().mockRejectedValueOnce(networkError()).mockResolvedValue('ok');
     const client = await renderWithFailedList(queryFn);
