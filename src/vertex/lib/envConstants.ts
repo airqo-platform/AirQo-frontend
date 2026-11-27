@@ -3,13 +3,14 @@
  * Centralizes environment variable access with proper validation
  */
 
+import { getPublicEnv, readServerEnv } from '@/lib/public-env';
 
 /**
  * Gets the current environment from environment variables
  * @returns {string} The environment name
  */
 export const getEnvironment = (): string => {
-  return process.env.NEXT_PUBLIC_ENV || 'development';
+  return getPublicEnv('NEXT_PUBLIC_ENV') || 'development';
 };
 
 
@@ -19,7 +20,9 @@ export const getEnvironment = (): string => {
  * @throws {Error} If API_TOKEN is not defined
  */
 export const getApiToken = (): string => {
-  const apiToken = process.env.NEXT_PUBLIC_API_TOKEN;
+  // Despite the prefix, this must stay server-only. Reading it as a literal
+  // property of process.env put the token in the browser bundle.
+  const apiToken = readServerEnv('NEXT_PUBLIC_API_TOKEN');
   
   if (!apiToken) {
     throw new Error('NEXT_PUBLIC_API_TOKEN environment variable is not defined');
@@ -32,7 +35,7 @@ export const getApiToken = (): string => {
  * Gets the Cookie Policy URL
  * @returns {string} The cookie policy URL
  */
-export const COOKIE_POLICY_URL = process.env.NEXT_PUBLIC_COOKIE_POLICY_URL || 'https://airqo.net/legal/cookies';
+export const COOKIE_POLICY_URL = getPublicEnv('NEXT_PUBLIC_COOKIE_POLICY_URL') || 'https://airqo.net/legal/cookies';
 
 /**
  * Gets the Cloudinary cloud name
@@ -40,7 +43,7 @@ export const COOKIE_POLICY_URL = process.env.NEXT_PUBLIC_COOKIE_POLICY_URL || 'h
  * @throws {Error} If NEXT_PUBLIC_CLOUDINARY_NAME is not defined
  */
 export const getCloudinaryName = (): string => {
-  const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_NAME;
+  const cloudName = getPublicEnv('NEXT_PUBLIC_CLOUDINARY_NAME');
   
   if (!cloudName) {
     throw new Error('NEXT_PUBLIC_CLOUDINARY_NAME environment variable is not defined');
@@ -55,7 +58,7 @@ export const getCloudinaryName = (): string => {
  * @throws {Error} If NEXT_PUBLIC_CLOUDINARY_PRESET is not defined
  */
 export const getCloudinaryPreset = (): string => {
-  const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_PRESET;
+  const uploadPreset = getPublicEnv('NEXT_PUBLIC_CLOUDINARY_PRESET');
   
   if (!uploadPreset) {
     throw new Error('NEXT_PUBLIC_CLOUDINARY_PRESET environment variable is not defined');
@@ -99,7 +102,7 @@ export const getCloudinaryApiSecret = (): string => {
  * @returns {string} The HCaptcha site key
  */
 export const getHCaptchaSiteKey = (): string => {
-  return process.env.NEXT_PUBLIC_HCAPTCHA_SITE_KEY || '';
+  return getPublicEnv('NEXT_PUBLIC_HCAPTCHA_SITE_KEY') || '';
 };
 
 
@@ -124,14 +127,14 @@ export const getEnvConfig = () => {
     hCaptchaSiteKey: getHCaptchaSiteKey(),
     environment: getEnvironment(),
     hCaptchaEnabled: isHCaptchaEnabled(),
-    apiUrl: process.env.NEXT_PUBLIC_API_URL,
-    apiToken: process.env.NEXT_PUBLIC_API_TOKEN,
-    analyticsUrl: process.env.NEXT_PUBLIC_ANALYTICS_URL,
+    apiUrl: getPublicEnv('NEXT_PUBLIC_API_URL'),
+    apiToken: readServerEnv('NEXT_PUBLIC_API_TOKEN'),
+    analyticsUrl: getPublicEnv('NEXT_PUBLIC_ANALYTICS_URL'),
     cookiePolicyUrl: COOKIE_POLICY_URL,
-    mapboxToken: process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN,
-    mockPermissionsEnabled: process.env.NEXT_PUBLIC_MOCK_PERMISSIONS_ENABLED === 'true',
-    cloudinaryName: process.env.NEXT_PUBLIC_CLOUDINARY_NAME,
-    cloudinaryPreset: process.env.NEXT_PUBLIC_CLOUDINARY_PRESET,
+    mapboxToken: getPublicEnv('NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN'),
+    mockPermissionsEnabled: getPublicEnv('NEXT_PUBLIC_MOCK_PERMISSIONS_ENABLED') === 'true',
+    cloudinaryName: getPublicEnv('NEXT_PUBLIC_CLOUDINARY_NAME'),
+    cloudinaryPreset: getPublicEnv('NEXT_PUBLIC_CLOUDINARY_PRESET'),
   };
 };
 

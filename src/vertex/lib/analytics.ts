@@ -1,7 +1,8 @@
 /**
  * Product analytics for Vertex, sent to PostHog.
  *
- * - Nothing is sent unless NEXT_PUBLIC_POSTHOG_KEY is set when the app is built.
+ * - Nothing is sent unless NEXT_PUBLIC_POSTHOG_KEY is set in the server's environment
+ *   (read when the server runs, see lib/public-env.ts).
  * - posthog-js is imported lazily once the page is idle, so it never lands in a route chunk
  *   (the size-limit budget counts route chunks). Calls made before it loads wait in a short queue.
  * - Only pageviews and the named events below are captured: autocapture, rage clicks and dead
@@ -19,11 +20,12 @@ import type { CaptureResult, PostHog, PostHogConfig } from 'posthog-js';
 import { getEnvironment } from '@/lib/envConstants';
 import { getIsElectron } from '@/core/utils/platform';
 import { connectAnalytics, type SignInOptions, type TrackOptions } from '@/lib/track';
+import { getPublicEnv } from '@/lib/public-env';
 
 export const ANALYTICS_APP_NAME = 'vertex';
 
-const POSTHOG_KEY = process.env.NEXT_PUBLIC_POSTHOG_KEY || '';
-const POSTHOG_HOST = process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://us.i.posthog.com';
+const POSTHOG_KEY = getPublicEnv('NEXT_PUBLIC_POSTHOG_KEY') || '';
+const POSTHOG_HOST = getPublicEnv('NEXT_PUBLIC_POSTHOG_HOST') || 'https://us.i.posthog.com';
 
 // ─── Route templates ───────────────────────────────────────────────────────
 

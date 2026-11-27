@@ -59,12 +59,18 @@ export const metadata: Metadata = {
 };
 
 import { getThemeScript } from '@/lib/theme-utils';
+import { getPublicEnvScript, PUBLIC_ENV_SCRIPT_ID } from '@/lib/public-env';
+import { unstable_noStore as noStore } from 'next/cache';
 
 export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  // Render per request so pages carry this server's environment, never the
+  // build's (see lib/public-env.ts).
+  noStore();
+
   let session = null;
   try {
     session = await getServerSession(options);
@@ -77,6 +83,10 @@ export default async function RootLayout({
       <head>
         <link rel="preconnect" href="https://api.mapbox.com" />
         <link rel="preconnect" href="https://events.mapbox.com" />
+        <script
+          id={PUBLIC_ENV_SCRIPT_ID}
+          dangerouslySetInnerHTML={{ __html: getPublicEnvScript() }}
+        />
         <script
           id="theme-script"
           dangerouslySetInnerHTML={{ __html: getThemeScript() }}

@@ -72,7 +72,7 @@ The `integration` files are where your own additions plug into shared screens:
 
 ## Environment variables
 
-None are needed. All are optional; see [`.env.example`](./.env.example):
+None are needed. All are optional, and all are read when the server runs, so the image builds without them and a new value only needs a restart (`lib/public-env.ts`). See [`.env.example`](./.env.example):
 
 - `NEXT_PUBLIC_API_ADAPTER`, `NEXT_PUBLIC_BEACON_API_URL`, `NEXT_PUBLIC_PLATFORM_API_URL`: use a real backend.
 - `NEXT_PUBLIC_ENV`: `development`, `staging` or `production`; otherwise read from the address the app runs on.

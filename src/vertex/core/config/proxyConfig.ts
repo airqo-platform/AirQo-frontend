@@ -4,6 +4,7 @@
  */
 
 import logger from "@/lib/logger";
+import { getPublicEnv } from "@/lib/public-env";
 
 export interface EndpointConfig {
   requiresAuth: boolean;
@@ -186,7 +187,7 @@ export const getAuthOptions = (
 export const validateProxyConfig = (): boolean => {
   try {
     // Check if NEXT_PUBLIC_API_URL is set and valid
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+    const apiUrl = getPublicEnv("NEXT_PUBLIC_API_URL");
     if (!apiUrl) {
       logger.error('NEXT_PUBLIC_API_URL is not set in environment variables');
       return false;

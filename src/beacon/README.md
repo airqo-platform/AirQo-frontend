@@ -24,6 +24,9 @@ Service runs on: `http://localhost:3000`
 ### Staging
 Merging a pull request into `staging` deploys Beacon if that pull request changes something under `src/beacon/`, or the root `workflow-trigger` file, which deploys every frontend. The image is built from `staging` as of that merge, so it also includes any earlier merge that did not deploy.
 
+### Settings
+Beacon's settings, `NEXT_PUBLIC_*` included, are read when the server runs, not when the image is built (`lib/public-env.ts`). The build needs no `.env`. In deployments they come from the pods' environment, the Key Vault secret `sta-env-beacon-web` or `prod-env-beacon-web`, and a new value takes effect when the pods restart. The two API URLs the deploy passes as build arguments only set defaults that the pods' environment overrides.
+
 ### Development
 ```bash
 npm install --legacy-peer-deps

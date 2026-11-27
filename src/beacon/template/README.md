@@ -21,6 +21,7 @@ Beacon and the template share almost all their code. They differ in three ways.
    | File | Beacon | Template |
    | --- | --- | --- |
    | `lib/integration/api-urls.js` | AirQo platform and beacon-api URLs by environment | `NEXT_PUBLIC_BEACON_API_URL`, `NEXT_PUBLIC_PLATFORM_API_URL` |
+   | `lib/integration/public-env-keys.ts` | The platform API's `NEXT_PUBLIC_AIRQO_*` URLs, added to the settings the browser gets (`lib/public-env.ts`) | Empty |
    | `lib/integration/auth.ts` | Platform sign-in (password, social), or demo with `NEXT_PUBLIC_BEACON_MOCK` | Demo sign-in only |
    | `lib/integration/routes.ts` | Collocation, firmware, categories, stock and user pages | Empty |
    | `components/integration/index.tsx` | OAuth hand-off, AirQo apps launcher, Remote Shell and Files tabs | Empty |

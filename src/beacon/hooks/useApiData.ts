@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { onConnectionRestored, startNetworkMonitor } from '@/lib/network-status'
+import { isLikelyOffline, onConnectionRestored, startNetworkMonitor } from '@/lib/network-status'
 import { backoffDelay, isTransientError } from '@/lib/retry'
 
 interface UseApiDataOptions {
@@ -111,7 +111,7 @@ export function useApiData<T>(
         const failure = err instanceof Error ? err : new Error('Unknown error occurred')
 
         // Retrying while offline only burns attempts; the reconnect listener picks it up instead
-        const offline = typeof navigator !== 'undefined' && navigator.onLine === false
+        const offline = isLikelyOffline()
         if (retry < retryCount && !offline && isTransientError(failure)) {
           await new Promise<void>((resolve) => {
             const timer = setTimeout(() => {
@@ -175,7 +175,7 @@ export function useApiData<T>(
     const unsubscribe = refetchOnReconnect ? onConnectionRestored(refetchIfNeeded) : undefined
 
     const handleVisibility = () => {
-      if (document.visibilityState !== 'visible' || navigator.onLine === false) return
+      if (document.visibilityState !== 'visible' || isLikelyOffline()) return
       refetchIfNeeded()
     }
     if (refetchOnVisible) document.addEventListener('visibilitychange', handleVisibility)

@@ -1,7 +1,8 @@
 /**
  * Product analytics for Beacon, sent to PostHog.
  *
- * - Nothing is sent unless NEXT_PUBLIC_POSTHOG_KEY is set when the app is built.
+ * - Nothing is sent unless NEXT_PUBLIC_POSTHOG_KEY is set in the server's environment (read when the
+ *   server runs, see lib/public-env.ts).
  * - posthog-js is imported lazily once the page is idle, so it never lands in a route chunk.
  *   Calls made before it loads wait in a short queue.
  * - Only pageviews and the named events below are captured: autocapture, rage clicks and dead
@@ -17,12 +18,13 @@ import { getPageTitle } from "@/lib/navigation"
 import config from "@/lib/config"
 import { beaconConfig } from "@/beacon.config"
 import { EXTENSION_ROUTE_TEMPLATES } from "@/lib/integration/routes"
+import { getPublicEnv } from "@/lib/public-env"
 
 /** `app_name` on every event: the app name in lowercase ("beacon"). */
 export const ANALYTICS_APP_NAME = beaconConfig.app.name.toLowerCase()
 
-const POSTHOG_KEY = process.env.NEXT_PUBLIC_POSTHOG_KEY || ""
-const POSTHOG_HOST = process.env.NEXT_PUBLIC_POSTHOG_HOST || "https://us.i.posthog.com"
+const POSTHOG_KEY = getPublicEnv("NEXT_PUBLIC_POSTHOG_KEY") || ""
+const POSTHOG_HOST = getPublicEnv("NEXT_PUBLIC_POSTHOG_HOST") || "https://us.i.posthog.com"
 
 // ─── Route templates ───────────────────────────────────────────────────────
 
@@ -32,6 +34,7 @@ const POSTHOG_HOST = process.env.NEXT_PUBLIC_POSTHOG_HOST || "https://us.i.posth
  */
 export const ROUTE_TEMPLATES = [
   "/",
+  "/auth-error",
   "/login",
   "/dashboard",
   "/dashboard/alerts",

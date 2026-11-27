@@ -2,12 +2,13 @@ import { useMemo } from "react";
 import { useAppSelector } from "@/core/redux/hooks";
 import { permissionService, AccessContext } from "@/core/permissions/permissionService";
 import { Permission, PERMISSIONS } from "@/core/permissions/constants";
+import { getPublicEnv } from "@/lib/public-env";
 
 // DYNAMIC MOCK PERMISSIONS FOR DEVELOPMENT/TESTING
 // Control with NEXT_PUBLIC_MOCK_PERMISSIONS_ENABLED env variable (true/false)
 // Mock permissions are NEVER enabled in production, even if the env variable is set.
 export const MOCK_PERMISSIONS_ENABLED =
-  process.env.NEXT_PUBLIC_MOCK_PERMISSIONS_ENABLED === "true" &&
+  getPublicEnv("NEXT_PUBLIC_MOCK_PERMISSIONS_ENABLED") === "true" &&
   process.env.NODE_ENV !== "production";
 export const MOCK_PERMISSIONS: Partial<Record<Permission, boolean>> = {
   // Example: Only allow device deploy and site create, deny device update

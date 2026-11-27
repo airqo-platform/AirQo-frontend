@@ -4,6 +4,15 @@ import {
   type VertexConfigInput,
 } from "./core/config/vertex-config";
 import { resolveApiOrigin } from "./lib/api-routing";
+import { getPublicEnv } from "./lib/public-env";
+
+// `next build` runs without the deployment's environment (see lib/public-env.ts),
+// so the API origin is only known once the server starts. The build checks the
+// rest of this config against a stand-in origin; nothing reads it then.
+const apiOrigin =
+  process.env.NEXT_PHASE === "phase-production-build"
+    ? "https://api-origin.invalid"
+    : resolveApiOrigin();
 
 const config: VertexConfigInput = {
   ...defaultVertexConfig,
@@ -18,8 +27,8 @@ const config: VertexConfigInput = {
   },
   api: {
     adapter: "airqo",
-    baseUrl: resolveApiOrigin(),
-    publicMeasurementsBaseUrl: resolveApiOrigin(),
+    baseUrl: apiOrigin,
+    publicMeasurementsBaseUrl: apiOrigin,
   },
   auth: {
     provider: "airqo",
@@ -46,13 +55,13 @@ const config: VertexConfigInput = {
     docsUrl: "https://docs.airqo.net",
     privacyPolicyUrl: "https://airqo.net/legal/privacy",
     cookiePolicyUrl:
-      process.env.NEXT_PUBLIC_COOKIE_POLICY_URL ||
+      getPublicEnv("NEXT_PUBLIC_COOKIE_POLICY_URL") ||
       "https://airqo.net/legal/cookies",
     analyticsUrl:
-      process.env.NEXT_PUBLIC_ANALYTICS_URL ||
+      getPublicEnv("NEXT_PUBLIC_ANALYTICS_URL") ||
       "https://staging-analytics.airqo.net",
     desktopDownloadUrl:
-      process.env.NEXT_PUBLIC_VERTEX_DESKTOP_WINDOWS_DOWNLOAD_URL || "",
+      getPublicEnv("NEXT_PUBLIC_VERTEX_DESKTOP_WINDOWS_DOWNLOAD_URL") || "",
   },
 };
 

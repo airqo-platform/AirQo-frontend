@@ -1,13 +1,16 @@
 /**
  * Client-side connectivity monitor.
  *
- * `navigator.onLine` only says a network interface is up, so it is used as a
- * hint: going offline is trusted immediately, but "back online" is only
- * declared once a cheap request to our own server (/api/ping) succeeds.
+ * `navigator.onLine` is only a hint, in both directions. It can say "online"
+ * when nothing gets through, and some browsers (seen in Chrome on macOS) keep
+ * saying "offline" while the network works. So neither is believed until a
+ * cheap request to our own server (/api/ping) agrees: "offline" needs the ping
+ * to fail, and "back online" needs it to succeed.
  *
  * States:
  *  - online:       normal operation
- *  - offline:      the browser reports no network
+ *  - offline:      the browser reports no network and the server can't be reached
+ *                  (checked again with backoff, so a stuck browser flag can't hold it here)
  *  - reconnecting: the browser reports a network, but the server can't be reached yet
  *  - restored:     reachability confirmed after an outage; data is being refreshed
  *                  (lasts a few seconds, then back to "online")
@@ -16,6 +19,7 @@
  * `onConnectionRestored` run so data that failed during the outage can reload.
  */
 import { backoffDelay, isConnectivityError } from "@/lib/retry"
+import { isSessionRead, withSessionFallback } from "@/lib/session-fallback"
 
 export type ConnectionState = "online" | "offline" | "reconnecting" | "restored"
 
@@ -68,9 +72,11 @@ export function getServerConnectionState(): ConnectionState {
   return "online"
 }
 
-/** True while we know (or strongly suspect) the user has no connection. */
+/**
+ * True while the server is known to be unreachable. `navigator.onLine` alone
+ * doesn't count: it can report offline while requests still get through.
+ */
 export function isLikelyOffline(): boolean {
-  if (isBrowser() && navigator.onLine === false) return true
   return state === "offline" || state === "reconnecting"
 }
 
@@ -89,7 +95,7 @@ export function onConnectionRestored(listener: (event: ConnectionRestoredEvent) 
  */
 export function checkReachability(): Promise<boolean> {
   if (!isBrowser()) return Promise.resolve(true)
-  if (navigator.onLine === false) return Promise.resolve(false)
+  // No `navigator.onLine` shortcut: it can be wrong, and with no network the ping fails at once anyway
   if (lastPing && Date.now() - lastPing.at < PING_CACHE_MS) return Promise.resolve(lastPing.ok)
   if (pingInFlight) return pingInFlight
 
@@ -121,10 +127,22 @@ function clearPoll() {
   pollTimer = undefined
 }
 
+const isChecking = () => state === "offline" || state === "reconnecting"
+
+function schedulePoll() {
+  clearPoll()
+  pollTimer = setTimeout(() => void poll(), backoffDelay(pollAttempt++, 1000, 30_000))
+}
+
+/** Only called once the server has been found unreachable. */
 function goOffline() {
   clearPoll()
   if (restoredTimer) clearTimeout(restoredTimer)
+  pollAttempt = 0
   setState("offline")
+  // Keep checking rather than wait for the "online" event, which never comes
+  // if the browser's flag is stuck on offline
+  schedulePoll()
 }
 
 function startReconnecting() {
@@ -137,16 +155,43 @@ function startReconnecting() {
 
 async function poll() {
   clearPoll()
-  if (state !== "reconnecting") return
+  if (!isChecking()) return
 
   const ok = await checkReachability()
-  if (state !== "reconnecting") return
+  if (!isChecking()) return
 
   if (ok) {
     restore()
     return
   }
-  pollTimer = setTimeout(() => void poll(), backoffDelay(pollAttempt++, 1000, 30_000))
+  schedulePoll()
+}
+
+/** Checks the server now rather than at the next backoff timer (the banner's Retry). */
+export async function checkConnectionNow(): Promise<void> {
+  if (!isChecking()) return
+  lastPing = undefined
+  pollAttempt = 0
+  await poll()
+}
+
+/**
+ * The browser says there's no network. Believe it only if our server can't be
+ * reached either; otherwise the flag is wrong and nothing changes.
+ */
+function confirmOffline() {
+  lastPing = undefined // a success cached from before the drop must not hide it
+  void checkReachability().then((ok) => {
+    if (ok) {
+      if (state === "offline") restore()
+      return
+    }
+    if (isChecking()) return
+    // The server can't be reached. If an "online" event came during the check, it found the
+    // monitor still online and did nothing, so reconnect (and keep polling) here instead.
+    if (navigator.onLine === false) goOffline()
+    else startReconnecting()
+  })
 }
 
 function restore() {
@@ -188,8 +233,10 @@ export function reportRequestFailure(error: unknown, method = "GET") {
   }
 
   void checkReachability().then((ok) => {
-    if (ok || state === "offline" || state === "reconnecting") return
+    if (ok) return
+    // Recorded before the state check: an offline check sharing this ping may have changed the state first
     if (isRead) lostRequests = true
+    if (isChecking()) return
     if (navigator.onLine === false) goOffline()
     else startReconnecting()
   })
@@ -205,7 +252,9 @@ function requestMethod(input: RequestInfo | URL, init?: RequestInit): string {
 
 /**
  * Most Beacon pages call `fetch` directly, so failures are observed with a
- * thin pass-through wrapper. The caller gets the original promise unchanged.
+ * thin pass-through wrapper. The caller gets the original promise unchanged,
+ * except next-auth's session check, which keeps the last session through a
+ * failure (see lib/session-fallback).
  */
 function observeFetch() {
   // Already wrapped (e.g. this module was re-evaluated by hot reload): reuse the original
@@ -221,14 +270,15 @@ function observeFetch() {
   const observed: typeof fetch = (input, init) => {
     const promise = original(input, init)
     promise.catch((error) => reportRequestFailure(error, requestMethod(input, init)))
-    return promise
+    return isSessionRead(input, init) ? withSessionFallback(promise) : promise
   }
   ;(observed as any).__beaconNativeFetch = original
   window.fetch = observed
 }
 
 function handleOnline() {
-  startReconnecting()
+  // Already online if the "offline" event before it turned out to be wrong
+  if (isChecking()) startReconnecting()
 }
 
 function handleVisibility() {
@@ -236,11 +286,11 @@ function handleVisibility() {
 
   // Timers are throttled in background tabs and the "online" event can be
   // missed across sleep/wake, so re-check as soon as the tab is visible again.
-  if (navigator.onLine === false) {
-    goOffline()
-  } else if (state === "offline") {
+  if (navigator.onLine === false && !isChecking()) {
+    confirmOffline()
+  } else if (state === "offline" && navigator.onLine !== false) {
     startReconnecting()
-  } else if (state === "reconnecting") {
+  } else if (isChecking()) {
     pollAttempt = 0
     void poll()
   }
@@ -252,9 +302,9 @@ export function startNetworkMonitor() {
   started = true
 
   observeFetch()
-  window.addEventListener("offline", goOffline)
+  window.addEventListener("offline", confirmOffline)
   window.addEventListener("online", handleOnline)
   document.addEventListener("visibilitychange", handleVisibility)
 
-  if (navigator.onLine === false) goOffline()
+  if (navigator.onLine === false) confirmOffline()
 }

@@ -1,4 +1,5 @@
 import { brandTitleOf, isSystemGroupTitle, validateBeaconConfig, type BeaconConfigInput } from "@/lib/beacon-config"
+import { getPublicEnv } from "@/lib/public-env"
 
 // Generic defaults. Copy beacon.config.example.ts over this file (or edit in place) to brand the
 // app for your organization. The schema lives in lib/beacon-config.ts.
@@ -19,7 +20,7 @@ const config: BeaconConfigInput = {
   api: {
     // "mock" serves the demo fleet from this app; "http" calls a real Beacon API and platform API
     // at NEXT_PUBLIC_BEACON_API_URL and NEXT_PUBLIC_PLATFORM_API_URL.
-    adapter: process.env.NEXT_PUBLIC_API_ADAPTER === "http" ? "http" : "mock",
+    adapter: getPublicEnv("NEXT_PUBLIC_API_ADAPTER") === "http" ? "http" : "mock",
   },
   auth: {
     provider: "none",
@@ -35,7 +36,7 @@ const config: BeaconConfigInput = {
   },
   features: {
     maintenanceMap: true,
-    roadRouting: process.env.NEXT_PUBLIC_ENABLE_ROAD_ROUTING === "true",
+    roadRouting: getPublicEnv("NEXT_PUBLIC_ENABLE_ROAD_ROUTING") === "true",
     reports: true,
     deviceDataAnalysis: true,
     productTours: true,

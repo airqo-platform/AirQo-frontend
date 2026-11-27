@@ -1,3 +1,5 @@
+import { getPublicEnv } from './public-env';
+
 const DEFAULT_API_VERSION_FALLBACK = 'v2';
 
 const resolveDefaultApiVersion = (): string => {
@@ -53,9 +55,9 @@ const isAlreadyVersionedPath = (value: string): boolean => {
 export const resolveApiOrigin = (): string => {
   const configuredBaseUrl =
     process.env.API_BASE_URL ||
-    process.env.NEXT_PUBLIC_API_BASE_URL ||
-    process.env.NEXT_PUBLIC_API_URL ||
-    process.env.NEXT_PUBLIC_BASE_URL ||
+    getPublicEnv('NEXT_PUBLIC_API_BASE_URL') ||
+    getPublicEnv('NEXT_PUBLIC_API_URL') ||
+    getPublicEnv('NEXT_PUBLIC_BASE_URL') ||
     '';
 
   const normalizedOrigin = stripApiSuffix(configuredBaseUrl);

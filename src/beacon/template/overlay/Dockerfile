@@ -21,12 +21,7 @@ COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
 
-# Public env read at build time (see .env.example)
-ARG NEXT_PUBLIC_ENV=production
-ARG NEXT_PUBLIC_POSTHOG_KEY=
-ENV NEXT_PUBLIC_ENV=$NEXT_PUBLIC_ENV
-ENV NEXT_PUBLIC_POSTHOG_KEY=$NEXT_PUBLIC_POSTHOG_KEY
-
+# The build needs no settings: the server reads them when it runs (lib/public-env.ts)
 # Build the application
 RUN npm run build
 
@@ -56,6 +51,13 @@ EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
 ENV NODE_ENV=production
+
+# Defaults for settings the server reads when it runs (see .env.example and lib/public-env.ts).
+# `docker run -e NAME=value` overrides them, so a new value only needs a restart.
+ARG NEXT_PUBLIC_ENV=production
+ARG NEXT_PUBLIC_POSTHOG_KEY=
+ENV NEXT_PUBLIC_ENV=$NEXT_PUBLIC_ENV
+ENV NEXT_PUBLIC_POSTHOG_KEY=$NEXT_PUBLIC_POSTHOG_KEY
 
 # Start the application using the standalone server
 CMD ["node", "server.js"]

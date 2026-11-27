@@ -1,5 +1,6 @@
 import log from 'loglevel';
 import axios from 'axios';
+import { getPublicEnv } from '@/lib/public-env';
 
 // Set the level based on the environment
 const isProduction = process.env.NODE_ENV === 'production';
@@ -10,7 +11,7 @@ const shouldLogToSlack = () => {
     return false;
   }
 
-  const env = process.env.NEXT_PUBLIC_ALLOW_DEV_TOOLS || process.env.NODE_ENV;
+  const env = getPublicEnv('NEXT_PUBLIC_ALLOW_DEV_TOOLS') || process.env.NODE_ENV;
   return env === 'production' || env === 'staging';
 };
 

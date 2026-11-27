@@ -4,6 +4,7 @@ import {
   saveThemeToStorage,
   getStoredTheme,
 } from '@/lib/theme-utils';
+import { getPublicEnv } from '@/lib/public-env';
 
 /**
  * Resolves the platform API base URL across local development, staging, and production.
@@ -19,32 +20,32 @@ export const getPlatformApiBaseUrl = (): string => {
       /^172\.(1[6-9]|2\d|3[0-1])\./.test(hostname)
     ) {
       return (
-        process.env.NEXT_PUBLIC_AIRQO_STAGING_API_BASE_URL ||
-        process.env.NEXT_PUBLIC_API_URL ||
+        getPublicEnv('NEXT_PUBLIC_AIRQO_STAGING_API_BASE_URL') ||
+        getPublicEnv('NEXT_PUBLIC_API_URL') ||
         'https://staging-platform.airqo.net'
       );
     }
     if (hostname.includes('stage') || hostname.includes('staging')) {
       return (
-        process.env.NEXT_PUBLIC_AIRQO_STAGING_API_BASE_URL ||
-        process.env.NEXT_PUBLIC_API_URL ||
+        getPublicEnv('NEXT_PUBLIC_AIRQO_STAGING_API_BASE_URL') ||
+        getPublicEnv('NEXT_PUBLIC_API_URL') ||
         'https://staging-platform.airqo.net'
       );
     }
   }
 
-  const env = (process.env.NEXT_PUBLIC_ENV || process.env.NODE_ENV || '').toLowerCase();
+  const env = (getPublicEnv('NEXT_PUBLIC_ENV') || process.env.NODE_ENV || '').toLowerCase();
   if (env === 'production') {
     return (
-      process.env.NEXT_PUBLIC_AIRQO_API_BASE_URL ||
-      process.env.NEXT_PUBLIC_API_URL ||
+      getPublicEnv('NEXT_PUBLIC_AIRQO_API_BASE_URL') ||
+      getPublicEnv('NEXT_PUBLIC_API_URL') ||
       'https://platform.airqo.net'
     );
   }
 
   return (
-    process.env.NEXT_PUBLIC_AIRQO_STAGING_API_BASE_URL ||
-    process.env.NEXT_PUBLIC_API_URL ||
+    getPublicEnv('NEXT_PUBLIC_AIRQO_STAGING_API_BASE_URL') ||
+    getPublicEnv('NEXT_PUBLIC_API_URL') ||
     'https://staging-platform.airqo.net'
   );
 };

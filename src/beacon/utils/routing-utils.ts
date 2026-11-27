@@ -1,4 +1,5 @@
 import { beaconConfig } from "@/beacon.config";
+import { getPublicEnv } from "@/lib/public-env";
 
 export interface Coordinates {
     latitude: number;
@@ -238,7 +239,7 @@ export const buildGoogleMapsDirectionsLinks = (
 export const ROAD_ROUTING_ENABLED = beaconConfig.features.roadRouting;
 
 export const OSRM_BASE_URL =
-    (typeof process !== "undefined" && process.env.NEXT_PUBLIC_OSRM_BASE_URL) ||
+    getPublicEnv("NEXT_PUBLIC_OSRM_BASE_URL") ||
     "https://router.project-osrm.org";
 
 /** The demo server rejects trip requests above this many coordinates. */

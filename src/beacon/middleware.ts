@@ -16,6 +16,10 @@ const PUBLIC_ROUTES = [
   '/reset-password'
 ]
 
+// Routes anyone can open, signed in or not: next-auth sends sign-in failures to /auth-error,
+// so it must neither redirect a signed-out visitor to login nor bounce a signed-in one to the dashboard
+const OPEN_ROUTES = ['/auth-error']
+
 // Static assets and system routes to skip
 const SKIP_PATHS = [
   '/api/',
@@ -43,6 +47,10 @@ export default withAuth(
     
     // Skip middleware for API routes and static assets
     if (SKIP_PATHS.some(path => pathname.startsWith(path))) {
+      return NextResponse.next()
+    }
+
+    if (OPEN_ROUTES.some(route => pathname === route || pathname.startsWith(`${route}/`))) {
       return NextResponse.next()
     }
 
@@ -82,8 +90,11 @@ export default withAuth(
     callbacks: {
       authorized: () => true, // Let the middleware function handle the routing logic
     },
+    // Match lib/auth.ts. withAuth lets these two through before checking the secret, so a missing
+    // NEXTAUTH_SECRET lands on /auth-error?error=Configuration instead of redirecting in a loop
     pages: {
       signIn: "/login",
+      error: "/auth-error",
     },
     secret: AUTH_SECRET,
     cookies: {
