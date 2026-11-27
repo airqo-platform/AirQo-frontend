@@ -4,7 +4,7 @@ rollingUpdate:
   maxUnavailable: 1
 image:
   repository: airqoacr.azurecr.io/airqo-stage-vertex
-  tag: stage-2df14457-1795591551
+  tag: stage-9917bfc1-1795748007
   pullPolicy: IfNotPresent
 imagePullSecrets: []
 nameOverride: ''
