@@ -6,9 +6,9 @@ import { createQueryClient } from '@/core/providers/query-provider';
 import { HIDDEN_RECOVERY_THRESHOLD_MS } from '@/core/utils/queryRecoveryPolicy';
 import NetworkStatusBanner from './index';
 
-const OFFLINE = /You are offline/;
+const OFFLINE = /You're offline/;
 const REFRESHING = /Refreshing data/;
-const RESTORED = /Connection restored/;
+const RESTORED = /Back online/;
 const UNSTABLE = /Connection is unstable/;
 
 const networkError = () =>
@@ -68,7 +68,11 @@ describe('NetworkStatusBanner reconnect recovery', () => {
   let ping: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
-    ping = vi.fn().mockResolvedValue({ ok: true });
+    // Like a real request, the ping fails while there is no network
+    ping = vi.fn(async () => {
+      if (navigator.onLine === false) throw new TypeError('Failed to fetch');
+      return { ok: true };
+    });
     vi.stubGlobal('fetch', ping);
   });
 
@@ -113,11 +117,11 @@ describe('NetworkStatusBanner reconnect recovery', () => {
 
   it('confirms the app can be reached before refreshing', async () => {
     const reachable = deferred<{ ok: boolean }>();
-    ping.mockReturnValueOnce(reachable.promise);
     const queryFn = vi.fn().mockRejectedValueOnce(networkError()).mockResolvedValue('ok');
     await renderWithFailedList(queryFn);
 
     goOffline();
+    ping.mockReturnValueOnce(reachable.promise);
     goOnline();
 
     await screen.findByText(/Reconnecting/);
@@ -135,7 +139,6 @@ describe('NetworkStatusBanner reconnect recovery', () => {
 
   it('refetches stale user details only once the app is confirmed reachable', async () => {
     const reachable = deferred<{ ok: boolean }>();
-    ping.mockReturnValueOnce(reachable.promise);
     const client = createQueryClient();
     const queryFn = vi.fn().mockResolvedValue({ success: true, message: 'ok', users: [] });
     function UserDetails() {
@@ -152,6 +155,7 @@ describe('NetworkStatusBanner reconnect recovery', () => {
     await act(() => client.invalidateQueries({ queryKey: ['userDetails'], refetchType: 'none' }));
 
     goOffline();
+    ping.mockReturnValueOnce(reachable.promise);
     goOnline();
 
     await screen.findByText(/Reconnecting/);
@@ -201,11 +205,11 @@ describe('NetworkStatusBanner reconnect recovery', () => {
   });
 
   it('shows unstable with Retry when the app cannot be reached, and recovers on Retry', async () => {
-    ping.mockResolvedValueOnce({ ok: false });
     const queryFn = vi.fn().mockRejectedValue(networkError());
     const client = await renderWithFailedList(queryFn);
 
     goOffline();
+    ping.mockResolvedValueOnce({ ok: false });
     goOnline();
 
     await screen.findByText(UNSTABLE);
@@ -219,16 +223,17 @@ describe('NetworkStatusBanner reconnect recovery', () => {
   });
 
   it('keeps checking and recovers without Retry once the app can be reached', async () => {
-    ping.mockResolvedValueOnce({ ok: false });
     const queryFn = vi.fn().mockRejectedValueOnce(networkError()).mockResolvedValue('ok');
     await renderWithFailedList(queryFn);
 
     goOffline();
+    const pingsBefore = ping.mock.calls.length;
+    ping.mockResolvedValueOnce({ ok: false });
     goOnline();
 
     await screen.findByText(UNSTABLE);
     await screen.findByText(RESTORED, undefined, { timeout: 2000 });
-    expect(ping).toHaveBeenCalledTimes(2);
+    expect(ping.mock.calls.length - pingsBefore).toBe(2);
   });
 
   it('shows unstable with Retry when a refetch still fails', async () => {
@@ -376,6 +381,7 @@ describe('NetworkStatusBanner reconnect recovery', () => {
     const client = await renderWithFailedList(queryFn);
 
     goOffline();
+    await screen.findByText(OFFLINE);
     expect(onlineManager.isOnline()).toBe(false);
 
     setOnLine(true);
@@ -399,11 +405,11 @@ describe('NetworkStatusBanner reconnect recovery', () => {
 
   it('stops recovering if the connection drops again', async () => {
     const reachable = deferred<{ ok: boolean }>();
-    ping.mockReturnValueOnce(reachable.promise);
     const queryFn = vi.fn().mockRejectedValueOnce(networkError()).mockResolvedValue('ok');
     await renderWithFailedList(queryFn);
 
     goOffline();
+    ping.mockReturnValueOnce(reachable.promise);
     goOnline();
     await screen.findByText(/Reconnecting/);
     goOffline();
@@ -412,6 +418,133 @@ describe('NetworkStatusBanner reconnect recovery', () => {
 
     await screen.findByText(OFFLINE);
     expect(screen.queryByText(RESTORED)).not.toBeInTheDocument();
+  });
+
+  it('ignores the browser saying offline while the app can still be reached', async () => {
+    ping.mockResolvedValue({ ok: true });
+    const queryFn = vi.fn().mockRejectedValueOnce(networkError()).mockResolvedValue('ok');
+    await renderWithFailedList(queryFn);
+
+    goOffline();
+
+    await waitFor(() => expect(ping).toHaveBeenCalled());
+    await act(async () => new Promise((resolve) => setTimeout(resolve, 20)));
+    expect(screen.queryByText(OFFLINE)).not.toBeInTheDocument();
+    expect(onlineManager.isOnline()).toBe(true);
+  });
+
+  it('does not start offline when the browser flag is wrong at load', async () => {
+    setOnLine(false);
+    ping.mockResolvedValue({ ok: true });
+    const client = createQueryClient();
+    const queryFn = vi.fn().mockResolvedValue('ok');
+    function List() {
+      useQuery({ queryKey: ['list'], queryFn });
+      return null;
+    }
+    render(
+      <QueryClientProvider client={client}>
+        <List />
+        <NetworkStatusBanner />
+      </QueryClientProvider>
+    );
+
+    await waitFor(() => expect(client.getQueryState(['list'])?.status).toBe('success'));
+    await act(async () => new Promise((resolve) => setTimeout(resolve, 20)));
+    expect(screen.queryByText(OFFLINE)).not.toBeInTheDocument();
+  });
+
+  it('resumes queries React Query paused before the banner mounted', async () => {
+    // React Query's own listener saw an offline event first; the flag is wrong and the app answers
+    onlineManager.setOnline(false);
+    setOnLine(false);
+    ping.mockResolvedValue({ ok: true });
+    const client = createQueryClient();
+    const queryFn = vi.fn().mockResolvedValue('ok');
+    function List() {
+      useQuery({ queryKey: ['list'], queryFn });
+      return null;
+    }
+    // The banner is loaded lazily in the app, so it mounts after the query client is already running
+    const { rerender } = render(
+      <QueryClientProvider client={client}>
+        <List />
+      </QueryClientProvider>
+    );
+    await waitFor(() => expect(client.getQueryState(['list'])?.fetchStatus).toBe('paused'));
+
+    rerender(
+      <QueryClientProvider client={client}>
+        <List />
+        <NetworkStatusBanner />
+      </QueryClientProvider>
+    );
+
+    await waitFor(() => expect(client.getQueryState(['list'])?.status).toBe('success'));
+    expect(onlineManager.isOnline()).toBe(true);
+    expect(screen.queryByText(OFFLINE)).not.toBeInTheDocument();
+  });
+
+  it('recovers without an online event when the browser flag stays on offline', async () => {
+    const queryFn = vi.fn().mockRejectedValueOnce(networkError()).mockResolvedValue('ok');
+    const client = await renderWithFailedList(queryFn);
+
+    goOffline();
+    await screen.findByText(OFFLINE);
+    expect(onlineManager.isOnline()).toBe(false);
+
+    // The app answers again, but the browser never says so
+    ping.mockResolvedValue({ ok: true });
+
+    await screen.findByText(RESTORED, undefined, { timeout: 2000 });
+    expect(onlineManager.isOnline()).toBe(true);
+    expect(client.getQueryState(['list'])?.status).toBe('success');
+  });
+
+  it('lets the offline notice be closed', async () => {
+    const queryFn = vi.fn().mockRejectedValue(networkError());
+    await renderWithFailedList(queryFn);
+
+    goOffline();
+    await screen.findByText(OFFLINE);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Dismiss network status notification' }));
+    await waitFor(() => expect(screen.queryByText(OFFLINE)).not.toBeInTheDocument());
+  });
+
+  it('checks the app straight away on Retry while offline', async () => {
+    const queryFn = vi.fn().mockRejectedValueOnce(networkError()).mockResolvedValue('ok');
+    const client = await renderWithFailedList(queryFn);
+
+    goOffline();
+    await screen.findByText(OFFLINE);
+
+    // The app answers again while the browser still says offline; Retry finds out before the next timed check
+    ping.mockResolvedValue({ ok: true });
+    fireEvent.click(screen.getByRole('button', { name: 'Retry' }));
+
+    await screen.findByText(RESTORED, undefined, { timeout: 400 });
+    expect(client.getQueryState(['list'])?.status).toBe('success');
+  });
+
+  it('does not let an older Retry check undo a newer recovery', async () => {
+    const queryFn = vi.fn().mockRejectedValueOnce(networkError()).mockResolvedValue('ok');
+    await renderWithFailedList(queryFn);
+
+    goOffline();
+    await screen.findByText(OFFLINE);
+
+    // Retry's check hangs; meanwhile the timed check finds the app reachable and recovers
+    const retryCheck = deferred<{ ok: boolean }>();
+    ping.mockReturnValueOnce(retryCheck.promise);
+    fireEvent.click(screen.getByRole('button', { name: 'Retry' }));
+    ping.mockResolvedValue({ ok: true });
+    await screen.findByText(RESTORED, undefined, { timeout: 2000 });
+
+    await act(async () => retryCheck.reject(new TypeError('Failed to fetch')));
+    await act(async () => new Promise((resolve) => setTimeout(resolve, 400)));
+    expect(screen.queryByText(OFFLINE)).not.toBeInTheDocument();
+    expect(onlineManager.isOnline()).toBe(true);
   });
 
   it('hides the restored message after the auto-hide delay', async () => {
