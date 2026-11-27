@@ -1,7 +1,7 @@
 import { beaconConfig } from "@/beacon.config"
 import { DEFAULT_PRIMARY_COLOR } from "@/lib/theme-utils"
 import { DEMO_GROUPS, DEMO_USER } from "./identity"
-import { COHORTS, DAY, DEVICES, HOUR, findCohort, reportedInHour, type DemoDevice } from "./fleet"
+import { COHORTS, DAY, DEVICES, HOUR, findCohort, lastActive, noise, reportedInHour, type DemoDevice } from "./fleet"
 import { deviceRecord } from "./beacon-api"
 import { MockRouter } from "./router"
 
@@ -94,11 +94,31 @@ function scopedDevices(query: URLSearchParams): DemoDevice[] {
 
 const THRESHOLD = 30
 
-/** One status check: how many deployed devices transmitted in the hour `hoursBack` ago. */
+type DemoStatus = "operational" | "transmitting" | "data_available" | "not_transmitting"
+
+/**
+ * A device's status as the platform classifies it `hoursBack` hours ago: rawOnlineStatus is a
+ * transmission in the last 2 hours, isOnline a fresh feed in the last 5. A few devices' feeds lag
+ * behind their transmissions, so all four statuses appear in the demo.
+ */
+function statusAt(device: DemoDevice, hoursBack: number): DemoStatus {
+  const sent = (from: number, to: number) => {
+    for (let h = from; h <= to; h++) if (reportedInHour(device, hoursBack + h)) return true
+    return false
+  }
+  const rawOnline = sent(0, 1)
+  const feedLags = noise(`${device._id}-feed-lag`) < 0.08
+  const feedFresh = !feedLags && sent(0, 4)
+  if (rawOnline) return feedFresh ? "operational" : "transmitting"
+  return feedFresh ? "data_available" : "not_transmitting"
+}
+
+/** One status check: the deployed devices in each status `hoursBack` hours ago. */
 function check(devices: DemoDevice[], hoursBack: number) {
   const total = devices.length
-  const transmitting = devices.filter((d) => reportedInHour(d, hoursBack)).length
-  const notTransmitting = total - transmitting
+  const counts = { operational: 0, transmitting: 0, data_available: 0, not_transmitting: 0 }
+  for (const d of devices) counts[statusAt(d, hoursBack)]++
+  const notTransmitting = counts.not_transmitting
   const pct = total ? round((notTransmitting / total) * 100, 1) : 0
   const checkedAt = new Date((Math.floor(Date.now() / HOUR) - hoursBack) * HOUR).toISOString()
   const status = pct >= 50 ? "CRITICAL" : pct >= THRESHOLD ? "WARNING" : "OK"
@@ -107,16 +127,16 @@ function check(devices: DemoDevice[], hoursBack: number) {
     checked_at: checkedAt,
     createdAt: checkedAt,
     total_deployed_devices: total,
-    operational_count: transmitting,
-    transmitting_count: transmitting,
-    data_available_count: transmitting,
+    operational_count: counts.operational,
+    transmitting_count: counts.transmitting,
+    data_available_count: counts.data_available,
     not_transmitting_devices_count: notTransmitting,
     not_transmitting_percentage: pct,
     status,
     severity: status === "CRITICAL" ? "HIGH" : status === "WARNING" ? "MEDIUM" : "LOW",
     message:
       status === "OK"
-        ? `${transmitting} of ${total} devices transmitting`
+        ? `${total - notTransmitting} of ${total} devices transmitting`
         : `${notTransmitting} of ${total} devices (${pct}%) are not transmitting`,
     threshold_exceeded: pct >= THRESHOLD,
     threshold_value: THRESHOLD,
@@ -271,5 +291,41 @@ platformApi.get("/devices/summary/count", ({ query }) => {
       data_available: latest.data_available_count,
       not_transmitting: latest.not_transmitting_devices_count,
     },
+  })
+})
+
+/**
+ * Deployed devices filtered by the two status checks, as the platform's device list does with
+ * ?status=deployed&isOnline=…&rawOnlineStatus=…&sortBy=lastActive&order=asc.
+ */
+platformApi.get("/devices/summary", ({ query }) => {
+  const flag = (name: string) => (query.has(name) ? query.get(name) === "true" : undefined)
+  const isOnline = flag("isOnline")
+  const rawOnline = flag("rawOnlineStatus")
+  const matches = (d: DemoDevice) => {
+    const status = statusAt(d, 0)
+    const online = status === "operational" || status === "data_available"
+    const raw = status === "operational" || status === "transmitting"
+    return (isOnline === undefined || online === isOnline) && (rawOnline === undefined || raw === rawOnline)
+  }
+  const seen = (d: DemoDevice) => Date.parse(lastActive(d) ?? "") || -Infinity
+  const order = query.get("order") === "desc" ? -1 : 1
+  const limit = Number(query.get("limit")) || 30
+  const devices = scopedDevices(query)
+    .filter(matches)
+    .sort((a, b) => order * (seen(a) - seen(b)))
+  return ok({
+    meta: { total: devices.length, limit },
+    devices: devices.slice(0, limit).map((d) => ({
+      _id: d._id,
+      name: d.name,
+      long_name: d.long_name,
+      network: d.network,
+      status: d.status,
+      isOnline: statusAt(d, 0) === "operational" || statusAt(d, 0) === "data_available",
+      lastActive: lastActive(d),
+      lastRawData: lastActive(d),
+      site: d.site ? [{ _id: d.site._id, name: d.site.name, district: d.site.district, country: d.site.country }] : [],
+    })),
   })
 })

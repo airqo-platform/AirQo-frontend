@@ -72,6 +72,7 @@ const PLATFORM_READS = [
   ["devices/network-status/breakdown", {}, "data"],
   ["devices/network-status/breakdown/cohorts", {}, "data"],
   ["devices/summary/count", { network: "acme" }, "data"],
+  ["devices/summary", { status: "deployed", isOnline: "false", rawOnlineStatus: "false" }, "devices"],
 ]
 
 for (const [path, query, key] of PLATFORM_READS) {
